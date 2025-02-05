@@ -219,6 +219,7 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 	}
 
 	node.objectStore.put(object.id, object);
+	log.info("::updateHandler: Object updated, number of vertices: ", object.vertices.length);
 }
 
 /*
