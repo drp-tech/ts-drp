@@ -205,6 +205,7 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	}
 
 	node.objectStore.put(object.id, object);
+	node.log.info("::updateHandler: Object updated, number of vertices: ", object.vertices.length);
 
 	return true;
 }
