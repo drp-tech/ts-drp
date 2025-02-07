@@ -69,11 +69,11 @@ export async function drpMessagesHandler(
 		} else if (data) {
 			message = Message.decode(data);
 		} else {
-			log.error("::messageHandler: Stream and data are undefined");
+			node.log.error("::messageHandler: Stream and data are undefined");
 			return;
 		}
 	} catch (err) {
-		log.error("::messageHandler: Error decoding message", err);
+		node.log.error("::messageHandler: Error decoding message", err);
 		return;
 	}
 
@@ -93,7 +93,7 @@ function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandler
 	const fetchState = FetchState.decode(data);
 	const drpObject = node.objectStore.get(fetchState.objectId);
 	if (!drpObject) {
-		log.error("::fetchStateHandler: Object not found");
+		node.log.error("::fetchStateHandler: Object not found");
 		return;
 	}
 
@@ -112,7 +112,7 @@ function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandler
 		data: FetchStateResponse.encode(response).finish(),
 	});
 	node.networkNode.sendMessage(sender, messageFetchStateResponse).catch((e) => {
-		log.error("::fetchStateHandler: Error sending message", e);
+		node.log.error("::fetchStateHandler: Error sending message", e);
 	});
 }
 
@@ -120,15 +120,15 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 	const { data } = message;
 	const fetchStateResponse = FetchStateResponse.decode(data);
 	if (!fetchStateResponse.drpState && !fetchStateResponse.aclState) {
-		log.error("::fetchStateResponseHandler: No state found");
+		node.log.error("::fetchStateResponseHandler: No state found");
 	}
 	const object = node.objectStore.get(fetchStateResponse.objectId);
 	if (!object) {
-		log.error("::fetchStateResponseHandler: Object not found");
+		node.log.error("::fetchStateResponseHandler: Object not found");
 		return;
 	}
 	if (!object.acl) {
-		log.error("::fetchStateResponseHandler: ACL not found");
+		node.log.error("::fetchStateResponseHandler: ACL not found");
 		return;
 	}
 
@@ -158,7 +158,7 @@ function attestationUpdateHandler({ node, message }: HandleParams): ReturnType<I
 	const attestationUpdate = AttestationUpdate.decode(data);
 	const object = node.objectStore.get(attestationUpdate.objectId);
 	if (!object) {
-		log.error("::attestationUpdateHandler: Object not found");
+		node.log.error("::attestationUpdateHandler: Object not found");
 		return;
 	}
 
@@ -177,7 +177,7 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 	const updateMessage = Update.decode(data);
 	const object = node.objectStore.get(updateMessage.objectId);
 	if (!object) {
-		log.error("::updateHandler: Object not found");
+		node.log.error("::updateHandler: Object not found");
 		return;
 	}
 
@@ -213,7 +213,7 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 			});
 
 			node.networkNode.broadcastMessage(object.id, message).catch((e) => {
-				log.error("::updateHandler: Error broadcasting message", e);
+				node.log.error("::updateHandler: Error broadcasting message", e);
 			});
 		}
 	}
@@ -235,7 +235,7 @@ async function syncHandler({ node, message, stream }: HandleParams): Promise<voi
 	const syncMessage = Sync.decode(data);
 	const object = node.objectStore.get(syncMessage.objectId);
 	if (!object) {
-		log.error("::syncHandler: Object not found");
+		node.log.error("::syncHandler: Object not found");
 		return;
 	}
 
@@ -271,7 +271,7 @@ async function syncHandler({ node, message, stream }: HandleParams): Promise<voi
 	});
 
 	node.networkNode.sendMessage(sender, messageSyncAccept).catch((e) => {
-		log.error("::syncHandler: Error sending message", e);
+		node.log.error("::syncHandler: Error sending message", e);
 	});
 }
 
@@ -288,7 +288,7 @@ async function syncAcceptHandler({ node, message, stream }: HandleParams): Promi
 	const syncAcceptMessage = SyncAccept.decode(data);
 	const object = node.objectStore.get(syncAcceptMessage.objectId);
 	if (!object) {
-		log.error("::syncAcceptHandler: Object not found");
+		node.log.error("::syncAcceptHandler: Object not found");
 		return;
 	}
 
@@ -334,7 +334,7 @@ async function syncAcceptHandler({ node, message, stream }: HandleParams): Promi
 		).finish(),
 	});
 	node.networkNode.sendMessage(sender, messageSyncAccept).catch((e) => {
-		log.error("::syncAcceptHandler: Error sending message", e);
+		node.log.error("::syncAcceptHandler: Error sending message", e);
 	});
 }
 
@@ -379,16 +379,16 @@ export function drpObjectChangesHandler<T extends IDRP>(
 						).finish(),
 					});
 					node.networkNode.broadcastMessage(obj.id, message).catch((e) => {
-						log.error("::drpObjectChangesHandler: Error broadcasting message", e);
+						node.log.error("::drpObjectChangesHandler: Error broadcasting message", e);
 					});
 				})
 				.catch((e) => {
-					log.error("::drpObjectChangesHandler: Error signing vertices", e);
+					node.log.error("::drpObjectChangesHandler: Error signing vertices", e);
 				});
 			break;
 		}
 		default:
-			log.error("::createObject: Invalid origin function");
+			node.log.error("::createObject: Invalid origin function");
 	}
 }
 
@@ -400,7 +400,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]): 
 		try {
 			vertex.signature = await node.keychain.signWithSecp256k1(vertex.hash);
 		} catch (error) {
-			log.error("::signGeneratedVertices: Error signing vertex:", vertex.hash, error);
+			node.log.error("::signGeneratedVertices: Error signing vertex:", vertex.hash, error);
 		}
 	});
 

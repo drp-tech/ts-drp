@@ -11,8 +11,7 @@ import {
 } from "@ts-drp/types";
 
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
-import { type DRPNode } from "./index.js";
-import { log } from "./logger.js";
+import type { DRPNode } from "./index.js";
 
 export function createObject<T extends IDRP>(node: DRPNode, object: IDRPObject<T>): void {
 	node.objectStore.put(object.id, object);
@@ -95,7 +94,7 @@ export async function syncObject<T extends IDRP>(
 ): Promise<void> {
 	const object: IDRPObject<T> | undefined = node.objectStore.get(objectId);
 	if (!object) {
-		log.error("::syncObject: Object not found");
+		node.log.error("::syncObject: Object not found");
 		return;
 	}
 	const data = Sync.create({
