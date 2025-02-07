@@ -4,8 +4,7 @@ import { type IMetrics } from "@ts-drp/tracer";
 import { FetchState, Message, MessageType, Sync } from "@ts-drp/types";
 
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
-import { type DRPNode } from "./index.js";
-import { log } from "./logger.js";
+import type { DRPNode } from "./index.js";
 
 export function createObject(node: DRPNode, object: DRPObject) {
 	node.objectStore.put(object.id, object);
@@ -87,7 +86,7 @@ export async function fetchState(node: DRPNode, objectId: string, peerId?: strin
 export async function syncObject(node: DRPNode, objectId: string, peerId?: string) {
 	const object: DRPObject | undefined = node.objectStore.get(objectId);
 	if (!object) {
-		log.error("::syncObject: Object not found");
+		node.log.error("::syncObject: Object not found");
 		return;
 	}
 	const data = Sync.create({

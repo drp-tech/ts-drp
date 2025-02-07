@@ -5,7 +5,7 @@ import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { BitSet } from "../hashgraph/bitset.js";
 import type { Hash } from "../hashgraph/index.js";
-import { type DRPPublicCredential } from "../index.js";
+import { type DRPPublicCredential, type DRPObject, log } from "../index.js";
 
 const DEFAULT_FINALITY_THRESHOLD = 0.51;
 
@@ -26,7 +26,9 @@ export class FinalityState {
 
 		// deterministic order
 		const peerIds = Array.from(signers.keys()).sort();
-		this.signerCredentials = peerIds.map((peerId) => signers.get(peerId)) as DRPPublicCredential[];
+		this.signerCredentials = peerIds.map((peerId) =>
+			signers.get(peerId),
+		) as DRPPublicCredential[];
 
 		this.signerIndices = new Map();
 		for (let i = 0; i < peerIds.length; i++) {
@@ -50,7 +52,10 @@ export class FinalityState {
 
 		if (verify) {
 			// verify signature validity
-			const publicKey = uint8ArrayFromString(this.signerCredentials[index].blsPublicKey, "base64");
+			const publicKey = uint8ArrayFromString(
+				this.signerCredentials[index].blsPublicKey,
+				"base64",
+			);
 			const data = uint8ArrayFromString(this.data);
 			if (!bls.verify(publicKey, data, signature)) {
 				throw new Error("Invalid signature");
@@ -75,7 +80,10 @@ export class FinalityState {
 			return;
 		}
 
-		const aggregation_bits = new BitSet(this.signerCredentials.length, attestation.aggregationBits);
+		const aggregation_bits = new BitSet(
+			this.signerCredentials.length,
+			attestation.aggregationBits,
+		);
 
 		// public keys of signers who signed
 		const publicKeys = this.signerCredentials
@@ -94,17 +102,33 @@ export class FinalityState {
 	}
 }
 
+export type DRPFinalityCallback = (hashes: Hash[]) => void;
+
 export class FinalityStore {
 	states: Map<string, FinalityState>;
 	finalityThreshold: number;
+	object: DRPObject;
+	subscriptions: DRPFinalityCallback[];
 
 	private log: Logger;
 
-	constructor(config?: FinalityConfig, logConfig?: LoggerOptions) {
+	constructor(object: DRPObject, config?: FinalityConfig, logConfig?: LoggerOptions) {
 		this.states = new Map();
 		this.finalityThreshold = config?.finality_threshold ?? DEFAULT_FINALITY_THRESHOLD;
 
 		this.log = new Logger("drp::finality", logConfig);
+		this.object = object;
+		this.subscriptions = [];
+	}
+
+	subscribe(callback: DRPFinalityCallback) {
+		this.subscriptions.push(callback);
+	}
+
+	notifyFinality(hashes: Hash[]) {
+		for (const callback of this.subscriptions) {
+			callback(hashes);
+		}
 	}
 
 	initializeState(hash: Hash, signers: Map<string, DRPPublicCredential>) {
@@ -156,7 +180,14 @@ export class FinalityStore {
 	addSignatures(peerId: string, attestations: Attestation[], verify = true) {
 		for (const attestation of attestations) {
 			try {
-				this.states.get(attestation.data)?.addSignature(peerId, attestation.signature, verify);
+				const oldState = this.isFinalized(attestation.data);
+				this.states
+					.get(attestation.data)
+					?.addSignature(peerId, attestation.signature, verify);
+				const newState = this.isFinalized(attestation.data);
+				if (oldState !== newState) {
+					this.notifyFinality([attestation.data]);
+				}
 			} catch (e) {
 				this.log.error("::finality::addSignatures", e);
 			}
@@ -179,7 +210,12 @@ export class FinalityStore {
 	mergeSignatures(attestations: AggregatedAttestation[]) {
 		for (const attestation of attestations) {
 			try {
+				const oldState = this.isFinalized(attestation.data);
 				this.states.get(attestation.data)?.merge(attestation);
+				const newState = this.isFinalized(attestation.data);
+				if (oldState !== newState) {
+					this.notifyFinality([attestation.data]);
+				}
 			} catch (e) {
 				this.log.error("::finality::mergeSignatures", e);
 			}

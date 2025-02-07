@@ -23,6 +23,7 @@ export class DRPNode {
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
 	keychain: Keychain;
+	log: Logger;
 
 	constructor(config?: DRPNodeConfig) {
 		this.config = config;
@@ -32,6 +33,7 @@ export class DRPNode {
 		log.info = newLogger.info;
 		log.warn = newLogger.warn;
 		log.error = newLogger.error;
+		this.log = newLogger;
 		this.networkNode = new DRPNetworkNode(config?.network_config);
 		this.objectStore = new DRPObjectStore();
 		this.keychain = new Keychain(config?.keychain_config);

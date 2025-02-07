@@ -43,7 +43,6 @@ export const BOOTSTRAP_NODES = [
 	"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/16Uiu2HAmBtu5tjHtbMWe5CVvuJ5zD3hTG4GDKsof57dMFA2mRSKL",
 	"/dns4/bootstrap2.topology.gg/tcp/443/wss/p2p/16Uiu2HAmEczduFyyQmHDVoujwCm5vgS7m138S7EG97g7MZSHVXet",
 ];
-let log: Logger;
 
 // snake_casing to match the JSON config
 export interface DRPNetworkNodeConfig {
@@ -66,12 +65,13 @@ export class DRPNetworkNode {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: GossipSub;
+	log: Logger;
 
 	peerId = "";
 
 	constructor(config?: DRPNetworkNodeConfig) {
 		this._config = config;
-		log = new Logger("drp::network", config?.log_config);
+		this.log = new Logger("drp::network", config?.log_config);
 	}
 
 	async start(rawPrivateKey?: Uint8Array) {
@@ -194,7 +194,7 @@ export class DRPNetworkNode {
 				}),
 			],
 		});
-		log.info(
+		this.log.info(
 			"::start: running on:",
 			this._node.getMultiaddrs().map((addr) => addr.toString())
 		);
@@ -204,7 +204,7 @@ export class DRPNetworkNode {
 				try {
 					await this._node.dial(multiaddr(addr));
 				} catch (e) {
-					log.error("::start::dial::error", e);
+					this.log.error("::start::dial::error", e);
 				}
 			}
 		}
@@ -212,22 +212,22 @@ export class DRPNetworkNode {
 		this._pubsub = this._node.services.pubsub as GossipSub;
 		this.peerId = this._node.peerId.toString();
 
-		log.info("::start: Successfuly started DRP network w/ peer_id", this.peerId);
+		this.log.info("::start: Successfuly started DRP network w/ peer_id", this.peerId);
 
 		this._node.addEventListener("peer:connect", (e) =>
-			log.info("::start::peer::connect", e.detail)
+			this.log.info("::start::peer::connect", e.detail)
 		);
 
 		this._node.addEventListener("peer:discovery", (e) =>
-			log.info("::start::peer::discovery", e.detail)
+			this.log.info("::start::peer::discovery", e.detail)
 		);
 
 		this._node.addEventListener("peer:identify", (e) =>
-			log.info("::start::peer::identify", e.detail)
+			this.log.info("::start::peer::identify", e.detail)
 		);
 
 		this._pubsub.addEventListener("gossipsub:graft", (e) =>
-			log.info("::start::gossipsub::graft", e.detail)
+			this.log.info("::start::gossipsub::graft", e.detail)
 		);
 
 		// needded as I've disabled the pubsubPeerDiscovery
@@ -290,48 +290,48 @@ export class DRPNetworkNode {
 
 	subscribe(topic: string) {
 		if (!this._node) {
-			log.error("::subscribe: Node not initialized, please run .start()");
+			this.log.error("::subscribe: Node not initialized, please run .start()");
 			return;
 		}
 
 		try {
 			this._pubsub?.subscribe(topic);
 			this._pubsub?.getPeers();
-			log.info("::subscribe: Successfuly subscribed the topic", topic);
+			this.log.info("::subscribe: Successfuly subscribed the topic", topic);
 		} catch (e) {
-			log.error("::subscribe:", e);
+			this.log.error("::subscribe:", e);
 		}
 	}
 
 	unsubscribe(topic: string) {
 		if (!this._node) {
-			log.error("::unsubscribe: Node not initialized, please run .start()");
+			this.log.error("::unsubscribe: Node not initialized, please run .start()");
 			return;
 		}
 
 		try {
 			this._pubsub?.unsubscribe(topic);
-			log.info("::unsubscribe: Successfuly unsubscribed the topic", topic);
+			this.log.info("::unsubscribe: Successfuly unsubscribed the topic", topic);
 		} catch (e) {
-			log.error("::unsubscribe:", e);
+			this.log.error("::unsubscribe:", e);
 		}
 	}
 
 	async connect(addr: MultiaddrInput) {
 		try {
 			await this._node?.dial([multiaddr(addr)]);
-			log.info("::connect: Successfuly dialed", addr);
+			this.log.info("::connect: Successfuly dialed", addr);
 		} catch (e) {
-			log.error("::connect:", e);
+			this.log.error("::connect:", e);
 		}
 	}
 
 	async disconnect(peerId: string) {
 		try {
 			await this._node?.hangUp(multiaddr(`/p2p/${peerId}`));
-			log.info("::disconnect: Successfuly disconnected", peerId);
+			this.log.info("::disconnect: Successfuly disconnected", peerId);
 		} catch (e) {
-			log.error("::disconnect:", e);
+			this.log.error("::disconnect:", e);
 		}
 	}
 
@@ -360,9 +360,9 @@ export class DRPNetworkNode {
 			const messageBuffer = Message.encode(message).finish();
 			await this._pubsub?.publish(topic, messageBuffer);
 
-			log.info("::broadcastMessage: Successfuly broadcasted message to topic", topic);
+			this.log.info("::broadcastMessage: Successfuly broadcasted message to topic", topic);
 		} catch (e) {
-			log.error("::broadcastMessage:", e);
+			this.log.error("::broadcastMessage:", e);
 		}
 	}
 
@@ -373,7 +373,7 @@ export class DRPNetworkNode {
 			const messageBuffer = Message.encode(message).finish();
 			await uint8ArrayToStream(stream, messageBuffer);
 		} catch (e) {
-			log.error("::sendMessage:", e);
+			this.log.error("::sendMessage:", e);
 		}
 	}
 
@@ -388,7 +388,7 @@ export class DRPNetworkNode {
 			const messageBuffer = Message.encode(message).finish();
 			await uint8ArrayToStream(stream, messageBuffer);
 		} catch (e) {
-			log.error("::sendGroupMessageRandomPeer:", e);
+			this.log.error("::sendGroupMessageRandomPeer:", e);
 		}
 	}
 
