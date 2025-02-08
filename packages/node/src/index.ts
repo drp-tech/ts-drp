@@ -152,6 +152,7 @@ export class DRPNode {
 			peerId: options.sync?.peerId,
 			drp: options.drp,
 			metrics: options.metrics,
+			log_config: options.log_config,
 		});
 		this._createIntervalDiscovery(options.id);
 		return object;
