@@ -124,7 +124,7 @@ export class DRPObject implements DRPObjectBase {
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
-	static createObject(options: ConnectObjectOptions) {
+	static createObject(options: ConnectObjectOptions, config?: DRPObjectConfig) {
 		const aclObj = new ObjectACL({
 			admins: new Map(),
 			permissionless: true,
@@ -135,9 +135,7 @@ export class DRPObject implements DRPObjectBase {
 			acl: aclObj,
 			drp: options.drp,
 			metrics: options.metrics,
-			config: {
-				log_config: options.log_config,
-			},
+			config: config,
 		});
 		return object;
 	}

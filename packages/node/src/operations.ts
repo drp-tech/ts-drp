@@ -1,5 +1,5 @@
 import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import { type DRP, DRPObject, HashGraph } from "@ts-drp/object";
+import { type DRP, DRPObject, DRPObjectConfig, HashGraph } from "@ts-drp/object";
 import { type IMetrics } from "@ts-drp/tracer";
 import { FetchState, Message, MessageType, Sync } from "@ts-drp/types";
 
@@ -22,14 +22,15 @@ export type ConnectObjectOptions = {
 export async function connectObject(
 	node: DRPNode,
 	id: string,
-	options: ConnectObjectOptions
+	options: ConnectObjectOptions,
+	config?: DRPObjectConfig
 ): Promise<DRPObject> {
 	const object = DRPObject.createObject({
 		peerId: node.networkNode.peerId,
 		id,
 		drp: options.drp,
 		metrics: options.metrics,
-	});
+	}, config);
 	node.objectStore.put(id, object);
 
 	await fetchState(node, id, options.peerId);

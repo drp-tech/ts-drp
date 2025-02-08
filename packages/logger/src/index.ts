@@ -10,11 +10,6 @@ export interface ILogger {
 	error: (...args: unknown[]) => void;
 }
 
-export interface LoggerOptions {
-	level?: loglevel.LogLevelDesc;
-	template?: string;
-}
-
 export class Logger {
 	private log: loglevel.Logger;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
