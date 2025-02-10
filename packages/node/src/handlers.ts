@@ -216,10 +216,11 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 				log.error("::updateHandler: Error broadcasting message", e);
 			});
 		}
+
+		log.info("::updateHandler: Object updated, number of vertices: ", object.vertices.length);
 	}
 
 	node.objectStore.put(object.id, object);
-	log.info("::updateHandler: Object updated, number of vertices: ", object.vertices.length);
 }
 
 /*
@@ -304,6 +305,11 @@ async function syncAcceptHandler({ node, message, stream }: HandleParams): Promi
 		await object.merge(verifiedVertices);
 		object.finalityStore.mergeSignatures(syncAcceptMessage.attestations);
 		node.objectStore.put(object.id, object);
+
+		log.info(
+			"::syncAcceptHandler: Object updated, number of vertices: ",
+			object.vertices.length
+		);
 	}
 
 	await signGeneratedVertices(node, object.vertices);
