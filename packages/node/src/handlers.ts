@@ -304,6 +304,11 @@ async function syncAcceptHandler({ node, message, stream }: HandleParams): Promi
 		await object.merge(verifiedVertices);
 		object.finalityStore.mergeSignatures(syncAcceptMessage.attestations);
 		node.objectStore.put(object.id, object);
+
+		node.log.info(
+			"::syncAcceptHandler: Object updated, number of vertices: ",
+			object.vertices.length
+		);
 	}
 
 	await signGeneratedVertices(node, object.vertices);

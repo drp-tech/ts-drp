@@ -224,6 +224,7 @@ describe("DRPNode with rpc", () => {
 				info: vi.fn(),
 				warn: vi.fn(),
 				debug: vi.fn(),
+				trace: vi.fn(),
 			};
 
 			return {
