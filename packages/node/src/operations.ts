@@ -1,5 +1,12 @@
 import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import { type DRP, DRPObject, DRPObjectConfig, HashGraph } from "@ts-drp/object";
+import {
+	type DRP,
+	ObjectACL,
+	type ACL,
+	DRPObject,
+	DRPObjectConfig,
+	HashGraph,
+} from "@ts-drp/object";
 import { type IMetrics } from "@ts-drp/tracer";
 import { FetchState, Message, MessageType, Sync } from "@ts-drp/types";
 
@@ -15,6 +22,7 @@ export function createObject(node: DRPNode, object: DRPObject) {
 
 export type ConnectObjectOptions = {
 	drp?: DRP;
+	acl?: ACL;
 	peerId?: string;
 	metrics?: IMetrics;
 };
@@ -25,12 +33,20 @@ export async function connectObject(
 	options: ConnectObjectOptions,
 	config?: DRPObjectConfig
 ): Promise<DRPObject> {
-	const object = DRPObject.createObject({
+	const objAcl =
+		options.acl ??
+		new ObjectACL({
+			admins: new Map(),
+			permissionless: true,
+		});
+	const object = new DRPObject({
 		peerId: node.networkNode.peerId,
 		id,
+		acl: objAcl,
 		drp: options.drp,
+		config: config,
 		metrics: options.metrics,
-	}, config);
+	});
 	node.objectStore.put(id, object);
 
 	await fetchState(node, id, options.peerId);

@@ -26,9 +26,7 @@ export class FinalityState {
 
 		// deterministic order
 		const peerIds = Array.from(signers.keys()).sort();
-		this.signerCredentials = peerIds.map((peerId) =>
-			signers.get(peerId),
-		) as DRPPublicCredential[];
+		this.signerCredentials = peerIds.map((peerId) => signers.get(peerId)) as DRPPublicCredential[];
 
 		this.signerIndices = new Map();
 		for (let i = 0; i < peerIds.length; i++) {
@@ -52,10 +50,7 @@ export class FinalityState {
 
 		if (verify) {
 			// verify signature validity
-			const publicKey = uint8ArrayFromString(
-				this.signerCredentials[index].blsPublicKey,
-				"base64",
-			);
+			const publicKey = uint8ArrayFromString(this.signerCredentials[index].blsPublicKey, "base64");
 			const data = uint8ArrayFromString(this.data);
 			if (!bls.verify(publicKey, data, signature)) {
 				throw new Error("Invalid signature");
@@ -80,10 +75,7 @@ export class FinalityState {
 			return;
 		}
 
-		const aggregation_bits = new BitSet(
-			this.signerCredentials.length,
-			attestation.aggregationBits,
-		);
+		const aggregation_bits = new BitSet(this.signerCredentials.length, attestation.aggregationBits);
 
 		// public keys of signers who signed
 		const publicKeys = this.signerCredentials
@@ -181,9 +173,7 @@ export class FinalityStore {
 		for (const attestation of attestations) {
 			try {
 				const oldState = this.isFinalized(attestation.data);
-				this.states
-					.get(attestation.data)
-					?.addSignature(peerId, attestation.signature, verify);
+				this.states.get(attestation.data)?.addSignature(peerId, attestation.signature, verify);
 				const newState = this.isFinalized(attestation.data);
 				if (oldState !== newState) {
 					this.notifyFinality([attestation.data]);

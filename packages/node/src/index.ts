@@ -126,6 +126,7 @@ export class DRPNode {
 	*/
 	async connectObject(options: {
 		id: string;
+		acl?: ACL;
 		drp?: DRP;
 		sync?: {
 			peerId?: string;
@@ -136,6 +137,7 @@ export class DRPNode {
 		const object = operations.connectObject(this, options.id, {
 			peerId: options.sync?.peerId,
 			drp: options.drp,
+			acl: options.acl,
 			metrics: options.metrics,
 		}, options.config);
 		return object;

@@ -38,7 +38,8 @@
 	},
 	"dependencies": {
 		"@types/node": "^22.5.4",
-		"typescript": "^5.7.3"
+		"typescript": "^5.7.3",
+		"@libp2p/webrtc": "link:../js-libp2p/packages/transport-webrtc"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.18.0",
@@ -91,6 +92,9 @@
 			"esbuild",
 			"pprof",
 			"protobufjs"
-		]
+		],
+		"overrides": {
+			"@libp2p/webrtc": "link:../js-libp2p/packages/transport-webrtc"
+		}
 	}
 }

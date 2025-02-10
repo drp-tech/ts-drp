@@ -282,6 +282,11 @@ async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array
 		object.merge(verifiedVertices);
 		object.finalityStore.mergeSignatures(syncAcceptMessage.attestations);
 		node.objectStore.put(object.id, object);
+
+		node.log.info(
+			"::syncAcceptHandler: Object updated, number of vertices: ",
+			object.vertices.length
+		);
 	}
 
 	await signGeneratedVertices(node, object.vertices);
