@@ -178,6 +178,8 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 
 	if (!merged) {
 		await node.syncObject(updateMessage.objectId, sender);
+
+		node.log.info("::updateHandler: Object not updated");
 	} else {
 		// add their signatures
 		object.finalityStore.addSignatures(sender, updateMessage.attestations);
