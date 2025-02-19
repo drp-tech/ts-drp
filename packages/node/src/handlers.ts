@@ -192,6 +192,8 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 
 	if (!merged) {
 		await node.syncObject(updateMessage.objectId, sender);
+
+		log.info("::updateHandler: Object not updated");
 	} else {
 		// add their signatures
 		object.finalityStore.addSignatures(sender, updateMessage.attestations);
