@@ -20,6 +20,10 @@ export class Grid implements DRP {
 	}
 
 	moveUser(userId: string, direction: string): void {
+		this._moveUser(userId, direction);
+	}
+
+	private _moveUser(userId: string, direction: string): void {
 		const userColorString = [...this.positions.keys()].find((u) => u.startsWith(`${userId}:`));
 		if (userColorString) {
 			const position = this.positions.get(userColorString);
