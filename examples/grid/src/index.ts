@@ -1,4 +1,4 @@
-import { DRPNode } from "@ts-drp/node";
+import { DRPNode, DRPNodeConfig } from "@ts-drp/node";
 import { enableTracing, IMetrics, OpentelemetryMetrics } from "@ts-drp/tracer";
 
 import { Grid } from "./objects/grid";
@@ -6,27 +6,43 @@ import { render, enableUIControls, renderInfo } from "./render";
 import { gridState } from "./state";
 import { getColorForPeerId } from "./util/color";
 
-export function getNetworkConfigFromEnv() {
+export function getNetworkConfigFromEnv(): DRPNodeConfig {
 	const hasBootstrapPeers = Boolean(import.meta.env.VITE_BOOTSTRAP_PEERS);
 	const hasDiscoveryInterval = Boolean(import.meta.env.VITE_DISCOVERY_INTERVAL);
 
 	const hasEnv = hasBootstrapPeers || hasDiscoveryInterval;
 
-	const config: Record<string, unknown> = {
-		browser_metrics: true,
+	const config: DRPNodeConfig = {
+		network_config: {
+			browser_metrics: true,
+		},
 	};
 
 	if (!hasEnv) {
+		config.network_config = {
+			...config.network_config,
+			bootstrap_peers: [
+				"/ip4/127.0.0.1/tcp/50000/ws/p2p/12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ",
+			],
+			browser_metrics: true,
+		};
 		return config;
 	}
 
 	if (hasBootstrapPeers) {
-		config.bootstrap_peers = import.meta.env.VITE_BOOTSTRAP_PEERS.split(",");
+		config.network_config = {
+			...config.network_config,
+			bootstrap_peers: import.meta.env.VITE_BOOTSTRAP_PEERS.split(","),
+		};
 	}
 
 	if (hasDiscoveryInterval) {
-		config.pubsub = {
-			peer_discovery_interval: import.meta.env.VITE_DISCOVERY_INTERVAL,
+		config.network_config = {
+			...config.network_config,
+			pubsub: {
+				...config.network_config?.pubsub,
+				peer_discovery_interval: import.meta.env.VITE_DISCOVERY_INTERVAL,
+			},
 		};
 	}
 
@@ -139,7 +155,7 @@ async function main() {
 	}
 
 	const networkConfig = getNetworkConfigFromEnv();
-	gridState.node = new DRPNode(networkConfig ? { network_config: networkConfig } : undefined);
+	gridState.node = new DRPNode(networkConfig);
 	await gridState.node.start();
 	await gridState.node.networkNode.isDialable(async () => {
 		console.log("Started node", import.meta.env);
