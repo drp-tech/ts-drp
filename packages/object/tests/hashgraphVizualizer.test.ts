@@ -2,10 +2,11 @@ import { describe, test, expect, vi, beforeEach } from "vitest";
 
 import { SemanticsType, ActionType, HashGraph, DrpType } from "../src/index.js";
 import { newVertex, type Vertex } from "../src/index.js";
-import { hashGraphVizualizer } from "../src/utils/hashgraphVizualizer.js";
+import { HashGraphVizualizer } from "../src/utils/hashgraphVizualizer.js";
 
 describe("hashGraphVizualizer tests", () => {
 	let hashgraph: HashGraph;
+	const visualizer = new HashGraphVizualizer();
 
 	beforeEach(() => {
 		hashgraph = new HashGraph(
@@ -37,8 +38,6 @@ describe("hashGraphVizualizer tests", () => {
 	});
 
 	test("Should visualize empty graph", () => {
-		const visualizer = new hashGraphVizualizer();
-
 		// Capture console.log output
 		const consoleSpy = vi.spyOn(console, "log");
 		visualizer.draw(hashgraph);
@@ -94,8 +93,6 @@ describe("hashGraphVizualizer tests", () => {
 			)
 		);
 		frontier = hashgraph.getFrontier();
-
-		const visualizer = new hashGraphVizualizer();
 		const consoleSpy = vi.spyOn(console, "log");
 
 		visualizer.draw(hashgraph);

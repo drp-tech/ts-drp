@@ -27,12 +27,23 @@ interface Shape {
 	dir?: Direction;
 }
 
-export class hashGraphVizualizer {
+/**
+ * Visualizes a HashGraph structure in ASCII art format
+ * Renders nodes as boxes connected by lines and arrows
+ */
+export class HashGraphVizualizer {
 	private nodeWidth = 13;
 	private nodeHeight = 3;
 	private padding = 4;
 	private arrow = "v";
 
+	/**
+	 * Performs a topological sort on the graph in a layered manner
+	 * Returns nodes in order where each node appears after all its dependencies
+	 *
+	 * @param edges - Array of edges representing dependencies between nodes
+	 * @returns Array of node IDs in topologically sorted order
+	 */
 	private topologicalSort(edges: Edge[]): string[] {
 		const nodes = new Set<string>();
 		const inDegree: Map<string, number> = new Map();
@@ -64,6 +75,14 @@ export class hashGraphVizualizer {
 		return result;
 	}
 
+	/**
+	 * Assigns layer numbers to nodes based on their dependencies
+	 * Ensures each node is in a layer after all its dependencies
+	 *
+	 * @param edges - Array of edges representing dependencies
+	 * @param nodes - Array of node IDs to assign layers to
+	 * @returns Map of node IDs to their assigned layer numbers
+	 */
 	private assignLayers(edges: Edge[], nodes: string[]): Map<string, number> {
 		const layers = new Map<string, number>();
 		nodes.forEach((node) => layers.set(node, 0));
@@ -82,6 +101,13 @@ export class hashGraphVizualizer {
 		return layers;
 	}
 
+	/**
+	 * Calculates x,y coordinates for each node based on its layer
+	 * Arranges nodes in each layer horizontally with padding
+	 *
+	 * @param layers - Map of node IDs to their layer numbers
+	 * @returns Map of node IDs to their position and display information
+	 */
 	private positionNodes(layers: Map<string, number>): Map<string, Node> {
 		const layerMap = new Map<number, string[]>();
 		layers.forEach((layer, node) => {
@@ -110,6 +136,14 @@ export class hashGraphVizualizer {
 		return positioned;
 	}
 
+	/**
+	 * Generates shapes representing edges between nodes
+	 * Creates vertical lines, horizontal lines, and arrows to show dependencies
+	 *
+	 * @param edges - Array of edges to visualize
+	 * @param nodes - Map of node positions
+	 * @returns Array of shapes representing the edges
+	 */
 	private generateEdges(edges: Edge[], nodes: Map<string, Node>): Shape[] {
 		const shapes: Shape[] = [];
 		edges.forEach(({ from, to }) => {
@@ -126,7 +160,7 @@ export class hashGraphVizualizer {
 				shapes.push({ type: "vline", x: startX, y });
 			}
 
-			// Horizontal line at endY - 1 if nodes aren’t aligned
+			// Horizontal line at endY - 1 if nodes aren't aligned
 			if (startX !== endX) {
 				const minX = Math.min(startX, endX);
 				const maxX = Math.max(startX, endX);
@@ -148,6 +182,14 @@ export class hashGraphVizualizer {
 		return shapes;
 	}
 
+	/**
+	 * Renders the graph visualization as ASCII art
+	 * Draws nodes as boxes and connects them with lines and arrows
+	 *
+	 * @param nodes - Map of node positions and display information
+	 * @param edges - Array of shapes representing edges
+	 * @returns String containing the ASCII art visualization
+	 */
 	private render(nodes: Map<string, Node>, edges: Shape[]): string {
 		const allShapes = Array.from(nodes.values())
 			.map(
@@ -210,6 +252,12 @@ export class hashGraphVizualizer {
 		return grid.map((row) => row.join("")).join("\n");
 	}
 
+	/**
+	 * Main entry point for visualizing a HashGraph
+	 * Processes the graph structure and outputs an ASCII visualization
+	 *
+	 * @param hashGraph - The HashGraph to visualize
+	 */
 	public draw(hashGraph: HashGraph): void {
 		const nodes = new ObjectSet<string>();
 
