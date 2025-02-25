@@ -4,7 +4,7 @@ import { DRPNode } from "./index.js";
 import type { DRPNodeConfig } from "./index.js";
 import { init as rpc_init } from "./rpc/index.js";
 
-export const run = async () => {
+export const run = async (): Promise<void> => {
 	program.parse(process.argv);
 	const opts = program.opts();
 	const config: DRPNodeConfig | undefined = loadConfig(opts.config);

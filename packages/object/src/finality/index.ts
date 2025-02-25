@@ -36,7 +36,7 @@ export class FinalityState {
 		this.numberOfSignatures = 0;
 	}
 
-	addSignature(peerId: string, signature: Uint8Array, verify = true) {
+	addSignature(peerId: string, signature: Uint8Array, verify = true): void {
 		const index = this.signerIndices.get(peerId);
 		if (index === undefined) {
 			throw new Error("Peer not found in signer list");
@@ -65,7 +65,7 @@ export class FinalityState {
 		this.numberOfSignatures++;
 	}
 
-	merge(attestation: AggregatedAttestation) {
+	merge(attestation: AggregatedAttestation): void {
 		if (this.data !== attestation.data) {
 			throw new Error("Hash mismatch");
 		}
@@ -102,7 +102,7 @@ export class FinalityStore {
 		this.finalityThreshold = config?.finality_threshold ?? DEFAULT_FINALITY_THRESHOLD;
 	}
 
-	initializeState(hash: Hash, signers: Map<string, DRPPublicCredential>) {
+	initializeState(hash: Hash, signers: Map<string, DRPPublicCredential>): void {
 		if (!this.states.has(hash)) {
 			this.states.set(hash, new FinalityState(hash, signers));
 		}
@@ -148,7 +148,7 @@ export class FinalityStore {
 	}
 
 	// add signatures to the vertex
-	addSignatures(peerId: string, attestations: Attestation[], verify = true) {
+	addSignatures(peerId: string, attestations: Attestation[], verify = true): void {
 		for (const attestation of attestations) {
 			try {
 				this.states.get(attestation.data)?.addSignature(peerId, attestation.signature, verify);
@@ -171,7 +171,7 @@ export class FinalityStore {
 	}
 
 	// merge multiple signatures
-	mergeSignatures(attestations: AggregatedAttestation[]) {
+	mergeSignatures(attestations: AggregatedAttestation[]): void {
 		for (const attestation of attestations) {
 			try {
 				this.states.get(attestation.data)?.merge(attestation);

@@ -20,7 +20,7 @@ export class DRPCredentialStore {
 		this._config = config;
 	}
 
-	async start() {
+	async start(): Promise<void> {
 		if (this._config?.private_key_seed) {
 			const tmp = this._config.private_key_seed.padEnd(32, "0");
 			const seed = uint8ArrayFromString(tmp);

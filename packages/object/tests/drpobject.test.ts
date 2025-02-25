@@ -85,7 +85,7 @@ describe("Test for duplicate call issue", () => {
 			this._counter = 0;
 		}
 
-		test() {
+		test(): number {
 			this._counter++;
 			counter++;
 			return this._counter;

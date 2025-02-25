@@ -1,4 +1,4 @@
-import { DRPNode } from "@ts-drp/node";
+import { DRPNode, DRPNodeConfig } from "@ts-drp/node";
 import { enableTracing, IMetrics, OpentelemetryMetrics } from "@ts-drp/tracer";
 
 import { Grid } from "./objects/grid";
@@ -6,14 +6,16 @@ import { render, enableUIControls, renderInfo } from "./render";
 import { gridState } from "./state";
 import { getColorForPeerId } from "./util/color";
 
-export function getNetworkConfigFromEnv() {
+export function getNetworkConfigFromEnv(): DRPNodeConfig {
 	const hasBootstrapPeers = Boolean(import.meta.env.VITE_BOOTSTRAP_PEERS);
 	const hasDiscoveryInterval = Boolean(import.meta.env.VITE_DISCOVERY_INTERVAL);
 
 	const hasEnv = hasBootstrapPeers || hasDiscoveryInterval;
 
-	const config: Record<string, unknown> = {
-		browser_metrics: true,
+	const config: DRPNodeConfig = {
+		network_config: {
+			browser_metrics: true,
+		},
 	};
 
 	if (!hasEnv) {
@@ -21,19 +23,26 @@ export function getNetworkConfigFromEnv() {
 	}
 
 	if (hasBootstrapPeers) {
-		config.bootstrap_peers = import.meta.env.VITE_BOOTSTRAP_PEERS.split(",");
+		config.network_config = {
+			...config.network_config,
+			bootstrap_peers: import.meta.env.VITE_BOOTSTRAP_PEERS.split(","),
+		};
 	}
 
 	if (hasDiscoveryInterval) {
-		config.pubsub = {
-			peer_discovery_interval: import.meta.env.VITE_DISCOVERY_INTERVAL,
+		config.network_config = {
+			...config.network_config,
+			pubsub: {
+				...config.network_config?.pubsub,
+				peer_discovery_interval: import.meta.env.VITE_DISCOVERY_INTERVAL,
+			},
 		};
 	}
 
 	return config;
 }
 
-async function addUser() {
+async function addUser(): Promise<void> {
 	if (!gridState.gridDRP) {
 		console.error("Grid DRP not initialized");
 		alert("Please create or join a grid first");
@@ -47,7 +56,7 @@ async function addUser() {
 	render();
 }
 
-function moveUser(direction: string) {
+function moveUser(direction: string): void {
 	if (!gridState.gridDRP) {
 		console.error("Grid DRP not initialized");
 		alert("Please create or join a grid first");
@@ -58,7 +67,7 @@ function moveUser(direction: string) {
 	render();
 }
 
-async function createConnectHandlers() {
+async function createConnectHandlers(): Promise<void> {
 	if (gridState.drpObject)
 		gridState.objectPeers = gridState.node.networkNode.getGroupPeers(gridState.drpObject.id);
 
@@ -75,7 +84,7 @@ async function createConnectHandlers() {
 	});
 }
 
-async function run(metrics?: IMetrics) {
+async function run(metrics?: IMetrics): Promise<void> {
 	enableUIControls();
 	renderInfo();
 
@@ -131,7 +140,7 @@ async function run(metrics?: IMetrics) {
 	});
 }
 
-async function main() {
+async function main(): Promise<void> {
 	let metrics: IMetrics | undefined = undefined;
 	if (import.meta.env.VITE_ENABLE_TRACING) {
 		enableTracing();
@@ -139,7 +148,7 @@ async function main() {
 	}
 
 	const networkConfig = getNetworkConfigFromEnv();
-	gridState.node = new DRPNode(networkConfig ? { network_config: networkConfig } : undefined);
+	gridState.node = new DRPNode(networkConfig);
 	await gridState.node.start();
 	await gridState.node.networkNode.isDialable(async () => {
 		console.log("Started node", import.meta.env);

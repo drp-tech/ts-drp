@@ -39,7 +39,7 @@ export const hslToRgb = (h: number, s: number, l: number): [number, number, numb
 	if (s === 0) {
 		r = g = b = l; // achromatic
 	} else {
-		const hue2rgb = (p: number, q: number, t_: number) => {
+		const hue2rgb = (p: number, q: number, t_: number): number => {
 			let t = t_;
 			if (t < 0) t += 1;
 			if (t > 1) t -= 1;
@@ -93,7 +93,7 @@ export const getColorForPeerId = (id: string): string => {
 };
 
 // Helper function to convert hex color to rgba
-export function hexToRgba(hex: string, alpha: number) {
+export function hexToRgba(hex: string, alpha: number): string {
 	const bigint = Number.parseInt(hex.slice(1), 16);
 	const r = (bigint >> 16) & 255;
 	const g = (bigint >> 8) & 255;

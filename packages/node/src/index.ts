@@ -49,18 +49,18 @@ export class DRPNode {
 		await this.start();
 	}
 
-	addCustomGroup(group: string) {
+	addCustomGroup(group: string): void {
 		this.networkNode.subscribe(group);
 	}
 
 	addCustomGroupMessageHandler(
 		group: string,
 		handler: EventCallback<CustomEvent<GossipsubMessage>>
-	) {
+	): void {
 		this.networkNode.addGroupMessageHandler(group, handler);
 	}
 
-	async sendGroupMessage(group: string, data: Uint8Array) {
+	async sendGroupMessage(group: string, data: Uint8Array): Promise<void> {
 		const message = Message.create({
 			sender: this.networkNode.peerId,
 			type: MessageType.MESSAGE_TYPE_CUSTOM,
@@ -69,11 +69,14 @@ export class DRPNode {
 		await this.networkNode.broadcastMessage(group, message);
 	}
 
-	async addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
+	async addCustomMessageHandler(
+		protocol: string | string[],
+		handler: StreamHandler
+	): Promise<void> {
 		await this.networkNode.addCustomMessageHandler(protocol, handler);
 	}
 
-	async sendCustomMessage(peerId: string, data: Uint8Array) {
+	async sendCustomMessage(peerId: string, data: Uint8Array): Promise<void> {
 		const message = Message.create({
 			sender: this.networkNode.peerId,
 			type: MessageType.MESSAGE_TYPE_CUSTOM,
@@ -131,16 +134,16 @@ export class DRPNode {
 		return object;
 	}
 
-	async subscribeObject(id: string) {
+	async subscribeObject(id: string): Promise<void> {
 		await operations.subscribeObject(this, id);
 	}
 
-	unsubscribeObject(id: string, purge?: boolean) {
+	unsubscribeObject(id: string, purge?: boolean): void {
 		operations.unsubscribeObject(this, id, purge);
 		this.networkNode.removeTopicScoreParams(id);
 	}
 
-	async syncObject(id: string, peerId?: string) {
+	async syncObject(id: string, peerId?: string): Promise<void> {
 		await operations.syncObject(this, id, peerId);
 	}
 }

@@ -10,7 +10,7 @@ let peers: string[] = [];
 let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
 
-const render = () => {
+const render = (): void => {
 	if (drpObject) (<HTMLButtonElement>document.getElementById("chatId")).innerText = drpObject.id;
 	const element_peerId = <HTMLDivElement>document.getElementById("peerId");
 	element_peerId.innerHTML = node.networkNode.peerId;
@@ -44,7 +44,7 @@ const render = () => {
 	}
 };
 
-async function sendMessage(message: string) {
+async function sendMessage(message: string): Promise<void> {
 	const timestamp: string = Date.now().toString();
 	if (!chatDRP) {
 		console.error("Chat DRP not initialized");
@@ -56,7 +56,7 @@ async function sendMessage(message: string) {
 	render();
 }
 
-async function createConnectHandlers() {
+async function createConnectHandlers(): Promise<void> {
 	node.addCustomGroupMessageHandler(drpObject.id, () => {
 		// on create/connect
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
@@ -68,7 +68,7 @@ async function createConnectHandlers() {
 	});
 }
 
-async function main() {
+async function main(): Promise<void> {
 	await node.start();
 	render();
 

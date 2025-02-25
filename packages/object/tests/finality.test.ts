@@ -1,6 +1,7 @@
 import bls from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints/src/index.js";
 import { DRPCredentialStore } from "@ts-drp/node/src/store/index.js";
+import { AggregatedAttestation, Attestation } from "@ts-drp/types";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { beforeEach, describe, expect, test } from "vitest";
 
@@ -8,7 +9,6 @@ import { ObjectACL } from "../src/acl/index.js";
 import { FinalityState, FinalityStore } from "../src/finality/index.js";
 import { BitSet } from "../src/hashgraph/bitset.js";
 import { DRPObject } from "../src/index.js";
-import type { AggregatedAttestation } from "../src/proto/drp/object/v1/object_pb.js";
 
 // initialize log
 const _ = new DRPObject({
@@ -87,7 +87,7 @@ describe("Tests for FinalityStore", () => {
 	const peers: string[] = [];
 	const stores: DRPCredentialStore[] = [];
 
-	const generateAttestation = (index: number, hash: string) => {
+	const generateAttestation = (index: number, hash: string): Attestation => {
 		return {
 			data: hash,
 			signature: stores[index].signWithBls(hash),

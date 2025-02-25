@@ -49,6 +49,7 @@
   "eslint-plugin-prettier": "^5.2.3",
   "eslint-plugin-unused-imports": "^4.1.4",
   "eslint-plugin-vitest": "^0.5.4",
+  "eslint-watch": "^8.0.0",
   "globals": "^16.0.0",
   "release-it": "^17.6.0",
   "ts-node": "^10.9.2",

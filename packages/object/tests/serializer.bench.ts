@@ -26,7 +26,7 @@ function createNestedObject(depth: number, breadth: number): any {
 }
 
 const suite = new Benchmark.Suite();
-function benchmarkSerializeValue(depth: number, breadth: number) {
+function benchmarkSerializeValue(depth: number, breadth: number): Benchmark.Suite {
 	return suite.add(`Serialize ${depth} depth ${breadth} breadth`, () => {
 		// Create a deeply nested structure
 		// Create test data with depth=5 and breadth=3
@@ -67,7 +67,7 @@ suite
 	})
 	.run({ async: true });
 
-function benchmarkDeserializeValue(depth: number, breadth: number) {
+function benchmarkDeserializeValue(depth: number, breadth: number): Benchmark.Suite {
 	return suite.add(`Deserialize ${depth} depth ${breadth} breadth`, () => {
 		// Create a deeply nested structure
 		// Create test data with depth=5 and breadth=3

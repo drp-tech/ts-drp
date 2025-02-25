@@ -154,13 +154,13 @@ describe("isPromise", () => {
 
 describe("isGenerator", () => {
 	test("should return true if the value is a generator", () => {
-		function* gen() {
+		function* gen(): Generator<number> {
 			yield 1;
 		}
 		const generator = gen();
 		expect(isGenerator(generator)).toBe(true);
 
-		const genObj = (function* () {
+		const genObj = (function* (): Generator<number> {
 			yield 1;
 		})();
 		expect(isGenerator(genObj)).toBe(true);
@@ -193,13 +193,13 @@ describe("isGenerator", () => {
 
 describe("isAsyncGenerator", () => {
 	test("should return true if the value is an async generator", () => {
-		async function* asyncGen() {
+		async function* asyncGen(): AsyncGenerator<number> {
 			yield 1;
 		}
 		const asyncGenerator = asyncGen();
 		expect(isAsyncGenerator(asyncGenerator)).toBe(true);
 
-		const asyncGenObj = (async function* () {
+		const asyncGenObj = (async function* (): AsyncGenerator<number> {
 			yield 1;
 		})();
 		expect(isAsyncGenerator(asyncGenObj)).toBe(true);

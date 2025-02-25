@@ -12,7 +12,7 @@ if (!local_peer_id) {
 let node: DRPNode;
 let peers: string[] = [];
 
-const render = () => {
+const render = (): void => {
 	const element_peerId = <HTMLDivElement>document.getElementById("peerId");
 	element_peerId.innerHTML = node.networkNode.peerId;
 
@@ -20,7 +20,7 @@ const render = () => {
 	element_peers.innerHTML = `[${peers.join(", ")}]`;
 };
 
-async function initDRPNode() {
+async function initDRPNode(): Promise<void> {
 	if (node) {
 		node.addCustomGroupMessageHandler("", () => {
 			peers = node.networkNode.getAllPeers();
@@ -29,7 +29,7 @@ async function initDRPNode() {
 	}
 }
 
-async function main() {
+async function main(): Promise<void> {
 	const select_address_type = <HTMLSelectElement>(
 		document.getElementById("bootstrap_node_host_address_type")
 	);

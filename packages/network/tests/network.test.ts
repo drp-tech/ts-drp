@@ -15,7 +15,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 	let bootstrapNode: DRPNetworkNode;
 	let pubsubNode1: GossipSub;
 
-	const isDialable = async (node: DRPNetworkNode, timeout = false) => {
+	const isDialable = async (node: DRPNetworkNode, timeout = false): Promise<boolean> => {
 		let resolver: (value: boolean) => void;
 		const promise = new Promise<boolean>((resolve) => {
 			resolver = resolve;
@@ -27,12 +27,12 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			}, 10);
 		}
 
-		const callback = () => {
+		const callback = (): void => {
 			resolver(true);
 		};
 
 		await node.isDialable(callback);
-		return await promise;
+		return promise;
 	};
 
 	beforeAll(async () => {

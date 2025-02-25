@@ -113,7 +113,7 @@ export class HashGraph {
 		});
 	}
 
-	addToFrontier(vertex: Vertex) {
+	addToFrontier(vertex: Vertex): void {
 		this.vertices.set(vertex.hash, vertex);
 		// Update forward edges
 		for (const dep of vertex.dependencies) {
@@ -142,7 +142,7 @@ export class HashGraph {
 	}
 
 	// Add a new vertex to the hashgraph.
-	addVertex(vertex: Vertex) {
+	addVertex(vertex: Vertex): void {
 		this.vertices.set(vertex.hash, vertex);
 		this.frontier.push(vertex.hash);
 		// Update forward edges

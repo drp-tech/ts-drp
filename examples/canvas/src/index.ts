@@ -4,13 +4,13 @@ import type { DRPObject } from "@ts-drp/object";
 import { Canvas } from "./objects/canvas";
 
 const node = new DRPNode();
-let drpObject: DRPObject;
-let canvasDRP: Canvas;
+let drpObject: DRPObject<Canvas>;
+let canvasDRP: Canvas | undefined;
 let peers: string[] = [];
 let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
 
-const render = () => {
+const render = (): void => {
 	const peers_element = <HTMLDivElement>document.getElementById("peers");
 	peers_element.innerHTML = `[${peers.join(", ")}]`;
 
@@ -32,17 +32,18 @@ const render = () => {
 	}
 };
 
-const random_int = (max: number) => Math.floor(Math.random() * max);
+const random_int = (max: number): number => Math.floor(Math.random() * max);
 
-function paint_pixel(pixel: HTMLDivElement) {
+function paint_pixel(pixel: HTMLDivElement): void {
 	const [x, y] = pixel.id.split("-").map((v) => Number.parseInt(v, 10));
 	const painting: [number, number, number] = [random_int(256), random_int(256), random_int(256)];
+	if (!canvasDRP) return;
 	canvasDRP.paint([x, y], painting);
 	const [r, g, b] = canvasDRP.query_pixel(x, y).color();
 	pixel.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
 }
 
-async function createConnectHandlers() {
+async function createConnectHandlers(): Promise<void> {
 	node.addCustomGroupMessageHandler(drpObject.id, () => {
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
 		render();
@@ -53,7 +54,7 @@ async function createConnectHandlers() {
 	});
 }
 
-async function init() {
+async function init(): Promise<void> {
 	await node.start();
 	render();
 

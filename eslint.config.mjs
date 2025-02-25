@@ -68,6 +68,10 @@ const config = tseslint.config(
 			"@typescript-eslint/no-dynamic-delete": "off",
 			"@typescript-eslint/no-inferrable-types": "off",
 			"@typescript-eslint/no-floating-promises": "error",
+			"@typescript-eslint/explicit-function-return-type": "error",
+			"@typescript-eslint/await-thenable": "error", // disallows awaiting a value that is not a "Thenable"
+			"@typescript-eslint/return-await": ["error", "in-try-catch"], // require awaiting thenables returned from try/catch
+			"@typescript-eslint/method-signature-style": ["error", "method"], // enforce method signature style
 			"no-unused-vars": "off",
 			"unused-imports/no-unused-imports": "error",
 			"prefer-const": "error",
