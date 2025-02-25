@@ -5,7 +5,7 @@ import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
 import { ActionType, SemanticsType } from "../src/hashgraph/index.js";
-import { ACLGroup, DRP, DRPObject, DrpType, Hash, HashGraph, newVertex } from "../src/index.js";
+import { ACLGroup, DRPObject, DrpType, Hash, HashGraph, newVertex } from "../src/index.js";
 import { ObjectSet } from "../src/utils/objectSet.js";
 
 const acl = new ObjectACL({
@@ -53,8 +53,8 @@ function selfCheckConstraints(hg: HashGraph): boolean {
 }
 
 describe("HashGraph construction tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
 	const acl = new ObjectACL({
 		admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
 	});
@@ -70,8 +70,11 @@ describe("HashGraph construction tests", () => {
 	test("Test: Vertices are consistent across data structures", () => {
 		expect(obj1.vertices).toEqual(obj1.hashGraph.getAllVertices());
 
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 
 		for (let i = 0; i < 100; i++) {
 			drp1.add(i);
@@ -92,8 +95,11 @@ describe("HashGraph construction tests", () => {
 		  ROOT /
 		       \__ V2:ADD(2)
 		*/
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.add(1);
 		drp2.add(2);
@@ -165,7 +171,10 @@ describe("HashGraph construction tests", () => {
 		  ROOT -- V1:ADD(1)
 		  FAKE_ROOT -- V2:ADD(1)
 		*/
-		const drp1 = obj1.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		if (!drp1) {
+			throw new Error("DRP is undefined");
+		}
 		drp1.add(1);
 		// add fake root
 		const fakeRoot = newVertex(
@@ -196,7 +205,10 @@ describe("HashGraph construction tests", () => {
 	});
 
 	test("Root vertex drp state should not be modified", () => {
-		const drp1 = obj1.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		if (!drp1) {
+			throw new Error("DRP is undefined");
+		}
 		drp1.add(1);
 		drp1.add(2);
 		const rootDRPState = obj1.drpStates.get(HashGraph.rootHash);
@@ -222,8 +234,8 @@ describe("HashGraph construction tests", () => {
 });
 
 describe("HashGraph for AddWinSet tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
 	const acl = new ObjectACL({
 		admins: new Map([
 			["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
@@ -241,7 +253,10 @@ describe("HashGraph for AddWinSet tests", () => {
 		  ROOT -- ADD(1) -- delete(1)
 		*/
 
-		const drp1 = obj1.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		if (!drp1) {
+			throw new Error("DRP is undefined");
+		}
 		drp1.add(1);
 		drp1.delete(1);
 		expect(drp1.query_has(1)).toBe(false);
@@ -261,8 +276,11 @@ describe("HashGraph for AddWinSet tests", () => {
 		                    \__ V3:ADD(1)
 		*/
 
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.add(1);
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -291,8 +309,11 @@ describe("HashGraph for AddWinSet tests", () => {
 		                    \__ V3:ADD(2)
 		*/
 
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.add(1);
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -322,8 +343,11 @@ describe("HashGraph for AddWinSet tests", () => {
 		                    \__ V3:ADD(1) -- V5:delete(5)
 		*/
 
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.add(1);
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -357,8 +381,11 @@ describe("HashGraph for AddWinSet tests", () => {
 		                    \__ V3:delete(2) -- V5:ADD(1)
 		*/
 
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.add(1);
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -390,8 +417,11 @@ describe("HashGraph for AddWinSet tests", () => {
 		                    \__ V3:RM(2) -- V4:RM(2) --/
 		*/
 
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.add(1);
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -420,8 +450,8 @@ describe("HashGraph for AddWinSet tests", () => {
 });
 
 describe("HashGraph for undefined operations tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
 
 	beforeEach(async () => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
@@ -429,8 +459,11 @@ describe("HashGraph for undefined operations tests", () => {
 	});
 
 	test("Test: merge should skip undefined operations", () => {
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.add(1);
 		drp2.add(2);
@@ -447,9 +480,9 @@ describe("HashGraph for undefined operations tests", () => {
 });
 
 describe("Hashgraph and DRPObject merge without DRP tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
-	let obj3: DRPObject;
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
+	let obj3: DRPObject<SetDRP<number>>;
 	const acl = new ObjectACL({
 		admins: new Map([
 			["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
@@ -471,8 +504,11 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 		                    \__ V3:RM(2) -- V4:RM(2) --/
 		*/
 
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.add(1);
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -504,9 +540,9 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 });
 
 describe("Vertex state tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
-	let obj3: DRPObject;
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
+	let obj3: DRPObject<SetDRP<number>>;
 
 	beforeEach(async () => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
@@ -518,7 +554,10 @@ describe("Vertex state tests", () => {
 		/*
 		  ROOT -- V1:ADD(1) -- V2:ADD(2) -- V3:ADD(3)
 		*/
-		const drp1 = obj1.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		if (!drp1) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.add(1);
 		drp1.add(2);
@@ -552,9 +591,12 @@ describe("Vertex state tests", () => {
 		*/
 
 		// in above hashgraph, A represents drp1, B represents drp2, C represents drp3
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
-		const drp3 = obj3.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		const drp3 = obj3.drp;
+		if (!drp1 || !drp2 || !drp3) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.add(1);
 		drp2.add(2);
@@ -599,9 +641,9 @@ describe("Vertex state tests", () => {
 });
 
 describe("Vertex timestamp tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
-	let obj3: DRPObject;
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
+	let obj3: DRPObject<SetDRP<number>>;
 
 	beforeEach(async () => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
@@ -610,7 +652,10 @@ describe("Vertex timestamp tests", () => {
 	});
 
 	test("Test: Vertex created in the future is invalid", () => {
-		const drp1 = obj1.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		if (!drp1) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.add(1);
 
@@ -635,9 +680,12 @@ describe("Vertex timestamp tests", () => {
 		        -- V3:ADD(3) --
 		*/
 
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
-		const drp3 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		const drp3 = obj3.drp;
+		if (!drp1 || !drp2 || !drp3) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.add(1);
 		drp2.add(2);
@@ -664,9 +712,9 @@ describe("Vertex timestamp tests", () => {
 });
 
 describe("Writer permission tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
-	let obj3: DRPObject;
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
+	let obj3: DRPObject<SetDRP<number>>;
 
 	beforeEach(async () => {
 		const peerIdToPublicKeyMap = new Map([
@@ -679,7 +727,10 @@ describe("Writer permission tests", () => {
 	});
 
 	test("Node without writer permission can generate vertex locally", () => {
-		const drp = obj1.drp as SetDRP<number>;
+		const drp = obj1.drp;
+		if (!drp) {
+			throw new Error("DRP is undefined");
+		}
 		drp.add(1);
 		drp.add(2);
 
@@ -688,8 +739,11 @@ describe("Writer permission tests", () => {
 	});
 
 	test("Discard vertex if creator does not have write permission", () => {
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.add(1);
 		drp2.add(2);
@@ -702,8 +756,11 @@ describe("Writer permission tests", () => {
 		/*
 		  ROOT -- V1:ADD(1) -- V2:GRANT(peer2) -- V3:ADD(4)
 		*/
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 		const acl1 = obj1.acl as ObjectACL;
 		const acl2 = obj2.acl as ObjectACL;
 
@@ -731,9 +788,12 @@ describe("Writer permission tests", () => {
 		                                             \                /
 		                                              -- V5:ADD(2) --
 		*/
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
-		const drp3 = obj3.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		const drp3 = obj3.drp;
+		if (!drp1 || !drp2 || !drp3) {
+			throw new Error("DRP is undefined");
+		}
 		const acl1 = obj1.acl as ObjectACL;
 
 		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
@@ -791,7 +851,10 @@ describe("Writer permission tests", () => {
 		const obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		const obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 
-		const drp1 = obj1.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		if (!drp1) {
+			throw new Error("DRP is undefined");
+		}
 		const acl1 = obj1.acl as ObjectACL;
 
 		drp1.add(1);
@@ -818,9 +881,9 @@ describe("Writer permission tests", () => {
 });
 
 describe("HashGraph for set wins map tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
-	let obj3: DRPObject;
+	let obj1: DRPObject<MapDRP<string, string>>;
+	let obj2: DRPObject<MapDRP<string, string>>;
+	let obj3: DRPObject<MapDRP<string, string>>;
 
 	beforeEach(async () => {
 		obj1 = new DRPObject({
@@ -848,8 +911,11 @@ describe("HashGraph for set wins map tests", () => {
 		      \
 		       -- V2:SET("key2, "value2")
 		*/
-		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
-		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 		drp1.set("key1", "value1");
 		drp2.set("key2", "value2");
 		drp1.delete("key1");
@@ -870,8 +936,11 @@ describe("HashGraph for set wins map tests", () => {
 		       --- V2:SET("key1", "value1") -- V3:DELETE("key1") -- V4:SET("key2", "value2")
 		*/
 
-		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
-		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.set("key1", "value2"); // smaller hash
 		drp2.set("key1", "value1"); // greater hash
@@ -899,9 +968,12 @@ describe("HashGraph for set wins map tests", () => {
 		       \                                                    ----------------------------\
 		        -- V6:SET("key2", "eulav3") ---------------------------------------------------- v8:SET("key1", "value")
 		*/
-		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
-		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
-		const drp3 = obj3.drp as DRP as MapDRP<string, string>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		const drp3 = obj3.drp;
+		if (!drp1 || !drp2 || !drp3) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.set("key1", "value1");
 		drp1.delete("key2");
@@ -925,8 +997,8 @@ describe("HashGraph for set wins map tests", () => {
 });
 
 describe("HashGraph for delete wins map tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
+	let obj1: DRPObject<MapDRP<string, string>>;
+	let obj2: DRPObject<MapDRP<string, string>>;
 
 	beforeEach(async () => {
 		obj1 = new DRPObject({
@@ -949,8 +1021,11 @@ describe("HashGraph for delete wins map tests", () => {
 		      \
 		       -- V2:SET("key1", "value2") -- DELETE("key1")
 		*/
-		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
-		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.set("key1", "value1"); // greater hash
 		drp2.set("key1", "value2"); // smaller hash
@@ -970,8 +1045,11 @@ describe("HashGraph for delete wins map tests", () => {
 		       --V2:SET("key1", "value1") -- V4:SET("key2", "value3")
 		*/
 
-		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
-		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 
 		drp1.set("key1", "value2");
 		drp2.set("key1", "value1");
@@ -995,8 +1073,8 @@ describe("HashGraph for delete wins map tests", () => {
 });
 
 describe("Hash validation tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
+	let obj1: DRPObject<MapDRP<string, string>>;
+	let obj2: DRPObject<MapDRP<string, string>>;
 	beforeEach(async () => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
@@ -1012,8 +1090,11 @@ describe("Hash validation tests", () => {
 	});
 
 	test("Should accept vertices with valid hash", () => {
-		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
-		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
+		if (!drp1 || !drp2) {
+			throw new Error("DRP is undefined");
+		}
 		drp1.set("key1", "value1");
 		drp2.set("key2", "value2");
 
@@ -1045,15 +1126,18 @@ describe("Hash validation tests", () => {
 });
 
 describe("HashGraph hook tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
 	beforeEach(async () => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 	});
 
 	test("New operations are hooked from callFn", () => {
-		const drp1 = obj1.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		if (!drp1) {
+			throw new Error("DRP is undefined");
+		}
 		const newVertices: Vertex[] = [];
 
 		obj1.subscribe((object, origin, vertices) => {
@@ -1070,7 +1154,10 @@ describe("HashGraph hook tests", () => {
 	});
 
 	test("Merged operations are hooked from merge", () => {
-		const drp1 = obj1.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		if (!drp1) {
+			throw new Error("DRP is undefined");
+		}
 		const newVertices: Vertex[] = [];
 
 		obj2.subscribe((object, origin, vertices) => {

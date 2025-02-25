@@ -5,7 +5,7 @@ import { beforeAll, describe, expect, test } from "vitest";
 import { deserializeStateMessage, serializeStateMessage } from "../src/utils.js";
 
 describe("State message utils", () => {
-	let object: DRPObject;
+	let object: DRPObject<SetDRP<number>>;
 
 	beforeAll(async () => {
 		object = DRPObject.createObject({
@@ -13,9 +13,9 @@ describe("State message utils", () => {
 			id: "test",
 			drp: new SetDRP<number>(),
 		});
-		(object.drp as SetDRP<number>).add(1);
-		(object.drp as SetDRP<number>).add(2);
-		(object.drp as SetDRP<number>).add(3);
+		object.drp?.add(1);
+		object.drp?.add(2);
+		object.drp?.add(3);
 	});
 
 	test("Should serialize/deserialize state message", async () => {

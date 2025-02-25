@@ -39,18 +39,18 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 });
 
 describe("Drp Object should be able to change state value", () => {
-	let drpObject: DRPObject;
+	let drpObject: DRPObject<SetDRP<number>>;
 
 	beforeEach(async () => {
 		drpObject = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 	});
 
 	it("should update ACL state keys when DRP state changes", () => {
-		const drpSet = drpObject.drp as SetDRP<number>;
+		const drpSet = drpObject.drp;
 		const aclInstance = drpObject.acl as ObjectACL;
 
 		// Add a value to the DRP set
-		drpSet.add(1);
+		drpSet?.add(1);
 
 		// Get the ACL states and expected variable names
 		const aclStates = drpObject.aclStates.values();
@@ -63,7 +63,7 @@ describe("Drp Object should be able to change state value", () => {
 		}
 
 		const drpStates = drpObject.drpStates.values();
-		const expectedDrpKeys = Object.keys(drpSet);
+		const expectedDrpKeys = Object.keys(drpSet ?? {});
 
 		// Check that each state contains the expected keys
 		for (const state of drpStates) {
@@ -106,7 +106,10 @@ describe("Test for duplicate call issue", () => {
 			drp: new CounterDRP(),
 		});
 
-		const testDRP = obj.drp as CounterDRP;
+		const testDRP = obj.drp;
+		if (!testDRP) {
+			throw new Error("DRP is undefined");
+		}
 		expect(testDRP).toBeDefined();
 		const ret = testDRP.test();
 		expect(ret).toBe(counter);
@@ -114,8 +117,8 @@ describe("Test for duplicate call issue", () => {
 });
 
 describe("Merging vertices tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
 
 	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
@@ -125,13 +128,13 @@ describe("Merging vertices tests", () => {
 	test("Test: merge should skip unknown dependencies", () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp;
+		const drp2 = obj2.drp;
 
-		drp1.add(1);
-		drp2.add(2);
+		drp1?.add(1);
+		drp2?.add(2);
 		obj1.merge(obj2.hashGraph.getAllVertices());
-		drp1.add(3);
+		drp1?.add(3);
 
 		const vertex = obj1.vertices.find(
 			(v) => v.operation?.opType === "add" && v.operation.value[0] === 3

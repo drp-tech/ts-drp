@@ -54,7 +54,7 @@ describe("Handle message correctly", () => {
 	let node1: DRPNode;
 	let node2: DRPNode;
 	let bootstrapNode: DRPNetworkNode;
-	let drpObject: DRPObject;
+	let drpObject: DRPObject<SetDRP<number>>;
 	let libp2pNode2: Libp2p;
 	let libp2pNode1: Libp2p;
 
@@ -155,8 +155,8 @@ describe("Handle message correctly", () => {
 			acl: acl,
 		});
 
-		(drpObject.drp as SetDRP<number>).add(5);
-		(drpObject.drp as SetDRP<number>).add(10);
+		drpObject.drp?.add(5);
+		drpObject.drp?.add(10);
 
 		const vertices = drpObject.vertices;
 		await signGeneratedVertices(node2, vertices);
@@ -186,8 +186,8 @@ describe("Handle message correctly", () => {
 		const node1DrpObject = node1.objectStore.get(drpObject.id);
 		expect(node1DrpObject).toBeDefined();
 
-		(node1DrpObject?.drp as SetDRP<number>).add(1);
-		(node1DrpObject?.drp as SetDRP<number>).add(2);
+		node1DrpObject?.drp?.add(1);
+		node1DrpObject?.drp?.add(2);
 
 		expect(drpObject.vertices.length).toBe(3);
 		expect(node1DrpObject?.vertices.length).toBe(5);
@@ -213,8 +213,8 @@ describe("Handle message correctly", () => {
 	test("should handle sync accept message correctly", async () => {
 		const node1DrpObject = node1.objectStore.get(drpObject.id);
 		expect(node1DrpObject).toBeDefined();
-		(node1DrpObject?.drp as SetDRP<number>).add(3);
-		(node1DrpObject?.drp as SetDRP<number>).add(20);
+		node1DrpObject?.drp?.add(3);
+		node1DrpObject?.drp?.add(20);
 		expect(node1DrpObject?.vertices.length).toBe(7);
 		await signGeneratedVertices(node1, node1DrpObject?.vertices || []);
 		const message = Message.create({

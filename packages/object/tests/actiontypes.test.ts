@@ -8,8 +8,8 @@ const acl = new ObjectACL({
 	permissionless: true,
 });
 
-let drp: DRPObject;
-let drp2: DRPObject;
+let drp: DRPObject<AddMulDRP>;
+let drp2: DRPObject<AddMulDRP>;
 
 beforeAll(async () => {
 	const { Console } = await import("node:console");
@@ -24,8 +24,11 @@ describe("Test: ActionTypes (Nop and Swap)", () => {
 	beforeEach(() => {
 		drp = new DRPObject({ peerId: "peer1", drp: new AddMulDRP(), acl });
 		drp2 = new DRPObject({ peerId: "peer2", drp: new AddMulDRP(), acl });
-		addMul = drp.drp as AddMulDRP;
-		addMul2 = drp2.drp as AddMulDRP;
+		if (!drp.drp || !drp2.drp) {
+			throw new Error("DRP is undefined");
+		}
+		addMul = drp.drp;
+		addMul2 = drp2.drp;
 
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));

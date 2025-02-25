@@ -34,30 +34,32 @@ export interface DRPObjectConfig {
 
 export let log: Logger;
 
-export class DRPObject implements DRPObjectBase {
+export interface DRPObjectOptions<T extends DRP> {
+	peerId: string;
+	publicCredential?: DRPPublicCredential;
+	acl?: ACL;
+	drp?: T;
+	id?: string;
+	config?: DRPObjectConfig;
+	metrics?: IMetrics;
+}
+
+export class DRPObject<T extends DRP> implements DRPObjectBase {
 	id: string;
 	vertices: Vertex[] = [];
 	acl?: ProxyHandler<ACL>;
-	drp?: ProxyHandler<DRP>;
+	drp?: T;
 	// @ts-expect-error: initialized in constructor
 	hashGraph: HashGraph;
 	// mapping from vertex hash to the DRP state
 	drpStates: Map<string, DRPState>;
 	aclStates: Map<string, DRPState>;
-	originalDRP?: DRP;
+	originalDRP?: T;
 	originalObjectACL?: ACL;
 	finalityStore: FinalityStore;
-	subscriptions: DRPObjectCallback[] = [];
+	subscriptions: DRPObjectCallback<T>[] = [];
 
-	constructor(options: {
-		peerId: string;
-		publicCredential?: DRPPublicCredential;
-		acl?: ACL;
-		drp?: DRP;
-		id?: string;
-		config?: DRPObjectConfig;
-		metrics?: IMetrics;
-	}) {
+	constructor(options: DRPObjectOptions<T>) {
 		if (!options.acl && !options.publicCredential) {
 			throw new Error("Either publicCredential or acl must be provided to create a DRPObject");
 		}
@@ -77,7 +79,7 @@ export class DRPObject implements DRPObjectBase {
 				admins: new Map([[options.peerId, options.publicCredential as DRPPublicCredential]]),
 				permissionless: true,
 			});
-		this.acl = new Proxy(objAcl, this.proxyDRPHandler(DrpType.ACL));
+		this.acl = new Proxy(objAcl, this.proxyDRPHandler<ACL>(DrpType.ACL)) as ProxyHandler<ACL>;
 		if (options.drp) {
 			this._initLocalDrpInstance(options.peerId, options.drp, objAcl);
 		} else {
@@ -101,7 +103,7 @@ export class DRPObject implements DRPObjectBase {
 			this._computeDRP;
 	}
 
-	private _initLocalDrpInstance(peerId: string, drp: DRP, acl: DRP) {
+	private _initLocalDrpInstance(peerId: string, drp: T, acl: ACL) {
 		this.drp = new Proxy(drp, this.proxyDRPHandler(DrpType.DRP));
 		this.hashGraph = new HashGraph(
 			peerId,
@@ -117,7 +119,7 @@ export class DRPObject implements DRPObjectBase {
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
-	static createObject(options: ConnectObjectOptions) {
+	static createObject<T extends DRP>(options: ConnectObjectOptions<T>) {
 		const aclObj = new ObjectACL({
 			admins: new Map(),
 			permissionless: true,
@@ -133,7 +135,7 @@ export class DRPObject implements DRPObjectBase {
 	}
 
 	// This function is black magic, it allows us to intercept calls to the DRP object
-	proxyDRPHandler(vertexType: DrpType): ProxyHandler<object> {
+	proxyDRPHandler<T extends object>(vertexType: DrpType): ProxyHandler<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const obj = this;
 		return {
@@ -306,7 +308,7 @@ export class DRPObject implements DRPObjectBase {
 		return [missing.length === 0, missing];
 	}
 
-	subscribe(callback: DRPObjectCallback) {
+	subscribe(callback: DRPObjectCallback<T>) {
 		this.subscriptions.push(callback);
 	}
 
@@ -365,7 +367,7 @@ export class DRPObject implements DRPObjectBase {
 
 		const { lca, linearizedOperations } = preCompute ?? this.computeLCA(vertexDependencies);
 
-		const drp = cloneDeep(this.originalDRP);
+		const drp: DRP = cloneDeep(this.originalDRP);
 
 		const fetchedState = this.drpStates.get(lca);
 		if (!fetchedState) {

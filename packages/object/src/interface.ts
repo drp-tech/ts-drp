@@ -9,7 +9,11 @@ export enum DrpType {
 	DRP = "DRP",
 }
 
-export type DRPObjectCallback = (object: DRPObject, origin: string, vertices: Vertex[]) => void;
+export type DRPObjectCallback<T extends DRP> = (
+	object: DRPObject<T>,
+	origin: string,
+	vertices: Vertex[]
+) => void;
 
 export interface DRPPublicCredential {
 	ed25519PublicKey: string;
@@ -27,9 +31,9 @@ export interface LcaAndOperations {
 	lca: string;
 	linearizedOperations: Operation[];
 }
-export type ConnectObjectOptions = {
+export type ConnectObjectOptions<T extends DRP> = {
 	peerId: string;
 	id?: string;
-	drp?: DRP;
+	drp?: T;
 	metrics?: IMetrics;
 };

@@ -20,9 +20,12 @@ describe("AreCausallyDependent benchmark", async () => {
 		drp: new SetDRP<number>(),
 	});
 
-	const drp1 = obj1.drp as SetDRP<number>;
-	const drp2 = obj2.drp as SetDRP<number>;
-	const drp3 = obj3.drp as SetDRP<number>;
+	const drp1 = obj1.drp;
+	const drp2 = obj2.drp;
+	const drp3 = obj3.drp;
+	if (!drp1 || !drp2 || !drp3) {
+		throw new Error("DRP is undefined");
+	}
 
 	drp1.add(1);
 	obj2.merge(obj1.hashGraph.getAllVertices());

@@ -1,6 +1,6 @@
 import type { Stream } from "@libp2p/interface";
 import { streamToUint8Array } from "@ts-drp/network";
-import { type ACL, type DRPObject, HashGraph } from "@ts-drp/object";
+import { type ACL, DRP, type DRPObject, HashGraph } from "@ts-drp/object";
 import { type Vertex } from "@ts-drp/types";
 import {
 	AggregatedAttestation,
@@ -225,7 +225,7 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	const requested: Set<Vertex> = new Set(object.vertices);
 	const requesting: string[] = [];
 	for (const h of syncMessage.vertexHashes) {
-		const vertex = object.vertices.find((v) => v.hash === h);
+		const vertex = object.vertices.find((v: Vertex) => v.hash === h);
 		if (vertex) {
 			requested.delete(vertex);
 		} else {
@@ -287,7 +287,7 @@ async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array
 	// send missing vertices
 	const requested: Vertex[] = [];
 	for (const h of syncAcceptMessage.requesting) {
-		const vertex = object.vertices.find((v) => v.hash === h);
+		const vertex = object.vertices.find((v: Vertex) => v.hash === h);
 		if (vertex) {
 			requested.push(vertex);
 		}
@@ -322,9 +322,9 @@ function syncRejectHandler(_node: DRPNode, _data: Uint8Array) {
 	// - Do nothing
 }
 
-export function drpObjectChangesHandler(
+export function drpObjectChangesHandler<T extends DRP>(
 	node: DRPNode,
-	obj: DRPObject,
+	obj: DRPObject<T>,
 	originFn: string,
 	vertices: Vertex[]
 ) {
@@ -380,7 +380,11 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 }
 
 // Signs the vertices. Returns the attestations
-export function signFinalityVertices(node: DRPNode, obj: DRPObject, vertices: Vertex[]) {
+export function signFinalityVertices<T extends DRP>(
+	node: DRPNode,
+	obj: DRPObject<T>,
+	vertices: Vertex[]
+) {
 	if (!(obj.acl as ACL).query_isFinalitySigner(node.networkNode.peerId)) {
 		return [];
 	}
@@ -389,7 +393,11 @@ export function signFinalityVertices(node: DRPNode, obj: DRPObject, vertices: Ve
 	return attestations;
 }
 
-function generateAttestations(node: DRPNode, object: DRPObject, vertices: Vertex[]): Attestation[] {
+function generateAttestations<T extends DRP>(
+	node: DRPNode,
+	object: DRPObject<T>,
+	vertices: Vertex[]
+): Attestation[] {
 	// Two condition:
 	// - The node can sign the vertex
 	// - The node hasn't signed for the vertex
@@ -404,14 +412,17 @@ function generateAttestations(node: DRPNode, object: DRPObject, vertices: Vertex
 	}));
 }
 
-function getAttestations(object: DRPObject, vertices: Vertex[]): AggregatedAttestation[] {
+function getAttestations<T extends DRP>(
+	object: DRPObject<T>,
+	vertices: Vertex[]
+): AggregatedAttestation[] {
 	return vertices
 		.map((v) => object.finalityStore.getAttestation(v.hash))
 		.filter((a) => a !== undefined);
 }
 
-export async function verifyACLIncomingVertices(
-	object: DRPObject,
+export async function verifyACLIncomingVertices<T extends DRP>(
+	object: DRPObject<T>,
 	incomingVertices: Vertex[]
 ): Promise<Vertex[]> {
 	const vertices: Vertex[] = incomingVertices.map((vertex) => {
