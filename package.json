@@ -37,10 +37,11 @@
     "watch": "pnpm --parallel --filter '@ts-drp/*' watch"
   },
   "dependencies": {
-    "typescript": "^5.7.3",
-    "@types/node": "^22.5.4"
+    "@types/node": "^22.5.4",
+    "typescript": "^5.7.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.18.0",
     "@playwright/test": "^1.49.1",
     "@release-it-plugins/workspaces": "^4.2.0",
     "@typescript-eslint/parser": "^8.21.0",
