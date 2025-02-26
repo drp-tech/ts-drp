@@ -1,7 +1,8 @@
+import { type Vertex } from "@ts-drp/types";
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
 import { SemanticsType, ActionType, HashGraph, DrpType } from "../src/index.js";
-import { newVertex, type Vertex } from "../src/index.js";
+import { newVertex } from "../src/index.js";
 import { HashGraphVizualizer } from "../src/utils/hashgraphVizualizer.js";
 
 describe("hashGraphVizualizer tests", () => {

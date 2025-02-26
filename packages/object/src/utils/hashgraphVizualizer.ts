@@ -63,13 +63,20 @@ export class HashGraphVizualizer {
 		});
 
 		const result: string[] = [];
+		let head = 0;
 		while (queue.length > 0) {
-			const node = queue.shift() as string;
+			const node = queue[head++];
+			if (!node) continue;
 			result.push(node);
 			graph.get(node)?.forEach((neighbor) => {
 				inDegree.set(neighbor, (inDegree.get(neighbor) ?? 0) - 1);
 				if (inDegree.get(neighbor) === 0) queue.push(neighbor);
 			});
+
+			if (head > queue.length / 2) {
+				queue.splice(0, head);
+				head = 0;
+			}
 		}
 
 		return result;
@@ -77,26 +84,33 @@ export class HashGraphVizualizer {
 
 	/**
 	 * Assigns layer numbers to nodes based on their dependencies
-	 * Ensures each node is in a layer after all its dependencies
+	 * Uses topologically sorted nodes to assign layers in a single pass
+	 * Each node's layer will be one more than its highest dependency
 	 *
-	 * @param edges - Array of edges representing dependencies
-	 * @param nodes - Array of node IDs to assign layers to
+	 * @param edges - Array of all edges
+	 * @param sortedNodes - Array of node IDs in topological order
 	 * @returns Map of node IDs to their assigned layer numbers
 	 */
-	private assignLayers(edges: Edge[], nodes: string[]): Map<string, number> {
+	private assignLayers(edges: Edge[], sortedNodes: string[]): Map<string, number> {
 		const layers = new Map<string, number>();
-		nodes.forEach((node) => layers.set(node, 0));
+		const dependencies = new Map<string, string[]>();
 
-		let changed = true;
-		while (changed) {
-			changed = false;
-			edges.forEach(({ from, to }) => {
-				if ((layers.get(from) ?? 0) >= (layers.get(to) ?? 0)) {
-					layers.set(to, (layers.get(from) ?? 0) + 1);
-					changed = true;
-				}
-			});
-		}
+		edges.forEach(({ from, to }) => {
+			if (!dependencies.has(to)) {
+				dependencies.set(to, []);
+			}
+			dependencies.get(to)?.push(from);
+		});
+
+		sortedNodes.forEach((node) => layers.set(node, 0));
+
+		sortedNodes.forEach((node) => {
+			const deps = dependencies.get(node) || [];
+			if (deps.length > 0) {
+				const maxDepLayer = Math.max(...deps.map((dep) => layers.get(dep) ?? 0));
+				layers.set(node, maxDepLayer + 1);
+			}
+		});
 
 		return layers;
 	}
