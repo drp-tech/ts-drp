@@ -17,9 +17,11 @@ import type {
 	Address,
 	EventCallback,
 	PeerDiscovery,
+	PeerId,
 	Stream,
 	StreamHandler,
 } from "@libp2p/interface";
+import { peerIdFromString } from "@libp2p/peer-id";
 import { ping } from "@libp2p/ping";
 import {
 	type PubSubPeerDiscoveryComponents,
@@ -32,6 +34,7 @@ import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { Message } from "@ts-drp/types";
+import { DRP_HEARTBEAT_TOPIC } from "@ts-drp/types";
 import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
@@ -39,6 +42,7 @@ import { uint8ArrayToStream } from "./stream.js";
 
 export * from "./stream.js";
 
+export const DRP_DISCOVERY_TOPIC = "drp::discovery";
 export const DRP_MESSAGE_PROTOCOL = "/drp/message/0.0.1";
 export const BOOTSTRAP_NODES = [
 	"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/12D3KooWBu1pZ3v2u6tXSmkN35kiMLENpv3bEXcyT1GJTVhipAkG",
@@ -91,7 +95,7 @@ export class DRPNetworkNode {
 
 		const _peerDiscovery: Array<PeerDiscoveryFunction> = [
 			pubsubPeerDiscovery({
-				topics: ["drp::discovery"],
+				topics: [DRP_DISCOVERY_TOPIC],
 				interval: this._config?.pubsub?.peer_discovery_interval || 5000,
 			}),
 		];
@@ -234,7 +238,8 @@ export class DRPNetworkNode {
 		);
 
 		// needded as I've disabled the pubsubPeerDiscovery
-		this._pubsub?.subscribe("drp::discovery");
+		this._pubsub?.subscribe(DRP_DISCOVERY_TOPIC);
+		this._pubsub?.subscribe(DRP_HEARTBEAT_TOPIC);
 	}
 
 	async stop() {
@@ -320,16 +325,17 @@ export class DRPNetworkNode {
 		}
 	}
 
-	async connect(addr: MultiaddrInput) {
+	async connect(addr: MultiaddrInput | MultiaddrInput[]): Promise<void> {
 		try {
-			await this._node?.dial([multiaddr(addr)]);
+			const multiaddrs = Array.isArray(addr) ? addr.map(multiaddr) : [multiaddr(addr)];
+			await this._node?.dial(multiaddrs);
 			log.info("::connect: Successfuly dialed", addr);
 		} catch (e) {
 			log.error("::connect:", e);
 		}
 	}
 
-	async disconnect(peerId: string) {
+	async disconnect(peerId: string): Promise<void> {
 		try {
 			await this._node?.hangUp(multiaddr(`/p2p/${peerId}`));
 			log.info("::disconnect: Successfuly disconnected", peerId);
@@ -356,6 +362,14 @@ export class DRPNetworkNode {
 		const peers = this._pubsub?.getSubscribers(group);
 		if (!peers) return [];
 		return peers.map((peer) => peer.toString());
+	}
+
+	async getPeerMultiaddrs(peerId: PeerId | string): Promise<Address[]> {
+		const peerIdObj: PeerId = typeof peerId === "string" ? peerIdFromString(peerId) : peerId;
+
+		const peer = await this._node?.peerStore.get(peerIdObj);
+		if (!peer) return [];
+		return peer.addresses;
 	}
 
 	async broadcastMessage(topic: string, message: Message) {

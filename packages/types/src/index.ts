@@ -19,4 +19,7 @@ export {
 	Sync,
 	SyncAccept,
 	SyncReject,
+	IDHeartbeat,
+	IDHeartbeatResponse,
 } from "./proto/drp/v1/messages_pb.js";
+export { IDRPIDHeartbeat, DRP_HEARTBEAT_TOPIC } from "./node/heartbeat.js";

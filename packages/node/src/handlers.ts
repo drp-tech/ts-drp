@@ -17,6 +17,7 @@ import {
 } from "@ts-drp/types";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
+import { DRPIDHeartbeat } from "./heartbeat.js";
 import { type DRPNode, log } from "./index.js";
 import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
 
@@ -71,8 +72,40 @@ export async function drpMessagesHandler(node: DRPNode, stream?: Stream, data?: 
 		case MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE:
 			await attestationUpdateHandler(node, message.sender, message.data);
 			break;
+		case MessageType.MESSAGE_TYPE_ID_HEARTBEAT_RESPONSE:
+			await node.heartbeat?.onReceiveHeartbeatResponse(message.sender, message.data);
+			break;
 		default:
 			log.error("::messageHandler: Invalid operation");
+			break;
+	}
+}
+
+export async function heartbeatHandler(node: DRPNode, stream?: Stream, receivedData?: Uint8Array) {
+	let message: Message;
+	try {
+		if (stream) {
+			const byteArray = await streamToUint8Array(stream);
+			message = Message.decode(byteArray);
+		} else if (receivedData) {
+			message = Message.decode(receivedData);
+		} else {
+			log.error("::heartbeatHandler: Stream and data are undefined");
+			return;
+		}
+	} catch (err) {
+		log.error("::heartbeatHandler: Error decoding message", err);
+		return;
+	}
+
+	const { sender, data } = message;
+
+	switch (message.type) {
+		case MessageType.MESSAGE_TYPE_ID_HEARTBEAT:
+			await DRPIDHeartbeat.onReceiveHeartbeat(sender, data, node.networkNode);
+			break;
+		default:
+			log.error("::heartbeatHandler: Invalid operation");
 			break;
 	}
 }

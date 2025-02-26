@@ -13,6 +13,8 @@ enum MessageType {
   MESSAGE_TYPE_SYNC_REJECT = 6;
   MESSAGE_TYPE_ATTESTATION_UPDATE = 7;
   MESSAGE_TYPE_CUSTOM = 8;
+  MESSAGE_TYPE_ID_HEARTBEAT = 9;
+  MESSAGE_TYPE_ID_HEARTBEAT_RESPONSE = 10;
 }
 
 message Message {
@@ -57,3 +59,14 @@ message SyncAccept {
 }
 
 message SyncReject {}
+
+message IDHeartbeat {
+  string object_id = 1;
+}
+
+message IDHeartbeatResponse {
+  message Subscribers {
+    repeated string multiaddrs = 1;
+  }
+  map<string, Subscribers> subscribers = 1;
+}
