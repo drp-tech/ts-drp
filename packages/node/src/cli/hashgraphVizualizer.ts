@@ -1,5 +1,4 @@
-import { ObjectSet } from "./objectSet.js";
-import { Hash, HashGraph } from "../hashgraph/index.js";
+import { Hash, HashGraph } from "@ts-drp/object";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -273,7 +272,7 @@ export class HashGraphVizualizer {
 	 * @param hashGraph - The HashGraph to visualize
 	 */
 	public draw(hashGraph: HashGraph): void {
-		const nodes = new ObjectSet<string>();
+		const nodes = new Set<string>();
 
 		const edges: { from: Hash; to: Hash }[] = [];
 		for (const v of hashGraph.getAllVertices()) {
