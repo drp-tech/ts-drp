@@ -1,9 +1,10 @@
 import bls from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
+import { Logger } from "@ts-drp/logger";
 import { ACLGroup, ObjectACL } from "@ts-drp/object";
 import { type DRP, DRPObject, DrpType } from "@ts-drp/object";
 import { type Vertex } from "@ts-drp/types";
-import { beforeAll, beforeEach, describe, expect, test } from "vitest";
+import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
 	signFinalityVertices,
@@ -227,5 +228,90 @@ describe("DRPNode voting tests", () => {
 				nodeB.keychain.signWithBls(V1.hash),
 			])
 		);
+	});
+});
+
+describe("DRPNode with rpc", () => {
+	let drp: DRP;
+	let drpNode: DRPNode;
+	let drpObject: DRPObject;
+	let mockLogger: Logger;
+
+	beforeAll(async () => {
+		drpNode = new DRPNode();
+		await drpNode.start();
+		vi.useFakeTimers();
+		vi.mock("@ts-drp/logger", () => {
+			const mockLogger = {
+				error: vi.fn(),
+				info: vi.fn(),
+				warn: vi.fn(),
+				debug: vi.fn(),
+			};
+
+			return {
+				Logger: vi.fn().mockImplementation(() => mockLogger),
+			};
+		});
+		mockLogger = new Logger("drp::network", {});
+	});
+	beforeEach(async () => {
+		drp = new SetDRP();
+		const acl = new ObjectACL({
+			admins: new Map([[drpNode.networkNode.peerId, drpNode.keychain.getPublicCredential()]]),
+		});
+		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
+	});
+
+	test("should run connectObject", async () => {
+		const drpObjectConnected = await drpNode.connectObject({ id: drpObject.id, drp });
+		expect(drpObjectConnected.id).toEqual(drpObject.id);
+		vi.advanceTimersByTime(3000);
+		const object = drpNode.objectStore.get(drpObject.id);
+		expect(object).toBeDefined();
+	});
+
+	test("should run unsubscribeObject", async () => {
+		await drpNode.unsubscribeObject(drpObject.id);
+		expect(mockLogger.info).toHaveBeenCalledWith(
+			"::unsubscribe: Successfuly unsubscribed the topic",
+			drpObject.id
+		);
+	});
+
+	test("should run unsubscribeObject with purge", async () => {
+		await drpNode.unsubscribeObject(drpObject.id, true);
+		const store = drpNode.objectStore.get(drpObject.id);
+		expect(store).toBeUndefined();
+	});
+
+	test("should run syncObject ", async () => {
+		await drpNode.syncObject(drpObject.id);
+	});
+
+	test("should run node restart", async () => {
+		await drpNode.restart();
+		expect(mockLogger.info).toHaveBeenCalledWith("::restart: Node restarted");
+	});
+
+	test("Should subscribe to object", async () => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		drpNode.objectStore.subscribe(drpObject.id, (objectId: string, object: DRPObject) => {
+			mockLogger.info("::subscribe: Subscribed to object");
+		});
+		const _subscriptions = drpNode.objectStore["_subscriptions"];
+		expect(_subscriptions.has(drpObject.id)).toBe(true);
+	});
+
+	test("Should unsubscribe to object", async () => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const callBack = (objectId: string, object: DRPObject) => {
+			mockLogger.info("::unsubscribe: Unsubscribed to object");
+		};
+		drpNode.objectStore.subscribe(drpObject.id, callBack);
+		drpNode.objectStore.unsubscribe(drpObject.id, callBack);
+		const _subscriptions = drpNode.objectStore["_subscriptions"];
+		const expectedCallback = _subscriptions.get(drpObject.id)?.find((x) => x === callBack);
+		expect(expectedCallback).toBeUndefined();
 	});
 });

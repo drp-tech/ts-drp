@@ -7,7 +7,7 @@ export default defineConfig({
 		exclude: ["**/node_modules", "**/e2e"],
 		coverage: {
 			enabled: true,
-			reporter: ["text", "lcov"],
+			reporter: ["text", "lcov", "json-summary", "json"],
 			include: ["packages/**/*.{ts,tsx}"],
 			exclude: [
 				"**/node_modules/**",
@@ -15,6 +15,7 @@ export default defineConfig({
 				"**/tests/**",
 				"**/proto/**",
 				"**/dist/**",
+				"packages/node/src/rpc/index.ts",
 			],
 		},
 		testTimeout: 10000,

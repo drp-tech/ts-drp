@@ -3,7 +3,7 @@ import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { DrpType } from "@ts-drp/object";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
-import { AttestationUpdate, Message, Sync, SyncAccept, Update } from "@ts-drp/types";
+import { AttestationUpdate, FetchState, Message, Sync, SyncAccept, Update } from "@ts-drp/types";
 import { MessageType } from "@ts-drp/types/src/index.js";
 import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test, afterAll, vi } from "vitest";
@@ -179,6 +179,26 @@ describe("Handle message correctly", () => {
 			{ opType: "add", value: [5], drpType: DrpType.DRP },
 			{ opType: "add", value: [10], drpType: DrpType.DRP },
 		]);
+	});
+
+	test("should handle fetch state", async () => {
+		const message = Message.create({
+			sender: node1.networkNode.peerId,
+			type: MessageType.MESSAGE_TYPE_FETCH_STATE,
+			data: FetchState.encode(
+				FetchState.create({
+					objectId: drpObject.id,
+					vertexHash: drpObject.vertices[0].hash,
+				})
+			).finish(),
+		});
+
+		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
+		await new Promise((resolve) => setTimeout(resolve, 500));
+		const drp = node1.objectStore.get(drpObject.id);
+		const drp2 = node2.objectStore.get(drpObject.id);
+		// After fetching the state, the vertices should be the same
+		expect(drp?.vertices).toEqual(drp2?.vertices);
 	});
 
 	test("should handle sync message correctly", async () => {

@@ -18,7 +18,7 @@ import type {
 	UnsubscribeDRPRequest,
 } from "../proto/drp/node/v1/rpc_pb.js";
 
-export function init(node: DRPNode) {
+export function init(node: DRPNode, port: number = 6969) {
 	async function subscribeDRP(
 		call: ServerUnaryCall<SubscribeDRPRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
@@ -169,7 +169,7 @@ export function init(node: DRPNode) {
 		sendGroupMessage,
 		addCustomGroup,
 	});
-	server.bindAsync("0.0.0.0:6969", grpc.ServerCredentials.createInsecure(), (_error, _port) => {
+	server.bindAsync(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure(), (_error, _port) => {
 		log.info("::rpc::init: running grpc in port:", _port);
 	});
 }

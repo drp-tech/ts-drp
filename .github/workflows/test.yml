@@ -6,6 +6,9 @@ on:
     branches: [main]
 jobs:
   tests:
+    permissions:
+      issues: write
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,3 +32,5 @@ jobs:
       - shell: bash
         run: |
           pnpm run coverage
+      - name: "Report coverage"
+        uses: davelosert/vitest-coverage-report-action@v2
