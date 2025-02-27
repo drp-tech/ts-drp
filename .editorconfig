@@ -12,5 +12,9 @@ max_line_length = 120
 [*.md]
 max_line_length = 0
 
+[*.json]
+indent_size = 2
+indent_style = space
+
 [COMMIT_EDITMSG]
 max_line_length = 0

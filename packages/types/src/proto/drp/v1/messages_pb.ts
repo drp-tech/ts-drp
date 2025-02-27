@@ -18,6 +18,8 @@ export enum MessageType {
   MESSAGE_TYPE_SYNC_REJECT = 6,
   MESSAGE_TYPE_ATTESTATION_UPDATE = 7,
   MESSAGE_TYPE_CUSTOM = 8,
+  MESSAGE_TYPE_ID_HEARTBEAT = 9,
+  MESSAGE_TYPE_ID_HEARTBEAT_RESPONSE = 10,
   UNRECOGNIZED = -1,
 }
 
@@ -50,6 +52,12 @@ export function messageTypeFromJSON(object: any): MessageType {
     case 8:
     case "MESSAGE_TYPE_CUSTOM":
       return MessageType.MESSAGE_TYPE_CUSTOM;
+    case 9:
+    case "MESSAGE_TYPE_ID_HEARTBEAT":
+      return MessageType.MESSAGE_TYPE_ID_HEARTBEAT;
+    case 10:
+    case "MESSAGE_TYPE_ID_HEARTBEAT_RESPONSE":
+      return MessageType.MESSAGE_TYPE_ID_HEARTBEAT_RESPONSE;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -77,6 +85,10 @@ export function messageTypeToJSON(object: MessageType): string {
       return "MESSAGE_TYPE_ATTESTATION_UPDATE";
     case MessageType.MESSAGE_TYPE_CUSTOM:
       return "MESSAGE_TYPE_CUSTOM";
+    case MessageType.MESSAGE_TYPE_ID_HEARTBEAT:
+      return "MESSAGE_TYPE_ID_HEARTBEAT";
+    case MessageType.MESSAGE_TYPE_ID_HEARTBEAT_RESPONSE:
+      return "MESSAGE_TYPE_ID_HEARTBEAT_RESPONSE";
     case MessageType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -125,6 +137,23 @@ export interface SyncAccept {
 }
 
 export interface SyncReject {
+}
+
+export interface IDHeartbeat {
+  objectId: string;
+}
+
+export interface IDHeartbeatResponse {
+  subscribers: { [key: string]: IDHeartbeatResponse_Subscribers };
+}
+
+export interface IDHeartbeatResponse_Subscribers {
+  multiaddrs: string[];
+}
+
+export interface IDHeartbeatResponse_SubscribersEntry {
+  key: string;
+  value: IDHeartbeatResponse_Subscribers | undefined;
 }
 
 function createBaseMessage(): Message {
@@ -814,6 +843,294 @@ export const SyncReject: MessageFns<SyncReject> = {
   },
 };
 
+function createBaseIDHeartbeat(): IDHeartbeat {
+  return { objectId: "" };
+}
+
+export const IDHeartbeat: MessageFns<IDHeartbeat> = {
+  encode(message: IDHeartbeat, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.objectId !== "") {
+      writer.uint32(10).string(message.objectId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): IDHeartbeat {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseIDHeartbeat();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.objectId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): IDHeartbeat {
+    return { objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "" };
+  },
+
+  toJSON(message: IDHeartbeat): unknown {
+    const obj: any = {};
+    if (message.objectId !== "") {
+      obj.objectId = message.objectId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<IDHeartbeat>, I>>(base?: I): IDHeartbeat {
+    return IDHeartbeat.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<IDHeartbeat>, I>>(object: I): IDHeartbeat {
+    const message = createBaseIDHeartbeat();
+    message.objectId = object.objectId ?? "";
+    return message;
+  },
+};
+
+function createBaseIDHeartbeatResponse(): IDHeartbeatResponse {
+  return { subscribers: {} };
+}
+
+export const IDHeartbeatResponse: MessageFns<IDHeartbeatResponse> = {
+  encode(message: IDHeartbeatResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    Object.entries(message.subscribers).forEach(([key, value]) => {
+      IDHeartbeatResponse_SubscribersEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).join();
+    });
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): IDHeartbeatResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseIDHeartbeatResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          const entry1 = IDHeartbeatResponse_SubscribersEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.subscribers[entry1.key] = entry1.value;
+          }
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): IDHeartbeatResponse {
+    return {
+      subscribers: isObject(object.subscribers)
+        ? Object.entries(object.subscribers).reduce<{ [key: string]: IDHeartbeatResponse_Subscribers }>(
+          (acc, [key, value]) => {
+            acc[key] = IDHeartbeatResponse_Subscribers.fromJSON(value);
+            return acc;
+          },
+          {},
+        )
+        : {},
+    };
+  },
+
+  toJSON(message: IDHeartbeatResponse): unknown {
+    const obj: any = {};
+    if (message.subscribers) {
+      const entries = Object.entries(message.subscribers);
+      if (entries.length > 0) {
+        obj.subscribers = {};
+        entries.forEach(([k, v]) => {
+          obj.subscribers[k] = IDHeartbeatResponse_Subscribers.toJSON(v);
+        });
+      }
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<IDHeartbeatResponse>, I>>(base?: I): IDHeartbeatResponse {
+    return IDHeartbeatResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<IDHeartbeatResponse>, I>>(object: I): IDHeartbeatResponse {
+    const message = createBaseIDHeartbeatResponse();
+    message.subscribers = Object.entries(object.subscribers ?? {}).reduce<
+      { [key: string]: IDHeartbeatResponse_Subscribers }
+    >((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = IDHeartbeatResponse_Subscribers.fromPartial(value);
+      }
+      return acc;
+    }, {});
+    return message;
+  },
+};
+
+function createBaseIDHeartbeatResponse_Subscribers(): IDHeartbeatResponse_Subscribers {
+  return { multiaddrs: [] };
+}
+
+export const IDHeartbeatResponse_Subscribers: MessageFns<IDHeartbeatResponse_Subscribers> = {
+  encode(message: IDHeartbeatResponse_Subscribers, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.multiaddrs) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): IDHeartbeatResponse_Subscribers {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseIDHeartbeatResponse_Subscribers();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.multiaddrs.push(reader.string());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): IDHeartbeatResponse_Subscribers {
+    return {
+      multiaddrs: globalThis.Array.isArray(object?.multiaddrs)
+        ? object.multiaddrs.map((e: any) => globalThis.String(e))
+        : [],
+    };
+  },
+
+  toJSON(message: IDHeartbeatResponse_Subscribers): unknown {
+    const obj: any = {};
+    if (message.multiaddrs?.length) {
+      obj.multiaddrs = message.multiaddrs;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<IDHeartbeatResponse_Subscribers>, I>>(base?: I): IDHeartbeatResponse_Subscribers {
+    return IDHeartbeatResponse_Subscribers.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<IDHeartbeatResponse_Subscribers>, I>>(
+    object: I,
+  ): IDHeartbeatResponse_Subscribers {
+    const message = createBaseIDHeartbeatResponse_Subscribers();
+    message.multiaddrs = object.multiaddrs?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseIDHeartbeatResponse_SubscribersEntry(): IDHeartbeatResponse_SubscribersEntry {
+  return { key: "", value: undefined };
+}
+
+export const IDHeartbeatResponse_SubscribersEntry: MessageFns<IDHeartbeatResponse_SubscribersEntry> = {
+  encode(message: IDHeartbeatResponse_SubscribersEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      IDHeartbeatResponse_Subscribers.encode(message.value, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): IDHeartbeatResponse_SubscribersEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseIDHeartbeatResponse_SubscribersEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = IDHeartbeatResponse_Subscribers.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): IDHeartbeatResponse_SubscribersEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? IDHeartbeatResponse_Subscribers.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: IDHeartbeatResponse_SubscribersEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = IDHeartbeatResponse_Subscribers.toJSON(message.value);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<IDHeartbeatResponse_SubscribersEntry>, I>>(
+    base?: I,
+  ): IDHeartbeatResponse_SubscribersEntry {
+    return IDHeartbeatResponse_SubscribersEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<IDHeartbeatResponse_SubscribersEntry>, I>>(
+    object: I,
+  ): IDHeartbeatResponse_SubscribersEntry {
+    const message = createBaseIDHeartbeatResponse_SubscribersEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? IDHeartbeatResponse_Subscribers.fromPartial(object.value)
+      : undefined;
+    return message;
+  },
+};
+
 function bytesFromBase64(b64: string): Uint8Array {
   if ((globalThis as any).Buffer) {
     return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
@@ -851,6 +1168,10 @@ type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
