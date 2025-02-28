@@ -199,9 +199,15 @@ importers:
 
   packages/interval-runner:
     dependencies:
+      '@ts-drp/logger':
+        specifier: workspace:^
+        version: link:../logger
       '@ts-drp/types':
-        specifier: ^0.8.5
+        specifier: workspace:^
         version: link:../types
+      '@ts-drp/utils':
+        specifier: workspace:^0.8.5
+        version: link:../utils
 
   packages/keychain:
     dependencies:
@@ -236,6 +242,9 @@ importers:
 
   packages/logger:
     dependencies:
+      '@ts-drp/types':
+        specifier: ^0.8.5
+        version: link:../types
       loglevel:
         specifier: ^1.9.2
         version: 1.9.2
