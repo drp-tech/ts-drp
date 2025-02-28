@@ -23,3 +23,4 @@ export {
 
 export * from "./hashgraph.js";
 export * from "./interval-runner.js";
+export * from "./logger.js";
