@@ -2,8 +2,7 @@ import { SetDRP } from "@ts-drp/blueprints/src/index.js";
 import { type Vertex } from "@ts-drp/types";
 import { beforeEach, describe, expect, it, test, vi } from "vitest";
 
-import { SemanticsType } from "../dist/src/hashgraph/index.js";
-import { ActionType } from "../dist/src/hashgraph/index.js";
+import { ActionType, SemanticsType } from "../dist/src/hashgraph/index.js";
 import { DRP, DRPObject, ObjectACL, ResolveConflictsType } from "../src/index.js";
 
 const acl = new ObjectACL({

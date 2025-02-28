@@ -1,5 +1,4 @@
-import type { DRPPublicCredential } from "../interface.js";
-import type { DRP } from "../interface.js";
+import type { DRPPublicCredential, DRP } from "../interface.js";
 
 export interface ACL extends DRP {
 	permissionless: boolean;

@@ -1,5 +1,4 @@
-import { MapDRP } from "@ts-drp/blueprints/src/index.js";
-import { SetDRP } from "@ts-drp/blueprints/src/index.js";
+import { MapDRP, SetDRP } from "@ts-drp/blueprints/src/index.js";
 import Benchmark from "benchmark";
 
 import { DRP, DRPObject, ObjectACL } from "../src/index.js";
