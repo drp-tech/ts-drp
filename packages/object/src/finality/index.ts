@@ -1,6 +1,6 @@
 import { bls } from "@chainsafe/bls/herumi";
-import { Logger, LoggerOptions } from "@ts-drp/logger";
-import { AggregatedAttestation, Attestation } from "@ts-drp/types";
+import { Logger } from "@ts-drp/logger";
+import { LoggerOptions, AggregatedAttestation, Attestation } from "@ts-drp/types";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { BitSet } from "../hashgraph/bitset.js";
