@@ -5,7 +5,8 @@ import * as reflection from "@grpc/reflection";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { type DRPNode, log } from "../index.js";
+import { type DRPNode } from "../index.js";
+import { log } from "../logger.js";
 import { DrpRpcService } from "../proto/drp/node/v1/rpc_grpc_pb.js";
 import type {
 	AddCustomGroupRequest,

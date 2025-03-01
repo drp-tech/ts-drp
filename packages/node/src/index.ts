@@ -8,17 +8,15 @@ import { IMetrics } from "@ts-drp/tracer";
 import { Message, MessageType } from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
+import { log } from "./logger.js";
 import * as operations from "./operations.js";
 import { DRPObjectStore } from "./store/index.js";
-
 // snake_casing to match the JSON config
 export interface DRPNodeConfig {
 	log_config?: LoggerOptions;
 	network_config?: DRPNetworkNodeConfig;
 	keychain_config?: KeychainConfig;
 }
-
-export let log: Logger;
 
 export class DRPNode {
 	config?: DRPNodeConfig;
@@ -28,7 +26,12 @@ export class DRPNode {
 
 	constructor(config?: DRPNodeConfig) {
 		this.config = config;
-		log = new Logger("drp::node", config?.log_config);
+		const newLogger = new Logger("drp::node", config?.log_config);
+		log.trace = newLogger.trace;
+		log.debug = newLogger.debug;
+		log.info = newLogger.info;
+		log.warn = newLogger.warn;
+		log.error = newLogger.error;
 		this.networkNode = new DRPNetworkNode(config?.network_config);
 		this.objectStore = new DRPObjectStore();
 		this.keychain = new Keychain(config?.keychain_config);

@@ -96,6 +96,9 @@ importers:
       '@ts-drp/object':
         specifier: 0.8.5
         version: link:../../packages/object
+      '@ts-drp/types':
+        specifier: 0.8.5
+        version: link:../../packages/types
     devDependencies:
       '@types/node':
         specifier: ^22.5.4
@@ -118,6 +121,9 @@ importers:
       '@ts-drp/object':
         specifier: 0.8.5
         version: link:../../packages/object
+      '@ts-drp/types':
+        specifier: 0.8.5
+        version: link:../../packages/types
     devDependencies:
       '@types/node':
         specifier: ^22.5.4

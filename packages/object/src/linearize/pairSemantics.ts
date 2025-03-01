@@ -1,6 +1,6 @@
-import { Operation } from "@ts-drp/types";
+import { ActionType, Operation } from "@ts-drp/types";
 
-import { ActionType, type Hash, type HashGraph } from "../hashgraph/index.js";
+import { type Hash, type HashGraph } from "../hashgraph/index.js";
 import type { ObjectSet } from "../utils/objectSet.js";
 
 export function linearizePairSemantics(
