@@ -83,4 +83,3 @@ export class Keychain {
 		return this._secp256k1PrivateKey.raw;
 	}
 }
-
