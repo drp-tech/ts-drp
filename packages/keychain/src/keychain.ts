@@ -66,4 +66,3 @@ export class Keychain {
 		return this._ed25519PrivateKey.raw;
 	}
 }
-
