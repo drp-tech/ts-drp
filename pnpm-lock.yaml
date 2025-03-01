@@ -519,6 +519,9 @@ importers:
       '@bufbuild/protobuf':
         specifier: ^2.0.0
         version: 2.2.3
+      loglevel:
+        specifier: ^1.9.2
+        version: 1.9.2
     devDependencies:
       '@types/object-inspect':
         specifier: ^1.13.0
