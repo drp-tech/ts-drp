@@ -13,7 +13,6 @@ export class IntervalRunner<Args extends unknown[] = []> implements IntervalRunn
 	private _intervalId: NodeJS.Timeout | null = null;
 	private _state: 0 | 1;
 	private _logger: Logger;
-	private lastExecutionPromise: Promise<boolean> | null = null;
 
 	/**
 	 * @param interval - The interval in milliseconds
