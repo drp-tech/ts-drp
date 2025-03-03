@@ -170,7 +170,6 @@ describe("Handle message correctly", () => {
 			).finish(),
 		});
 		await node2.networkNode.sendMessage(node1.networkNode.peerId, message);
-
 		await new Promise((resolve) => setTimeout(resolve, 500));
 		const expected_vertices = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
 			return vertex.operation;
