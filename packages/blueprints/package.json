@@ -1,35 +1,35 @@
 {
- "name": "@ts-drp/blueprints",
- "version": "0.8.5",
- "license": "MIT",
- "repository": {
-  "type": "git",
-  "url": "git+https://github.com/drp-tech/ts-drp.git"
- },
- "type": "module",
- "types": "./dist/src/index.d.ts",
- "files": [
-  "src",
-  "dist",
-  "!dist/test",
-  "!**/*.tsbuildinfo"
- ],
- "exports": {
-  ".": {
-   "types": "./dist/src/index.d.ts",
-   "import": "./dist/src/index.js"
-  }
- },
- "scripts": {
-  "build": "tsc -b",
-  "clean": "rm -rf dist/ node_modules/",
-  "prepack": "tsc -b",
-  "test": "vitest",
-  "watch": "tsc -b -w"
- },
- "dependencies": {
-  "@thi.ng/random": "^4.1.0",
-  "@ts-drp/object": "0.8.5",
-  "@ts-drp/types": "0.8.5"
- }
+	"name": "@ts-drp/blueprints",
+	"version": "0.8.5",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/drp-tech/ts-drp.git"
+	},
+	"type": "module",
+	"types": "./dist/src/index.d.ts",
+	"files": [
+		"src",
+		"dist",
+		"!dist/test",
+		"!**/*.tsbuildinfo"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/src/index.d.ts",
+			"import": "./dist/src/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc -b",
+		"clean": "rm -rf dist/ node_modules/",
+		"prepack": "tsc -b",
+		"test": "vitest",
+		"watch": "tsc -b -w"
+	},
+	"dependencies": {
+		"@thi.ng/random": "^4.1.0",
+		"@ts-drp/object": "0.8.5",
+		"@ts-drp/types": "0.8.5"
+	}
 }

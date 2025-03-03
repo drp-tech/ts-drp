@@ -1,40 +1,39 @@
 {
- "name": "@ts-drp/types",
- "version": "0.8.5",
- "license": "MIT",
- "repository": {
-  "type": "git",
-  "url": "git+https://github.com/drp-tech/ts-drp.git"
- },
- "type": "module",
- "types": "./dist/src/index.d.ts",
- "files": [
-  "src",
-  "dist",
-  "!dist/test",
-  "!**/*.tsbuildinfo"
- ],
- "exports": {
-  ".": {
-   "types": "./dist/src/index.d.ts",
-   "import": "./dist/src/index.js"
-  }
- },
- "scripts": {
-  "build": "tsc -b",
-  "clean": "rm -rf dist/ node_modules/",
-  "prepack": "tsc -b",
-  "watch": "tsc -b -w"
- },
- "dependencies": {
-  "@bufbuild/protobuf": "^2.0.0"
- },
- "devDependencies": {
-  "@eslint/js": "^9.18.0",
-  "@types/object-inspect": "^1.13.0",
-  "@typescript-eslint/eslint-plugin": "^8.20.0",
-  "@typescript-eslint/parser": "^8.20.0",
-  "eslint": "^9.18.0",
-  "typescript-eslint": "^8.20.0"
- }
+	"name": "@ts-drp/types",
+	"version": "0.8.5",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/drp-tech/ts-drp.git"
+	},
+	"type": "module",
+	"types": "./dist/src/index.d.ts",
+	"files": [
+		"src",
+		"dist",
+		"!dist/test",
+		"!**/*.tsbuildinfo"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/src/index.d.ts",
+			"import": "./dist/src/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc -b",
+		"clean": "rm -rf dist/ node_modules/",
+		"prepack": "tsc -b",
+		"watch": "tsc -b -w"
+	},
+	"dependencies": {
+		"@bufbuild/protobuf": "^2.0.0"
+	},
+	"devDependencies": {
+		"@types/object-inspect": "^1.13.0",
+		"@typescript-eslint/eslint-plugin": "^8.20.0",
+		"@typescript-eslint/parser": "^8.20.0",
+		"eslint": "^9.18.0",
+		"typescript-eslint": "^8.20.0"
+	}
 }
