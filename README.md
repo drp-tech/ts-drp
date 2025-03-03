@@ -6,11 +6,11 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/github/package-json/v/drp-tech/ts-topology)
-[![Docs](https://img.shields.io/badge/docs-page-blue)](https://drp-tech.github.io/ts-topology/)
-[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/drp-tech/ts-topology/blob/main/LICENSE)
-[![Issues](https://img.shields.io/badge/issues-report-red)](https://github.com/drp-tech/ts-topology/issues)
-[![Pull Requests](https://img.shields.io/badge/pull_requests-open-orange)](https://github.com/drp-tech/ts-topology/pulls)
+![Version](https://img.shields.io/github/package-json/v/drp-tech/ts-drp)
+[![Docs](https://img.shields.io/badge/docs-page-blue)](https://drp-tech.github.io/ts-drp/)
+[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/drp-tech/ts-drp/blob/main/LICENSE)
+[![Issues](https://img.shields.io/badge/issues-report-red)](https://github.com/drp-tech/ts-drp/issues)
+[![Pull Requests](https://img.shields.io/badge/pull_requests-open-orange)](https://github.com/drp-tech/ts-drp/pulls)
 
 [![Website](https://img.shields.io/badge/Website-866678)](https://topology.gg)
 [![GitHub](https://img.shields.io/badge/GitHub-ffffff)](https://github.com/drp-tech)
