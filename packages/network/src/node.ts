@@ -30,8 +30,8 @@ import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
-import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { Message } from "@ts-drp/types";
+import { Logger } from "@ts-drp/logger";
+import { Message, type LoggerOptions } from "@ts-drp/types";
 import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
 
 import { uint8ArrayToStream } from "./stream.js";

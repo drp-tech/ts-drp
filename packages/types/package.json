@@ -27,13 +27,10 @@
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
-		"@bufbuild/protobuf": "^2.0.0"
+		"@bufbuild/protobuf": "^2.0.0",
+		"loglevel": "^1.9.2"
 	},
 	"devDependencies": {
-		"@types/object-inspect": "^1.13.0",
-		"@typescript-eslint/eslint-plugin": "^8.20.0",
-		"@typescript-eslint/parser": "^8.20.0",
-		"eslint": "^9.18.0",
-		"typescript-eslint": "^8.20.0"
+		"@types/object-inspect": "^1.13.0"
 	}
 }

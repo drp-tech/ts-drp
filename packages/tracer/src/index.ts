@@ -9,6 +9,7 @@ import {
 	WebTracerProvider,
 } from "@opentelemetry/sdk-trace-web";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
+import { isAsyncGenerator, isGenerator, isPromise } from "@ts-drp/utils";
 
 import { IMetrics } from "./interface.js";
 
@@ -61,10 +62,6 @@ const initContextManager = (): void => {
 	context.setGlobalContextManager(contextManager);
 };
 
-export function isPromise<T>(obj: unknown): obj is Promise<T> {
-	return typeof (obj as { then?: unknown })?.then === "function";
-}
-
 async function wrapPromise<T>(promise: Promise<T>, span: Span): Promise<T> {
 	return promise
 		.then((res) => {
@@ -79,15 +76,6 @@ async function wrapPromise<T>(promise: Promise<T>, span: Span): Promise<T> {
 		.finally(() => {
 			span.end();
 		});
-}
-
-export function isGenerator(obj: unknown): obj is Generator {
-	if (!obj) return false;
-	const iterator = (obj as { [Symbol.iterator]?: unknown })?.[Symbol.iterator];
-	if (typeof iterator !== "function") return false;
-
-	const instance = obj as { next?: unknown };
-	return typeof instance.next === "function";
 }
 
 function wrapGenerator<T>(gen: Generator<T>, span: Span): Generator<T> {
@@ -127,15 +115,6 @@ function wrapGenerator<T>(gen: Generator<T>, span: Span): Generator<T> {
 	};
 
 	return wrapped;
-}
-
-export function isAsyncGenerator(obj: unknown): obj is AsyncGenerator {
-	if (!obj) return false;
-	const asyncIterator = (obj as { [Symbol.asyncIterator]?: unknown })?.[Symbol.asyncIterator];
-	if (typeof asyncIterator !== "function") return false;
-
-	const instance = obj as { next?: unknown };
-	return typeof instance.next === "function";
 }
 
 function wrapAsyncGenerator<T>(gen: AsyncGenerator<T>, span: Span): AsyncGenerator<T> {
