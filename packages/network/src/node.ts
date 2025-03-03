@@ -17,7 +17,6 @@ import type {
 	Address,
 	EventCallback,
 	PeerDiscovery,
-	Secp256k1PrivateKey,
 	Stream,
 	StreamHandler,
 } from "@libp2p/interface";
@@ -67,7 +66,6 @@ export class DRPNetworkNode {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: GossipSub;
-	private _secp256k1PrivateKey?: Secp256k1PrivateKey;
 
 	peerId = "";
 
@@ -167,7 +165,7 @@ export class DRPNetworkNode {
 		};
 
 		this._node = await createLibp2p({
-			privateKey: this._secp256k1PrivateKey,
+			privateKey,
 			addresses: {
 				listen: this._config?.listen_addresses
 					? this._config.listen_addresses

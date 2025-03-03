@@ -43,6 +43,7 @@
   "@grpc/reflection": "^1.0.4",
   "@libp2p/crypto": "^5.0.5",
   "@libp2p/interface": "^2.1.3",
+  "@libp2p/peer-id": "^5.0.14",
   "@noble/secp256k1": "^2.2.3",
   "@ts-drp/blueprints": "0.8.5",
   "@ts-drp/keychain": "0.8.5",
