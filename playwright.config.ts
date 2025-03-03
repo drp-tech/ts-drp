@@ -64,7 +64,7 @@ export default defineConfig({
 			timeout: 10000,
 			env: {
 				VITE_BOOTSTRAP_PEERS: [
-					"/ip4/127.0.0.1/tcp/50000/ws/p2p/12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ",
+					"/ip4/127.0.0.1/tcp/50000/ws/p2p/16Uiu2HAkyHjtPSYAveXoTGMskeGWwP7FmbkR29EJJRsmixeAM2xn",
 				].join(","),
 			},
 		},

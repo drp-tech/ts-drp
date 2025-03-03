@@ -14,7 +14,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 				[
 					"peer1",
 					{
-						ed25519PublicKey: "publicKey1",
+						secp256k1PublicKey: "publicKey1",
 						blsPublicKey: "publicKey1",
 					},
 				],
@@ -32,7 +32,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 
 	test("Grant write permissions to a new writer", () => {
 		acl.grant("peer1", "peer3", ACLGroup.Writer, {
-			ed25519PublicKey: "publicKey3",
+			secp256k1PublicKey: "publicKey3",
 			blsPublicKey: "publicKey3",
 		});
 
@@ -42,7 +42,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	test("Should grant admin permission to a new admin", () => {
 		const newAdmin = "newAdmin";
 		acl.grant("peer1", newAdmin, ACLGroup.Admin, {
-			ed25519PublicKey: "newAdmin",
+			secp256k1PublicKey: "newAdmin",
 			blsPublicKey: "newAdmin",
 		});
 		expect(acl.query_isAdmin(newAdmin)).toBe(true);
@@ -51,7 +51,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	test("Should grant finality permission to a new finality", () => {
 		const newFinality = "newFinality";
 		acl.grant("peer1", newFinality, ACLGroup.Finality, {
-			ed25519PublicKey: "newFinality",
+			secp256k1PublicKey: "newFinality",
 			blsPublicKey: "newFinality",
 		});
 		expect(acl.query_isFinalitySigner(newFinality)).toBe(true);
@@ -78,7 +78,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 
 			ACLGroup.Writer,
 			{
-				ed25519PublicKey: "publicKey3",
+				secp256k1PublicKey: "publicKey3",
 				blsPublicKey: "publicKey3",
 			}
 		);
@@ -128,7 +128,7 @@ describe("AccessControl tests with permissionless", () => {
 				[
 					"peer1",
 					{
-						ed25519PublicKey: "publicKey1",
+						secp256k1PublicKey: "publicKey1",
 						blsPublicKey: "publicKey1",
 					},
 				],
@@ -144,7 +144,7 @@ describe("AccessControl tests with permissionless", () => {
 	test("Should admin cannot grant write permissions", () => {
 		expect(() => {
 			acl.grant("peer1", "peer3", ACLGroup.Writer, {
-				ed25519PublicKey: "publicKey3",
+				secp256k1PublicKey: "publicKey3",
 				blsPublicKey: "publicKey3",
 			});
 		}).toThrow("Cannot grant write permissions to a peer in permissionless mode.");

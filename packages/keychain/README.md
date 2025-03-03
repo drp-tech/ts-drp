@@ -1,6 +1,6 @@
 # @ts-drp/keychain
 
-The `@ts-drp/keychain` package provides a simple interface for generating and managing cryptographic keys used in the DRP (Distributed Real-Time Programs) protocol. It utilizes the `@chainsafe/bls` library for generating BLS (Boneh-Lynn-Shacham) keys and the `@libp2p/crypto` library for generating Ed25519 keys.
+The `@ts-drp/keychain` package provides a simple interface for generating and managing cryptographic keys used in the DRP (Distributed Real-Time Programs) protocol. It utilizes the `@chainsafe/bls` library for generating BLS (Boneh-Lynn-Shacham) keys and the `@noble/secp256k1` library for generating Secp256k1 keys.
 
 ## Installation
 
@@ -46,21 +46,21 @@ The `Keychain` class provides the following methods:
 
 ### `getPublicCredential()`
 
-Returns a `DRPPublicCredential` object containing the base64-encoded Ed25519 and BLS public keys.
+Returns a `DRPPublicCredential` object containing the base64-encoded Secp256k1 and BLS public keys.
 
 ```typescript
 const publicCredential = keychain.getPublicCredential();
 console.log(publicCredential);
-// Output: { ed25519PublicKey: '...', blsPublicKey: '...' }
+// Output: { secp256k1PublicKey: '...', blsPublicKey: '...' }
 ```
 
-### `signWithEd25519(data: string)`
+### `signWithSecp256k1(data: string)`
 
-Signs the provided data using the Ed25519 private key and returns the signature as a `Uint8Array`.
+Signs the provided data using the Secp256k1 private key and returns the signature as a `Uint8Array`.
 
 ```typescript
 const data = "Hello, World!";
-const signature = await keychain.signWithEd25519(data);
+const signature = await keychain.signWithSecp256k1(data);
 console.log(signature);
 // Output: Uint8Array(64) [...]
 ```
@@ -76,12 +76,12 @@ console.log(signature);
 // Output: Uint8Array(48) [...]
 ```
 
-### `ed25519PrivateKey`
+### `secp256k1PrivateKey`
 
-A getter property that returns the raw Ed25519 private key as a `Uint8Array`.
+A getter property that returns the raw Secp256k1 private key as a `Uint8Array`.
 
 ```typescript
-const privateKey = keychain.ed25519PrivateKey;
+const privateKey = keychain.secp256k1PrivateKey;
 console.log(privateKey);
 // Output: Uint8Array(32) [...]
 ```

@@ -5,7 +5,7 @@ import * as pprof from "pprof";
 import { DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
-	admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
+	admins: new Map([["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
 });
 
 type DRPManipulationStrategy = (drp: SetDRP<number>, value: number) => void;

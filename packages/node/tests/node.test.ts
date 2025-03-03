@@ -65,6 +65,7 @@ describe("DPRNode with verify and sign signature", () => {
 		];
 		await signGeneratedVertices(drpNode, vertices);
 		expect(vertices[0].signature).not.toBe("");
+		expect(vertices[0].signature.length).toBe(65);
 	});
 
 	test("Verify incoming vertices", async () => {
