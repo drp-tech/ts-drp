@@ -295,8 +295,7 @@ describe("DRPNode with rpc", () => {
 	});
 
 	test("Should subscribe to object", async () => {
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		drpNode.objectStore.subscribe(drpObject.id, (objectId: string, object: DRPObject) => {
+		drpNode.objectStore.subscribe(drpObject.id, () => {
 			mockLogger.info("::subscribe: Subscribed to object");
 		});
 		const _subscriptions = drpNode.objectStore["_subscriptions"];
@@ -304,8 +303,7 @@ describe("DRPNode with rpc", () => {
 	});
 
 	test("Should unsubscribe to object", async () => {
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const callBack = (objectId: string, object: DRPObject) => {
+		const callBack = () => {
 			mockLogger.info("::unsubscribe: Unsubscribed to object");
 		};
 		drpNode.objectStore.subscribe(drpObject.id, callBack);
