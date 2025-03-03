@@ -86,7 +86,7 @@ async function run(metrics?: IMetrics) {
 			drp: new Grid(),
 			metrics,
 		});
-		gridState.gridDRP = gridState.drpObject.drp as Grid;
+		gridState.gridDRP = gridState.drpObject.drp;
 		await createConnectHandlers();
 		await addUser();
 		render();
@@ -107,7 +107,7 @@ async function run(metrics?: IMetrics) {
 				drp: new Grid(),
 				metrics,
 			});
-			gridState.gridDRP = gridState.drpObject.drp as Grid;
+			gridState.gridDRP = gridState.drpObject.drp;
 			await createConnectHandlers();
 			await addUser();
 			render();

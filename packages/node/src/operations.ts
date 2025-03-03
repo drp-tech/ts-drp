@@ -1,29 +1,29 @@
 import { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import { type DRP, DRPObject, HashGraph } from "@ts-drp/object";
 import { IMetrics } from "@ts-drp/tracer";
-import { FetchState, Message, MessageType, Sync } from "@ts-drp/types";
+import { FetchState, Message, MessageType, Sync, Vertex } from "@ts-drp/types";
 
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode, log } from "./index.js";
 
-export function createObject(node: DRPNode, object: DRPObject) {
+export function createObject<T extends DRP>(node: DRPNode, object: DRPObject<T>) {
 	node.objectStore.put(object.id, object);
 	object.subscribe((obj, originFn, vertices) => {
 		drpObjectChangesHandler(node, obj, originFn, vertices);
 	});
 }
 
-export type ConnectObjectOptions = {
-	drp?: DRP;
+export type ConnectObjectOptions<T extends DRP> = {
+	drp?: T;
 	peerId?: string;
 	metrics?: IMetrics;
 };
 
-export async function connectObject(
+export async function connectObject<T extends DRP>(
 	node: DRPNode,
 	id: string,
-	options: ConnectObjectOptions
-): Promise<DRPObject> {
+	options: ConnectObjectOptions<T>
+): Promise<DRPObject<T>> {
 	const object = DRPObject.createObject({
 		peerId: node.networkNode.peerId,
 		id,
@@ -83,15 +83,15 @@ export async function fetchState(node: DRPNode, objectId: string, peerId?: strin
 /*
   data: { vertex_hashes: string[] }
 */
-export async function syncObject(node: DRPNode, objectId: string, peerId?: string) {
-	const object: DRPObject | undefined = node.objectStore.get(objectId);
+export async function syncObject<T extends DRP>(node: DRPNode, objectId: string, peerId?: string) {
+	const object: DRPObject<T> | undefined = node.objectStore.get(objectId);
 	if (!object) {
 		log.error("::syncObject: Object not found");
 		return;
 	}
 	const data = Sync.create({
 		objectId,
-		vertexHashes: object.vertices.map((v) => v.hash),
+		vertexHashes: object.vertices.map((v: Vertex) => v.hash),
 	});
 	const message = Message.create({
 		sender: node.networkNode.peerId,
