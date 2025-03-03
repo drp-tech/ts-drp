@@ -23,18 +23,16 @@ jobs:
         run: |
           pnpm install --no-frozen-lockfile
 
-      - shell: bash
-        run: |
-          cd packages/object
-          pnpm run benchmark
-
       - name: Set cache dir
         uses: actions/cache@v4
         with:
           path: ./cache
-          key: benchmark-${{ runner.os }}-${{ github.run_id }}
-          restore-keys: |
-            benchmark-${{ runner.os }}
+          key: benchmark-${{ runner.os }}
+
+      - shell: bash
+        run: |
+          cd packages/object
+          pnpm run benchmark
 
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1

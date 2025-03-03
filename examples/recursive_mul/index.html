@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>DRP - Recursive Multiplication</title>
+	</head>
+	<body>
+		<div>
+			<h1>Recursive Multiplication</h1>
+			<p id="loadingMessage" style="color: #666;">Connecting to network...</p>
+			<p>Your Peer ID: <span id="peerId"></span></p>
+			<p>Your Peers: <span id="peers"></span></p>
+			<p>Your Discovery Peers: <span id="discoveryPeers"></span></p>
+
+			<p>
+				<button id="joinMul" style="width: 80px" disabled>JOIN</button>
+				<span style="margin: 0 5px"></span>
+				<input id="mulInput" type="text" placeholder="MUL ID" disabled />
+				<span style="margin: 0 5px"></span>
+				<span id="objectPeers"></span>
+			</p>
+
+			<p>
+				<button id="createMul" style="width: 80px" disabled>CREATE</button>
+				<span style="margin: 0 5px"></span>
+				<span id="mulIdText"></span>
+				<span id="mulId" style="text-decoration: underline"></span>
+				<button id="copyMulId" style="margin-left: 10px; display: none" disabled>Copy</button>
+			</p>
+		</div>
+
+		<div id="multiplication-container" style="margin-top: 20px;">
+			<div>
+				<label for="numberInput">Enter a number to multiply:</label>
+				<input type="number" id="numberInput" />
+				<button id="multiplyButton">Multiply</button>
+			</div>
+			<div style="margin-top: 20px;">
+				<h3>Current Value: <span id="currentValue">1</span></h3>
+				<h3>Multiplication History:</h3>
+				<ul id="historyList" style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;"></ul>
+			</div>
+		</div>
+
+		<script type="module" src="/src/index.ts"></script>
+	</body>
+</html>

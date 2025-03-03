@@ -170,6 +170,37 @@ importers:
         specifier: ^0.22.0
         version: 0.22.0(rollup@4.34.8)(vite@6.1.1(@types/node@22.13.5)(terser@5.39.0)(tsx@4.19.1)(yaml@2.7.0))
 
+  examples/recursive_mul:
+    dependencies:
+      '@ts-drp/blueprints':
+        specifier: workspace:0.8.5
+        version: link:../../packages/blueprints
+      '@ts-drp/node':
+        specifier: 0.8.5
+        version: link:../../packages/node
+      '@ts-drp/object':
+        specifier: 0.8.5
+        version: link:../../packages/object
+      '@ts-drp/tracer':
+        specifier: ^0.8.5
+        version: link:../../packages/tracer
+      '@ts-drp/types':
+        specifier: ^0.8.5
+        version: link:../../packages/types
+    devDependencies:
+      '@types/node':
+        specifier: ^22.5.4
+        version: 22.13.5
+      typescript:
+        specifier: ^5.5.4
+        version: 5.7.3
+      vite:
+        specifier: ^6.0.9
+        version: 6.1.1(@types/node@22.13.5)(terser@5.39.0)(tsx@4.19.1)(yaml@2.7.0)
+      vite-plugin-node-polyfills:
+        specifier: ^0.22.0
+        version: 0.22.0(rollup@4.34.8)(vite@6.1.1(@types/node@22.13.5)(terser@5.39.0)(tsx@4.19.1)(yaml@2.7.0))
+
   packages/blueprints:
     dependencies:
       '@thi.ng/random':
