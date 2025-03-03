@@ -1,8 +1,7 @@
 import bls from "@chainsafe/bls/herumi";
 import type { SecretKey as BlsSecretKey } from "@chainsafe/bls/types";
-import { deriveKeyFromEntropy } from "@chainsafe/bls-keygen";
 import { generateKeyPair, privateKeyFromRaw } from "@libp2p/crypto/keys";
-import type { Ed25519PrivateKey, Secp256k1PrivateKey } from "@libp2p/interface";
+import type { Secp256k1PrivateKey } from "@libp2p/interface";
 import { etc } from "@noble/secp256k1";
 import type { DRPPublicCredential } from "@ts-drp/object";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
@@ -14,7 +13,7 @@ export interface KeychainConfig {
 
 export class Keychain {
 	private _config?: KeychainConfig;
-	private _ed25519PrivateKey?: Ed25519PrivateKey;
+	private _secp256k1PrivateKey?: Secp256k1PrivateKey;
 	private _blsPrivateKey?: BlsSecretKey;
 
 	constructor(config?: KeychainConfig) {
@@ -27,7 +26,6 @@ export class Keychain {
 			const seed = uint8ArrayFromString(tmp);
 			const rawPrivateKey = etc.hashToPrivateKey(seed);
 			this._secp256k1PrivateKey = privateKeyFromRaw(rawPrivateKey) as Secp256k1PrivateKey;
-			this._blsPrivateKey = bls.SecretKey.fromBytes(deriveKeyFromEntropy(seed));
 		} else {
 			this._secp256k1PrivateKey = await generateKeyPair("secp256k1");
 			this._blsPrivateKey = bls.SecretKey.fromKeygen();
@@ -52,10 +50,19 @@ export class Keychain {
 		return this._blsPrivateKey.sign(uint8ArrayFromString(data)).toBytes();
 	}
 
-	get ed25519PrivateKey(): Uint8Array {
-		if (!this._ed25519PrivateKey) {
+	async signWithSecp256k1(data: string): Promise<Uint8Array> {
+		if (!this._secp256k1PrivateKey) {
 			throw new Error("Private key not found");
 		}
-		return this._ed25519PrivateKey.raw;
+
+		const signature = await this._secp256k1PrivateKey.sign(uint8ArrayFromString(data));
+		return new Uint8Array(signature);
+	}
+
+	get secp256k1PrivateKey(): Uint8Array {
+		if (!this._secp256k1PrivateKey) {
+			throw new Error("Private key not found");
+		}
+		return this._secp256k1PrivateKey.raw;
 	}
 }
