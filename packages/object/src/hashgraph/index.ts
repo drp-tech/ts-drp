@@ -1,5 +1,12 @@
 import { Logger, LoggerOptions } from "@ts-drp/logger";
-import { Operation, Vertex, ActionType, SemanticsType } from "@ts-drp/types";
+import {
+	Operation,
+	Vertex,
+	ActionType,
+	SemanticsType,
+	Hash,
+	ResolveConflictsType,
+} from "@ts-drp/types";
 
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
@@ -7,17 +14,10 @@ import { linearizePairSemantics } from "../linearize/pairSemantics.js";
 import { computeHash } from "../utils/computeHash.js";
 import { ObjectSet } from "../utils/objectSet.js";
 
-export type Hash = string;
-
 export enum OperationType {
+	// TODO: rename this and make it part of action type this is the init action for the object
 	NOP = "-1",
 }
-
-// In the case of multi-vertex semantics, we are returning an array of vertices (their hashes) to be reduced.
-export type ResolveConflictsType = {
-	action: ActionType;
-	vertices?: Hash[];
-};
 
 export type VertexDistance = {
 	distance: number;

@@ -1,7 +1,5 @@
-import type { Operation } from "@ts-drp/types";
+import type { Operation, Hash } from "@ts-drp/types";
 import * as crypto from "node:crypto";
-
-import type { Hash } from "../hashgraph/index.js";
 
 export function computeHash(
 	peerId: string,
