@@ -3,9 +3,16 @@ import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/i
 import { KeychainConfig, Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
-import { type ACL, type DRP, DRPObject } from "@ts-drp/object";
-import { IMetrics } from "@ts-drp/tracer";
-import { IntervalRunner, Message, MessageType, type LoggerOptions } from "@ts-drp/types";
+import { DRPObject } from "@ts-drp/object";
+import {
+	IntervalRunner,
+	IMetrics,
+	Message,
+	MessageType,
+	type ACL,
+	type DRP,
+	LoggerOptions,
+} from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
 import { log } from "./logger.js";

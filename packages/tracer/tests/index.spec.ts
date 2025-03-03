@@ -1,10 +1,10 @@
 import { Span } from "@opentelemetry/api";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
+import { IMetrics } from "@ts-drp/types";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { disableTracing, enableTracing, flush, OpentelemetryMetrics } from "../src/index.js";
-import { IMetrics } from "../src/interface.js";
 
 // Mock OpenTelemetry dependencies
 vi.mock("@opentelemetry/api", () => {
