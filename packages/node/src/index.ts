@@ -51,6 +51,7 @@ export class DRPNode {
 			config ? config.network_config : this.config?.network_config
 		);
 		await this.start();
+		log.info("::restart: Node restarted");
 	}
 
 	addCustomGroup(group: string) {
