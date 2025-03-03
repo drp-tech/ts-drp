@@ -21,4 +21,15 @@ export {
 	SyncReject,
 } from "./proto/drp/v1/messages_pb.js";
 
+export * from "./acl.js";
+export type * from "./bitset.js";
+export type * from "./credentials.js";
+export * from "./drp.js";
+export type * from "./finality.js";
 export * from "./hashgraph.js";
+export type * from "./keychain.js";
+export type * from "./logger.js";
+export type * from "./metrics.js";
+export type * from "./network.js";
+export type * from "./node.js";
+export type * from "./object.js";

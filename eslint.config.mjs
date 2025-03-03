@@ -75,6 +75,7 @@ const config = tsLintConfig(
 			"@typescript-eslint/no-dynamic-delete": "off",
 			"@typescript-eslint/no-inferrable-types": "off",
 			"@typescript-eslint/no-floating-promises": "error",
+			"@typescript-eslint/consistent-type-exports": "error",
 			"no-unused-vars": "off",
 			"unused-imports/no-unused-imports": "error",
 			"prefer-const": "error",
@@ -96,6 +97,10 @@ const config = tsLintConfig(
 				},
 			],
 			"import/no-cycle": "error",
+			"import/no-self-import": "error",
+			"import/no-duplicates": "error",
+			"import/no-named-default": "error",
+			"import/no-webpack-loader-syntax": "error",
 		},
 	}
 );

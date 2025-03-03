@@ -1,9 +1,7 @@
-import { ActionType } from "@ts-drp/types";
+import { ACLGroup, ActionType, DrpType } from "@ts-drp/types";
 import { beforeEach, describe, expect, test } from "vitest";
 
-import { DrpType } from "../dist/src/interface.js";
 import { ObjectACL } from "../src/acl/index.js";
-import { ACLGroup } from "../src/index.js";
 
 describe("AccessControl tests with RevokeWins resolution", () => {
 	let acl: ObjectACL;
