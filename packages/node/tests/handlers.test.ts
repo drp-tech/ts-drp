@@ -83,7 +83,6 @@ describe("Handle message correctly", () => {
 			bootstrap: true,
 			listen_addresses: ["/ip4/0.0.0.0/tcp/0/ws"],
 			bootstrap_peers: [],
-			private_key_seed: "bootstrap_message_handler",
 		});
 		await bootstrapNode.start();
 
@@ -96,13 +95,13 @@ describe("Handle message correctly", () => {
 		};
 		node1 = new DRPNode({
 			network_config: nodeConfig,
-			credential_config: {
+			keychain_config: {
 				private_key_seed: "node1",
 			},
 		});
 		node2 = new DRPNode({
 			network_config: nodeConfig,
-			credential_config: {
+			keychain_config: {
 				private_key_seed: "node2",
 			},
 		});
@@ -141,8 +140,8 @@ describe("Handle message correctly", () => {
 	test("should handle update message correctly", async () => {
 		const acl = new ObjectACL({
 			admins: new Map([
-				[node1.networkNode.peerId, node1.credentialStore.getPublicCredential()],
-				[node2.networkNode.peerId, node2.credentialStore.getPublicCredential()],
+				[node1.networkNode.peerId, node1.keychain.getPublicCredential()],
+				[node2.networkNode.peerId, node2.keychain.getPublicCredential()],
 			]),
 		});
 		drpObject = await node2.createObject({
@@ -242,7 +241,7 @@ describe("Handle message correctly", () => {
 		const attestations = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
 			return {
 				data: vertex.hash,
-				signature: node1.credentialStore.signWithBls(vertex.hash),
+				signature: node1.keychain.signWithBls(vertex.hash),
 			};
 		});
 		const message = Message.create({

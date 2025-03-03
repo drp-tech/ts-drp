@@ -28,6 +28,8 @@ export function loadConfig(configPath?: string | undefined): DRPNodeConfig | und
 			browser_metrics: process.env.BROWSER_METRICS
 				? process.env.BROWSER_METRICS === "true"
 				: undefined,
+		};
+		config.keychain_config = {
 			private_key_seed: process.env.PRIVATE_KEY_SEED ? process.env.PRIVATE_KEY_SEED : undefined,
 		};
 		return config;

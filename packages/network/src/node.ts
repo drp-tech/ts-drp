@@ -9,7 +9,7 @@ import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
 import { type BootstrapComponents, bootstrap } from "@libp2p/bootstrap";
 import { circuitRelayServer, circuitRelayTransport } from "@libp2p/circuit-relay-v2";
-import { generateKeyPair, privateKeyFromRaw } from "@libp2p/crypto/keys";
+import { privateKeyFromRaw } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
@@ -31,12 +31,9 @@ import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
-import { etc, signAsync } from "@noble/secp256k1";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { Message } from "@ts-drp/types";
-import * as crypto from "crypto";
 import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
-import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { uint8ArrayToStream } from "./stream.js";
 
@@ -57,7 +54,6 @@ export interface DRPNetworkNodeConfig {
 	browser_metrics?: boolean;
 	listen_addresses?: string[];
 	log_config?: LoggerOptions;
-	private_key_seed?: string;
 	pubsub?: {
 		peer_discovery_interval?: number;
 	};
@@ -80,16 +76,12 @@ export class DRPNetworkNode {
 		log = new Logger("drp::network", config?.log_config);
 	}
 
-	async start() {
+	async start(rawPrivateKey?: Uint8Array) {
 		if (this._node?.status === "started") throw new Error("Node already started");
 
-		if (this._config?.private_key_seed) {
-			const tmp = this._config.private_key_seed.padEnd(64, "0");
-			const seed = uint8ArrayFromString(tmp);
-			const rawPrivateKey = etc.hashToPrivateKey(seed);
-			this._secp256k1PrivateKey = privateKeyFromRaw(rawPrivateKey) as Secp256k1PrivateKey;
-		} else {
-			this._secp256k1PrivateKey = await generateKeyPair("secp256k1");
+		let privateKey = undefined;
+		if (rawPrivateKey) {
+			privateKey = privateKeyFromRaw(rawPrivateKey);
 		}
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
@@ -249,10 +241,10 @@ export class DRPNetworkNode {
 		await this._node?.stop();
 	}
 
-	async restart(config?: DRPNetworkNodeConfig) {
+	async restart(config?: DRPNetworkNodeConfig, rawPrivateKey?: Uint8Array) {
 		await this.stop();
 		if (config) this._config = config;
-		await this.start();
+		await this.start(rawPrivateKey);
 	}
 
 	async isDialable(callback?: () => void | Promise<void>) {
@@ -415,24 +407,5 @@ export class DRPNetworkNode {
 
 	async addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
 		await this._node?.handle(protocol, handler);
-	}
-
-	async signWithSecp256k1(data: string): Promise<Uint8Array> {
-		if (!this._secp256k1PrivateKey) {
-			throw new Error("Private key not found");
-		}
-		const hashData = crypto.createHash("sha256").update(data).digest("hex");
-
-		const signature = await signAsync(hashData, this._secp256k1PrivateKey.raw, {
-			extraEntropy: true,
-		});
-
-		const compactSignature = signature.toCompactRawBytes();
-
-		const fullSignature = new Uint8Array(1 + compactSignature.length);
-		fullSignature[0] = signature.recovery;
-		fullSignature.set(compactSignature, 1);
-
-		return fullSignature;
 	}
 }

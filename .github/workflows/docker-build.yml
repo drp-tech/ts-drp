@@ -1,0 +1,21 @@
+name: Docker Build Test
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build Docker image using Makefile
+        run: make docker-build
+
+      - name: Test image
+        run: |
+          docker image inspect ts-drp
+          echo "✅ Docker image built successfully!"

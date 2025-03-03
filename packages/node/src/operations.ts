@@ -1,3 +1,4 @@
+import { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import { type DRP, DRPObject, HashGraph } from "@ts-drp/object";
 import { IMetrics } from "@ts-drp/tracer";
 import { FetchState, Message, MessageType, Sync } from "@ts-drp/types";
@@ -51,7 +52,8 @@ export async function subscribeObject(node: DRPNode, objectId: string) {
 	node.networkNode.subscribe(objectId);
 	node.networkNode.addGroupMessageHandler(
 		objectId,
-		async (e) => await drpMessagesHandler(node, undefined, e.detail.msg.data)
+		async (e: CustomEvent<GossipsubMessage>) =>
+			await drpMessagesHandler(node, undefined, e.detail.msg.data)
 	);
 }
 

@@ -21,7 +21,7 @@ jobs:
           key: benchmark-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             benchmark-${{ runner.os }}
-            path: ./cache
+
       - run: |
           pnpm install --no-frozen-lockfile
           yarn docs

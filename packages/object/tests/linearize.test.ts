@@ -375,4 +375,44 @@ describe("linearizeMultipleSemantics", () => {
 		const result = linearizeMultipleSemantics(hashGraph, origin, subgraph);
 		expect(result).toEqual([]);
 	});
+
+	test("Should return in topological order when the resolveConflicts function is undefined", () => {
+		const hashGraph = new HashGraph("", undefined, undefined, SemanticsType.pair);
+		for (let i = 0; i < 100; i += 2) {
+			const frontier = hashGraph.getFrontier();
+			hashGraph.addVertex(
+				newVertex(
+					"",
+					{
+						opType: "test",
+						value: [i],
+						drpType: DrpType.DRP,
+					},
+					frontier,
+					Date.now(),
+					new Uint8Array()
+				)
+			);
+			hashGraph.addVertex(
+				newVertex(
+					"",
+					{
+						opType: "test",
+						value: [i + 1],
+						drpType: DrpType.DRP,
+					},
+					frontier,
+					Date.now(),
+					new Uint8Array()
+				)
+			);
+		}
+
+		const subgraph = new ObjectSet<string>(hashGraph.vertices.keys());
+		const linearizedOps = linearizePairSemantics(hashGraph, HashGraph.rootHash, subgraph);
+		const order = hashGraph.topologicalSort(true);
+		for (let i = 0; i < linearizedOps.length; i++) {
+			expect(linearizedOps[i]).equal(hashGraph.vertices.get(order[i + 1])?.operation);
+		}
+	});
 });

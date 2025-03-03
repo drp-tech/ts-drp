@@ -373,7 +373,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 			return;
 		}
 		try {
-			vertex.signature = await node.networkNode.signWithSecp256k1(vertex.hash);
+			vertex.signature = await node.keychain.signWithEd25519(vertex.hash);
 		} catch (error) {
 			log.error("::signGeneratedVertices: Error signing vertex:", vertex.hash, error);
 		}
@@ -403,14 +403,16 @@ function generateAttestations(node: DRPNode, object: DRPObject, vertices: Vertex
 	);
 	return goodVertices.map((v) => ({
 		data: v.hash,
-		signature: node.credentialStore.signWithBls(v.hash),
+		signature: node.keychain.signWithBls(v.hash),
 	}));
 }
 
 function getAttestations(object: DRPObject, vertices: Vertex[]): AggregatedAttestation[] {
-	return vertices
-		.map((v) => object.finalityStore.getAttestation(v.hash))
-		.filter((a) => a !== undefined);
+	return (
+		vertices
+			.map((v) => object.finalityStore.getAttestation(v.hash))
+			.filter((a): a is AggregatedAttestation => a !== undefined) ?? []
+	);
 }
 
 export async function verifyACLIncomingVertices(
@@ -456,8 +458,8 @@ export async function verifyACLIncomingVertices(
 		}
 	});
 
-	const verifiedVertices = (await Promise.all(verificationPromises)).filter(
-		(vertex: Vertex | null) => vertex !== null
+	const verifiedVertices: Vertex[] = (await Promise.all(verificationPromises)).filter(
+		(vertex: Vertex | null): vertex is Vertex => vertex !== null
 	);
 
 	return verifiedVertices;

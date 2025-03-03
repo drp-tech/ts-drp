@@ -15,6 +15,7 @@ jobs:
       - shell: bash
         run: |
           pnpm install --no-frozen-lockfile
+          pnpm install --no-frozen-lockfile --prod
 
   generate-matrix:
     runs-on: ubuntu-latest

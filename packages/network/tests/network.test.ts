@@ -53,11 +53,9 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		};
 		node1 = new DRPNetworkNode({
 			...nodeConfig,
-			private_key_seed: "node1",
 		});
 		node2 = new DRPNetworkNode({
 			...nodeConfig,
-			private_key_seed: "node2",
 		});
 
 		await node1.start();

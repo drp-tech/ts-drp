@@ -1,5 +1,6 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import type { EventCallback, StreamHandler } from "@libp2p/interface";
+import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
+import { KeychainConfig, Keychain } from "@ts-drp/keychain";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { type ACL, type DRP, DRPObject } from "@ts-drp/object";
@@ -8,13 +9,13 @@ import { Message, MessageType } from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
 import * as operations from "./operations.js";
-import { type DRPCredentialConfig, DRPCredentialStore, DRPObjectStore } from "./store/index.js";
+import { DRPObjectStore } from "./store/index.js";
 
 // snake_casing to match the JSON config
 export interface DRPNodeConfig {
 	log_config?: LoggerOptions;
 	network_config?: DRPNetworkNodeConfig;
-	credential_config?: DRPCredentialConfig;
+	keychain_config?: KeychainConfig;
 }
 
 export let log: Logger;
@@ -23,20 +24,20 @@ export class DRPNode {
 	config?: DRPNodeConfig;
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
-	credentialStore: DRPCredentialStore;
+	keychain: Keychain;
 
 	constructor(config?: DRPNodeConfig) {
 		this.config = config;
 		log = new Logger("drp::node", config?.log_config);
 		this.networkNode = new DRPNetworkNode(config?.network_config);
 		this.objectStore = new DRPObjectStore();
-		this.credentialStore = new DRPCredentialStore(config?.credential_config);
+		this.keychain = new Keychain(config?.keychain_config);
 	}
 
 	async start(): Promise<void> {
-		await this.credentialStore.start();
-		await this.networkNode.start();
-		await this.networkNode.addMessageHandler(async ({ stream }) =>
+		await this.keychain.start();
+		await this.networkNode.start(this.keychain.ed25519PrivateKey);
+		await this.networkNode.addMessageHandler(async ({ stream }: IncomingStreamData) =>
 			drpMessagesHandler(this, stream)
 		);
 	}
@@ -94,7 +95,7 @@ export class DRPNode {
 	}) {
 		const object = new DRPObject({
 			peerId: this.networkNode.peerId,
-			publicCredential: options.acl ? undefined : this.credentialStore.getPublicCredential(),
+			publicCredential: options.acl ? undefined : this.keychain.getPublicCredential(),
 			acl: options.acl,
 			drp: options.drp,
 			id: options.id,

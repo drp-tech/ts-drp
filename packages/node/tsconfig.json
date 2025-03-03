@@ -16,6 +16,9 @@
 		},
 		{
 			"path": "../logger"
+		},
+		{
+			"path": "../keychain"
 		}
 	],
 	"include": ["src/**/*.ts", "src/**/*.js"]

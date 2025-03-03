@@ -1,6 +1,6 @@
 import bls from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints/src/index.js";
-import { DRPCredentialStore } from "@ts-drp/node/src/store/index.js";
+import { Keychain } from "@ts-drp/keychain/src/keychain.js";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { beforeEach, describe, expect, test } from "vitest";
 
@@ -21,7 +21,7 @@ describe("Tests for FinalityState", () => {
 	const N = 128;
 	let finalityState: FinalityState;
 	const peers: string[] = [];
-	const stores: DRPCredentialStore[] = [];
+	const stores: Keychain[] = [];
 
 	beforeEach(async () => {
 		for (let i = 0; i < N; i++) {
@@ -30,7 +30,7 @@ describe("Tests for FinalityState", () => {
 		peers.sort();
 
 		for (let i = 0; i < N; i++) {
-			stores.push(new DRPCredentialStore());
+			stores.push(new Keychain());
 			await stores[i].start();
 		}
 
@@ -42,10 +42,10 @@ describe("Tests for FinalityState", () => {
 	});
 
 	test("addSignature: Nodes outside the signer set are rejected", async () => {
-		const credentialStore = new DRPCredentialStore();
-		await credentialStore.start();
+		const keychain = new Keychain();
+		await keychain.start();
 
-		const signature = credentialStore.signWithBls(finalityState.data);
+		const signature = keychain.signWithBls(finalityState.data);
 
 		expect(() => finalityState.addSignature("badNode", signature)).toThrowError(
 			"Peer not found in signer list"
@@ -53,10 +53,10 @@ describe("Tests for FinalityState", () => {
 	});
 
 	test("addSignature: Bad signatures are rejected", async () => {
-		const credentialStore = new DRPCredentialStore();
-		await credentialStore.start();
+		const keychain = new Keychain();
+		await keychain.start();
 
-		const signature = credentialStore.signWithBls(finalityState.data);
+		const signature = keychain.signWithBls(finalityState.data);
 
 		expect(() => finalityState.addSignature(peers[0], signature)).toThrowError("Invalid signature");
 	});
@@ -85,7 +85,7 @@ describe("Tests for FinalityStore", () => {
 	const N = 1000;
 	let finalityStore: FinalityStore;
 	const peers: string[] = [];
-	const stores: DRPCredentialStore[] = [];
+	const stores: Keychain[] = [];
 
 	const generateAttestation = (index: number, hash: string) => {
 		return {
@@ -103,7 +103,7 @@ describe("Tests for FinalityStore", () => {
 		peers.sort();
 
 		for (let i = 0; i < N; i++) {
-			stores.push(new DRPCredentialStore());
+			stores.push(new Keychain());
 			await stores[i].start();
 		}
 

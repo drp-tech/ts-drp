@@ -1,17 +1,22 @@
+import { Keychain } from "@ts-drp/keychain/src/keychain.js";
 import { beforeAll, describe, expect, test } from "vitest";
 
 import { DRPNetworkNode } from "../src/node.js";
 
 describe("isDialable", () => {
 	let btNode: DRPNetworkNode;
+	let keychain: Keychain;
 	beforeAll(async () => {
+		keychain = new Keychain({
+			private_key_seed: "bootstrap_is_dialable",
+		});
+		await keychain.start();
 		btNode = new DRPNetworkNode({
 			bootstrap: true,
 			listen_addresses: ["/ip4/0.0.0.0/tcp/0/ws"],
 			bootstrap_peers: [],
-			private_key_seed: "bootstrap_is_dialable",
 		});
-		await btNode.start();
+		await btNode.start(keychain.ed25519PrivateKey);
 	});
 
 	const isDialable = async (node: DRPNetworkNode, timeout = false) => {
@@ -35,21 +40,27 @@ describe("isDialable", () => {
 	};
 
 	test("should return true if the node is dialable", async () => {
-		const node = new DRPNetworkNode({
-			bootstrap_peers: btNode.getMultiaddrs()?.map((addr) => addr.toString()) || [],
+		const keychain1 = new Keychain({
 			private_key_seed: "is_dialable_node_1",
 		});
-		await node.start();
+		await keychain1.start();
+		const node = new DRPNetworkNode({
+			bootstrap_peers: btNode.getMultiaddrs()?.map((addr) => addr.toString()) || [],
+		});
+		await node.start(keychain1.ed25519PrivateKey);
 		expect(await isDialable(node)).toBe(true);
 	});
 
 	test("should return false if the node is not dialable", async () => {
+		const keychain2 = new Keychain({
+			private_key_seed: "is_dialable_node_2",
+		});
+		await keychain2.start();
 		const node = new DRPNetworkNode({
 			bootstrap_peers: btNode.getMultiaddrs()?.map((addr) => addr.toString()) || [],
-			private_key_seed: "is_dialable_node_2",
 			listen_addresses: [],
 		});
-		await node.start();
+		await node.start(keychain2.ed25519PrivateKey);
 		expect(await isDialable(node, true)).toBe(false);
 	});
 });
