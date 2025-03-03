@@ -5,7 +5,7 @@ import { Logger } from "@ts-drp/logger";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { type ACL, type DRP, DRPObject } from "@ts-drp/object";
 import { IMetrics } from "@ts-drp/tracer";
-import { Message, MessageType, type LoggerOptions } from "@ts-drp/types";
+import { IntervalRunner, Message, MessageType, type LoggerOptions } from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
 import { log } from "./logger.js";
@@ -23,6 +23,8 @@ export class DRPNode {
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
 	keychain: Keychain;
+
+	private _intervals: IntervalRunner[] = [];
 
 	constructor(config?: DRPNodeConfig) {
 		this.config = config;
@@ -43,13 +45,22 @@ export class DRPNode {
 		await this.networkNode.addMessageHandler(async ({ stream }: IncomingStreamData) =>
 			drpMessagesHandler(this, stream)
 		);
+		this._intervals.forEach((interval) => interval.start());
+	}
+
+	async stop() {
+		await this.networkNode.stop();
+		this._intervals.forEach((interval) => interval.stop());
 	}
 
 	async restart(config?: DRPNodeConfig): Promise<void> {
-		await this.networkNode.stop();
+		await this.stop();
+
+		// reassign the network node ? I think we might not need to do this
 		this.networkNode = new DRPNetworkNode(
 			config ? config.network_config : this.config?.network_config
 		);
+
 		await this.start();
 	}
 

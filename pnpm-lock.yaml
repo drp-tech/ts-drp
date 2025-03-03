@@ -287,6 +287,9 @@ importers:
       '@libp2p/interface':
         specifier: ^2.1.3
         version: 2.6.1
+      '@libp2p/peer-id':
+        specifier: ^5.0.15
+        version: 5.0.15
       '@libp2p/ping':
         specifier: 2.0.11
         version: 2.0.11
@@ -366,6 +369,9 @@ importers:
       '@ts-drp/blueprints':
         specifier: 0.8.5
         version: link:../blueprints
+      '@ts-drp/interval-runner':
+        specifier: 0.8.5
+        version: link:../interval-runner
       '@ts-drp/keychain':
         specifier: 0.8.5
         version: link:../keychain
