@@ -68,6 +68,9 @@
 	},
 	"private": true,
 	"release-it": {
+		"hooks": {
+			"after:bump": "pnpm i && pnpm lint:fix"
+		},
 		"plugins": {
 			"@release-it-plugins/workspaces": {
 				"publish": false
