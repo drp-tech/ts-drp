@@ -26,8 +26,8 @@ export class Keychain {
 		if (this._config?.private_key_seed) {
 			const tmp = this._config.private_key_seed.padEnd(64, "0");
 			const seed = uint8ArrayFromString(tmp);
-			const rawPrivateKey = etc.hashToPrivateKey(seed);
-			this._secp256k1PrivateKey = privateKeyFromRaw(rawPrivateKey) as Secp256k1PrivateKey;
+			const rawSecp256k1PrivateKey = etc.hashToPrivateKey(seed);
+			this._secp256k1PrivateKey = privateKeyFromRaw(rawSecp256k1PrivateKey) as Secp256k1PrivateKey;
 			this._blsPrivateKey = bls.SecretKey.fromBytes(deriveKeyFromEntropy(seed));
 		} else {
 			this._secp256k1PrivateKey = await generateKeyPair("secp256k1");

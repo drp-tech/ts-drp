@@ -446,10 +446,11 @@ export async function verifyACLIncomingVertices(
 			const signatureWithRecovery =
 				Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
 
-			const recoveredPoint = signatureWithRecovery.recoverPublicKey(hashData);
-			const recoveredPublicKey = recoveredPoint.toRawBytes(true);
-			const publicKey = publicKeyFromRaw(recoveredPublicKey);
-			const expectedPeerId = peerIdFromPublicKey(publicKey).toString();
+			const rawSecp256k1PublicKey = signatureWithRecovery
+				.recoverPublicKey(hashData)
+				.toRawBytes(true);
+			const secp256k1PublicKey = publicKeyFromRaw(rawSecp256k1PublicKey);
+			const expectedPeerId = peerIdFromPublicKey(secp256k1PublicKey).toString();
 			const isValid = expectedPeerId === vertex.peerId;
 			return isValid ? vertex : null;
 		} catch (error) {
