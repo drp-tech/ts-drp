@@ -213,13 +213,16 @@ importers:
         version: 5.0.12
       '@libp2p/interface':
         specifier: ^2.1.3
-        version: 2.6.0
+        version: 2.6.1
       '@noble/secp256k1':
         specifier: ^2.2.3
         version: 2.2.3
       '@ts-drp/object':
         specifier: 0.8.5
         version: link:../object
+      '@ts-drp/types':
+        specifier: ^0.8.5
+        version: link:../types
       uint8arrays:
         specifier: ^5.1.0
         version: 5.1.0
@@ -434,6 +437,9 @@ importers:
       '@bufbuild/protobuf':
         specifier: ^2.0.0
         version: 2.2.3
+      '@ts-drp/blueprints':
+        specifier: ^0.8.5
+        version: link:../blueprints
       '@types/benchmark':
         specifier: ^2.1.5
         version: 2.1.5
@@ -476,6 +482,9 @@ importers:
       '@opentelemetry/semantic-conventions':
         specifier: 1.28.0
         version: 1.28.0
+      '@ts-drp/types':
+        specifier: ^0.8.5
+        version: link:../types
       loglevel:
         specifier: ^1.9.2
         version: 1.9.2
@@ -507,6 +516,9 @@ importers:
       '@bufbuild/protobuf':
         specifier: ^2.0.0
         version: 2.2.3
+      loglevel:
+        specifier: ^1.9.2
+        version: 1.9.2
     devDependencies:
       '@types/object-inspect':
         specifier: ^1.13.0
@@ -9936,7 +9948,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@8.25.0(eslint@9.21.0)(typescript@5.8.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.8.3(eslint-plugin-import@2.31.0)(eslint@9.21.0))(eslint@9.21.0):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@8.25.0(eslint@9.21.0)(typescript@5.8.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.8.3)(eslint@9.21.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
@@ -9958,7 +9970,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.21.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.25.0(eslint@9.21.0)(typescript@5.8.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.8.3(eslint-plugin-import@2.31.0)(eslint@9.21.0))(eslint@9.21.0)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.25.0(eslint@9.21.0)(typescript@5.8.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.8.3)(eslint@9.21.0)
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3

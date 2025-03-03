@@ -1,5 +1,10 @@
-import { type DRP, type ResolveConflictsType } from "@ts-drp/object";
-import { ActionType, SemanticsType, type Vertex } from "@ts-drp/types";
+import {
+	ActionType,
+	SemanticsType,
+	type Vertex,
+	type DRP,
+	ResolveConflictsType,
+} from "@ts-drp/types";
 
 export enum MapConflictResolution {
 	SetWins = 0,

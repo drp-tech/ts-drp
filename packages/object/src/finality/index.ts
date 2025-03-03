@@ -1,11 +1,9 @@
 import { bls } from "@chainsafe/bls/herumi";
 import { Logger, LoggerOptions } from "@ts-drp/logger";
-import { AggregatedAttestation, Attestation } from "@ts-drp/types";
+import { AggregatedAttestation, Attestation, DRPPublicCredential, Hash } from "@ts-drp/types";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { BitSet } from "../hashgraph/bitset.js";
-import type { Hash } from "../hashgraph/index.js";
-import { type DRPPublicCredential } from "../index.js";
 
 const DEFAULT_FINALITY_THRESHOLD = 0.51;
 

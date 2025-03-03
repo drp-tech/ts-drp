@@ -1,5 +1,4 @@
-import { type DRP, type ResolveConflictsType } from "@ts-drp/object";
-import { ActionType, SemanticsType } from "@ts-drp/types";
+import { ActionType, DRP, ResolveConflictsType, SemanticsType, type Vertex } from "@ts-drp/types";
 
 import { Pixel } from "./pixel";
 
@@ -40,7 +39,7 @@ export class Canvas implements DRP {
 		return this.canvas[x][y];
 	}
 
-	resolveConflicts(_): ResolveConflictsType {
+	resolveConflicts(_: Vertex[]): ResolveConflictsType {
 		return { action: ActionType.Nop };
 	}
 }

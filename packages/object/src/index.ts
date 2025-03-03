@@ -1,30 +1,34 @@
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { IMetrics } from "@ts-drp/tracer";
-import { DRPObjectBase, DRPState, DRPStateEntry, Operation, type Vertex } from "@ts-drp/types";
+import {
+	DRP,
+	DRPObjectCallback,
+	DRPState,
+	DRPStateEntry,
+	Operation,
+	type Vertex,
+	DRPObjectBase,
+	ACL,
+	DRPPublicCredential,
+	DrpType,
+	ConnectObjectOptions,
+	LcaAndOperations,
+	IMetrics,
+	DRPObject as DRPObjectInterface,
+	Hash,
+} from "@ts-drp/types";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 import * as crypto from "node:crypto";
 
 import { ObjectACL } from "./acl/index.js";
-import type { ACL } from "./acl/interface.js";
 import { type FinalityConfig, FinalityStore } from "./finality/index.js";
-import { type Hash, HashGraph } from "./hashgraph/index.js";
-import {
-	ConnectObjectOptions,
-	type DRP,
-	type DRPObjectCallback,
-	type DRPPublicCredential,
-	DrpType,
-	type LcaAndOperations,
-} from "./interface.js";
+import { HashGraph } from "./hashgraph/index.js";
 import { computeHash } from "./utils/computeHash.js";
 import { ObjectSet } from "./utils/objectSet.js";
 
 export * from "./utils/serializer.js";
 export * from "./acl/index.js";
 export * from "./hashgraph/index.js";
-export * from "./acl/interface.js";
-export * from "./interface.js";
 
 // snake_casing to match the JSON config
 export interface DRPObjectConfig {
@@ -34,7 +38,7 @@ export interface DRPObjectConfig {
 
 export let log: Logger;
 
-export class DRPObject implements DRPObjectBase {
+export class DRPObject implements DRPObjectBase, DRPObjectInterface {
 	id: string;
 	vertices: Vertex[] = [];
 	acl?: ProxyHandler<ACL>;
