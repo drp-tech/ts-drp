@@ -15,7 +15,7 @@ export interface KeychainConfig {
 
 export class Keychain {
 	private _config?: KeychainConfig;
-	// if you are to change the private key type, you need to change the peerId's of the bootstrap nodes 
+	// if you are to change the private key type, you need to change the peerId's of the bootstrap nodes
 	// and any peerId's that are generated from the private key see e.g: https://github.com/drp-tech/ts-drp/pull/492
 	private _secp256k1PrivateKey?: Secp256k1PrivateKey;
 	private _blsPrivateKey?: BlsSecretKey;
