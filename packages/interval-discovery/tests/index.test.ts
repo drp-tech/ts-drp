@@ -5,7 +5,7 @@ import { DRP_DISCOVERY_TOPIC } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { expect, describe, test, afterEach, beforeEach, vi } from "vitest";
 
-describe("Heartbeat test", () => {
+describe("Heartbeat integration test", () => {
 	let node1: DRPNode;
 	let node2: DRPNode;
 	let node3: DRPNode;
@@ -19,7 +19,7 @@ describe("Heartbeat test", () => {
 					peer_discovery_interval: 100_000_000,
 				},
 				log_config: {
-					//level: "silent",
+					level: "silent",
 				},
 			},
 			keychain_config: {
@@ -28,11 +28,11 @@ describe("Heartbeat test", () => {
 			interval_discovery_options: {
 				interval: 1000,
 				logConfig: {
-					//level: "silent",
+					level: "silent",
 				},
 			},
 			log_config: {
-				//level: "silent",
+				level: "silent",
 			},
 		};
 
@@ -80,10 +80,6 @@ describe("Heartbeat test", () => {
 	});
 
 	test("peer 1 can discover peer 3 topic", async () => {
-		console.log("peerID1", node1.networkNode.peerId);
-		console.log("peerID2", node2.networkNode.peerId);
-		console.log("peerID3", node3.networkNode.peerId);
-
 		const node2GossipSub = node2.networkNode["_pubsub"] as GossipSub;
 
 		const filterGraft = (topic: string, peerId: string) => (e: CustomEvent<MeshPeer>) =>

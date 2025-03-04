@@ -46,7 +46,7 @@ export class DRPIntervalDiscovery implements IntervalRunnerInterface<"interval:d
 		this._intervalRunner = new IntervalRunner({
 			...opts,
 			fn: async () => {
-				await this._runHeartbeat();
+				await this._runDRPDiscovery();
 				return true; // Always continue the interval
 			},
 		});
@@ -57,10 +57,10 @@ export class DRPIntervalDiscovery implements IntervalRunnerInterface<"interval:d
 	}
 
 	/**
-	 * Runs a single heartbeat cycle to discover peers
+	 * Runs a single discovery cycle to find and connect with peers
 	 */
-	private async _runHeartbeat(): Promise<void> {
-		console.log("runHeartbeat", this._searchStartTime);
+	private async _runDRPDiscovery(): Promise<void> {
+		console.log("runDRPDiscovery", this._searchStartTime);
 		// Early exit if we already have peers
 		if (this._hasPeers()) {
 			console.log("hasPeers");
@@ -73,7 +73,7 @@ export class DRPIntervalDiscovery implements IntervalRunnerInterface<"interval:d
 			this._searchStartTime = Date.now();
 		}
 
-		if (this._isSearchTimedOut()) {
+		if (this._isSearchTimedOut(this._searchStartTime)) {
 			console.log("isSearchTimedOut");
 			this._logger.error(`No peers found after ${this.searchDuration}ms of searching`);
 			this._searchStartTime = undefined;
@@ -93,12 +93,8 @@ export class DRPIntervalDiscovery implements IntervalRunnerInterface<"interval:d
 	/**
 	 * Checks if the search has exceeded the maximum duration
 	 */
-	private _isSearchTimedOut(): boolean {
-		console.log("isSearchTimedOutin", this._searchStartTime);
-		if (!this._searchStartTime) return false;
-		const now = Date.now();
-		const elapsed = now - this._searchStartTime;
-		this._logger.info(`Search time elapsed: ${elapsed}ms`);
+	private _isSearchTimedOut(searchStartTime: number): boolean {
+		const elapsed = Date.now() - searchStartTime;
 		return elapsed >= this.searchDuration;
 	}
 
@@ -125,7 +121,6 @@ export class DRPIntervalDiscovery implements IntervalRunnerInterface<"interval:d
 	 * Starts the discovery process
 	 */
 	start(): void {
-		console.log("start");
 		this._intervalRunner.start();
 	}
 
@@ -155,11 +150,7 @@ export class DRPIntervalDiscovery implements IntervalRunnerInterface<"interval:d
 	): Promise<void> {
 		this._logger.info("Received discovery response from", sender);
 
-		try {
-			await this._connectToDiscoveredPeers(subscribers);
-		} catch (error) {
-			this._logger.error("Error processing discovery response:", error);
-		}
+		await this._connectToDiscoveredPeers(subscribers);
 	}
 
 	/**

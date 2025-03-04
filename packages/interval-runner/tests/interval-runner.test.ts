@@ -28,12 +28,12 @@ describe("IntervalRunner", () => {
 	describe("with arguments", () => {
 		it("should pass arguments to the callback function", async () => {
 			const callback = vi.fn().mockImplementation((_msg: string, _num: number) => true);
-			const runner = new IntervalRunner<[string, number]>({ interval: 1000, fn: callback });
+			const runner = new IntervalRunner<[string, number]>({ fn: callback });
 
 			runner.start(["test", 42]);
 			expect(callback).toHaveBeenCalledWith("test", 42);
 
-			await vi.advanceTimersByTimeAsync(1000);
+			await vi.advanceTimersByTimeAsync(10_000);
 			expect(callback).toHaveBeenCalledTimes(2);
 			expect(callback).toHaveBeenLastCalledWith("test", 42);
 		});
