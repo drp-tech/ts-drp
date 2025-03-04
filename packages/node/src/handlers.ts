@@ -3,9 +3,10 @@ import type { Stream } from "@libp2p/interface";
 import { peerIdFromPublicKey } from "@libp2p/peer-id";
 import { Signature } from "@noble/secp256k1";
 import { streamToUint8Array } from "@ts-drp/network";
-import { type DRPObject, HashGraph } from "@ts-drp/object";
-import { ACL, type Vertex } from "@ts-drp/types";
+import { HashGraph } from "@ts-drp/object";
 import {
+	ACL,
+	type Vertex,
 	AggregatedAttestation,
 	Attestation,
 	AttestationUpdate,
@@ -17,6 +18,7 @@ import {
 	Sync,
 	SyncAccept,
 	Update,
+	type DRPObject,
 } from "@ts-drp/types";
 import * as crypto from "crypto";
 

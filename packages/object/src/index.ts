@@ -122,7 +122,7 @@ export class DRPObject implements DRPObjectBase, DRPObjectInterface {
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
-	static createObject(options: ConnectObjectOptions) {
+	static createObject(options: ConnectObjectOptions): DRPObject {
 		const aclObj = new ObjectACL({
 			admins: new Map(),
 			permissionless: true,

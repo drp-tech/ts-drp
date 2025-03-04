@@ -1,9 +1,15 @@
 import { ACL } from "./acl.js";
 import { DRP } from "./drp.js";
 import { FinalityStore } from "./finality.js";
+import { HashGraph } from "./hashgraph.js";
 import { LoggerOptions } from "./logger.js";
 import { IMetrics } from "./metrics.js";
-import { Vertex_Operation as Operation, DRPObjectBase, Vertex } from "./proto/drp/v1/object_pb.js";
+import {
+	Vertex_Operation as Operation,
+	DRPObjectBase,
+	Vertex,
+	DRPState,
+} from "./proto/drp/v1/object_pb.js";
 
 export interface LcaAndOperations {
 	lca: string;
@@ -40,6 +46,30 @@ export interface DRPObject extends DRPObjectBase {
 	 * The subscriptions of the DRP object.
 	 */
 	subscriptions: DRPObjectCallback[];
+
+	/**
+	 * The DRP states of the DRP object.
+	 */
+	drpStates: Map<string, DRPState>;
+	/**
+	 * The ACL states of the DRP object.
+	 */
+	aclStates: Map<string, DRPState>;
+
+	/**
+	 * The hash graph of the DRP object.
+	 */
+	hashGraph: HashGraph;
+
+	/**
+	 * Subscribe to the DRP object.
+	 */
+	subscribe(callback: DRPObjectCallback): void;
+
+	/**
+	 * Merge the vertices into the DRP object.
+	 */
+	merge(vertices: Vertex[]): [merged: boolean, missing: string[]];
 }
 
 export type DRPObjectCallback = (object: DRPObject, origin: string, vertices: Vertex[]) => void;

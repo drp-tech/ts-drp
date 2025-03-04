@@ -1,6 +1,6 @@
 import { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import { DRPObject, HashGraph } from "@ts-drp/object";
-import { DRP, FetchState, IMetrics, Message, MessageType, Sync } from "@ts-drp/types";
+import { HashGraph, DRPObject as DRPObjectImpl } from "@ts-drp/object";
+import { DRP, DRPObject, FetchState, IMetrics, Message, MessageType, Sync } from "@ts-drp/types";
 
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode } from "./index.js";
@@ -9,7 +9,7 @@ import { log } from "./logger.js";
 export function createObject(node: DRPNode, object: DRPObject) {
 	node.objectStore.put(object.id, object);
 	object.subscribe((obj, originFn, vertices) => {
-		drpObjectChangesHandler(node, obj as DRPObject, originFn, vertices);
+		drpObjectChangesHandler(node, obj, originFn, vertices);
 	});
 }
 
@@ -24,7 +24,7 @@ export async function connectObject(
 	id: string,
 	options: ConnectObjectOptions
 ): Promise<DRPObject> {
-	const object = DRPObject.createObject({
+	const object = DRPObjectImpl.createObject({
 		peerId: node.networkNode.peerId,
 		id,
 		drp: options.drp,
