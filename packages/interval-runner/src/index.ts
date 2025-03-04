@@ -78,7 +78,10 @@ export class IntervalRunner<Args extends unknown[] = []> implements IntervalRunn
 		this._state = 1;
 
 		const scheduleNext = async () => {
-			if (this._state === 0) return;
+			if (this._state === 0) {
+				this._logger.info("Interval runner was already stopped");
+				return;
+			}
 
 			try {
 				const result = await this.execute(args);
