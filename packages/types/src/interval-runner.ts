@@ -33,6 +33,11 @@ export interface IntervalRunner<Args extends unknown[] = []> {
 	readonly fn: AnyBooleanCallback<Args>;
 
 	/**
+	 * The id of the IntervalRunner
+	 */
+	readonly id: string;
+
+	/**
 	 * The current state of the interval runner
 	 */
 	state: "running" | "stopped";
