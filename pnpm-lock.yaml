@@ -206,7 +206,7 @@ importers:
         specifier: 0.8.5
         version: link:../types
       '@ts-drp/utils':
-        specifier: workspace:^0.8.5
+        specifier: 0.8.5
         version: link:../utils
 
   packages/keychain:
