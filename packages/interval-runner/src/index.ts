@@ -5,10 +5,12 @@ import type {
 	IntervalRunnerOptions,
 } from "@ts-drp/types";
 import { isAsyncGenerator, isGenerator, isPromise } from "@ts-drp/utils";
+import * as crypto from "node:crypto";
 
 export class IntervalRunner<Args extends unknown[] = []> implements IntervalRunnerInterface<Args> {
 	readonly interval: number;
 	readonly fn: AnyBooleanCallback<Args>;
+	readonly id: string;
 
 	private _intervalId: NodeJS.Timeout | null = null;
 	private _state: 0 | 1;
@@ -27,6 +29,13 @@ export class IntervalRunner<Args extends unknown[] = []> implements IntervalRunn
 		this.fn = config.fn;
 		this._logger = new Logger("drp:interval-runner", config.logConfig);
 		this._state = 0;
+
+		this.id =
+			config.id ??
+			crypto
+				.createHash("sha256")
+				.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
+				.digest("hex");
 	}
 
 	private async execute(args?: Args): Promise<boolean> {

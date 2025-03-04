@@ -30,8 +30,8 @@
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
-		"@ts-drp/logger": "workspace:^",
-		"@ts-drp/types": "workspace:^",
+		"@ts-drp/logger": "0.8.5",
+		"@ts-drp/types": "0.8.5",
 		"@ts-drp/utils": "workspace:^0.8.5"
 	}
 }

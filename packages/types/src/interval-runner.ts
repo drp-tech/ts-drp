@@ -16,6 +16,7 @@ export interface IntervalRunnerOptions {
 	interval: number;
 	fn: AnyBooleanCallback;
 	logConfig?: LoggerOptions;
+	id?: string;
 }
 
 export interface IntervalRunner<Args extends unknown[] = []> {
