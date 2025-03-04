@@ -5,6 +5,14 @@ export interface LoggerOptions {
 	level?: loglevel.LogLevelDesc;
 }
 
+export interface ILogger {
+	trace: (...args: unknown[]) => void;
+	debug: (...args: unknown[]) => void;
+	info: (...args: unknown[]) => void;
+	warn: (...args: unknown[]) => void;
+	error: (...args: unknown[]) => void;
+}
+
 export class Logger {
 	private log: loglevel.Logger;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any

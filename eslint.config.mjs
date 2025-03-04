@@ -1,13 +1,14 @@
 import eslint from "@eslint/js";
 import tsparser from "@typescript-eslint/parser";
-import esimport from "eslint-plugin-import";
+import importPlugin from "eslint-plugin-import";
 import prettier from "eslint-plugin-prettier";
 import unusedImports from "eslint-plugin-unused-imports";
 import vitest from "eslint-plugin-vitest";
 import globals from "globals";
-import tseslint from "typescript-eslint";
+import { config as tsLintConfig, configs, plugin } from "typescript-eslint";
 
-const config = tseslint.config(
+/** @type {import("typescript-eslint").ConfigArray} */
+const config = tsLintConfig(
 	{
 		ignores: [
 			"**/.env",
@@ -30,11 +31,17 @@ const config = tseslint.config(
 		],
 	},
 	eslint.configs.recommended,
-	tseslint.configs.strict,
+	configs.strict,
+	importPlugin.flatConfigs.recommended,
+	importPlugin.flatConfigs.typescript,
 	{
+		settings: {
+			"import/resolver": {
+				typescript: {},
+			},
+		},
 		plugins: {
-			"@typescript-eslint": tseslint.plugin,
-			"import": esimport,
+			"@typescript-eslint": plugin,
 			"prettier": prettier,
 			"unused-imports": unusedImports,
 			"vitest": vitest,
@@ -82,6 +89,13 @@ const config = tseslint.config(
 					},
 				},
 			],
+			"import/no-unresolved": [
+				"error",
+				{
+					ignore: ["@libp2p/bootstrap", "@libp2p/pubsub-peer-discovery"],
+				},
+			],
+			"import/no-cycle": "error",
 		},
 	}
 );

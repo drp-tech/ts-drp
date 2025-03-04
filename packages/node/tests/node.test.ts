@@ -1,4 +1,4 @@
-import bls from "@chainsafe/bls/herumi";
+import { bls } from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
 import { ACLGroup, ObjectACL } from "@ts-drp/object";
 import { type DRP, DRPObject, DrpType } from "@ts-drp/object";

@@ -1,10 +1,9 @@
 import { MapConflictResolution, MapDRP } from "@ts-drp/blueprints/src/Map/index.js";
 import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
-import { type Vertex, Operation } from "@ts-drp/types";
+import { type Vertex, Operation, ActionType, SemanticsType } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { ActionType, SemanticsType } from "../src/hashgraph/index.js";
 import { ACLGroup, DRP, DRPObject, DrpType, Hash, HashGraph, newVertex } from "../src/index.js";
 import { ObjectSet } from "../src/utils/objectSet.js";
 

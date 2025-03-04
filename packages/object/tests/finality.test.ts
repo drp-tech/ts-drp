@@ -1,4 +1,4 @@
-import bls from "@chainsafe/bls/herumi";
+import { bls } from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints/src/index.js";
 import { Keychain } from "@ts-drp/keychain/src/keychain.js";
 import { toString as uint8ArrayToString } from "uint8arrays";

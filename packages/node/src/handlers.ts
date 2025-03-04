@@ -20,9 +20,9 @@ import {
 } from "@ts-drp/types";
 import * as crypto from "crypto";
 
-import { type DRPNode, log } from "./index.js";
+import { type DRPNode } from "./index.js";
+import { log } from "./logger.js";
 import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
-
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
   You need to setup stream xor data

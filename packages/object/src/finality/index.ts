@@ -1,10 +1,11 @@
-import bls from "@chainsafe/bls/herumi";
+import { bls } from "@chainsafe/bls/herumi";
+import { Logger, LoggerOptions } from "@ts-drp/logger";
 import { AggregatedAttestation, Attestation } from "@ts-drp/types";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { BitSet } from "../hashgraph/bitset.js";
 import type { Hash } from "../hashgraph/index.js";
-import { type DRPPublicCredential, log } from "../index.js";
+import { type DRPPublicCredential } from "../index.js";
 
 const DEFAULT_FINALITY_THRESHOLD = 0.51;
 
@@ -97,9 +98,13 @@ export class FinalityStore {
 	states: Map<string, FinalityState>;
 	finalityThreshold: number;
 
-	constructor(config?: FinalityConfig) {
+	private log: Logger;
+
+	constructor(config?: FinalityConfig, logConfig?: LoggerOptions) {
 		this.states = new Map();
 		this.finalityThreshold = config?.finality_threshold ?? DEFAULT_FINALITY_THRESHOLD;
+
+		this.log = new Logger("drp::finality", logConfig);
 	}
 
 	initializeState(hash: Hash, signers: Map<string, DRPPublicCredential>) {
@@ -153,7 +158,7 @@ export class FinalityStore {
 			try {
 				this.states.get(attestation.data)?.addSignature(peerId, attestation.signature, verify);
 			} catch (e) {
-				log.error("::finality::addSignatures", e);
+				this.log.error("::finality::addSignatures", e);
 			}
 		}
 	}
@@ -176,7 +181,7 @@ export class FinalityStore {
 			try {
 				this.states.get(attestation.data)?.merge(attestation);
 			} catch (e) {
-				log.error("::finality::mergeSignatures", e);
+				this.log.error("::finality::mergeSignatures", e);
 			}
 		}
 	}
