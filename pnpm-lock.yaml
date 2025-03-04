@@ -200,10 +200,10 @@ importers:
   packages/interval-runner:
     dependencies:
       '@ts-drp/logger':
-        specifier: workspace:^
+        specifier: 0.8.5
         version: link:../logger
       '@ts-drp/types':
-        specifier: workspace:^
+        specifier: 0.8.5
         version: link:../types
       '@ts-drp/utils':
         specifier: workspace:^0.8.5
