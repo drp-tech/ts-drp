@@ -1,4 +1,4 @@
-export interface IDRPIDHeartbeat {
+export interface DRPDiscovery {
 	/**
 	 * Starts the heartbeat process.
 	 * Initiates periodic heartbeat checks at the configured interval.

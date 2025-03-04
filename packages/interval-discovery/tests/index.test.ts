@@ -19,20 +19,20 @@ describe("Heartbeat test", () => {
 					peer_discovery_interval: 100_000_000,
 				},
 				log_config: {
-					level: "silent",
+					//level: "silent",
 				},
 			},
 			keychain_config: {
 				private_key_seed: "topic_discovery_peer_1",
 			},
-			heartbeat_config: {
+			interval_discovery_options: {
 				interval: 1000,
 				logConfig: {
-					level: "silent",
+					//level: "silent",
 				},
 			},
 			log_config: {
-				level: "silent",
+				//level: "silent",
 			},
 		};
 
@@ -44,8 +44,8 @@ describe("Heartbeat test", () => {
 			keychain_config: {
 				private_key_seed: "topic_discovery_peer_1",
 			},
-			heartbeat_config: {
-				...nodeConfig.heartbeat_config,
+			interval_discovery_options: {
+				...nodeConfig.interval_discovery_options,
 				interval: 500,
 				searchDuration: 1000,
 			},
@@ -80,6 +80,10 @@ describe("Heartbeat test", () => {
 	});
 
 	test("peer 1 can discover peer 3 topic", async () => {
+		console.log("peerID1", node1.networkNode.peerId);
+		console.log("peerID2", node2.networkNode.peerId);
+		console.log("peerID3", node3.networkNode.peerId);
+
 		const node2GossipSub = node2.networkNode["_pubsub"] as GossipSub;
 
 		const filterGraft = (topic: string, peerId: string) => (e: CustomEvent<MeshPeer>) =>
@@ -109,9 +113,15 @@ describe("Heartbeat test", () => {
 		});
 
 		const node3GossipSub = node3.networkNode["_pubsub"] as GossipSub;
-		await raceEvent(node3GossipSub, "gossipsub:graft", undefined, {
-			filter: (e: CustomEvent<MeshPeer>) => e.detail.topic === drpObject.id,
-		});
+		const node1GossipSub = node1.networkNode["_pubsub"] as GossipSub;
+		await Promise.all([
+			raceEvent(node3GossipSub, "gossipsub:graft", undefined, {
+				filter: (e: CustomEvent<MeshPeer>) => e.detail.topic === drpObject.id,
+			}),
+			raceEvent(node1GossipSub, "gossipsub:graft", undefined, {
+				filter: (e: CustomEvent<MeshPeer>) => e.detail.topic === drpObject.id,
+			}),
+		]);
 
 		expect(node3.networkNode.getGroupPeers(drpObject.id).length).toBe(1);
 		expect(node3.networkNode.getGroupPeers(drpObject.id)[0]).toBe(node1.networkNode.peerId);
@@ -121,6 +131,7 @@ describe("Heartbeat test", () => {
 
 	test("peer 1 can't hearbeat stop searching after 1 seconds", async () => {
 		// Add mock logger
+		vi.useFakeTimers();
 		vi.mock("@ts-drp/logger", () => {
 			const mockLogger = {
 				error: vi.fn(),
@@ -135,20 +146,20 @@ describe("Heartbeat test", () => {
 		});
 
 		const drp = new MapDRP();
+		const id = "test_heartbeat_timeout";
 		await node1.createObject({
 			drp: drp,
-			id: "test_heartbeat_timeout",
+			id,
 		});
 
-		await new Promise((resolve) => setTimeout(resolve, 2100));
+		vi.advanceTimersByTime(1000);
 
-		// Get the logger instance
-		// @ts-expect-error - logger is private
-		const loggerInstance = node1.heartbeat?.["logger"];
+		const loggerInstance = node1["_intervals"].get(id)?.["_logger"];
 
-		// Verify error was logged
-		expect(loggerInstance.error).toHaveBeenCalledWith(
-			"::heartbeat: No peers found after 1000ms of searching"
-		);
+		vi.advanceTimersByTime(1000);
+		await new Promise(process.nextTick);
+		vi.advanceTimersByTime(1000);
+		expect(loggerInstance.error).toHaveBeenCalledWith("No peers found after 1000ms of searching");
+		vi.useRealTimers();
 	});
 });

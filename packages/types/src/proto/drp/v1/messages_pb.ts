@@ -144,6 +144,7 @@ export interface DRPDiscovery {
 }
 
 export interface DRPDiscoveryResponse {
+  objectId: string;
   subscribers: { [key: string]: DRPDiscoveryResponse_Subscribers };
 }
 
@@ -902,13 +903,16 @@ export const DRPDiscovery: MessageFns<DRPDiscovery> = {
 };
 
 function createBaseDRPDiscoveryResponse(): DRPDiscoveryResponse {
-  return { subscribers: {} };
+  return { objectId: "", subscribers: {} };
 }
 
 export const DRPDiscoveryResponse: MessageFns<DRPDiscoveryResponse> = {
   encode(message: DRPDiscoveryResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.objectId !== "") {
+      writer.uint32(10).string(message.objectId);
+    }
     Object.entries(message.subscribers).forEach(([key, value]) => {
-      DRPDiscoveryResponse_SubscribersEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).join();
+      DRPDiscoveryResponse_SubscribersEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).join();
     });
     return writer;
   },
@@ -925,9 +929,17 @@ export const DRPDiscoveryResponse: MessageFns<DRPDiscoveryResponse> = {
             break;
           }
 
-          const entry1 = DRPDiscoveryResponse_SubscribersEntry.decode(reader, reader.uint32());
-          if (entry1.value !== undefined) {
-            message.subscribers[entry1.key] = entry1.value;
+          message.objectId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          const entry2 = DRPDiscoveryResponse_SubscribersEntry.decode(reader, reader.uint32());
+          if (entry2.value !== undefined) {
+            message.subscribers[entry2.key] = entry2.value;
           }
           continue;
         }
@@ -942,6 +954,7 @@ export const DRPDiscoveryResponse: MessageFns<DRPDiscoveryResponse> = {
 
   fromJSON(object: any): DRPDiscoveryResponse {
     return {
+      objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
       subscribers: isObject(object.subscribers)
         ? Object.entries(object.subscribers).reduce<{ [key: string]: DRPDiscoveryResponse_Subscribers }>(
           (acc, [key, value]) => {
@@ -956,6 +969,9 @@ export const DRPDiscoveryResponse: MessageFns<DRPDiscoveryResponse> = {
 
   toJSON(message: DRPDiscoveryResponse): unknown {
     const obj: any = {};
+    if (message.objectId !== "") {
+      obj.objectId = message.objectId;
+    }
     if (message.subscribers) {
       const entries = Object.entries(message.subscribers);
       if (entries.length > 0) {
@@ -973,6 +989,7 @@ export const DRPDiscoveryResponse: MessageFns<DRPDiscoveryResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<DRPDiscoveryResponse>, I>>(object: I): DRPDiscoveryResponse {
     const message = createBaseDRPDiscoveryResponse();
+    message.objectId = object.objectId ?? "";
     message.subscribers = Object.entries(object.subscribers ?? {}).reduce<
       { [key: string]: DRPDiscoveryResponse_Subscribers }
     >((acc, [key, value]) => {

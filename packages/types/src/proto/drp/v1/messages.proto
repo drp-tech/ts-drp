@@ -65,8 +65,9 @@ message DRPDiscovery {
 }
 
 message DRPDiscoveryResponse {
+  string object_id = 1;
   message Subscribers {
     repeated string multiaddrs = 1;
   }
-  map<string, Subscribers> subscribers = 1;
+  map<string, Subscribers> subscribers = 2;
 }

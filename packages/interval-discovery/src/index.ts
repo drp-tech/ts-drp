@@ -9,34 +9,21 @@ import {
 	DRPDiscoveryResponse,
 	Message,
 	DRP_DISCOVERY_TOPIC,
+	SubscriberInfo,
 } from "@ts-drp/types";
-
-/**
- * Type representing a subscriber with their multiaddresses
- */
-interface SubscriberInfo {
-	multiaddrs: string[];
-}
 
 /**
  * Enhanced DRP Discovery service using composition pattern
  * Implements IntervalRunnerInterface to maintain compatibility with IntervalRunner[] arrays
  */
-class DRPDiscovery implements IntervalRunnerInterface {
-	/** Unique identifier for the object */
-	readonly id: string;
+export class DRPIntervalDiscovery implements IntervalRunnerInterface<"interval:discovery"> {
+	readonly type = "interval:discovery";
 
 	/** Network node instance used for peer communication */
 	readonly networkNode: DRPNetworkNode;
 
 	/** Duration in milliseconds to search for peers before giving up */
 	readonly searchDuration: number;
-
-	/** The interval in milliseconds between heartbeats */
-	readonly interval: number;
-
-	/** The function to be executed on each interval */
-	readonly fn: () => Promise<boolean>;
 
 	/** Start time of the search for peers */
 	private _searchStartTime?: number;
@@ -51,46 +38,48 @@ class DRPDiscovery implements IntervalRunnerInterface {
 	 * Creates a new DRP Discovery instance
 	 */
 	constructor(opts: DRPIntervalDiscoveryOptions) {
-		this.id = opts.id;
+		const defaultSearchDuration = 5 * 60 * 1000; // 5 minutes
 		this.networkNode = opts.networkNode;
-		this.searchDuration = opts.searchDuration ?? 5 * 60 * 1000;
-		this.interval = opts.interval;
-		this._logger = new Logger(`drp::discovery::${this.id}`, opts.logConfig);
-
-		// Create a heartbeat function wrapper
-		this.fn = async () => {
-			await this._runHeartbeat();
-			return true; // Always continue the interval
-		};
-
+		this.searchDuration = opts.searchDuration ?? defaultSearchDuration;
+		this._logger = new Logger(`drp::discovery::${opts.id}`, opts.logConfig);
 		// Create the delegate interval runner
 		this._intervalRunner = new IntervalRunner({
-			interval: this.interval,
-			fn: this.fn,
-			logConfig: opts.logConfig,
+			...opts,
+			fn: async () => {
+				await this._runHeartbeat();
+				return true; // Always continue the interval
+			},
 		});
+	}
+
+	get id(): string {
+		return this._intervalRunner.id;
 	}
 
 	/**
 	 * Runs a single heartbeat cycle to discover peers
 	 */
 	private async _runHeartbeat(): Promise<void> {
+		console.log("runHeartbeat", this._searchStartTime);
 		// Early exit if we already have peers
 		if (this._hasPeers()) {
+			console.log("hasPeers");
 			this._searchStartTime = undefined;
 			return;
 		}
 
-		// Initialize or verify search timer
 		if (!this._searchStartTime) {
+			console.log("no searchStartTime");
 			this._searchStartTime = Date.now();
-		} else if (this._isSearchTimedOut()) {
+		}
+
+		if (this._isSearchTimedOut()) {
+			console.log("isSearchTimedOut");
 			this._logger.error(`No peers found after ${this.searchDuration}ms of searching`);
 			this._searchStartTime = undefined;
 			return;
 		}
 
-		// Broadcast discovery request
 		await this._broadcastDiscoveryRequest();
 	}
 
@@ -105,8 +94,12 @@ class DRPDiscovery implements IntervalRunnerInterface {
 	 * Checks if the search has exceeded the maximum duration
 	 */
 	private _isSearchTimedOut(): boolean {
+		console.log("isSearchTimedOutin", this._searchStartTime);
 		if (!this._searchStartTime) return false;
-		return Date.now() - this._searchStartTime >= this.searchDuration;
+		const now = Date.now();
+		const elapsed = now - this._searchStartTime;
+		this._logger.info(`Search time elapsed: ${elapsed}ms`);
+		return elapsed >= this.searchDuration;
 	}
 
 	/**
@@ -132,6 +125,7 @@ class DRPDiscovery implements IntervalRunnerInterface {
 	 * Starts the discovery process
 	 */
 	start(): void {
+		console.log("start");
 		this._intervalRunner.start();
 	}
 
@@ -146,8 +140,7 @@ class DRPDiscovery implements IntervalRunnerInterface {
 	 * Returns the current state of the discovery process
 	 */
 	get state(): "running" | "stopped" {
-		//return this._intervalRunner.state;
-		return "stopped";
+		return this._intervalRunner.state;
 	}
 
 	/**
@@ -156,12 +149,14 @@ class DRPDiscovery implements IntervalRunnerInterface {
 	 * @param sender - The sender of the discovery response
 	 * @param data - The data of the discovery response
 	 */
-	async handleDiscoveryResponse(sender: string, data: Uint8Array): Promise<void> {
+	async handleDiscoveryResponse(
+		sender: string,
+		subscribers: Record<string, SubscriberInfo>
+	): Promise<void> {
 		this._logger.info("Received discovery response from", sender);
 
 		try {
-			const response = DRPDiscoveryResponse.decode(data);
-			await this._connectToDiscoveredPeers(response.subscribers);
+			await this._connectToDiscoveredPeers(subscribers);
 		} catch (error) {
 			this._logger.error("Error processing discovery response:", error);
 		}
@@ -211,11 +206,11 @@ class DRPDiscovery implements IntervalRunnerInterface {
 			if (peers.length === 0) return; // No peers to report
 
 			// Collect peer information
-			const subscribers = await DRPDiscovery._collectPeerInfo(peers, networkNode, logger);
+			const subscribers = await DRPIntervalDiscovery._collectPeerInfo(peers, networkNode, logger);
 			if (Object.keys(subscribers).length === 0) return;
 
 			// Send response
-			await DRPDiscovery._sendDiscoveryResponse(sender, networkNode, subscribers);
+			await DRPIntervalDiscovery._sendDiscoveryResponse(sender, networkNode, subscribers, objectId);
 		} catch (error) {
 			logger.error("Error handling discovery request:", error);
 		}
@@ -251,10 +246,11 @@ class DRPDiscovery implements IntervalRunnerInterface {
 	private static async _sendDiscoveryResponse(
 		recipient: string,
 		networkNode: DRPNetworkNode,
-		subscribers: Record<string, SubscriberInfo>
+		subscribers: Record<string, SubscriberInfo>,
+		objectId: string
 	): Promise<void> {
 		try {
-			const response = DRPDiscoveryResponse.create({ subscribers });
+			const response = DRPDiscoveryResponse.create({ subscribers, objectId });
 			const message = Message.create({
 				sender: recipient,
 				type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE,
@@ -272,6 +268,6 @@ class DRPDiscovery implements IntervalRunnerInterface {
  * Factory function for creating DRPDiscovery instances
  * Returns an instance that implements IntervalRunnerInterface
  */
-export function createDRPDiscovery(opts: DRPIntervalDiscoveryOptions): IntervalRunnerInterface {
-	return new DRPDiscovery(opts);
+export function createDRPDiscovery(opts: DRPIntervalDiscoveryOptions): DRPIntervalDiscovery {
+	return new DRPIntervalDiscovery(opts);
 }

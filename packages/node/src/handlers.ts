@@ -1,4 +1,5 @@
 import type { Stream } from "@libp2p/interface";
+import { DRPIntervalDiscovery } from "@ts-drp/interval-discovery";
 import { streamToUint8Array } from "@ts-drp/network";
 import { type DRPObject, HashGraph } from "@ts-drp/object";
 import { ACL, type Vertex } from "@ts-drp/types";
@@ -70,6 +71,16 @@ export async function drpMessagesHandler(node: DRPNode, stream?: Stream, data?: 
 			break;
 		case MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE:
 			await attestationUpdateHandler(node, message.sender, message.data);
+			break;
+		case MessageType.MESSAGE_TYPE_DRP_DISCOVERY:
+			await DRPIntervalDiscovery.handleDiscoveryRequest(
+				message.sender,
+				message.data,
+				node.networkNode
+			);
+			break;
+		case MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE:
+			await node.handleDiscoveryResponse(message.sender, message.data);
 			break;
 		default:
 			log.error("::messageHandler: Invalid operation");

@@ -7,29 +7,33 @@ import type {
 import { isAsyncGenerator, isGenerator, isPromise } from "@ts-drp/utils";
 import * as crypto from "node:crypto";
 
-export class IntervalRunner<Args extends unknown[] = []> implements IntervalRunnerInterface<Args> {
+export class IntervalRunner<Args extends unknown[] = []>
+	implements IntervalRunnerInterface<"interval:runner", Args>
+{
+	readonly type = "interval:runner";
 	readonly interval: number;
 	readonly fn: AnyBooleanCallback<Args>;
 	readonly id: string;
 
 	private _intervalId: NodeJS.Timeout | null = null;
 	private _state: 0 | 1;
-	protected _logger: Logger;
+	private _logger: Logger;
 
 	/**
 	 * @param interval - The interval in milliseconds
 	 * @param fn - The function to run when the interval is up and returns a boolean, true if the interval should continue, false if it should stop
 	 */
 	constructor(config: IntervalRunnerOptions) {
-		if (config.interval <= 0) {
+		const defaultInterval = 10_000; // 10 seconds
+
+		this._state = 0;
+		this.interval = config.interval ?? defaultInterval;
+		if (this.interval <= 0) {
 			throw new Error("Interval must be greater than 0");
 		}
 
-		this.interval = config.interval;
 		this.fn = config.fn;
 		this._logger = new Logger("drp:interval-runner", config.logConfig);
-		this._state = 0;
-
 		this.id =
 			config.id ??
 			crypto

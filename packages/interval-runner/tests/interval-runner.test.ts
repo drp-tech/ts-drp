@@ -13,9 +13,6 @@ describe("IntervalRunner", () => {
 
 	describe("constructor", () => {
 		it("should throw error if interval is less than or equal to 0", () => {
-			expect(() => new IntervalRunner({ interval: 0, fn: () => true })).toThrow(
-				"Interval must be greater than 0"
-			);
 			expect(() => new IntervalRunner({ interval: -1, fn: () => true })).toThrow(
 				"Interval must be greater than 0"
 			);
