@@ -1,3 +1,6 @@
+import { DRPIntervalDiscovery } from "./drp-interval-discovery.js";
+import { IntervalRunner } from "./interval-runner.js";
+
 export {
 	Vertex,
 	Vertex_Operation as Operation,
@@ -38,3 +41,18 @@ export type * from "./network.js";
 export type * from "./node.js";
 export type * from "./object.js";
 export type * from "./drp-interval-discovery.js";
+
+/**
+ * A map of all interval runners
+ */
+export interface IntervalRunnerMap {
+	/**
+	 * The interval runner for the interval runner
+	 */
+	"interval:runner": IntervalRunner<"interval:runner">;
+
+	/**
+	 * The interval runner for the interval discovery
+	 */
+	"interval:discovery": DRPIntervalDiscovery;
+}

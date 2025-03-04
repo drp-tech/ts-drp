@@ -1,4 +1,3 @@
-import { DRPIntervalDiscovery } from "./drp-interval-discovery.js";
 import { LoggerOptions } from "./logger.js";
 
 type AnyFnCallback<T, Args extends unknown[] = []> =
@@ -47,9 +46,4 @@ export interface IntervalRunner<Type extends string, Args extends unknown[] = []
 	 * Stop the interval runner
 	 */
 	stop(): void;
-}
-
-export interface IntervalRunnerMap {
-	"interval:runner": IntervalRunner<"interval:runner">;
-	"interval:discovery": DRPIntervalDiscovery;
 }
