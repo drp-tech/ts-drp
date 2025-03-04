@@ -1,4 +1,4 @@
-import { Logger, type LoggerOptions } from "@ts-drp/logger";
+import { Logger } from "@ts-drp/logger";
 import {
 	DRP,
 	DRPObjectCallback,
@@ -15,6 +15,7 @@ import {
 	IMetrics,
 	DRPObject as DRPObjectInterface,
 	Hash,
+	type LoggerOptions,
 } from "@ts-drp/types";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";

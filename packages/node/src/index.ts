@@ -1,10 +1,17 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
 import { KeychainConfig, Keychain } from "@ts-drp/keychain";
-import { Logger, type LoggerOptions } from "@ts-drp/logger";
+import { Logger } from "@ts-drp/logger";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
-import { IMetrics, Message, MessageType, type ACL, type DRP } from "@ts-drp/types";
+import {
+	IMetrics,
+	Message,
+	MessageType,
+	type ACL,
+	type DRP,
+	type LoggerOptions,
+} from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
 import { log } from "./logger.js";

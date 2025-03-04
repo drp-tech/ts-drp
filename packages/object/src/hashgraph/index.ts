@@ -1,4 +1,4 @@
-import { Logger, LoggerOptions } from "@ts-drp/logger";
+import { Logger } from "@ts-drp/logger";
 import {
 	Operation,
 	Vertex,
@@ -6,6 +6,7 @@ import {
 	SemanticsType,
 	Hash,
 	ResolveConflictsType,
+	type LoggerOptions,
 } from "@ts-drp/types";
 
 import { BitSet } from "./bitset.js";

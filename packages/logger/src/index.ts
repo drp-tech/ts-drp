@@ -1,9 +1,6 @@
+import { LoggerOptions } from "@ts-drp/types";
 import loglevel from "loglevel";
 import prefix from "loglevel-plugin-prefix";
-
-export interface LoggerOptions {
-	level?: loglevel.LogLevelDesc;
-}
 
 export interface ILogger {
 	trace: (...args: unknown[]) => void;
