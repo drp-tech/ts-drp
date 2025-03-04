@@ -12,6 +12,7 @@ import {
 	type ACL,
 	type DRP,
 	LoggerOptions,
+	DRPIntervalDiscoveryOptions,
 } from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
@@ -23,6 +24,7 @@ export interface DRPNodeConfig {
 	log_config?: LoggerOptions;
 	network_config?: DRPNetworkNodeConfig;
 	keychain_config?: KeychainConfig;
+	heartbeat_config?: Pick<DRPIntervalDiscoveryOptions, "interval" | "logConfig" | "searchDuration">;
 }
 
 export class DRPNode {

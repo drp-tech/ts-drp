@@ -33,7 +33,12 @@ import * as filters from "@libp2p/websockets/filters";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger } from "@ts-drp/logger";
-import { DRP_DISCOVERY_TOPIC, Message, type LoggerOptions } from "@ts-drp/types";
+import {
+	DRP_DISCOVERY_TOPIC,
+	Message,
+	type LoggerOptions,
+	type DRPNetworkNode as DRPNetworkNodeInterface,
+} from "@ts-drp/types";
 import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
 
 import { uint8ArrayToStream } from "./stream.js";
@@ -64,7 +69,7 @@ type PeerDiscoveryFunction =
 	| ((components: PubSubPeerDiscoveryComponents) => PeerDiscovery)
 	| ((components: BootstrapComponents) => PeerDiscovery);
 
-export class DRPNetworkNode {
+export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: GossipSub;

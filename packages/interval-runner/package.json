@@ -23,7 +23,6 @@
 	"scripts": {
 		"build": "tsc -b",
 		"clean": "rm -rf dist/ node_modules/",
-		"cli": "tsx ./src/run.ts",
 		"prebuild": "node -p \"'export const VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
 		"prepack": "tsc -b",
 		"test": "vitest",
