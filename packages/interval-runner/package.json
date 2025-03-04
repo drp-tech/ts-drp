@@ -32,6 +32,6 @@
 	"dependencies": {
 		"@ts-drp/logger": "0.8.5",
 		"@ts-drp/types": "0.8.5",
-		"@ts-drp/utils": "workspace:^0.8.5"
+		"@ts-drp/utils": "0.8.5"
 	}
 }
