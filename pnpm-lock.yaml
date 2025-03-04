@@ -233,6 +233,9 @@ importers:
 
   packages/logger:
     dependencies:
+      '@ts-drp/types':
+        specifier: ^0.8.5
+        version: link:../types
       loglevel:
         specifier: ^1.9.2
         version: 1.9.2
