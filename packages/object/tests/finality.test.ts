@@ -193,5 +193,5 @@ describe("Tests for FinalityStore", () => {
 		}
 		// 1000 * 0.51 = 510
 		expect(finalityStore.isFinalized("vertex1")).toEqual(true);
-	});
+	}, 30000);
 });

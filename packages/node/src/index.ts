@@ -11,11 +11,11 @@ import {
 	MessageType,
 	type ACL,
 	type DRP,
-	LoggerOptions,
 	DRPIntervalDiscoveryOptions,
 	DRPDiscoveryResponse,
 	IntervalRunnerMap,
 	DRP_DISCOVERY_TOPIC,
+	type LoggerOptions,
 } from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
@@ -59,7 +59,7 @@ export class DRPNode {
 
 	async start(): Promise<void> {
 		await this.keychain.start();
-		await this.networkNode.start(this.keychain.ed25519PrivateKey);
+		await this.networkNode.start(this.keychain.secp256k1PrivateKey);
 		await this.networkNode.addMessageHandler(async ({ stream }: IncomingStreamData) =>
 			drpMessagesHandler(this, stream)
 		);
@@ -83,6 +83,7 @@ export class DRPNode {
 		);
 
 		await this.start();
+		log.info("::restart: Node restarted");
 	}
 
 	addCustomGroup(group: string) {

@@ -15,7 +15,7 @@ import {
 	IMetrics,
 	DRPObject as DRPObjectInterface,
 	Hash,
-	LoggerOptions,
+	type LoggerOptions,
 } from "@ts-drp/types";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
@@ -213,7 +213,7 @@ export class DRPObject implements DRPObjectBase, DRPObjectInterface {
 
 		const vertex = this.hashGraph.createVertex(vertexOperation, vertexDependencies, now);
 
-		this.hashGraph.addToFrontier(vertex);
+		this.hashGraph.addVertex(vertex);
 		this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
 		this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
 		this._initializeFinalityState(vertex.hash, acl);

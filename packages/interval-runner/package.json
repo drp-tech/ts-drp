@@ -23,6 +23,7 @@
 	"scripts": {
 		"build": "tsc -b",
 		"clean": "rm -rf dist/ node_modules/",
+		"cli": "tsx ./src/run.ts",
 		"prebuild": "node -p \"'export const VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
 		"prepack": "tsc -b",
 		"test": "vitest",
@@ -31,6 +32,6 @@
 	"dependencies": {
 		"@ts-drp/logger": "0.8.5",
 		"@ts-drp/types": "0.8.5",
-		"@ts-drp/utils": "workspace:^0.8.5"
+		"@ts-drp/utils": "0.8.5"
 	}
 }

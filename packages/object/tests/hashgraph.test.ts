@@ -17,9 +17,9 @@ import { ObjectSet } from "../src/utils/objectSet.js";
 
 const acl = new ObjectACL({
 	admins: new Map([
-		["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-		["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
-		["peer3", { ed25519PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
+		["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+		["peer2", { secp256k1PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
+		["peer3", { secp256k1PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
 	]),
 });
 
@@ -63,7 +63,7 @@ describe("HashGraph construction tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 	const acl = new ObjectACL({
-		admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
+		admins: new Map([["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
 	});
 
 	beforeEach(async () => {
@@ -216,7 +216,7 @@ describe("HashGraph construction tests", () => {
 	test("Root vertex acl state should not be modified", () => {
 		const acl1 = obj1.acl as ObjectACL;
 		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey2",
+			secp256k1PublicKey: "pubKey2",
 			blsPublicKey: "pubKey2",
 		});
 		expect(acl1.query_isWriter("peer2")).toBe(true);
@@ -233,8 +233,8 @@ describe("HashGraph for SetDRP tests", () => {
 	let obj2: DRPObject;
 	const acl = new ObjectACL({
 		admins: new Map([
-			["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-			["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
+			["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+			["peer2", { secp256k1PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
 		]),
 	});
 
@@ -488,8 +488,8 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 	let obj3: DRPObject;
 	const acl = new ObjectACL({
 		admins: new Map([
-			["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-			["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
+			["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+			["peer2", { secp256k1PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
 		]),
 	});
 
@@ -706,7 +706,7 @@ describe("Writer permission tests", () => {
 
 	beforeEach(async () => {
 		const peerIdToPublicKeyMap = new Map([
-			["peer1", { ed25519PublicKey: "publicKey1", blsPublicKey: "" }],
+			["peer1", { secp256k1PublicKey: "publicKey1", blsPublicKey: "" }],
 		]);
 		const acl = new ObjectACL({ admins: peerIdToPublicKeyMap });
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
@@ -745,7 +745,7 @@ describe("Writer permission tests", () => {
 
 		drp1.add(1);
 		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey2",
+			secp256k1PublicKey: "pubKey2",
 			blsPublicKey: "pubKey2",
 		});
 		expect(acl1.query_isAdmin("peer1")).toBe(true);
@@ -773,11 +773,11 @@ describe("Writer permission tests", () => {
 		const acl1 = obj1.acl as ObjectACL;
 
 		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey2",
+			secp256k1PublicKey: "pubKey2",
 			blsPublicKey: "pubKey2",
 		});
 		acl1.grant("peer1", "peer3", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey3",
+			secp256k1PublicKey: "pubKey3",
 			blsPublicKey: "pubKey3",
 		});
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -809,7 +809,7 @@ describe("Writer permission tests", () => {
 		const acl1 = obj1.acl as ObjectACL;
 		const newAdminPeer1 = "newAdminPeer1";
 		const newAdmin = {
-			ed25519PublicKey: "newAdmin",
+			secp256k1PublicKey: "newAdmin",
 			blsPublicKey: "newAdmin",
 		};
 		acl1.grant("peer1", "newAdminPeer1", ACLGroup.Admin, newAdmin);
@@ -822,7 +822,7 @@ describe("Writer permission tests", () => {
 		  					\_ V4:ADD(3) (invalid)
 		*/
 		const acl = new ObjectACL({
-			admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
+			admins: new Map([["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
 		});
 		const obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		const obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
@@ -835,7 +835,7 @@ describe("Writer permission tests", () => {
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		drp1.add(2);
 		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey2",
+			secp256k1PublicKey: "pubKey2",
 			blsPublicKey: "pubKey2",
 		});
 

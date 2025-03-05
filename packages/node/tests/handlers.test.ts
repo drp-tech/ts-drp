@@ -10,6 +10,7 @@ import {
 	Update,
 	MessageType,
 	DrpType,
+	FetchState,
 } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test, afterAll, vi } from "vitest";
@@ -187,6 +188,26 @@ describe("Handle message correctly", () => {
 		]);
 	});
 
+	test("should handle fetch state", async () => {
+		const message = Message.create({
+			sender: node1.networkNode.peerId,
+			type: MessageType.MESSAGE_TYPE_FETCH_STATE,
+			data: FetchState.encode(
+				FetchState.create({
+					objectId: drpObject.id,
+					vertexHash: drpObject.vertices[0].hash,
+				})
+			).finish(),
+		});
+
+		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+		const drp = node1.objectStore.get(drpObject.id);
+		const drp2 = node2.objectStore.get(drpObject.id);
+		// After fetching the state, the vertices should be the same
+		expect(drp?.vertices.length).toEqual(drp2?.vertices.length);
+	});
+
 	test("should handle sync message correctly", async () => {
 		const node1DrpObject = node1.objectStore.get(drpObject.id);
 		expect(node1DrpObject).toBeDefined();
@@ -242,7 +263,7 @@ describe("Handle message correctly", () => {
 
 	test("should handle update attestation message correctly", async () => {
 		const hash = drpObject.vertices[1].hash;
-		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
+		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
 		const attestations = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
 			return {
 				data: vertex.hash,

@@ -1,4 +1,7 @@
+import { publicKeyFromRaw } from "@libp2p/crypto/keys";
 import type { Stream } from "@libp2p/interface";
+import { peerIdFromPublicKey } from "@libp2p/peer-id";
+import { Signature } from "@noble/secp256k1";
 import { DRPIntervalDiscovery } from "@ts-drp/interval-discovery";
 import { streamToUint8Array } from "@ts-drp/network";
 import { type DRPObject, HashGraph } from "@ts-drp/object";
@@ -16,7 +19,7 @@ import {
 	SyncAccept,
 	Update,
 } from "@ts-drp/types";
-import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+import * as crypto from "crypto";
 
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
@@ -381,7 +384,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 			return;
 		}
 		try {
-			vertex.signature = await node.keychain.signWithEd25519(vertex.hash);
+			vertex.signature = await node.keychain.signWithSecp256k1(vertex.hash);
 		} catch (error) {
 			log.error("::signGeneratedVertices: Error signing vertex:", vertex.hash, error);
 		}
@@ -442,39 +445,24 @@ export async function verifyACLIncomingVertices(
 		};
 	});
 
-	const acl: ACL = object.acl as ACL;
-	if (!acl) {
-		return vertices;
-	}
 	const verificationPromises = vertices.map(async (vertex) => {
 		if (vertex.signature.length === 0) {
 			return null;
 		}
 
-		const publicKey = acl.query_getPeerKey(vertex.peerId);
-		if (!publicKey) {
-			return null;
-		}
-
-		const publicKeyBytes = uint8ArrayFromString(publicKey.ed25519PublicKey, "base64");
-		const data = uint8ArrayFromString(vertex.hash);
-
 		try {
-			const cryptoKey = await crypto.subtle.importKey(
-				"raw",
-				publicKeyBytes,
-				{ name: "Ed25519" },
-				true,
-				["verify"]
-			);
+			const hashData = crypto.createHash("sha256").update(vertex.hash).digest("hex");
+			const recovery = vertex.signature[0];
+			const compactSignature = vertex.signature.slice(1);
+			const signatureWithRecovery =
+				Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
 
-			const isValid = await crypto.subtle.verify(
-				{ name: "Ed25519" },
-				cryptoKey,
-				vertex.signature,
-				data
-			);
-
+			const rawSecp256k1PublicKey = signatureWithRecovery
+				.recoverPublicKey(hashData)
+				.toRawBytes(true);
+			const secp256k1PublicKey = publicKeyFromRaw(rawSecp256k1PublicKey);
+			const expectedPeerId = peerIdFromPublicKey(secp256k1PublicKey).toString();
+			const isValid = expectedPeerId === vertex.peerId;
 			return isValid ? vertex : null;
 		} catch (error) {
 			console.error("Error verifying signature:", error);

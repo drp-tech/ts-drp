@@ -87,7 +87,7 @@ async function getPeerID(page: Page) {
 
 function getPeerIDRegex(peerID: string) {
 	return new RegExp(
-		`peerId: PeerId\\(${peerID}\\),.*?signedPeerRecord: {\\n.*?addresses: \\[\\n      Multiaddr\\(/ip4/127\\.0\\.0\\.1/tcp/50000/ws/p2p/12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ/p2p-circuit\\)`,
+		`peerId: PeerId\\(${peerID}\\),.*?signedPeerRecord: {\\n.*?addresses: \\[\\n      Multiaddr\\(/ip4/127\\.0\\.0\\.1/tcp/50000/ws/p2p/16Uiu2HAkyHjtPSYAveXoTGMskeGWwP7FmbkR29EJJRsmixeAM2xn/p2p-circuit\\)`,
 		"gms"
 	);
 }

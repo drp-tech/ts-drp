@@ -33,6 +33,8 @@
 		"@libp2p/crypto": "^5.0.5",
 		"@libp2p/interface": "^2.1.3",
 		"@ts-drp/types": "^0.8.5",
+		"@noble/secp256k1": "^2.2.3",
+		"@ts-drp/object": "0.8.5",
 		"uint8arrays": "^5.1.0"
 	},
 	"devDependencies": {

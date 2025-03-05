@@ -1,6 +1,6 @@
 import { DRPNode } from "@ts-drp/node";
 
-const local_peer_id = "12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ";
+const local_peer_id = "16Uiu2HAkyHjtPSYAveXoTGMskeGWwP7FmbkR29EJJRsmixeAM2xn";
 
 if (!local_peer_id) {
 	console.error(

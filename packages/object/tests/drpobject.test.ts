@@ -6,9 +6,9 @@ import { DRP, DRPObject, ObjectACL, ResolveConflictsType } from "../src/index.js
 
 const acl = new ObjectACL({
 	admins: new Map([
-		["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-		["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
-		["peer3", { ed25519PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
+		["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+		["peer2", { secp256k1PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
+		["peer3", { secp256k1PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
 	]),
 });
 
@@ -23,7 +23,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 
 	test("Test creating DRPObject w/ publicCred", () => {
 		const cred = {
-			ed25519PublicKey: "cred",
+			secp256k1PublicKey: "cred",
 			blsPublicKey: "cred",
 		};
 		const obj = new DRPObject({ peerId: "", publicCredential: cred });
@@ -98,7 +98,7 @@ describe("Test for duplicate call issue", () => {
 		const obj = new DRPObject({
 			peerId: "",
 			publicCredential: {
-				ed25519PublicKey: "cred",
+				secp256k1PublicKey: "cred",
 				blsPublicKey: "cred",
 			},
 			drp: new CounterDRP(),
