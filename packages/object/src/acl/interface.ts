@@ -4,6 +4,7 @@ export interface ACL extends DRP {
 	permissionless: boolean;
 	grant: (senderId: string, peerId: string, group: ACLGroup) => void;
 	revoke: (senderId: string, peerId: string, group: ACLGroup) => void;
+	setKey: (senderId: string, peerId: string, key: DRPPublicCredential) => void;
 	query_getFinalitySigners: () => Map<string, DRPPublicCredential>;
 	query_isAdmin: (peerId: string) => boolean;
 	query_isFinalitySigner: (peerId: string) => boolean;

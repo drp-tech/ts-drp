@@ -96,6 +96,22 @@ export class ObjectACL implements ACL {
 		}
 	}
 
+	setKey(senderId: string, peerId: string, key: DRPPublicCredential): void {
+		if (senderId !== peerId) {
+			throw new Error("Cannot set key for another peer.");
+		}
+		let peerPermissions = this._authorizedPeers.get(peerId);
+		if (!peerPermissions) {
+			peerPermissions = {
+				publicKey: key,
+				permissions: new Set(),
+			};
+		} else {
+			peerPermissions.publicKey = key;
+		}
+		this._authorizedPeers.set(peerId, peerPermissions);
+	}
+
 	query_getFinalitySigners(): Map<string, DRPPublicCredential> {
 		return new Map(
 			[...this._authorizedPeers.entries()]
