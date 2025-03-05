@@ -108,7 +108,7 @@ export class DRPObject implements DRPObjectBase {
 			this._computeDRP;
 	}
 
-	private _initLocalDrpInstance(peerId: string, drp: DRP, acl: DRP) {
+	private _initLocalDrpInstance(peerId: string, drp: DRP, acl: DRP): void {
 		this.drp = new Proxy(drp, this.proxyDRPHandler(DrpType.DRP));
 		this.hashGraph = new HashGraph(
 			peerId,
@@ -119,12 +119,12 @@ export class DRPObject implements DRPObjectBase {
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
-	private _initNonLocalDrpInstance(peerId: string, acl: DRP) {
+	private _initNonLocalDrpInstance(peerId: string, acl: DRP): void {
 		this.hashGraph = new HashGraph(peerId, acl.resolveConflicts?.bind(this.acl));
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
-	static createObject(options: ConnectObjectOptions) {
+	static createObject(options: ConnectObjectOptions): DRPObject {
 		const aclObj = new ObjectACL({
 			admins: new Map(),
 			permissionless: true,
@@ -147,13 +147,17 @@ export class DRPObject implements DRPObjectBase {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const obj = this;
 		return {
-			get(target, propKey, receiver) {
+			get(target: object, propKey: string | symbol, receiver: unknown): unknown {
 				const value = Reflect.get(target, propKey, receiver);
 
 				if (typeof value === "function") {
 					const fullPropKey = String(propKey);
 					return new Proxy(target[propKey as keyof object], {
-						apply(applyTarget, thisArg, args) {
+						apply(
+							applyTarget: (...args: unknown[]) => unknown,
+							thisArg: unknown,
+							args: unknown[]
+						): unknown {
 							if ((propKey as string).startsWith("query_")) {
 								return Reflect.apply(applyTarget, thisArg, args);
 							}
@@ -179,7 +183,7 @@ export class DRPObject implements DRPObjectBase {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		args: any,
 		drpType: DrpType
-	) {
+	): void {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
@@ -229,7 +233,7 @@ export class DRPObject implements DRPObjectBase {
 		return appliedOperationResult;
 	}
 
-	validateVertex(vertex: Vertex) {
+	validateVertex(vertex: Vertex): void {
 		// Validate hash value
 		if (
 			vertex.hash !==
@@ -316,18 +320,18 @@ export class DRPObject implements DRPObjectBase {
 		return [missing.length === 0, missing];
 	}
 
-	subscribe(callback: DRPObjectCallback) {
+	subscribe(callback: DRPObjectCallback): void {
 		this.subscriptions.push(callback);
 	}
 
-	private _notify(origin: string, vertices: Vertex[]) {
+	private _notify(origin: string, vertices: Vertex[]): void {
 		for (const callback of this.subscriptions) {
 			callback(this, origin, vertices);
 		}
 	}
 
 	// initialize the attestation store for the given vertex hash
-	private _initializeFinalityState(hash: Hash, acl: ACL) {
+	private _initializeFinalityState(hash: Hash, acl: ACL): void {
 		this.finalityStore.initializeState(hash, acl.query_getFinalitySigners());
 	}
 
@@ -338,7 +342,7 @@ export class DRPObject implements DRPObjectBase {
 	}
 
 	// apply the operation to the DRP
-	private _applyOperation(drp: DRP, operation: Operation) {
+	private _applyOperation(drp: DRP, operation: Operation): void {
 		const { opType, value } = operation;
 
 		const typeParts = opType.split(".");
@@ -435,7 +439,7 @@ export class DRPObject implements DRPObjectBase {
 		return acl;
 	}
 
-	private computeLCA(vertexDependencies: string[]) {
+	private computeLCA(vertexDependencies: string[]): LcaAndOperations {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
@@ -485,7 +489,11 @@ export class DRPObject implements DRPObjectBase {
 		return this._getDRPState(acl);
 	}
 
-	private _setObjectACLState(vertex: Vertex, preCompute?: LcaAndOperations, drpState?: DRPState) {
+	private _setObjectACLState(
+		vertex: Vertex,
+		preCompute?: LcaAndOperations,
+		drpState?: DRPState
+	): void {
 		if (this.acl) {
 			this.aclStates.set(
 				vertex.hash,
@@ -494,7 +502,7 @@ export class DRPObject implements DRPObjectBase {
 		}
 	}
 
-	private _setDRPState(vertex: Vertex, preCompute?: LcaAndOperations, drpState?: DRPState) {
+	private _setDRPState(vertex: Vertex, preCompute?: LcaAndOperations, drpState?: DRPState): void {
 		this.drpStates.set(
 			vertex.hash,
 			drpState ?? this._computeDRPState(vertex.dependencies, preCompute, vertex.operation)
@@ -502,7 +510,7 @@ export class DRPObject implements DRPObjectBase {
 	}
 
 	// update the DRP's attributes based on all the vertices in the hashgraph
-	private _updateDRPState() {
+	private _updateDRPState(): void {
 		if (!this.drp || !this.hashGraph) {
 			throw new Error("DRP or hashgraph is undefined");
 		}
@@ -515,7 +523,7 @@ export class DRPObject implements DRPObjectBase {
 		}
 	}
 
-	private _updateObjectACLState() {
+	private _updateObjectACLState(): void {
 		if (!this.acl || !this.hashGraph) {
 			throw new Error("ObjectACL or hashgraph is undefined");
 		}
@@ -528,7 +536,7 @@ export class DRPObject implements DRPObjectBase {
 		}
 	}
 
-	private _setRootStates() {
+	private _setRootStates(): void {
 		const acl = this.acl as ACL;
 		const aclState = [];
 		for (const key of Object.keys(acl)) {

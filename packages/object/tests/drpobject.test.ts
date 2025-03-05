@@ -39,7 +39,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 describe("Drp Object should be able to change state value", () => {
 	let drpObject: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		drpObject = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 	});
 
@@ -83,7 +83,7 @@ describe("Test for duplicate call issue", () => {
 			this._counter = 0;
 		}
 
-		test() {
+		test(): number {
 			this._counter++;
 			counter++;
 			return this._counter;

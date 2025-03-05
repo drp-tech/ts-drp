@@ -18,7 +18,7 @@ export interface DRPPublicCredential {
 
 export interface DRP {
 	semanticsType: SemanticsType;
-	resolveConflicts?: (vertices: Vertex[]) => ResolveConflictsType;
+	resolveConflicts?(vertices: Vertex[]): ResolveConflictsType;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[key: string]: any;
 }

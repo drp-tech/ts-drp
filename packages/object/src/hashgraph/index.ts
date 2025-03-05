@@ -114,7 +114,7 @@ export class HashGraph {
 	}
 
 	// Add a new vertex to the hashgraph.
-	addVertex(vertex: Vertex) {
+	addVertex(vertex: Vertex): void {
 		this.vertices.set(vertex.hash, vertex);
 		this.frontier.push(vertex.hash);
 		// Update forward edges

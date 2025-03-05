@@ -40,8 +40,8 @@ export class DRPNode {
 	async start(): Promise<void> {
 		await this.keychain.start();
 		await this.networkNode.start(this.keychain.secp256k1PrivateKey);
-		await this.networkNode.addMessageHandler(async ({ stream }: IncomingStreamData) =>
-			drpMessagesHandler(this, stream)
+		await this.networkNode.addMessageHandler(
+			({ stream }: IncomingStreamData) => void drpMessagesHandler(this, stream)
 		);
 	}
 
@@ -54,18 +54,18 @@ export class DRPNode {
 		log.info("::restart: Node restarted");
 	}
 
-	addCustomGroup(group: string) {
+	addCustomGroup(group: string): void {
 		this.networkNode.subscribe(group);
 	}
 
 	addCustomGroupMessageHandler(
 		group: string,
 		handler: EventCallback<CustomEvent<GossipsubMessage>>
-	) {
+	): void {
 		this.networkNode.addGroupMessageHandler(group, handler);
 	}
 
-	async sendGroupMessage(group: string, data: Uint8Array) {
+	async sendGroupMessage(group: string, data: Uint8Array): Promise<void> {
 		const message = Message.create({
 			sender: this.networkNode.peerId,
 			type: MessageType.MESSAGE_TYPE_CUSTOM,
@@ -74,11 +74,14 @@ export class DRPNode {
 		await this.networkNode.broadcastMessage(group, message);
 	}
 
-	async addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
+	async addCustomMessageHandler(
+		protocol: string | string[],
+		handler: StreamHandler
+	): Promise<void> {
 		await this.networkNode.addCustomMessageHandler(protocol, handler);
 	}
 
-	async sendCustomMessage(peerId: string, data: Uint8Array) {
+	async sendCustomMessage(peerId: string, data: Uint8Array): Promise<void> {
 		const message = Message.create({
 			sender: this.networkNode.peerId,
 			type: MessageType.MESSAGE_TYPE_CUSTOM,
@@ -96,7 +99,7 @@ export class DRPNode {
 			peerId?: string;
 		};
 		metrics?: IMetrics;
-	}) {
+	}): Promise<DRPObject> {
 		const object = new DRPObject({
 			peerId: this.networkNode.peerId,
 			publicCredential: options.acl ? undefined : this.keychain.getPublicCredential(),
@@ -106,7 +109,7 @@ export class DRPNode {
 			metrics: options.metrics,
 		});
 		operations.createObject(this, object);
-		await operations.subscribeObject(this, object.id);
+		operations.subscribeObject(this, object.id);
 		if (options.sync?.enabled) {
 			await operations.syncObject(this, object.id, options.sync.peerId);
 		}
@@ -127,7 +130,7 @@ export class DRPNode {
 			peerId?: string;
 		};
 		metrics?: IMetrics;
-	}) {
+	}): Promise<DRPObject> {
 		const object = operations.connectObject(this, options.id, {
 			peerId: options.sync?.peerId,
 			drp: options.drp,
@@ -136,16 +139,16 @@ export class DRPNode {
 		return object;
 	}
 
-	async subscribeObject(id: string) {
-		await operations.subscribeObject(this, id);
+	subscribeObject(id: string): void {
+		operations.subscribeObject(this, id);
 	}
 
-	unsubscribeObject(id: string, purge?: boolean) {
+	unsubscribeObject(id: string, purge?: boolean): void {
 		operations.unsubscribeObject(this, id, purge);
 		this.networkNode.removeTopicScoreParams(id);
 	}
 
-	async syncObject(id: string, peerId?: string) {
+	async syncObject(id: string, peerId?: string): Promise<void> {
 		await operations.syncObject(this, id, peerId);
 	}
 }

@@ -10,7 +10,7 @@ let peers: string[] = [];
 let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
 
-const render = () => {
+const render = (): void => {
 	if (drpObject) (<HTMLButtonElement>document.getElementById("chatId")).innerText = drpObject.id;
 	const element_peerId = <HTMLDivElement>document.getElementById("peerId");
 	element_peerId.innerHTML = node.networkNode.peerId;
@@ -44,7 +44,7 @@ const render = () => {
 	}
 };
 
-async function sendMessage(message: string) {
+function sendMessage(message: string): void {
 	const timestamp: string = Date.now().toString();
 	if (!chatDRP) {
 		console.error("Chat DRP not initialized");
@@ -56,7 +56,7 @@ async function sendMessage(message: string) {
 	render();
 }
 
-async function createConnectHandlers() {
+function createConnectHandlers(): void {
 	node.addCustomGroupMessageHandler(drpObject.id, () => {
 		// on create/connect
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
@@ -68,7 +68,7 @@ async function createConnectHandlers() {
 	});
 }
 
-async function main() {
+async function main(): Promise<void> {
 	await node.start();
 	render();
 
@@ -80,16 +80,19 @@ async function main() {
 	});
 
 	const button_create = <HTMLButtonElement>document.getElementById("createRoom");
-	button_create.addEventListener("click", async () => {
+	const button_connect = <HTMLButtonElement>document.getElementById("joinRoom");
+	const input: HTMLInputElement = <HTMLInputElement>document.getElementById("roomInput");
+
+	const create = async (): Promise<void> => {
 		drpObject = await node.createObject({ drp: new Chat() });
 		chatDRP = drpObject.drp as Chat;
-		await createConnectHandlers();
+		createConnectHandlers();
 		render();
-	});
+	};
 
-	const button_connect = <HTMLButtonElement>document.getElementById("joinRoom");
-	button_connect.addEventListener("click", async () => {
-		const input: HTMLInputElement = <HTMLInputElement>document.getElementById("roomInput");
+	button_create.addEventListener("click", () => void create());
+
+	const connect = async (): Promise<void> => {
 		const objectId = input.value;
 		if (!objectId) {
 			alert("Please enter a room id");
@@ -98,12 +101,14 @@ async function main() {
 
 		drpObject = await node.createObject({ id: objectId, drp: new Chat() });
 		chatDRP = drpObject.drp as Chat;
-		await createConnectHandlers();
+		createConnectHandlers();
 		render();
-	});
+	};
+
+	button_connect.addEventListener("click", () => void connect());
 
 	const button_send = <HTMLButtonElement>document.getElementById("sendMessage");
-	button_send.addEventListener("click", async () => {
+	button_send.addEventListener("click", () => {
 		const input: HTMLInputElement = <HTMLInputElement>document.getElementById("messageInput");
 		const message: string = input.value;
 		input.value = "";
@@ -112,7 +117,7 @@ async function main() {
 			alert("Please enter a message");
 			return;
 		}
-		await sendMessage(message);
+		sendMessage(message);
 		const element_chat = <HTMLDivElement>document.getElementById("chat");
 		element_chat.scrollTop = element_chat.scrollHeight;
 	});

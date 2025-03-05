@@ -23,12 +23,12 @@ import * as lp from "it-length-prefixed";
 import map from "it-map";
 import { pipe } from "it-pipe";
 
-export async function uint8ArrayToStream(stream: Stream, input: Uint8Array) {
+export async function uint8ArrayToStream(stream: Stream, input: Uint8Array): Promise<void> {
 	await pipe(input, (source) => lp.encode([source]), stream.sink);
 }
 
-export async function streamToUint8Array(stream: Stream) {
-	return await pipe(
+export async function streamToUint8Array(stream: Stream): Promise<Uint8Array> {
+	return pipe(
 		stream.source,
 		(source) => lp.decode(source),
 		(source) => map(source, (buf) => buf.subarray()),

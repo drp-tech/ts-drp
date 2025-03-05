@@ -27,7 +27,11 @@ import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
   Handler for all DRP messages, including pubsub messages and direct messages
   You need to setup stream xor data
 */
-export async function drpMessagesHandler(node: DRPNode, stream?: Stream, data?: Uint8Array) {
+export async function drpMessagesHandler(
+	node: DRPNode,
+	stream?: Stream,
+	data?: Uint8Array
+): Promise<void> {
 	let message: Message;
 	try {
 		if (stream) {
@@ -72,7 +76,7 @@ export async function drpMessagesHandler(node: DRPNode, stream?: Stream, data?: 
 			syncRejectHandler(node, message.data);
 			break;
 		case MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE:
-			await attestationUpdateHandler(node, message.sender, message.data);
+			attestationUpdateHandler(node, message.sender, message.data);
 			break;
 		default:
 			log.error("::messageHandler: Invalid operation");
@@ -80,7 +84,7 @@ export async function drpMessagesHandler(node: DRPNode, stream?: Stream, data?: 
 	}
 }
 
-function fetchStateHandler(node: DRPNode, sender: string, data: Uint8Array) {
+function fetchStateHandler(node: DRPNode, sender: string, data: Uint8Array): void {
 	const fetchState = FetchState.decode(data);
 	const drpObject = node.objectStore.get(fetchState.objectId);
 	if (!drpObject) {
@@ -107,7 +111,7 @@ function fetchStateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	});
 }
 
-function fetchStateResponseHandler(node: DRPNode, data: Uint8Array) {
+function fetchStateResponseHandler(node: DRPNode, data: Uint8Array): void {
 	const fetchStateResponse = FetchStateResponse.decode(data);
 	if (!fetchStateResponse.drpState && !fetchStateResponse.aclState) {
 		log.error("::fetchStateResponseHandler: No state found");
@@ -143,7 +147,7 @@ function fetchStateResponseHandler(node: DRPNode, data: Uint8Array) {
 	}
 }
 
-async function attestationUpdateHandler(node: DRPNode, sender: string, data: Uint8Array) {
+function attestationUpdateHandler(node: DRPNode, sender: string, data: Uint8Array): void {
 	const attestationUpdate = AttestationUpdate.decode(data);
 	const object = node.objectStore.get(attestationUpdate.objectId);
 	if (!object) {
@@ -160,7 +164,7 @@ async function attestationUpdateHandler(node: DRPNode, sender: string, data: Uin
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array doesn't contain the full remote operations array
 */
-async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
+async function updateHandler(node: DRPNode, sender: string, data: Uint8Array): Promise<boolean> {
 	const updateMessage = Update.decode(data);
 	const object = node.objectStore.get(updateMessage.objectId);
 	if (!object) {
@@ -214,7 +218,7 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
+async function syncHandler(node: DRPNode, sender: string, data: Uint8Array): Promise<void> {
 	// (might send reject) <- TODO: when should we reject?
 	const syncMessage = Sync.decode(data);
 	const object = node.objectStore.get(syncMessage.objectId);
@@ -263,7 +267,7 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array) {
+async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array): Promise<void> {
 	const syncAcceptMessage = SyncAccept.decode(data);
 	const object = node.objectStore.get(syncAcceptMessage.objectId);
 	if (!object) {
@@ -318,7 +322,7 @@ async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array
 }
 
 /* data: { id: string } */
-function syncRejectHandler(_node: DRPNode, _data: Uint8Array) {
+function syncRejectHandler(_node: DRPNode, _data: Uint8Array): void {
 	// TODO: handle reject. Possible actions:
 	// - Retry sync
 	// - Ask sync from another peer
@@ -330,7 +334,7 @@ export function drpObjectChangesHandler(
 	obj: DRPObject,
 	originFn: string,
 	vertices: Vertex[]
-) {
+): void {
 	switch (originFn) {
 		case "merge":
 			node.objectStore.put(obj.id, obj);
@@ -367,7 +371,7 @@ export function drpObjectChangesHandler(
 	}
 }
 
-export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
+export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]): Promise<void> {
 	const signPromises = vertices.map(async (vertex) => {
 		if (vertex.peerId !== node.networkNode.peerId || vertex.signature.length !== 0) {
 			return;
@@ -383,7 +387,11 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 }
 
 // Signs the vertices. Returns the attestations
-export function signFinalityVertices(node: DRPNode, obj: DRPObject, vertices: Vertex[]) {
+export function signFinalityVertices(
+	node: DRPNode,
+	obj: DRPObject,
+	vertices: Vertex[]
+): Attestation[] {
 	if (!(obj.acl as ACL).query_isFinalitySigner(node.networkNode.peerId)) {
 		return [];
 	}
@@ -431,7 +439,7 @@ export async function verifyACLIncomingVertices(incomingVertices: Vertex[]): Pro
 		};
 	});
 
-	const verificationPromises = vertices.map(async (vertex) => {
+	const verificationPromises: (Vertex | null)[] = vertices.map((vertex) => {
 		if (vertex.signature.length === 0) {
 			return null;
 		}

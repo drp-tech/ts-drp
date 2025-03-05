@@ -122,7 +122,7 @@ describe("tracing lifecycle", () => {
 		metrics = new OpentelemetryMetrics("metric");
 	});
 
-	test("should enable and disable tracing", async () => {
+	test("should enable and disable tracing", () => {
 		enableTracing({
 			provider: {
 				serviceName: "test",
@@ -170,7 +170,10 @@ describe("tracing lifecycle", () => {
 		});
 
 		test("should wrap async functions", async () => {
-			const fn = metrics.traceFunc("test", async (a: number, b: number) => a + b);
+			const fn = metrics.traceFunc("test", async (a: number, b: number): Promise<number> => {
+				await Promise.resolve();
+				return a + b;
+			});
 			expect(await fn(1, 2)).toBe(3);
 		});
 
@@ -187,6 +190,7 @@ describe("tracing lifecycle", () => {
 
 		test("should wrap async generator functions", async () => {
 			const fn = metrics.traceFunc("test", async function* (a: number) {
+				await Promise.resolve();
 				yield a + 1;
 				yield a + 2;
 			});
@@ -205,6 +209,7 @@ describe("tracing lifecycle", () => {
 
 		test("should handle errors in async functions", async () => {
 			const fn = metrics.traceFunc("test", async () => {
+				await Promise.resolve();
 				throw new Error("test error");
 			});
 			await expect(fn()).rejects.toThrow("test error");
@@ -243,6 +248,7 @@ describe("tracing lifecycle", () => {
 
 		test("should trace functions that return async generators", async () => {
 			const tracedAsyncGenerator = metrics.traceFunc("async-generator-test", async function* () {
+				await Promise.resolve();
 				yield 1;
 				yield 2;
 				return 3;
@@ -276,6 +282,7 @@ describe("tracing lifecycle", () => {
 			const tracedAsyncGenerator = metrics.traceFunc(
 				"error-async-generator-test",
 				async function* () {
+					await Promise.resolve();
 					yield 1;
 					throw new Error("async generator error");
 				}

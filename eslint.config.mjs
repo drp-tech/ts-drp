@@ -76,6 +76,14 @@ const config = tsLintConfig(
 			"@typescript-eslint/no-dynamic-delete": "off",
 			"@typescript-eslint/no-inferrable-types": "off",
 			"@typescript-eslint/no-floating-promises": "error",
+			"@typescript-eslint/no-misused-promises": "error",
+			"@typescript-eslint/explicit-function-return-type": "error",
+			"@typescript-eslint/await-thenable": "error", // disallows awaiting a value that is not a "Thenable"
+			"@typescript-eslint/return-await": ["error", "in-try-catch"], // require awaiting thenables returned from try/catch
+			"@typescript-eslint/method-signature-style": ["error", "method"], // enforce method signature style
+			// cf: the doc https://typescript-eslint.io/rules/require-await/ say to disable it
+			"require-await": "off",
+			"@typescript-eslint/require-await": "error",
 			"@typescript-eslint/consistent-type-imports": [
 				"error",
 				{

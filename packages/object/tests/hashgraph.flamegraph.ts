@@ -30,12 +30,12 @@ const createWithStrategy = (
 	return obj;
 };
 const manipulationStrategies: DRPManipulationStrategy[] = [
-	(drp, value) => drp.add(value),
-	(drp, value) => {
+	(drp, value): void => drp.add(value),
+	(drp, value): void => {
 		drp.delete(value);
 		drp.add(value);
 	},
-	(drp, value) => {
+	(drp, value): void => {
 		drp.add(value);
 		drp.delete(value);
 	},
@@ -65,7 +65,7 @@ function flamegraphForSetDRP(numDRPs: number, verticesPerDRP: number, mergeFn: b
 	}
 }
 
-async function pprofTime() {
+async function pprofTime(): Promise<void> {
 	console.log("start to profile >>>");
 	const profile = await pprof.time.profile({
 		durationMillis: 1000,

@@ -66,7 +66,7 @@ describe("HashGraph construction tests", () => {
 		admins: new Map([["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
 	});
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 
@@ -238,7 +238,7 @@ describe("HashGraph for SetDRP tests", () => {
 		]),
 	});
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 	});
@@ -459,7 +459,7 @@ describe("HashGraph for undefined operations tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 	});
@@ -493,7 +493,7 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 		]),
 	});
 
-	beforeAll(async () => {
+	beforeAll(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl });
@@ -544,7 +544,7 @@ describe("Vertex state tests", () => {
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
@@ -639,7 +639,7 @@ describe("Vertex timestamp tests", () => {
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
@@ -704,7 +704,7 @@ describe("Writer permission tests", () => {
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		const peerIdToPublicKeyMap = new Map([
 			["peer1", { secp256k1PublicKey: "publicKey1", blsPublicKey: "" }],
 		]);
@@ -858,7 +858,7 @@ describe("HashGraph for set wins map tests", () => {
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
 			acl,
@@ -964,7 +964,7 @@ describe("HashGraph for delete wins map tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
 			acl,
@@ -1033,7 +1033,7 @@ describe("HashGraph for delete wins map tests", () => {
 describe("Hash validation tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
 			acl,
@@ -1083,7 +1083,7 @@ describe("Hash validation tests", () => {
 describe("HashGraph hook tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 	});
