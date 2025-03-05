@@ -60,21 +60,17 @@ export class DRPIntervalDiscovery implements IntervalRunnerInterface<"interval:d
 	 * Runs a single discovery cycle to find and connect with peers
 	 */
 	private async _runDRPDiscovery(): Promise<void> {
-		console.log("runDRPDiscovery", this._searchStartTime);
 		// Early exit if we already have peers
 		if (this._hasPeers()) {
-			console.log("hasPeers");
 			this._searchStartTime = undefined;
 			return;
 		}
 
 		if (!this._searchStartTime) {
-			console.log("no searchStartTime");
 			this._searchStartTime = Date.now();
 		}
 
 		if (this._isSearchTimedOut(this._searchStartTime)) {
-			console.log("isSearchTimedOut");
 			this._logger.error(`No peers found after ${this.searchDuration}ms of searching`);
 			this._searchStartTime = undefined;
 			return;
@@ -249,8 +245,8 @@ export class DRPIntervalDiscovery implements IntervalRunnerInterface<"interval:d
 			});
 
 			await networkNode.sendMessage(recipient, message);
-		} catch (error) {
-			console.error("Error sending discovery response:", error);
+		} catch (_) {
+			// TODO: need to add a global logger for this
 		}
 	}
 }
