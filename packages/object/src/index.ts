@@ -81,7 +81,7 @@ export class DRPObject implements DRPObjectBase {
 		const objAcl =
 			options.acl ??
 			new ObjectACL({
-				admins: new Map([[options.peerId, options.publicCredential as DRPPublicCredential]]),
+				admins: [options.peerId],
 				permissionless: true,
 			});
 		this.acl = new Proxy(objAcl, this.proxyDRPHandler(DrpType.ACL));
@@ -126,7 +126,7 @@ export class DRPObject implements DRPObjectBase {
 
 	static createObject(options: ConnectObjectOptions) {
 		const aclObj = new ObjectACL({
-			admins: new Map(),
+			admins: [],
 			permissionless: true,
 		});
 		const object = new DRPObject({
