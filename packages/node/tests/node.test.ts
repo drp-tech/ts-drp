@@ -25,8 +25,13 @@ describe("DPRNode with verify and sign signature", () => {
 	beforeEach(async () => {
 		drp = new SetDRP();
 		const acl = new ObjectACL({
-			admins: new Map([[drpNode.networkNode.peerId, drpNode.keychain.getPublicCredential()]]),
+			admins: [drpNode.networkNode.peerId],
 		});
+		acl.setKey(
+			drpNode.networkNode.peerId,
+			drpNode.networkNode.peerId,
+			drpNode.keychain.getPublicCredential()
+		);
 		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
 	});
 
@@ -126,9 +131,19 @@ describe("DRPNode voting tests", () => {
 
 	beforeEach(async () => {
 		const acl = new ObjectACL({
-			admins: new Map([[nodeA.networkNode.peerId, nodeA.keychain.getPublicCredential()]]),
+			admins: [nodeA.networkNode.peerId],
 		});
 
+		acl.setKey(
+			nodeA.networkNode.peerId,
+			nodeA.networkNode.peerId,
+			nodeA.keychain.getPublicCredential()
+		);
+		acl.setKey(
+			nodeB.networkNode.peerId,
+			nodeB.networkNode.peerId,
+			nodeB.keychain.getPublicCredential()
+		);
 		obj1 = new DRPObject({
 			peerId: nodeA.networkNode.peerId,
 			acl,
@@ -148,12 +163,7 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
 
-		acl1.grant(
-			nodeA.networkNode.peerId,
-			nodeB.networkNode.peerId,
-			ACLGroup.Finality,
-			nodeB.keychain.getPublicCredential()
-		);
+		acl1.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
 		drp1.add(1);
 
 		obj2.merge(obj1.vertices);
@@ -176,12 +186,7 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1) ---- A:REVOKE(B) ---- B:ADD(2)
 		*/
 
-		acl1.grant(
-			nodeA.networkNode.peerId,
-			nodeB.networkNode.peerId,
-			ACLGroup.Writer,
-			nodeB.keychain.getPublicCredential()
-		);
+		acl1.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
 		drp1.add(1);
 		acl1.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
 		drp1.add(2);
@@ -205,12 +210,7 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
 
-		acl1.grant(
-			nodeA.networkNode.peerId,
-			nodeB.networkNode.peerId,
-			ACLGroup.Finality,
-			nodeB.keychain.getPublicCredential()
-		);
+		acl1.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
 		drp1.add(1);
 		obj2.merge(obj1.vertices);
 		const V1 = obj2.vertices.find(
@@ -259,8 +259,13 @@ describe("DRPNode with rpc", () => {
 	beforeEach(async () => {
 		drp = new SetDRP();
 		const acl = new ObjectACL({
-			admins: new Map([[drpNode.networkNode.peerId, drpNode.keychain.getPublicCredential()]]),
+			admins: [drpNode.networkNode.peerId],
 		});
+		acl.setKey(
+			drpNode.networkNode.peerId,
+			drpNode.networkNode.peerId,
+			drpNode.keychain.getPublicCredential()
+		);
 		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
 	});
 
