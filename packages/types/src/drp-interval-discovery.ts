@@ -1,5 +1,5 @@
-import { IntervalRunner, IntervalRunnerOptions } from "./interval-runner.js";
-import { DRPNetworkNode } from "./network.js";
+import { type IntervalRunner, type IntervalRunnerOptions } from "./interval-runner.js";
+import { type DRPNetworkNode } from "./network.js";
 
 /**
  * Type representing a subscriber with their multiaddresses

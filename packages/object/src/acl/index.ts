@@ -2,12 +2,12 @@ import {
 	type Vertex,
 	ActionType,
 	SemanticsType,
-	DRPPublicCredential,
+	type DRPPublicCredential,
 	ACLGroup,
-	PeerPermissions,
-	ACL,
+	type PeerPermissions,
+	type ACL,
 	ACLConflictResolution,
-	ResolveConflictsType,
+	type ResolveConflictsType,
 } from "@ts-drp/types";
 
 export class ObjectACL implements ACL {

@@ -1,4 +1,4 @@
-import { DRPNetworkNode, DRPIntervalDiscoveryOptions, DRPDiscovery } from "@ts-drp/types";
+import { type DRPNetworkNode, type DRPIntervalDiscoveryOptions, DRPDiscovery } from "@ts-drp/types";
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { DRPIntervalDiscovery, createDRPDiscovery } from "../src/index.js";

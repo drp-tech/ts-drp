@@ -1,15 +1,15 @@
 import { IntervalRunner } from "@ts-drp/interval-runner";
 import { Logger } from "@ts-drp/logger";
 import {
-	IntervalRunner as IntervalRunnerInterface,
-	DRPIntervalDiscoveryOptions,
-	DRPNetworkNode,
+	type IntervalRunner as IntervalRunnerInterface,
+	type DRPIntervalDiscoveryOptions,
+	type DRPNetworkNode,
 	MessageType,
 	DRPDiscovery as DRPDiscoveryRequest,
 	DRPDiscoveryResponse,
 	Message,
 	DRP_DISCOVERY_TOPIC,
-	SubscriberInfo,
+	type SubscriberInfo,
 } from "@ts-drp/types";
 
 /**

@@ -9,7 +9,7 @@ import {
 	WebTracerProvider,
 } from "@opentelemetry/sdk-trace-web";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
-import { IMetrics } from "@ts-drp/types";
+import { type IMetrics } from "@ts-drp/types";
 import { isAsyncGenerator, isGenerator, isPromise } from "@ts-drp/utils";
 
 let enabled = false;

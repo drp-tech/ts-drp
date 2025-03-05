@@ -1,5 +1,5 @@
-import { ResolveConflictsType, SemanticsType } from "./hashgraph.js";
-import { Vertex } from "./proto/drp/v1/object_pb.js";
+import { type ResolveConflictsType, type SemanticsType } from "./hashgraph.js";
+import { type Vertex } from "./proto/drp/v1/object_pb.js";
 
 /**
  * The type of the DRP object.

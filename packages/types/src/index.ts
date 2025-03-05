@@ -1,5 +1,5 @@
-import { DRPIntervalDiscovery } from "./drp-interval-discovery.js";
-import { IntervalRunner } from "./interval-runner.js";
+import { type DRPIntervalDiscovery } from "./drp-interval-discovery.js";
+import { type IntervalRunner } from "./interval-runner.js";
 
 export {
 	Vertex,
