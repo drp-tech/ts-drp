@@ -354,6 +354,7 @@ export function drpObjectChangesHandler<T extends IDRP>(
 	switch (originFn) {
 		case "merge":
 			node.objectStore.put(obj.id, obj);
+			node.emitEvent("merge", obj);
 			break;
 		case "callFn": {
 			const attestations = signFinalityVertices(node, obj, vertices);
@@ -380,6 +381,7 @@ export function drpObjectChangesHandler<T extends IDRP>(
 				.catch((e) => {
 					log.error("::drpObjectChangesHandler: Error signing vertices", e);
 				});
+			node.emitEvent("callFn", obj);
 			break;
 		}
 		default:

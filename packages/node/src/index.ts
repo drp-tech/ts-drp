@@ -30,7 +30,7 @@ const DISCOVERY_MESSAGE_TYPES = [
 const DISCOVERY_QUEUE_ID = "discovery";
 
 export class DRPNode {
-	config: DRPNodeConfig;
+	config?: DRPNodeConfig;
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
 	keychain: Keychain;
@@ -39,6 +39,7 @@ export class DRPNode {
 	private _intervals: Map<string, IntervalRunnerMap[keyof IntervalRunnerMap]> = new Map();
 
 	constructor(config?: DRPNodeConfig) {
+		this.config = config;
 		const newLogger = new Logger("drp::node", config?.log_config);
 		log.trace = newLogger.trace;
 		log.debug = newLogger.debug;
