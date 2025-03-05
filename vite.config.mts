@@ -15,6 +15,7 @@ export default defineConfig({
 				"**/tests/**",
 				"**/proto/**",
 				"**/dist/**",
+				"**/version.ts",
 			],
 		},
 		testTimeout: 10000,
