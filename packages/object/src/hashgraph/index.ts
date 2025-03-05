@@ -107,34 +107,6 @@ export class HashGraph {
 		});
 	}
 
-	addToFrontier(vertex: Vertex) {
-		this.vertices.set(vertex.hash, vertex);
-		// Update forward edges
-		for (const dep of vertex.dependencies) {
-			if (!this.forwardEdges.has(dep)) {
-				this.forwardEdges.set(dep, []);
-			}
-			this.forwardEdges.get(dep)?.push(vertex.hash);
-		}
-
-		// Compute the distance of the vertex
-		const vertexDistance: VertexDistance = {
-			distance: Number.MAX_VALUE,
-			closestDependency: "",
-		};
-		for (const dep of vertex.dependencies) {
-			const depDistance = this.vertexDistances.get(dep);
-			if (depDistance && depDistance.distance + 1 < vertexDistance.distance) {
-				vertexDistance.distance = depDistance.distance + 1;
-				vertexDistance.closestDependency = dep;
-			}
-		}
-		this.vertexDistances.set(vertex.hash, vertexDistance);
-
-		this.frontier = [vertex.hash];
-		this.arePredecessorsFresh = false;
-	}
-
 	// Add a new vertex to the hashgraph.
 	addVertex(vertex: Vertex) {
 		this.vertices.set(vertex.hash, vertex);
