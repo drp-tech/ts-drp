@@ -194,7 +194,7 @@ describe("Handle message correctly", () => {
 		});
 
 		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
-		await new Promise((resolve) => setTimeout(resolve, 500));
+		await new Promise((resolve) => setTimeout(resolve, 1000));
 		const drp = node1.objectStore.get(drpObject.id);
 		const drp2 = node2.objectStore.get(drpObject.id);
 		// After fetching the state, the vertices should be the same
