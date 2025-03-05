@@ -64,6 +64,7 @@ const config = tsLintConfig(
 			"@typescript-eslint/no-unused-vars": [
 				"error",
 				{
+					args: "all",
 					varsIgnorePattern: "_",
 					argsIgnorePattern: "_",
 					caughtErrors: "all",
