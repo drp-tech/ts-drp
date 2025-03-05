@@ -13,20 +13,10 @@ import {
 import { DRPNode } from "../src/index.js";
 
 describe("DPRNode with verify and sign signature", () => {
-	let drp: DRP;
 	let drpNode: DRPNode;
-	let drpObject: DRPObject;
 	beforeAll(async () => {
 		drpNode = new DRPNode();
 		await drpNode.start();
-	});
-
-	beforeEach(async () => {
-		drp = new SetDRP();
-		const acl = new ObjectACL({
-			admins: new Map([[drpNode.networkNode.peerId, drpNode.keychain.getPublicCredential()]]),
-		});
-		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
 	});
 
 	test("Node will not sign vertex if it is not the creator", async () => {
@@ -84,7 +74,7 @@ describe("DPRNode with verify and sign signature", () => {
 			},
 		];
 		await signGeneratedVertices(drpNode, vertices);
-		const verifiedVertices = await verifyACLIncomingVertices(drpObject, vertices);
+		const verifiedVertices = await verifyACLIncomingVertices(vertices);
 		expect(verifiedVertices.length).toBe(1);
 	});
 
@@ -103,7 +93,7 @@ describe("DPRNode with verify and sign signature", () => {
 				signature: new Uint8Array(),
 			},
 		];
-		const verifiedVertices = await verifyACLIncomingVertices(drpObject, vertices);
+		const verifiedVertices = await verifyACLIncomingVertices(vertices);
 		expect(verifiedVertices.length).toBe(0);
 	});
 });

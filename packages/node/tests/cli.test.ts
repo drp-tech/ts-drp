@@ -4,7 +4,7 @@ import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeAll, describe, expect, test } from "vitest";
 
-import { GenericRespone, SubscribeDRPRequest } from "../src/proto/drp/node/v1/rpc_pb.js";
+import { type GenericRespone, type SubscribeDRPRequest } from "../src/proto/drp/node/v1/rpc_pb.js";
 import * as run from "../src/run.js";
 
 const protoPath = path.resolve(

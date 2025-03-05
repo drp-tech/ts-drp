@@ -1,7 +1,7 @@
-import { Span } from "@opentelemetry/api";
+import { type Span } from "@opentelemetry/api";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
-import { IMetrics } from "@ts-drp/types";
+import { type IMetrics } from "@ts-drp/types";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { disableTracing, enableTracing, flush, OpentelemetryMetrics } from "../src/index.js";

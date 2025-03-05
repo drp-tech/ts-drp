@@ -1,12 +1,12 @@
 import { Logger } from "@ts-drp/logger";
 import {
-	LoggerOptions,
-	Operation,
+	type LoggerOptions,
+	type Operation,
 	Vertex,
 	ActionType,
 	SemanticsType,
-	ResolveConflictsType,
-	Hash,
+	type ResolveConflictsType,
+	type Hash,
 } from "@ts-drp/types";
 
 import { BitSet } from "./bitset.js";
