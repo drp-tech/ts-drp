@@ -1084,7 +1084,7 @@ describe("HashGraph hook tests", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		const newVertices: Vertex[] = [];
 
-		obj1.subscribe((object, origin, vertices) => {
+		obj1.subscribe((_, origin, vertices) => {
 			if (origin === "callFn") {
 				newVertices.push(...vertices);
 			}
@@ -1101,7 +1101,7 @@ describe("HashGraph hook tests", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		const newVertices: Vertex[] = [];
 
-		obj2.subscribe((object, origin, vertices) => {
+		obj2.subscribe((_, origin, vertices) => {
 			if (origin === "merge") {
 				newVertices.push(...vertices);
 			}
