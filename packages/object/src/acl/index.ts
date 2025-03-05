@@ -13,7 +13,7 @@ export class ObjectACL implements ACL {
 	private _authorizedPeers: Map<string, PeerPermissions>;
 
 	constructor(options: {
-		admins: Map<string, DRPPublicCredential>;
+		admins: string[];
 		permissionless?: boolean;
 		conflictResolution?: ACLConflictResolution;
 	}) {
@@ -25,21 +25,33 @@ export class ObjectACL implements ACL {
 		}
 
 		this._authorizedPeers = new Map(
-			[...options.admins.entries()].map(([key, value]) => [key, { publicKey: value, permissions }])
+			[...options.admins].map((adminId) => [
+				adminId,
+				{
+					publicKey: {
+						secp256k1PublicKey: "",
+						blsPublicKey: "",
+					},
+					permissions,
+				},
+			])
 		);
 		this._conflictResolution = options.conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
 
-	grant(senderId: string, peerId: string, group: ACLGroup, publicKey?: DRPPublicCredential): void {
+	grant(senderId: string, peerId: string, group: ACLGroup): void {
 		if (!this.query_isAdmin(senderId)) {
 			throw new Error("Only admin peers can grant permissions.");
 		}
 		let peerPermissions = this._authorizedPeers.get(peerId);
 		if (!peerPermissions) {
-			if (!publicKey) {
-				throw new Error("Public key required for new peer.");
-			}
-			peerPermissions = { publicKey, permissions: new Set() };
+			peerPermissions = {
+				publicKey: {
+					secp256k1PublicKey: "",
+					blsPublicKey: "",
+				},
+				permissions: new Set(),
+			};
 			this._authorizedPeers.set(peerId, peerPermissions);
 		}
 
