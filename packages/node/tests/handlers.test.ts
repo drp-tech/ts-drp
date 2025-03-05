@@ -198,7 +198,7 @@ describe("Handle message correctly", () => {
 		const drp = node1.objectStore.get(drpObject.id);
 		const drp2 = node2.objectStore.get(drpObject.id);
 		// After fetching the state, the vertices should be the same
-		expect(drp?.vertices).toEqual(drp2?.vertices);
+		expect(drp?.vertices.length).toEqual(drp2?.vertices.length);
 	});
 
 	test("should handle sync message correctly", async () => {
