@@ -2,12 +2,7 @@ import type { DRPPublicCredential, DRP } from "../interface.js";
 
 export interface ACL extends DRP {
 	permissionless: boolean;
-	grant: (
-		senderId: string,
-		peerId: string,
-		group: ACLGroup,
-		publicKey?: DRPPublicCredential
-	) => void;
+	grant: (senderId: string, peerId: string, group: ACLGroup) => void;
 	revoke: (senderId: string, peerId: string, group: ACLGroup) => void;
 	query_getFinalitySigners: () => Map<string, DRPPublicCredential>;
 	query_isAdmin: (peerId: string) => boolean;
