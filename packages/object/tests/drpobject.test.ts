@@ -2,7 +2,7 @@ import { SetDRP } from "@ts-drp/blueprints/src/index.js";
 import { type Vertex, ActionType, SemanticsType } from "@ts-drp/types";
 import { beforeEach, describe, expect, it, test, vi } from "vitest";
 
-import { DRP, DRPObject, ObjectACL, ResolveConflictsType } from "../src/index.js";
+import { type DRP, DRPObject, ObjectACL, type ResolveConflictsType } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: new Map([

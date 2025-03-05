@@ -4,12 +4,12 @@ import { peerIdFromPublicKey } from "@libp2p/peer-id";
 import { Signature } from "@noble/secp256k1";
 import { streamToUint8Array } from "@ts-drp/network";
 import { type ACL, type DRPObject, HashGraph } from "@ts-drp/object";
-import { type Vertex } from "@ts-drp/types";
 import {
-	AggregatedAttestation,
-	Attestation,
+	type Vertex,
+	type AggregatedAttestation,
+	type Attestation,
 	AttestationUpdate,
-	DRPState,
+	type DRPState,
 	FetchState,
 	FetchStateResponse,
 	Message,

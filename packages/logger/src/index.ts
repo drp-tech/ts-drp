@@ -1,4 +1,4 @@
-import { LoggerOptions } from "@ts-drp/types";
+import { type LoggerOptions } from "@ts-drp/types";
 import loglevel from "loglevel";
 import prefix from "loglevel-plugin-prefix";
 

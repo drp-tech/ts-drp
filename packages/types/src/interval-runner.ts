@@ -1,4 +1,4 @@
-import { LoggerOptions } from "./logger.js";
+import { type LoggerOptions } from "./logger.js";
 
 type AnyFnCallback<T, Args extends unknown[] = []> =
 	| (() => T)

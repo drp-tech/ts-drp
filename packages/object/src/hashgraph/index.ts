@@ -1,5 +1,11 @@
 import { Logger } from "@ts-drp/logger";
-import { LoggerOptions, Operation, Vertex, ActionType, SemanticsType } from "@ts-drp/types";
+import {
+	type LoggerOptions,
+	type Operation,
+	Vertex,
+	ActionType,
+	SemanticsType,
+} from "@ts-drp/types";
 
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";

@@ -1,5 +1,5 @@
-import { IMetrics } from "@ts-drp/tracer";
-import { Operation, SemanticsType, type LoggerOptions, type Vertex } from "@ts-drp/types";
+import { type IMetrics } from "@ts-drp/tracer";
+import { type Operation, type SemanticsType, type LoggerOptions, type Vertex } from "@ts-drp/types";
 
 import type { ResolveConflictsType } from "./hashgraph/index.js";
 import type { DRPObject } from "./index.js";

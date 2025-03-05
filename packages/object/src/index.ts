@@ -1,10 +1,10 @@
 import { Logger } from "@ts-drp/logger";
-import { IMetrics } from "@ts-drp/tracer";
+import { type IMetrics } from "@ts-drp/tracer";
 import {
-	DRPObjectBase,
+	type DRPObjectBase,
 	DRPState,
 	DRPStateEntry,
-	Operation,
+	type Operation,
 	type Vertex,
 	type LoggerOptions,
 } from "@ts-drp/types";
@@ -17,7 +17,7 @@ import type { ACL } from "./acl/interface.js";
 import { type FinalityConfig, FinalityStore } from "./finality/index.js";
 import { type Hash, HashGraph } from "./hashgraph/index.js";
 import {
-	ConnectObjectOptions,
+	type ConnectObjectOptions,
 	type DRP,
 	type DRPObjectCallback,
 	type DRPPublicCredential,

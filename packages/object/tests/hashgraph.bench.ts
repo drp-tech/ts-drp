@@ -1,7 +1,7 @@
 import { MapDRP, SetDRP } from "@ts-drp/blueprints/src/index.js";
 import Benchmark from "benchmark";
 
-import { DRP, DRPObject, ObjectACL } from "../src/index.js";
+import { type DRP, DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: new Map([["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
