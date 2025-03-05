@@ -5,11 +5,7 @@ import { beforeEach, describe, expect, it, test, vi } from "vitest";
 import { DRP, DRPObject, ObjectACL, ResolveConflictsType } from "../src/index.js";
 
 const acl = new ObjectACL({
-	admins: new Map([
-		["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-		["peer2", { secp256k1PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
-		["peer3", { secp256k1PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
-	]),
+	admins: ["peer1", "peer2", "peer3"],
 });
 
 describe("AccessControl tests with RevokeWins resolution", () => {

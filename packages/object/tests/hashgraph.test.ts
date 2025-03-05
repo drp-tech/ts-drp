@@ -217,7 +217,7 @@ describe("HashGraph for SetDRP tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 	const acl = new ObjectACL({
-		admins: ["peer1"],
+		admins: ["peer1", "peer2"],
 	});
 
 	beforeEach(async () => {

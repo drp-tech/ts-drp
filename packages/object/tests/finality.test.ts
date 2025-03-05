@@ -13,7 +13,7 @@ import type { AggregatedAttestation } from "../src/proto/drp/object/v1/object_pb
 // initialize log
 const _ = new DRPObject({
 	peerId: "peer1",
-	acl: new ObjectACL({ admins: new Map() }),
+	acl: new ObjectACL({ admins: [] }),
 	drp: new SetDRP(),
 });
 
