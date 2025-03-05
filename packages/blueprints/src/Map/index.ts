@@ -3,7 +3,7 @@ import {
 	SemanticsType,
 	type Vertex,
 	type DRP,
-	ResolveConflictsType,
+	type ResolveConflictsType,
 } from "@ts-drp/types";
 
 export enum MapConflictResolution {

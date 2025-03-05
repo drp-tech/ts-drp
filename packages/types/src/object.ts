@@ -1,14 +1,14 @@
-import { ACL } from "./acl.js";
-import { DRP } from "./drp.js";
-import { FinalityStore } from "./finality.js";
-import { HashGraph } from "./hashgraph.js";
-import { LoggerOptions } from "./logger.js";
-import { IMetrics } from "./metrics.js";
+import { type ACL } from "./acl.js";
+import { type DRP } from "./drp.js";
+import { type FinalityStore } from "./finality.js";
+import { type HashGraph } from "./hashgraph.js";
+import { type LoggerOptions } from "./logger.js";
+import { type IMetrics } from "./metrics.js";
 import {
-	Vertex_Operation as Operation,
-	DRPObjectBase,
-	Vertex,
-	DRPState,
+	type Vertex_Operation as Operation,
+	type DRPObjectBase,
+	type Vertex,
+	type DRPState,
 } from "./proto/drp/v1/object_pb.js";
 
 export interface LcaAndOperations {

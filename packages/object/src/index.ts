@@ -1,21 +1,21 @@
 import { Logger } from "@ts-drp/logger";
 import {
-	DRP,
-	DRPObjectCallback,
+	type DRP,
+	type DRPObjectCallback,
 	DRPState,
 	DRPStateEntry,
-	Operation,
 	type Vertex,
-	DRPObjectBase,
-	ACL,
-	DRPPublicCredential,
+	type ACL,
+	type DRPPublicCredential,
 	DrpType,
-	ConnectObjectOptions,
-	LcaAndOperations,
-	IMetrics,
-	DRPObject as DRPObjectInterface,
-	Hash,
+	type ConnectObjectOptions,
+	type LcaAndOperations,
+	type IMetrics,
+	type DRPObject as DRPObjectInterface,
+	type Hash,
 	type LoggerOptions,
+	type DRPObjectBase,
+	type Operation,
 } from "@ts-drp/types";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
@@ -213,7 +213,7 @@ export class DRPObject implements DRPObjectBase, DRPObjectInterface {
 
 		const vertex = this.hashGraph.createVertex(vertexOperation, vertexDependencies, now);
 
-		this.hashGraph.addToFrontier(vertex);
+		this.hashGraph.addVertex(vertex);
 		this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
 		this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
 		this._initializeFinalityState(vertex.hash, acl);

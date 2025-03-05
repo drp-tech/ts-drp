@@ -1,5 +1,5 @@
-import { DRPPublicCredential } from "./credentials.js";
-import { DRP } from "./drp.js";
+import { type DRPPublicCredential } from "./credentials.js";
+import { type DRP } from "./drp.js";
 
 export enum ACLConflictResolution {
 	/**

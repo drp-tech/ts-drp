@@ -1,5 +1,5 @@
-import { BitSet } from "./bitset.js";
-import { Vertex, Vertex_Operation as Operation } from "./proto/drp/v1/object_pb.js";
+import { type BitSet } from "./bitset.js";
+import { type Vertex, type Vertex_Operation as Operation } from "./proto/drp/v1/object_pb.js";
 
 export type Hash = string;
 
@@ -64,7 +64,6 @@ export interface HashGraph {
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType;
 	createVertex(operation: Operation, dependencies: Hash[], timestamp: number): Vertex;
-	addToFrontier(vertex: Vertex): void;
 	addVertex(vertex: Vertex): void;
 	areCausallyRelatedUsingBitsets(hash1: Hash, hash2: Hash): boolean;
 	swapReachablePredecessors(hash1: Hash, hash2: Hash): void;

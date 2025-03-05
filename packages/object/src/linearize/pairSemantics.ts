@@ -1,4 +1,4 @@
-import { ActionType, Hash, Operation } from "@ts-drp/types";
+import { ActionType, type Hash, type Operation } from "@ts-drp/types";
 
 import { type HashGraph } from "../hashgraph/index.js";
 import type { ObjectSet } from "../utils/objectSet.js";

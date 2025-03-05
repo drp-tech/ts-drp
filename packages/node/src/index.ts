@@ -1,11 +1,11 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
-import { KeychainConfig, Keychain } from "@ts-drp/keychain";
+import { type KeychainConfig, Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
 import {
-	IMetrics,
+	type IMetrics,
 	Message,
 	MessageType,
 	type ACL,
@@ -57,6 +57,7 @@ export class DRPNode {
 			config ? config.network_config : this.config?.network_config
 		);
 		await this.start();
+		log.info("::restart: Node restarted");
 	}
 
 	addCustomGroup(group: string) {

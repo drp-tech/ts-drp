@@ -29,6 +29,7 @@
 	"dependencies": {
 		"@ts-drp/types": "^0.8.5",
 		"loglevel": "^1.9.2",
-		"loglevel-plugin-prefix": "^0.8.4"
+		"loglevel-plugin-prefix": "^0.8.4",
+		"@ts-drp/types": "^0.8.5"
 	}
 }

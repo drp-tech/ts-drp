@@ -1,4 +1,10 @@
-import { ActionType, DRP, ResolveConflictsType, SemanticsType, type Vertex } from "@ts-drp/types";
+import {
+	ActionType,
+	type DRP,
+	type ResolveConflictsType,
+	SemanticsType,
+	type Vertex,
+} from "@ts-drp/types";
 
 import { Pixel } from "./pixel";
 

@@ -1,4 +1,4 @@
-import { LoggerOptions } from "./logger.js";
+import { type LoggerOptions } from "./logger.js";
 
 export interface DRPNetworkNodeConfig {
 	announce_addresses?: string[];

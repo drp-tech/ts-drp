@@ -1,13 +1,13 @@
 import { MapConflictResolution, MapDRP, SetDRP } from "@ts-drp/blueprints";
 import {
 	type Vertex,
-	Operation,
+	type Operation,
 	ActionType,
 	SemanticsType,
-	Hash,
+	type Hash,
 	DrpType,
 	ACLGroup,
-	DRP,
+	type DRP,
 } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -1092,7 +1092,7 @@ describe("HashGraph hook tests", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		const newVertices: Vertex[] = [];
 
-		obj1.subscribe((object, origin, vertices) => {
+		obj1.subscribe((_, origin, vertices) => {
 			if (origin === "callFn") {
 				newVertices.push(...vertices);
 			}
@@ -1109,7 +1109,7 @@ describe("HashGraph hook tests", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		const newVertices: Vertex[] = [];
 
-		obj2.subscribe((object, origin, vertices) => {
+		obj2.subscribe((_, origin, vertices) => {
 			if (origin === "merge") {
 				newVertices.push(...vertices);
 			}

@@ -64,6 +64,7 @@ const config = tsLintConfig(
 			"@typescript-eslint/no-unused-vars": [
 				"error",
 				{
+					args: "all",
 					varsIgnorePattern: "_",
 					argsIgnorePattern: "_",
 					caughtErrors: "all",
@@ -76,6 +77,13 @@ const config = tsLintConfig(
 			"@typescript-eslint/no-inferrable-types": "off",
 			"@typescript-eslint/no-floating-promises": "error",
 			"@typescript-eslint/consistent-type-exports": "error",
+			"@typescript-eslint/consistent-type-imports": [
+				"error",
+				{
+					prefer: "type-imports",
+					fixStyle: "inline-type-imports",
+				},
+			],
 			"no-unused-vars": "off",
 			"unused-imports/no-unused-imports": "error",
 			"prefer-const": "error",

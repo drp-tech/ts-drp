@@ -1,6 +1,14 @@
-import { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
+import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import { HashGraph, DRPObject as DRPObjectImpl } from "@ts-drp/object";
-import { DRP, DRPObject, FetchState, IMetrics, Message, MessageType, Sync } from "@ts-drp/types";
+import {
+	type DRP,
+	type DRPObject,
+	FetchState,
+	type IMetrics,
+	Message,
+	MessageType,
+	Sync,
+} from "@ts-drp/types";
 
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode } from "./index.js";

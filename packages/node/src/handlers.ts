@@ -5,12 +5,8 @@ import { Signature } from "@noble/secp256k1";
 import { streamToUint8Array } from "@ts-drp/network";
 import { HashGraph } from "@ts-drp/object";
 import {
-	ACL,
-	type Vertex,
-	AggregatedAttestation,
-	Attestation,
 	AttestationUpdate,
-	DRPState,
+	type DRPState,
 	FetchState,
 	FetchStateResponse,
 	Message,
@@ -19,6 +15,10 @@ import {
 	SyncAccept,
 	Update,
 	type DRPObject,
+	type ACL,
+	type Vertex,
+	type AggregatedAttestation,
+	type Attestation,
 } from "@ts-drp/types";
 import * as crypto from "crypto";
 
@@ -174,7 +174,7 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	if ((object.acl as ACL).permissionless) {
 		verifiedVertices = updateMessage.vertices;
 	} else {
-		verifiedVertices = await verifyACLIncomingVertices(object, updateMessage.vertices);
+		verifiedVertices = await verifyACLIncomingVertices(updateMessage.vertices);
 	}
 
 	const [merged, _] = object.merge(verifiedVertices);
@@ -277,7 +277,7 @@ async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array
 	if ((object.acl as ACL).permissionless) {
 		verifiedVertices = syncAcceptMessage.requested;
 	} else {
-		verifiedVertices = await verifyACLIncomingVertices(object, syncAcceptMessage.requested);
+		verifiedVertices = await verifyACLIncomingVertices(syncAcceptMessage.requested);
 	}
 
 	if (verifiedVertices.length !== 0) {
@@ -417,10 +417,7 @@ function getAttestations(object: DRPObject, vertices: Vertex[]): AggregatedAttes
 	);
 }
 
-export async function verifyACLIncomingVertices(
-	object: DRPObject,
-	incomingVertices: Vertex[]
-): Promise<Vertex[]> {
+export async function verifyACLIncomingVertices(incomingVertices: Vertex[]): Promise<Vertex[]> {
 	const vertices: Vertex[] = incomingVertices.map((vertex) => {
 		return {
 			hash: vertex.hash,

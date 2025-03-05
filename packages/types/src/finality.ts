@@ -1,7 +1,7 @@
-import { BitSet } from "./bitset.js";
-import { DRPPublicCredential } from "./credentials.js";
-import { Hash } from "./hashgraph.js";
-import { AggregatedAttestation, Attestation } from "./proto/drp/v1/object_pb.js";
+import { type BitSet } from "./bitset.js";
+import { type DRPPublicCredential } from "./credentials.js";
+import { type Hash } from "./hashgraph.js";
+import { type AggregatedAttestation, type Attestation } from "./proto/drp/v1/object_pb.js";
 
 export interface FinalityState {
 	/**
