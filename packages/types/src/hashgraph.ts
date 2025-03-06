@@ -55,8 +55,8 @@ export interface ResolveConflictsType {
 
 export interface HashGraph {
 	peerId: string;
-	resolveConflictsACL?: (vertices: Vertex[]) => ResolveConflictsType;
-	resolveConflictsDRP?: (vertices: Vertex[]) => ResolveConflictsType;
+	resolveConflictsACL(vertices: Vertex[]): ResolveConflictsType;
+	resolveConflictsDRP(vertices: Vertex[]): ResolveConflictsType;
 	semanticsTypeDRP?: SemanticsType;
 	vertices: Map<Hash, Vertex>;
 	frontier: Hash[];

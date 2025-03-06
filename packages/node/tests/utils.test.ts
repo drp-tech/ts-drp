@@ -7,7 +7,7 @@ import { deserializeStateMessage, serializeStateMessage } from "../src/utils.js"
 describe("State message utils", () => {
 	let object: DRPObject;
 
-	beforeAll(async () => {
+	beforeAll(() => {
 		object = DRPObject.createObject({
 			peerId: "test",
 			id: "test",
@@ -18,7 +18,7 @@ describe("State message utils", () => {
 		(object.drp as SetDRP<number>).add(3);
 	});
 
-	test("Should serialize/deserialize state message", async () => {
+	test("Should serialize/deserialize state message", () => {
 		const state = object["_computeDRPState"].bind(object);
 		const serialized = serializeStateMessage(state(object.hashGraph.getFrontier()));
 		const deserialized = deserializeStateMessage(serialized);

@@ -7,6 +7,7 @@ import {
 	type ResolveConflictsType,
 	type LoggerOptions,
 	type Operation,
+	type HashGraph as HashGraphInterface,
 } from "@ts-drp/types";
 
 import { BitSet } from "./bitset.js";
@@ -25,10 +26,8 @@ export type VertexDistance = {
 	closestDependency?: Hash;
 };
 
-export class HashGraph {
+export class HashGraph implements HashGraphInterface {
 	peerId: string;
-	resolveConflictsDRP?: (vertices: Vertex[]) => ResolveConflictsType;
-	resolveConflictsACL?: (vertices: Vertex[]) => ResolveConflictsType;
 	semanticsTypeDRP?: SemanticsType;
 
 	vertices: Map<Hash, Vertex> = new Map();
@@ -62,8 +61,8 @@ export class HashGraph {
 		logConfig?: LoggerOptions
 	) {
 		this.peerId = peerId;
-		this.resolveConflictsACL = resolveConflictsACL;
-		this.resolveConflictsDRP = resolveConflictsDRP;
+		if (resolveConflictsACL) this.resolveConflictsACL = resolveConflictsACL;
+		if (resolveConflictsDRP) this.resolveConflictsDRP = resolveConflictsDRP;
 		this.semanticsTypeDRP = semanticsTypeDRP;
 		this.log = new Logger("drp::hashgraph", logConfig);
 
@@ -87,15 +86,18 @@ export class HashGraph {
 		});
 	}
 
+	resolveConflictsDRP(_: Vertex[]): ResolveConflictsType {
+		return { action: ActionType.Nop };
+	}
+	resolveConflictsACL(_: Vertex[]): ResolveConflictsType {
+		return { action: ActionType.Nop };
+	}
+
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		if (vertices[0].operation?.drpType === "ACL") {
-			return this.resolveConflictsACL
-				? this.resolveConflictsACL(vertices)
-				: { action: ActionType.Nop };
+			return this.resolveConflictsACL(vertices);
 		}
-		return this.resolveConflictsDRP
-			? this.resolveConflictsDRP(vertices)
-			: { action: ActionType.Nop };
+		return this.resolveConflictsDRP(vertices);
 	}
 
 	createVertex(operation: Operation, dependencies: Hash[], timestamp: number): Vertex {
@@ -109,7 +111,7 @@ export class HashGraph {
 	}
 
 	// Add a new vertex to the hashgraph.
-	addVertex(vertex: Vertex) {
+	addVertex(vertex: Vertex): void {
 		this.vertices.set(vertex.hash, vertex);
 		this.frontier.push(vertex.hash);
 		// Update forward edges

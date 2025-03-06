@@ -22,7 +22,7 @@ describe("drpMessagesHandler inputs", () => {
 	let node: DRPNode;
 	const consoleSpy = vi.spyOn(console, "error");
 
-	beforeAll(async () => {
+	beforeAll(() => {
 		node = new DRPNode();
 	});
 
@@ -65,7 +65,7 @@ describe("Handle message correctly", () => {
 	let libp2pNode2: Libp2p;
 	let libp2pNode1: Libp2p;
 
-	const isDialable = async (node: DRPNetworkNode, timeout = false) => {
+	const isDialable = async (node: DRPNetworkNode, timeout = false): Promise<boolean> => {
 		let resolver: (value: boolean) => void;
 		const promise = new Promise<boolean>((resolve) => {
 			resolver = resolve;
@@ -77,12 +77,12 @@ describe("Handle message correctly", () => {
 			}, 10);
 		}
 
-		const callback = () => {
+		const callback = (): void => {
 			resolver(true);
 		};
 
 		await node.isDialable(callback);
-		return await promise;
+		return promise;
 	};
 
 	beforeAll(async () => {

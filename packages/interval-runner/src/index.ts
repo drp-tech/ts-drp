@@ -52,7 +52,7 @@ export class IntervalRunner<Args extends unknown[] = []> implements IntervalRunn
 
 		if (isGenerator(result)) {
 			let lastValue: boolean = false;
-			for await (const value of result) {
+			for (const value of result) {
 				lastValue = value;
 			}
 
@@ -60,7 +60,7 @@ export class IntervalRunner<Args extends unknown[] = []> implements IntervalRunn
 		}
 
 		if (isPromise(result)) {
-			return await result;
+			return result;
 		}
 
 		return result;
@@ -77,7 +77,7 @@ export class IntervalRunner<Args extends unknown[] = []> implements IntervalRunn
 
 		this._state = 1;
 
-		const scheduleNext = async () => {
+		const scheduleNext = async (): Promise<void> => {
 			if (this._state === 0) {
 				this._logger.info("Interval runner was already stopped");
 				return;
@@ -92,7 +92,7 @@ export class IntervalRunner<Args extends unknown[] = []> implements IntervalRunn
 				}
 
 				if (this._state === 1) {
-					this._intervalId = setTimeout(scheduleNext, this.interval);
+					this._intervalId = setTimeout(() => void scheduleNext(), this.interval);
 				}
 			} catch (error) {
 				this._logger.error("Error in interval runner:", error);

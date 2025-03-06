@@ -3,7 +3,7 @@ import { bench, describe } from "vitest";
 
 import { DRPObject, type Hash } from "../src/index.js";
 
-describe("AreCausallyDependent benchmark", async () => {
+describe("AreCausallyDependent benchmark", () => {
 	const samples = 100000;
 	const tests: Hash[][] = [];
 
@@ -51,13 +51,13 @@ describe("AreCausallyDependent benchmark", async () => {
 		]);
 	}
 
-	bench("Causality check using BFS", async () => {
+	bench("Causality check using BFS", () => {
 		for (let i = 0; i < samples; i++) {
 			obj1.hashGraph.areCausallyRelatedUsingBFS(tests[i][0], tests[i][1]);
 		}
 	});
 
-	bench("Causality check using Bitsets", async () => {
+	bench("Causality check using Bitsets", () => {
 		for (let i = 0; i < samples; i++) {
 			obj1.hashGraph.areCausallyRelatedUsingBitsets(tests[i][0], tests[i][1]);
 		}

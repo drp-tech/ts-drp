@@ -1,5 +1,6 @@
 import { type GossipSub, type MeshPeer } from "@chainsafe/libp2p-gossipsub";
 import {
+	type Stream,
 	type Connection,
 	type IdentifyResult,
 	type Libp2p,
@@ -20,7 +21,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 	let bootstrapNode: DRPNetworkNode;
 	let pubsubNode1: GossipSub;
 
-	const isDialable = async (node: DRPNetworkNode, timeout = false) => {
+	const isDialable = async (node: DRPNetworkNode, timeout = false): Promise<boolean> => {
 		let resolver: (value: boolean) => void;
 		const promise = new Promise<boolean>((resolve) => {
 			resolver = resolve;
@@ -32,12 +33,12 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			}, 10);
 		}
 
-		const callback = () => {
+		const callback = (): void => {
 			resolver(true);
 		};
 
 		await node.isDialable(callback);
-		return await promise;
+		return promise;
 	};
 
 	beforeAll(async () => {
@@ -88,17 +89,31 @@ describe("DRPNetworkNode can connect & send messages", () => {
 				event.detail.remotePeer.toString() === node2.peerId && event.detail.limits === undefined,
 		});
 
-		const messageProcessed = new Promise((resolve) => {
-			node2
-				.addMessageHandler(async ({ stream }) => {
+		const streamHandler =
+			(resolve: (boolean: boolean) => void) =>
+			async ({ stream }: { stream: Stream }): Promise<boolean> => {
+				try {
 					const byteArray = await streamToUint8Array(stream);
 					const message = Message.decode(byteArray);
 					expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
 					boolean = true;
 					resolve(true);
-				})
-				.catch((e) => {
+					return true;
+				} catch (e) {
+					// error from the stream
 					console.error(e);
+					resolve(false);
+					return false;
+				}
+			};
+
+		const messageProcessed = new Promise((resolve) => {
+			node2
+				.addMessageHandler(({ stream }) => void streamHandler(resolve)({ stream }))
+				.catch((e) => {
+					// error from the addMessageHandler
+					console.error(e);
+					resolve(false);
 				});
 		});
 
@@ -133,7 +148,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 
 		node2.subscribe(group);
 		const messageProcessed = new Promise((resolve) => {
-			node2.addGroupMessageHandler(group, async (e) => {
+			node2.addGroupMessageHandler(group, (e) => {
 				const message = Message.decode(e.detail.msg.data);
 				expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
 				boolean = true;

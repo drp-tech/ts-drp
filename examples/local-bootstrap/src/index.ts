@@ -12,7 +12,7 @@ if (!local_peer_id) {
 let node: DRPNode;
 let peers: string[] = [];
 
-const render = () => {
+const render = (): void => {
 	const element_peerId = <HTMLDivElement>document.getElementById("peerId");
 	element_peerId.innerHTML = node.networkNode.peerId;
 
@@ -20,7 +20,7 @@ const render = () => {
 	element_peers.innerHTML = `[${peers.join(", ")}]`;
 };
 
-async function initDRPNode() {
+function initDRPNode(): void {
 	if (node) {
 		node.addCustomGroupMessageHandler("", () => {
 			peers = node.networkNode.getAllPeers();
@@ -29,7 +29,7 @@ async function initDRPNode() {
 	}
 }
 
-async function main() {
+function main(): void {
 	const select_address_type = <HTMLSelectElement>(
 		document.getElementById("bootstrap_node_host_address_type")
 	);
@@ -54,8 +54,7 @@ async function main() {
 	});
 
 	const connect_form = <HTMLFormElement>document.getElementById("form_connect_to_bootstrap_node");
-	connect_form?.addEventListener("submit", async (e) => {
-		e.preventDefault();
+	const connect = async (): Promise<void> => {
 		const bootstrap_node_port: HTMLInputElement = <HTMLInputElement>(
 			document.getElementById("bootstrap_node_port")
 		);
@@ -86,13 +85,18 @@ async function main() {
 
 			await node.start();
 			field_set.style.backgroundColor = "rgba(0, 255, 0, 0.2)";
-			await initDRPNode();
+			initDRPNode();
 			render();
 		} catch (_) {
 			field_set.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
 			alert("Failed to connect to the bootstrap node");
 			return;
 		}
+	};
+
+	connect_form?.addEventListener("submit", (e) => {
+		e.preventDefault();
+		void connect();
 	});
 
 	render();

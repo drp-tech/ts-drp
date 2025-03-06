@@ -74,7 +74,7 @@ export class DRPNetworkNode {
 		log = new Logger("drp::network", config?.log_config);
 	}
 
-	async start(rawPrivateKey?: Uint8Array) {
+	async start(rawPrivateKey?: Uint8Array): Promise<void> {
 		if (this._node?.status === "started") throw new Error("Node already started");
 
 		let privateKey = undefined;
@@ -234,18 +234,18 @@ export class DRPNetworkNode {
 		this._pubsub?.subscribe("drp::discovery");
 	}
 
-	async stop() {
+	async stop(): Promise<void> {
 		if (this._node?.status === "stopped") throw new Error("Node not started");
 		await this._node?.stop();
 	}
 
-	async restart(config?: DRPNetworkNodeConfig, rawPrivateKey?: Uint8Array) {
+	async restart(config?: DRPNetworkNodeConfig, rawPrivateKey?: Uint8Array): Promise<void> {
 		await this.stop();
 		if (config) this._config = config;
 		await this.start(rawPrivateKey);
 	}
 
-	async isDialable(callback?: () => void | Promise<void>) {
+	async isDialable(callback?: () => void | Promise<void>): Promise<boolean> {
 		let dialable = await this._node?.isDialable(this._node.getMultiaddrs());
 		if (dialable && callback) {
 			await callback();
@@ -253,18 +253,18 @@ export class DRPNetworkNode {
 		}
 		if (!callback) return false;
 
-		const checkDialable = async () => {
+		const checkDialable = async (): Promise<void> => {
 			dialable = await this._node?.isDialable(this._node.getMultiaddrs());
 			if (dialable) {
 				await callback();
 			}
 		};
 
-		this._node?.addEventListener("transport:listening", checkDialable);
+		this._node?.addEventListener("transport:listening", () => void checkDialable());
 		return false;
 	}
 
-	private _sortAddresses(a: Address, b: Address) {
+	private _sortAddresses(a: Address, b: Address): 0 | 1 | -1 {
 		const localRegex =
 			/(^\/ip4\/127\.)|(^\/ip4\/10\.)|(^\/ip4\/172\.1[6-9]\.)|(^\/ip4\/172\.2[0-9]\.)|(^\/ip4\/172\.3[0-1]\.)|(^\/ip4\/192\.168\.)/;
 		const aLocal = localRegex.test(a.toString());
@@ -278,17 +278,17 @@ export class DRPNetworkNode {
 		return 0;
 	}
 
-	changeTopicScoreParams(topic: string, params: TopicScoreParams) {
+	changeTopicScoreParams(topic: string, params: TopicScoreParams): void {
 		if (!this._pubsub) return;
 		this._pubsub.score.params.topics[topic] = params;
 	}
 
-	removeTopicScoreParams(topic: string) {
+	removeTopicScoreParams(topic: string): void {
 		if (!this._pubsub) return;
 		delete this._pubsub.score.params.topics[topic];
 	}
 
-	subscribe(topic: string) {
+	subscribe(topic: string): void {
 		if (!this._node) {
 			log.error("::subscribe: Node not initialized, please run .start()");
 			return;
@@ -303,7 +303,7 @@ export class DRPNetworkNode {
 		}
 	}
 
-	unsubscribe(topic: string) {
+	unsubscribe(topic: string): void {
 		if (!this._node) {
 			log.error("::unsubscribe: Node not initialized, please run .start()");
 			return;
@@ -317,7 +317,7 @@ export class DRPNetworkNode {
 		}
 	}
 
-	async connect(addr: MultiaddrInput) {
+	async connect(addr: MultiaddrInput): Promise<void> {
 		try {
 			await this._node?.dial([multiaddr(addr)]);
 			log.info("::connect: Successfuly dialed", addr);
@@ -326,7 +326,7 @@ export class DRPNetworkNode {
 		}
 	}
 
-	async disconnect(peerId: string) {
+	async disconnect(peerId: string): Promise<void> {
 		try {
 			await this._node?.hangUp(multiaddr(`/p2p/${peerId}`));
 			log.info("::disconnect: Successfuly disconnected", peerId);
@@ -335,27 +335,27 @@ export class DRPNetworkNode {
 		}
 	}
 
-	getBootstrapNodes() {
+	getBootstrapNodes(): string[] {
 		return this._config?.bootstrap_peers ?? BOOTSTRAP_NODES;
 	}
 
-	getMultiaddrs() {
-		return this._node?.getMultiaddrs().map((addr) => addr.toString());
+	getMultiaddrs(): string[] {
+		return this._node?.getMultiaddrs().map((addr) => addr.toString()) ?? [];
 	}
 
-	getAllPeers() {
+	getAllPeers(): string[] {
 		const peers = this._node?.getPeers();
 		if (!peers) return [];
 		return peers.map((peer) => peer.toString());
 	}
 
-	getGroupPeers(group: string) {
+	getGroupPeers(group: string): string[] {
 		const peers = this._pubsub?.getSubscribers(group);
 		if (!peers) return [];
 		return peers.map((peer) => peer.toString());
 	}
 
-	async broadcastMessage(topic: string, message: Message) {
+	async broadcastMessage(topic: string, message: Message): Promise<void> {
 		try {
 			const messageBuffer = Message.encode(message).finish();
 			await this._pubsub?.publish(topic, messageBuffer);
@@ -366,7 +366,7 @@ export class DRPNetworkNode {
 		}
 	}
 
-	async sendMessage(peerId: string, message: Message) {
+	async sendMessage(peerId: string, message: Message): Promise<void> {
 		try {
 			const connection = await this._node?.dial([multiaddr(`/p2p/${peerId}`)]);
 			const stream = <Stream>await connection?.newStream(DRP_MESSAGE_PROTOCOL);
@@ -377,7 +377,7 @@ export class DRPNetworkNode {
 		}
 	}
 
-	async sendGroupMessageRandomPeer(group: string, message: Message) {
+	async sendGroupMessageRandomPeer(group: string, message: Message): Promise<void> {
 		try {
 			const peers = this._pubsub?.getSubscribers(group);
 			if (!peers || peers.length === 0) throw Error("Topic wo/ peers");
@@ -392,18 +392,24 @@ export class DRPNetworkNode {
 		}
 	}
 
-	addGroupMessageHandler(group: string, handler: EventCallback<CustomEvent<GossipsubMessage>>) {
+	addGroupMessageHandler(
+		group: string,
+		handler: EventCallback<CustomEvent<GossipsubMessage>>
+	): void {
 		this._pubsub?.addEventListener("gossipsub:message", (e) => {
 			if (group && e.detail.msg.topic !== group) return;
 			handler(e);
 		});
 	}
 
-	async addMessageHandler(handler: StreamHandler) {
+	async addMessageHandler(handler: StreamHandler): Promise<void> {
 		await this._node?.handle(DRP_MESSAGE_PROTOCOL, handler);
 	}
 
-	async addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
+	async addCustomMessageHandler(
+		protocol: string | string[],
+		handler: StreamHandler
+	): Promise<void> {
 		await this._node?.handle(protocol, handler);
 	}
 }
