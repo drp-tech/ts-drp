@@ -109,7 +109,7 @@ class UpdateHandler implements IHandlerStrategy {
 		const object = node.objectStore.get(updateMessage.objectId);
 		if (!object) {
 			log.error("::updateHandler: Object not found");
-			return false;
+			return;
 		}
 
 		let verifiedVertices: Vertex[] = [];
@@ -151,7 +151,7 @@ class UpdateHandler implements IHandlerStrategy {
 
 		node.objectStore.put(object.id, object);
 
-		return true;
+		return;
 	}
 }
 
