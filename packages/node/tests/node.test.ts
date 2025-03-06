@@ -113,7 +113,7 @@ describe("DRPNode voting tests", () => {
 		await nodeB.start();
 	});
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		const acl = new ObjectACL({
 			admins: new Map([[nodeA.networkNode.peerId, nodeA.keychain.getPublicCredential()]]),
 		});
@@ -132,7 +132,7 @@ describe("DRPNode voting tests", () => {
 		});
 	});
 
-	test("Nodes in writer set are able to sign", async () => {
+	test("Nodes in writer set are able to sign", () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
@@ -160,7 +160,7 @@ describe("DRPNode voting tests", () => {
 		expect(obj2.finalityStore.getNumberOfSignatures(V1.hash)).toBe(1);
 	});
 
-	test("Other nodes are not able to sign", async () => {
+	test("Other nodes are not able to sign", () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1) ---- A:REVOKE(B) ---- B:ADD(2)
 		*/
@@ -189,7 +189,7 @@ describe("DRPNode voting tests", () => {
 		expect(obj2.finalityStore.getNumberOfSignatures(V2.hash)).toBe(0);
 	});
 
-	test("Signatures are aggregated", async () => {
+	test("Signatures are aggregated", () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
@@ -245,7 +245,7 @@ describe("DRPNode with rpc", () => {
 		});
 		mockLogger = new Logger("drp::network", {});
 	});
-	beforeEach(async () => {
+	beforeEach(() => {
 		drp = new SetDRP();
 		const acl = new ObjectACL({
 			admins: new Map([[drpNode.networkNode.peerId, drpNode.keychain.getPublicCredential()]]),
@@ -261,16 +261,16 @@ describe("DRPNode with rpc", () => {
 		expect(object).toBeDefined();
 	});
 
-	test("should run unsubscribeObject", async () => {
-		await drpNode.unsubscribeObject(drpObject.id);
+	test("should run unsubscribeObject", () => {
+		drpNode.unsubscribeObject(drpObject.id);
 		expect(mockLogger.info).toHaveBeenCalledWith(
 			"::unsubscribe: Successfuly unsubscribed the topic",
 			drpObject.id
 		);
 	});
 
-	test("should run unsubscribeObject with purge", async () => {
-		await drpNode.unsubscribeObject(drpObject.id, true);
+	test("should run unsubscribeObject with purge", () => {
+		drpNode.unsubscribeObject(drpObject.id, true);
 		const store = drpNode.objectStore.get(drpObject.id);
 		expect(store).toBeUndefined();
 	});
@@ -284,7 +284,7 @@ describe("DRPNode with rpc", () => {
 		expect(mockLogger.info).toHaveBeenCalledWith("::restart: Node restarted");
 	});
 
-	test("Should subscribe to object", async () => {
+	test("Should subscribe to object", () => {
 		drpNode.objectStore.subscribe(drpObject.id, () => {
 			mockLogger.info("::subscribe: Subscribed to object");
 		});
@@ -292,8 +292,8 @@ describe("DRPNode with rpc", () => {
 		expect(_subscriptions.has(drpObject.id)).toBe(true);
 	});
 
-	test("Should unsubscribe to object", async () => {
-		const callBack = () => {
+	test("Should unsubscribe to object", () => {
+		const callBack = (): void => {
 			mockLogger.info("::unsubscribe: Unsubscribed to object");
 		};
 		drpNode.objectStore.subscribe(drpObject.id, callBack);

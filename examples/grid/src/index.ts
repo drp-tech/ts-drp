@@ -1,4 +1,4 @@
-import { DRPNode } from "@ts-drp/node";
+import { DRPNode, type DRPNodeConfig } from "@ts-drp/node";
 import { enableTracing, type IMetrics, OpentelemetryMetrics } from "@ts-drp/tracer";
 
 import { env } from "./env";
@@ -7,14 +7,16 @@ import { render, enableUIControls, renderInfo } from "./render";
 import { gridState } from "./state";
 import { getColorForPeerId } from "./util/color";
 
-export function getNetworkConfigFromEnv() {
+export function getNetworkConfigFromEnv(): DRPNodeConfig {
 	const hasBootstrapPeers = env.bootstrapPeers;
 	const hasDiscoveryInterval = env.discoveryInterval;
 
 	const hasEnv = hasBootstrapPeers || hasDiscoveryInterval;
 
-	const config: Record<string, unknown> = {
-		browser_metrics: true,
+	const config: DRPNodeConfig = {
+		network_config: {
+			browser_metrics: true,
+		},
 	};
 
 	if (!hasEnv) {
@@ -22,19 +24,26 @@ export function getNetworkConfigFromEnv() {
 	}
 
 	if (hasBootstrapPeers) {
-		config.bootstrap_peers = env.bootstrapPeers.split(",");
+		config.network_config = {
+			...config.network_config,
+			bootstrap_peers: env.bootstrapPeers.split(","),
+		};
 	}
 
 	if (hasDiscoveryInterval) {
-		config.pubsub = {
-			peer_discovery_interval: env.discoveryInterval,
+		config.network_config = {
+			...config.network_config,
+			pubsub: {
+				...config.network_config?.pubsub,
+				peer_discovery_interval: env.discoveryInterval,
+			},
 		};
 	}
 
 	return config;
 }
 
-async function addUser() {
+function addUser(): void {
 	if (!gridState.gridDRP) {
 		console.error("Grid DRP not initialized");
 		alert("Please create or join a grid first");
@@ -48,7 +57,7 @@ async function addUser() {
 	render();
 }
 
-function moveUser(direction: string) {
+function moveUser(direction: string): void {
 	if (!gridState.gridDRP) {
 		console.error("Grid DRP not initialized");
 		alert("Please create or join a grid first");
@@ -59,7 +68,7 @@ function moveUser(direction: string) {
 	render();
 }
 
-async function createConnectHandlers() {
+function createConnectHandlers(): void {
 	if (gridState.drpObject)
 		gridState.objectPeers = gridState.node.networkNode.getGroupPeers(gridState.drpObject.id);
 
@@ -76,21 +85,23 @@ async function createConnectHandlers() {
 	});
 }
 
-async function run(metrics?: IMetrics) {
+function run(metrics?: IMetrics): void {
 	enableUIControls();
 	renderInfo();
 
 	const button_create = <HTMLButtonElement>document.getElementById("createGrid");
-	button_create.addEventListener("click", async () => {
+	const create = async (): Promise<void> => {
 		gridState.drpObject = await gridState.node.createObject({
 			drp: new Grid(),
 			metrics,
 		});
 		gridState.gridDRP = gridState.drpObject.drp as Grid;
-		await createConnectHandlers();
-		await addUser();
+		createConnectHandlers();
+		addUser();
 		render();
-	});
+	};
+
+	button_create.addEventListener("click", () => void create());
 
 	const button_connect = <HTMLButtonElement>document.getElementById("joinGrid");
 	const grid_input = <HTMLInputElement>document.getElementById("gridInput");
@@ -99,7 +110,8 @@ async function run(metrics?: IMetrics) {
 			button_connect.click();
 		}
 	});
-	button_connect.addEventListener("click", async () => {
+
+	const connect = async (): Promise<void> => {
 		const drpId = grid_input.value;
 		try {
 			gridState.drpObject = await gridState.node.connectObject({
@@ -108,16 +120,18 @@ async function run(metrics?: IMetrics) {
 				metrics,
 			});
 			gridState.gridDRP = gridState.drpObject.drp as Grid;
-			await createConnectHandlers();
-			await addUser();
+			createConnectHandlers();
+			addUser();
 			render();
 			console.log("Succeeded in connecting with DRP", drpId);
 		} catch (e) {
 			console.error("Error while connecting with DRP", drpId, e);
 		}
-	});
+	};
 
-	document.addEventListener("keydown", async (event) => {
+	button_connect.addEventListener("click", () => void connect());
+
+	document.addEventListener("keydown", (event) => {
 		if (event.key === "w") moveUser("U");
 		if (event.key === "a") moveUser("L");
 		if (event.key === "s") moveUser("D");
@@ -138,7 +152,7 @@ async function run(metrics?: IMetrics) {
 	});
 }
 
-async function main() {
+async function main(): Promise<void> {
 	let metrics: IMetrics | undefined = undefined;
 	if (env.enableTracing) {
 		enableTracing();
@@ -148,13 +162,13 @@ async function main() {
 	let hasRun = false;
 
 	const networkConfig = getNetworkConfigFromEnv();
-	gridState.node = new DRPNode(networkConfig ? { network_config: networkConfig } : undefined);
+	gridState.node = new DRPNode(networkConfig);
 	await gridState.node.start();
-	await gridState.node.networkNode.isDialable(async () => {
+	await gridState.node.networkNode.isDialable(() => {
 		console.log("Started node", import.meta.env);
 		if (hasRun) return;
 		hasRun = true;
-		await run(metrics);
+		run(metrics);
 	});
 
 	if (!hasRun) setInterval(renderInfo, import.meta.env.VITE_RENDER_INFO_INTERVAL);

@@ -45,7 +45,7 @@ export class DRPIntervalDiscovery implements IntervalRunnerInterface<"interval:d
 		// Create the delegate interval runner
 		this._intervalRunner = new IntervalRunner({
 			...opts,
-			fn: async () => {
+			fn: async (): Promise<boolean> => {
 				await this._runDRPDiscovery();
 				return true; // Always continue the interval
 			},

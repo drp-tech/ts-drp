@@ -82,8 +82,10 @@ describe("Heartbeat integration test", () => {
 	test("peer 1 can discover peer 3 topic", async () => {
 		const node2GossipSub = node2.networkNode["_pubsub"] as GossipSub;
 
-		const filterGraft = (topic: string, peerId: string) => (e: CustomEvent<MeshPeer>) =>
-			e.detail.topic === topic && e.detail.peerId.toString() === peerId;
+		const filterGraft =
+			(topic: string, peerId: string): ((e: CustomEvent<MeshPeer>) => boolean) =>
+			(e: CustomEvent<MeshPeer>) =>
+				e.detail.topic === topic && e.detail.peerId.toString() === peerId;
 
 		const node2MA = node2.networkNode.getMultiaddrs();
 		if (!node2MA) throw new Error("No multiaddrs");

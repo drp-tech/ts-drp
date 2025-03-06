@@ -15,7 +15,7 @@ export class DRPObjectStore {
 		return this._store.get(objectId);
 	}
 
-	put(objectId: string, object: DRPObject) {
+	put(objectId: string, object: DRPObject): void {
 		this._store.set(objectId, object);
 		this._notifySubscribers(objectId, object);
 	}
@@ -46,7 +46,7 @@ export class DRPObjectStore {
 		}
 	}
 
-	remove(objectId: string) {
+	remove(objectId: string): void {
 		this._store.delete(objectId);
 	}
 }

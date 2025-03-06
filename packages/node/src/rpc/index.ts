@@ -19,11 +19,11 @@ import type {
 	UnsubscribeDRPRequest,
 } from "../proto/drp/node/v1/rpc_pb.js";
 
-export function init(node: DRPNode, port: number = 6969) {
+export function init(node: DRPNode, port: number = 6969): void {
 	async function subscribeDRP(
 		call: ServerUnaryCall<SubscribeDRPRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
-	) {
+	): Promise<void> {
 		let returnCode = 0;
 		try {
 			await node.connectObject({
@@ -43,7 +43,7 @@ export function init(node: DRPNode, port: number = 6969) {
 	function unsubscribeDRP(
 		call: ServerUnaryCall<UnsubscribeDRPRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
-	) {
+	): void {
 		let returnCode = 0;
 		try {
 			node.unsubscribeObject(call.request.drpId);
@@ -61,7 +61,7 @@ export function init(node: DRPNode, port: number = 6969) {
 	function getDRPHashGraph(
 		call: ServerUnaryCall<GetDRPHashGraphRequest, GetDRPHashGraphResponse>,
 		callback: sendUnaryData<GetDRPHashGraphResponse>
-	) {
+	): void {
 		const hashes: string[] = [];
 		try {
 			const object = node.objectStore.get(call.request.drpId);
@@ -83,7 +83,7 @@ export function init(node: DRPNode, port: number = 6969) {
 	async function syncDRPObject(
 		call: ServerUnaryCall<SubscribeDRPRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
-	) {
+	): Promise<void> {
 		let returnCode = 0;
 		try {
 			await node.syncObject(call.request.drpId);
@@ -101,7 +101,7 @@ export function init(node: DRPNode, port: number = 6969) {
 	async function sendCustomMessage(
 		call: ServerUnaryCall<SendCustomMessageRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
-	) {
+	): Promise<void> {
 		let returnCode = 0;
 		try {
 			await node.sendCustomMessage(call.request.peerId, call.request.data);
@@ -119,7 +119,7 @@ export function init(node: DRPNode, port: number = 6969) {
 	async function sendGroupMessage(
 		call: ServerUnaryCall<SendGroupMessageRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
-	) {
+	): Promise<void> {
 		let returnCode = 0;
 		try {
 			await node.sendGroupMessage(call.request.group, call.request.data);
@@ -137,7 +137,7 @@ export function init(node: DRPNode, port: number = 6969) {
 	function addCustomGroup(
 		call: ServerUnaryCall<AddCustomGroupRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
-	) {
+	): void {
 		let returnCode = 0;
 		try {
 			node.addCustomGroup(call.request.group);
@@ -161,12 +161,17 @@ export function init(node: DRPNode, port: number = 6969) {
 
 	const server = new grpc.Server();
 	reflectionService.addToServer(server);
+	// TODO: fix this
 	server.addService(DrpRpcService, {
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		subscribeDRP,
 		unsubscribeDRP,
 		getDRPHashGraph,
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		syncDRPObject,
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		sendCustomMessage,
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		sendGroupMessage,
 		addCustomGroup,
 	});

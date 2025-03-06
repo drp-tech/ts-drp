@@ -151,7 +151,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue(["peer1"]);
 			(mockNetworkNode.getPeerMultiaddrs as ReturnType<typeof vi.fn>).mockResolvedValue([
-				{ multiaddr: { toString: () => "/ip4/127.0.0.1/tcp/1234" } },
+				{ multiaddr: { toString: (): string => "/ip4/127.0.0.1/tcp/1234" } },
 			]);
 
 			await DRPIntervalDiscovery.handleDiscoveryRequest(
@@ -199,7 +199,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue(["peer1"]);
 			(mockNetworkNode.getPeerMultiaddrs as ReturnType<typeof vi.fn>).mockResolvedValue([
-				{ multiaddr: { toString: () => "/ip4/127.0.0.1/tcp/1234" } },
+				{ multiaddr: { toString: (): string => "/ip4/127.0.0.1/tcp/1234" } },
 			]);
 			(mockNetworkNode.sendMessage as ReturnType<typeof vi.fn>).mockRejectedValue(
 				new Error("Failed to send message")
