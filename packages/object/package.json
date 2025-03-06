@@ -31,6 +31,7 @@
 	},
 	"devDependencies": {
 		"@bufbuild/protobuf": "^2.0.0",
+		"@ts-drp/blueprints": "^0.8.5",
 		"@types/benchmark": "^2.1.5",
 		"benchmark": "^2.1.4",
 		"pprof": "^4.0.0",

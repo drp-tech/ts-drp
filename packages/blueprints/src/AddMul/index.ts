@@ -1,7 +1,12 @@
-import { type DRP, type ResolveConflictsType } from "@ts-drp/object";
-import { ActionType, SemanticsType, type Vertex } from "@ts-drp/types";
+import {
+	ActionType,
+	SemanticsType,
+	type Vertex,
+	type IDRP,
+	type ResolveConflictsType,
+} from "@ts-drp/types";
 
-export class AddMulDRP implements DRP {
+export class AddMulDRP implements IDRP {
 	semanticsType = SemanticsType.pair;
 
 	private _value: number;

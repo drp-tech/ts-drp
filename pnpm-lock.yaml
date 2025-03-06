@@ -232,6 +232,9 @@ importers:
       '@ts-drp/object':
         specifier: 0.8.5
         version: link:../object
+      '@ts-drp/types':
+        specifier: ^0.8.5
+        version: link:../types
       uint8arrays:
         specifier: ^5.1.0
         version: 5.1.0
@@ -390,6 +393,9 @@ importers:
       '@ts-drp/types':
         specifier: 0.8.5
         version: link:../types
+      '@ts-drp/utils':
+        specifier: 0.8.5
+        version: link:../utils
       '@types/node':
         specifier: ^22.5.4
         version: 22.13.5
@@ -449,6 +455,9 @@ importers:
       '@bufbuild/protobuf':
         specifier: ^2.0.0
         version: 2.2.3
+      '@ts-drp/blueprints':
+        specifier: ^0.8.5
+        version: link:../blueprints
       '@types/benchmark':
         specifier: ^2.1.5
         version: 2.1.5
@@ -491,6 +500,9 @@ importers:
       '@opentelemetry/semantic-conventions':
         specifier: 1.28.0
         version: 1.28.0
+      '@ts-drp/types':
+        specifier: ^0.8.5
+        version: link:../types
       '@ts-drp/utils':
         specifier: ^0.8.5
         version: link:../utils
@@ -521,7 +533,11 @@ importers:
         specifier: ^1.13.0
         version: 1.13.0
 
-  packages/utils: {}
+  packages/utils:
+    dependencies:
+      '@ts-drp/types':
+        specifier: workspace:^0.8.5
+        version: link:../types
 
 packages:
 

@@ -1,10 +1,13 @@
 import { Logger } from "@ts-drp/logger";
 import {
-	type LoggerOptions,
-	type Operation,
 	Vertex,
 	ActionType,
 	SemanticsType,
+	type Hash,
+	type ResolveConflictsType,
+	type LoggerOptions,
+	type Operation,
+	type IHashGraph,
 } from "@ts-drp/types";
 
 import { BitSet } from "./bitset.js";
@@ -13,27 +16,18 @@ import { linearizePairSemantics } from "../linearize/pairSemantics.js";
 import { computeHash } from "../utils/computeHash.js";
 import { ObjectSet } from "../utils/objectSet.js";
 
-export type Hash = string;
-
 export enum OperationType {
+	// TODO: rename this and make it part of action type this is the init action for the object
 	NOP = "-1",
 }
-
-// In the case of multi-vertex semantics, we are returning an array of vertices (their hashes) to be reduced.
-export type ResolveConflictsType = {
-	action: ActionType;
-	vertices?: Hash[];
-};
 
 export type VertexDistance = {
 	distance: number;
 	closestDependency?: Hash;
 };
 
-export class HashGraph {
+export class HashGraph implements IHashGraph {
 	peerId: string;
-	resolveConflictsDRP?: (vertices: Vertex[]) => ResolveConflictsType;
-	resolveConflictsACL?: (vertices: Vertex[]) => ResolveConflictsType;
 	semanticsTypeDRP?: SemanticsType;
 
 	vertices: Map<Hash, Vertex> = new Map();
@@ -67,8 +61,8 @@ export class HashGraph {
 		logConfig?: LoggerOptions
 	) {
 		this.peerId = peerId;
-		this.resolveConflictsACL = resolveConflictsACL;
-		this.resolveConflictsDRP = resolveConflictsDRP;
+		if (resolveConflictsACL) this.resolveConflictsACL = resolveConflictsACL;
+		if (resolveConflictsDRP) this.resolveConflictsDRP = resolveConflictsDRP;
 		this.semanticsTypeDRP = semanticsTypeDRP;
 		this.log = new Logger("drp::hashgraph", logConfig);
 
@@ -92,15 +86,18 @@ export class HashGraph {
 		});
 	}
 
+	resolveConflictsDRP(_: Vertex[]): ResolveConflictsType {
+		return { action: ActionType.Nop };
+	}
+	resolveConflictsACL(_: Vertex[]): ResolveConflictsType {
+		return { action: ActionType.Nop };
+	}
+
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		if (vertices[0].operation?.drpType === "ACL") {
-			return this.resolveConflictsACL
-				? this.resolveConflictsACL(vertices)
-				: { action: ActionType.Nop };
+			return this.resolveConflictsACL(vertices);
 		}
-		return this.resolveConflictsDRP
-			? this.resolveConflictsDRP(vertices)
-			: { action: ActionType.Nop };
+		return this.resolveConflictsDRP(vertices);
 	}
 
 	createVertex(operation: Operation, dependencies: Hash[], timestamp: number): Vertex {

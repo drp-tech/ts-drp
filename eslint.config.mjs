@@ -76,6 +76,7 @@ const config = tsLintConfig(
 			"@typescript-eslint/no-dynamic-delete": "off",
 			"@typescript-eslint/no-inferrable-types": "off",
 			"@typescript-eslint/no-floating-promises": "error",
+			"@typescript-eslint/consistent-type-exports": "error",
 			"@typescript-eslint/no-misused-promises": "error",
 			"@typescript-eslint/explicit-function-return-type": "error",
 			"@typescript-eslint/await-thenable": "error", // disallows awaiting a value that is not a "Thenable"
