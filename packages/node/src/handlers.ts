@@ -20,6 +20,7 @@ import {
 	type AggregatedAttestation,
 	type Attestation,
 } from "@ts-drp/types";
+import { isPromise } from "@ts-drp/utils";
 import * as crypto from "crypto";
 
 import { type DRPNode } from "./index.js";
@@ -80,7 +81,7 @@ export async function drpMessagesHandler(
 		return;
 	}
 	const result = handler({ node, message, stream });
-	if (result instanceof Promise) {
+	if (isPromise(result)) {
 		await result;
 	}
 }
