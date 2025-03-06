@@ -34,10 +34,20 @@ interface IHandlerStrategy {
 	(handleParams: HandleParams): Promise<void> | void;
 }
 
-/*
-  Handler for all DRP messages, including pubsub messages and direct messages
-  You need to setup stream xor data
-*/
+const messageHandlers: Map<MessageType, IHandlerStrategy> = new Map([
+	[MessageType.MESSAGE_TYPE_FETCH_STATE, fetchStateHandler],
+	[MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE, fetchStateResponseHandler],
+	[MessageType.MESSAGE_TYPE_UPDATE, updateHandler],
+	[MessageType.MESSAGE_TYPE_SYNC, syncHandler],
+	[MessageType.MESSAGE_TYPE_SYNC_ACCEPT, syncAcceptHandler],
+	[MessageType.MESSAGE_TYPE_SYNC_REJECT, syncRejectHandler],
+	[MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE, attestationUpdateHandler],
+]);
+
+/**
+ * Handler for all DRP messages, including pubsub messages and direct messages
+ * You need to setup stream xor data
+ */
 export async function drpMessagesHandler(
 	node: DRPNode,
 	stream?: Stream,
@@ -69,16 +79,6 @@ export async function drpMessagesHandler(
 		await result;
 	}
 }
-
-const messageHandlers: Map<MessageType, IHandlerStrategy> = new Map([
-	[MessageType.MESSAGE_TYPE_FETCH_STATE, fetchStateHandler],
-	[MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE, fetchStateResponseHandler],
-	[MessageType.MESSAGE_TYPE_UPDATE, updateHandler],
-	[MessageType.MESSAGE_TYPE_SYNC, syncHandler],
-	[MessageType.MESSAGE_TYPE_SYNC_ACCEPT, syncAcceptHandler],
-	[MessageType.MESSAGE_TYPE_SYNC_REJECT, syncRejectHandler],
-	[MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE, attestationUpdateHandler],
-]);
 
 function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
 	const { data, sender } = message;
