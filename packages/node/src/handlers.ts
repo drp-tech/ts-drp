@@ -34,8 +34,8 @@ interface IHandlerStrategy {
 	(handleParams: HandleParams): Promise<void> | void;
 }
 
-const messageHandlers: Record<MessageType, IHandlerStrategy> = {
-	[MessageType.MESSAGE_TYPE_UNSPECIFIED]: () => {},
+const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
+	[MessageType.MESSAGE_TYPE_UNSPECIFIED]: undefined,
 	[MessageType.MESSAGE_TYPE_FETCH_STATE]: fetchStateHandler,
 	[MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE]: fetchStateResponseHandler,
 	[MessageType.MESSAGE_TYPE_UPDATE]: updateHandler,
@@ -43,8 +43,8 @@ const messageHandlers: Record<MessageType, IHandlerStrategy> = {
 	[MessageType.MESSAGE_TYPE_SYNC_ACCEPT]: syncAcceptHandler,
 	[MessageType.MESSAGE_TYPE_SYNC_REJECT]: syncRejectHandler,
 	[MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE]: attestationUpdateHandler,
-	[MessageType.MESSAGE_TYPE_CUSTOM]: () => {},
-	[MessageType.UNRECOGNIZED]: () => {},
+	[MessageType.MESSAGE_TYPE_CUSTOM]: undefined,
+	[MessageType.UNRECOGNIZED]: undefined,
 };
 
 /**
