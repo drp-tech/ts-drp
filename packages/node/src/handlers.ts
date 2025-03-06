@@ -23,6 +23,285 @@ import * as crypto from "crypto";
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
 import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
+
+interface HandleParams {
+	node: DRPNode;
+	message: Message;
+	stream?: Stream;
+}
+
+interface IHandlerStrategy {
+	handle: (handleParams: HandleParams) => Promise<void> | void;
+}
+
+class FetchStateHandler implements IHandlerStrategy {
+	handle({ node, message }: HandleParams) {
+		const fetchState = FetchState.decode(message.data);
+		const drpObject = node.objectStore.get(fetchState.objectId);
+		if (!drpObject) {
+			log.error("::fetchStateHandler: Object not found");
+			return;
+		}
+
+		const aclState = drpObject.aclStates.get(fetchState.vertexHash);
+		const drpState = drpObject.drpStates.get(fetchState.vertexHash);
+		const response = FetchStateResponse.create({
+			objectId: fetchState.objectId,
+			vertexHash: fetchState.vertexHash,
+			aclState: serializeStateMessage(aclState),
+			drpState: serializeStateMessage(drpState),
+		});
+
+		const responseMessage = Message.create({
+			sender: node.networkNode.peerId,
+			type: MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE,
+			data: FetchStateResponse.encode(response).finish(),
+		});
+		node.networkNode.sendMessage(message.sender, responseMessage).catch((e) => {
+			log.error("::fetchStateHandler: Error sending message", e);
+		});
+	}
+}
+
+class FetchStateResponseHandler implements IHandlerStrategy {
+	handle({ node, message }: HandleParams) {
+		const { data } = message;
+		const fetchStateResponse = FetchStateResponse.decode(data);
+		if (!fetchStateResponse.drpState && !fetchStateResponse.aclState) {
+			log.error("::fetchStateResponseHandler: No state found");
+		}
+		const object = node.objectStore.get(fetchStateResponse.objectId);
+		if (!object) {
+			log.error("::fetchStateResponseHandler: Object not found");
+			return;
+		}
+		if (!object.acl) {
+			log.error("::fetchStateResponseHandler: ACL not found");
+			return;
+		}
+
+		const aclState = deserializeStateMessage(fetchStateResponse.aclState);
+		const drpState = deserializeStateMessage(fetchStateResponse.drpState);
+		if (fetchStateResponse.vertexHash === HashGraph.rootHash) {
+			const state = aclState;
+			object.aclStates.set(fetchStateResponse.vertexHash, state);
+			for (const e of state.state) {
+				if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value;
+				(object.acl as ACL)[e.key] = e.value;
+			}
+			node.objectStore.put(object.id, object);
+			return;
+		}
+
+		if (fetchStateResponse.aclState) {
+			object.aclStates.set(fetchStateResponse.vertexHash, aclState as DRPState);
+		}
+		if (fetchStateResponse.drpState) {
+			object.drpStates.set(fetchStateResponse.vertexHash, drpState as DRPState);
+		}
+	}
+}
+
+class UpdateHandler implements IHandlerStrategy {
+	async handle({ node, message }: HandleParams) {
+		const { sender, data } = message;
+		const updateMessage = Update.decode(data);
+		const object = node.objectStore.get(updateMessage.objectId);
+		if (!object) {
+			log.error("::updateHandler: Object not found");
+			return false;
+		}
+
+		let verifiedVertices: Vertex[] = [];
+		if ((object.acl as ACL).permissionless) {
+			verifiedVertices = updateMessage.vertices;
+		} else {
+			verifiedVertices = await verifyACLIncomingVertices(updateMessage.vertices);
+		}
+
+		const [merged, _] = object.merge(verifiedVertices);
+
+		if (!merged) {
+			await node.syncObject(updateMessage.objectId, sender);
+		} else {
+			// add their signatures
+			object.finalityStore.addSignatures(sender, updateMessage.attestations);
+
+			// add my signatures
+			const attestations = signFinalityVertices(node, object, verifiedVertices);
+
+			if (attestations.length !== 0) {
+				// broadcast the attestations
+				const message = Message.create({
+					sender: node.networkNode.peerId,
+					type: MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
+					data: AttestationUpdate.encode(
+						AttestationUpdate.create({
+							objectId: object.id,
+							attestations: attestations,
+						})
+					).finish(),
+				});
+
+				node.networkNode.broadcastMessage(object.id, message).catch((e) => {
+					log.error("::updateHandler: Error broadcasting message", e);
+				});
+			}
+		}
+
+		node.objectStore.put(object.id, object);
+
+		return true;
+	}
+}
+
+class SyncHandler implements IHandlerStrategy {
+	async handle({ node, message, stream }: HandleParams) {
+		if (!stream) {
+			log.error("::messageSyncHandler: Stream is undefined");
+			return;
+		}
+		const { sender, data } = message;
+		// (might send reject) <- TODO: when should we reject?
+		const syncMessage = Sync.decode(data);
+		const object = node.objectStore.get(syncMessage.objectId);
+		if (!object) {
+			log.error("::syncHandler: Object not found");
+			return;
+		}
+
+		await signGeneratedVertices(node, object.vertices);
+
+		const requested: Set<Vertex> = new Set(object.vertices);
+		const requesting: string[] = [];
+		for (const h of syncMessage.vertexHashes) {
+			const vertex = object.vertices.find((v) => v.hash === h);
+			if (vertex) {
+				requested.delete(vertex);
+			} else {
+				requesting.push(h);
+			}
+		}
+
+		if (requested.size === 0 && requesting.length === 0) return;
+
+		const attestations = getAttestations(object, [...requested]);
+
+		const messageSyncAccept = Message.create({
+			sender: node.networkNode.peerId,
+			type: MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
+			// add data here
+			data: SyncAccept.encode(
+				SyncAccept.create({
+					objectId: object.id,
+					requested: [...requested],
+					attestations,
+					requesting,
+				})
+			).finish(),
+		});
+
+		node.networkNode.sendMessage(sender, messageSyncAccept).catch((e) => {
+			log.error("::syncHandler: Error sending message", e);
+		});
+	}
+}
+
+class SyncAcceptHandler implements IHandlerStrategy {
+	async handle({ node, message, stream }: HandleParams) {
+		if (!stream) {
+			log.error("::messageSyncAcceptHandler: Stream is undefined");
+			return;
+		}
+		const { data, sender } = message;
+		const syncAcceptMessage = SyncAccept.decode(data);
+		const object = node.objectStore.get(syncAcceptMessage.objectId);
+		if (!object) {
+			log.error("::syncAcceptHandler: Object not found");
+			return;
+		}
+
+		let verifiedVertices: Vertex[] = [];
+		if ((object.acl as ACL).permissionless) {
+			verifiedVertices = syncAcceptMessage.requested;
+		} else {
+			verifiedVertices = await verifyACLIncomingVertices(syncAcceptMessage.requested);
+		}
+
+		if (verifiedVertices.length !== 0) {
+			object.merge(verifiedVertices);
+			object.finalityStore.mergeSignatures(syncAcceptMessage.attestations);
+			node.objectStore.put(object.id, object);
+		}
+
+		await signGeneratedVertices(node, object.vertices);
+		signFinalityVertices(node, object, object.vertices);
+
+		// send missing vertices
+		const requested: Vertex[] = [];
+		for (const h of syncAcceptMessage.requesting) {
+			const vertex = object.vertices.find((v) => v.hash === h);
+			if (vertex) {
+				requested.push(vertex);
+			}
+		}
+
+		if (requested.length === 0) return;
+
+		const attestations = getAttestations(object, requested);
+
+		const messageSyncAccept = Message.create({
+			sender: node.networkNode.peerId,
+			type: MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
+			data: SyncAccept.encode(
+				SyncAccept.create({
+					objectId: object.id,
+					requested,
+					attestations,
+					requesting: [],
+				})
+			).finish(),
+		});
+		node.networkNode.sendMessage(sender, messageSyncAccept).catch((e) => {
+			log.error("::syncAcceptHandler: Error sending message", e);
+		});
+	}
+}
+
+class SyncRejectHandler implements IHandlerStrategy {
+	async handle({ node, message }: HandleParams) {
+		// TODO: handle reject. Possible actions:
+		// - Retry sync
+		// - Ask sync from another peer
+		// - Do nothing
+	}
+}
+
+class AttestationUpdateHandler implements IHandlerStrategy {
+	async handle({ node, message }: HandleParams) {
+		const attestationUpdate = AttestationUpdate.decode(message.data);
+		const object = node.objectStore.get(attestationUpdate.objectId);
+		if (!object) {
+			log.error("::attestationUpdateHandler: Object not found");
+			return;
+		}
+
+		if ((object.acl as ACL).query_isFinalitySigner(message.sender)) {
+			object.finalityStore.addSignatures(message.sender, attestationUpdate.attestations);
+		}
+	}
+}
+
+const messageHandlers: Map<MessageType, IHandlerStrategy> = new Map([
+	[MessageType.MESSAGE_TYPE_FETCH_STATE, new FetchStateHandler()],
+	[MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE, new FetchStateResponseHandler()],
+	[MessageType.MESSAGE_TYPE_UPDATE, new UpdateHandler()],
+	[MessageType.MESSAGE_TYPE_SYNC, new SyncHandler()],
+	[MessageType.MESSAGE_TYPE_SYNC_ACCEPT, new SyncAcceptHandler()],
+	[MessageType.MESSAGE_TYPE_SYNC_REJECT, new SyncRejectHandler()],
+	[MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE, new AttestationUpdateHandler()],
+]);
+
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
   You need to setup stream xor data
@@ -48,39 +327,14 @@ export async function drpMessagesHandler(
 		return;
 	}
 
-	switch (message.type) {
-		case MessageType.MESSAGE_TYPE_FETCH_STATE:
-			fetchStateHandler(node, message.sender, message.data);
-			break;
-		case MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE:
-			fetchStateResponseHandler(node, message.data);
-			break;
-		case MessageType.MESSAGE_TYPE_UPDATE:
-			await updateHandler(node, message.sender, message.data);
-			break;
-		case MessageType.MESSAGE_TYPE_SYNC:
-			if (!stream) {
-				log.error("::messageHandler: Stream is undefined");
-				return;
-			}
-			await syncHandler(node, message.sender, message.data);
-			break;
-		case MessageType.MESSAGE_TYPE_SYNC_ACCEPT:
-			if (!stream) {
-				log.error("::messageHandler: Stream is undefined");
-				return;
-			}
-			await syncAcceptHandler(node, message.sender, message.data);
-			break;
-		case MessageType.MESSAGE_TYPE_SYNC_REJECT:
-			syncRejectHandler(node, message.data);
-			break;
-		case MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE:
-			attestationUpdateHandler(node, message.sender, message.data);
-			break;
-		default:
-			log.error("::messageHandler: Invalid operation");
-			break;
+	const handler = messageHandlers.get(message.type);
+	if (!handler) {
+		log.error("::messageHandler: Invalid operation");
+		return;
+	}
+	const result = handler.handle({ node, message, stream });
+	if (result instanceof Promise) {
+		await result;
 	}
 }
 
