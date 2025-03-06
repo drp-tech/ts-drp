@@ -24,6 +24,7 @@
 		"build": "tsc -b",
 		"clean": "rm -rf dist/ node_modules/",
 		"prepack": "tsc -b",
+		"typecheck": "tsc --noEmit --project tsconfig.json && tsc --noEmit --project tsconfig.test.json",
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {

@@ -24,10 +24,10 @@
 		"build": "tsc -b",
 		"clean": "rm -rf dist/ node_modules/",
 		"prepack": "tsc -b",
+		"typecheck": "tsc --noEmit --project tsconfig.json && tsc --noEmit --project tsconfig.test.json",
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
-		"@ts-drp/types": "^0.8.5",
 		"loglevel": "^1.9.2",
 		"loglevel-plugin-prefix": "^0.8.4",
 		"@ts-drp/types": "^0.8.5"

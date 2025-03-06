@@ -1,4 +1,4 @@
-import { MapDRP, SetDRP } from "@ts-drp/blueprints/src/index.js";
+import { MapDRP, SetDRP } from "@ts-drp/blueprints";
 import { type IDRP } from "@ts-drp/types";
 import Benchmark from "benchmark";
 

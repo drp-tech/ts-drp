@@ -27,11 +27,14 @@
 		"clean": "rm -rf dist/ node_modules/",
 		"prepack": "tsc -b",
 		"test": "vitest",
+		"typecheck": "tsc --noEmit --project tsconfig.json && tsc --noEmit --project tsconfig.test.json",
 		"watch": "tsc -b -w"
 	},
 	"devDependencies": {
 		"@bufbuild/protobuf": "^2.0.0",
 		"@ts-drp/blueprints": "^0.8.5",
+		"@ts-drp/keychain": "workspace:0.8.5",
+		"@ts-drp/node": "workspace:0.8.5",
 		"@types/benchmark": "^2.1.5",
 		"benchmark": "^2.1.4",
 		"pprof": "^4.0.0",

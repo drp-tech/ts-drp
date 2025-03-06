@@ -6,7 +6,7 @@ import {
 	type Libp2p,
 	type SubscriptionChangeData,
 } from "@libp2p/interface";
-import { loadConfig } from "@ts-drp/node/src/config.js";
+import { loadConfig } from "@ts-drp/node";
 import { Message } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test, afterAll } from "vitest";

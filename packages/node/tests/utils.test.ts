@@ -1,5 +1,5 @@
-import { SetDRP } from "@ts-drp/blueprints/src/index.js";
-import { DRPObject } from "@ts-drp/object/src/index.js";
+import { SetDRP } from "@ts-drp/blueprints";
+import { DRPObject } from "@ts-drp/object";
 import { beforeAll, describe, expect, test } from "vitest";
 
 import { deserializeStateMessage, serializeStateMessage } from "../src/utils.js";

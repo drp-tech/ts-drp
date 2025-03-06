@@ -14,10 +14,17 @@ import {
 	type IDRPObject,
 } from "@ts-drp/types";
 
+import { loadConfig } from "./config.js";
 import { drpMessagesHandler } from "./handlers.js";
 import { log } from "./logger.js";
 import * as operations from "./operations.js";
 import { DRPObjectStore } from "./store/index.js";
+import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
+
+export { loadConfig };
+
+export { serializeStateMessage, deserializeStateMessage };
+
 // snake_casing to match the JSON config
 export interface DRPNodeConfig {
 	log_config?: LoggerOptions;

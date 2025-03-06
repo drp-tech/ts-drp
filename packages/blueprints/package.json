@@ -22,6 +22,7 @@
 	},
 	"scripts": {
 		"build": "tsc -b",
+		"typecheck": "tsc --noEmit --project tsconfig.json && tsc --noEmit --project tsconfig.test.json",
 		"clean": "rm -rf dist/ node_modules/",
 		"prepack": "tsc -b",
 		"test": "vitest",

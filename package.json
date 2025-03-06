@@ -34,6 +34,7 @@
 		"proto-gen:types": "buf generate packages/types/src/proto -o packages/types/src/proto",
 		"release": "release-it",
 		"test": "vitest",
+		"typecheck": "pnpm --parallel typecheck",
 		"watch": "pnpm --parallel --filter '@ts-drp/*' watch"
 	},
 	"dependencies": {

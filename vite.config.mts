@@ -19,11 +19,5 @@ export default defineConfig({
 			],
 		},
 		testTimeout: 10000,
-		typecheck: {
-			enabled: true,
-			ignoreSourceErrors: true,
-			include: ["packages/**/tests/*.{ts,tsx}"],
-			exclude: ["examples/**", "**/node_modules/**"],
-		},
 	},
 });
