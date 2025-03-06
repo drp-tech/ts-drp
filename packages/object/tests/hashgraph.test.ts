@@ -4,15 +4,7 @@ import { type Vertex, type Operation, ActionType, SemanticsType } from "@ts-drp/
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
-import {
-	ACLGroup,
-	type DRP,
-	DRPObject,
-	DrpType,
-	type Hash,
-	HashGraph,
-	newVertex,
-} from "../src/index.js";
+import { ACLGroup, DRPObject, DrpType, type Hash, HashGraph, newVertex } from "../src/index.js";
 import { ObjectSet } from "../src/utils/objectSet.js";
 
 const acl = new ObjectACL({
@@ -1033,7 +1025,7 @@ describe("HashGraph for delete wins map tests", () => {
 describe("Hash validation tests", () => {
 	let obj1: DRPObject<MapDRP<string, string>>;
 	let obj2: DRPObject<MapDRP<string, string>>;
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
 			acl,
@@ -1083,7 +1075,7 @@ describe("Hash validation tests", () => {
 describe("HashGraph hook tests", () => {
 	let obj1: DRPObject<SetDRP<number>>;
 	let obj2: DRPObject<SetDRP<number>>;
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 	});

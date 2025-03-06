@@ -1,7 +1,7 @@
 import { MapDRP, SetDRP } from "@ts-drp/blueprints/src/index.js";
 import Benchmark from "benchmark";
 
-import { type DRP, DRPObject, ObjectACL } from "../src/index.js";
+import { DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: new Map([["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
@@ -156,14 +156,8 @@ suite.add(
 suite.add(
 	`Create 2 HashGraphs with ${NUMBER_OF_OPERATIONS} operations each for set wins map and merge with random operations`,
 	() => {
-<<<<<<< HEAD
-		function initialize(drp: MapDRP<number, number> | undefined) {
+		function initialize(drp: MapDRP<number, number> | undefined): void {
 			if (!drp) return;
-||||||| 0ccd832
-		function initialize(drp: MapDRP<number, number>) {
-=======
-		function initialize(drp: MapDRP<number, number>): void {
->>>>>>> origin
 			for (let i = 0; i < 250; i += 4) {
 				drp.set(i, i);
 				if (i % 2 === 0) {

@@ -14,7 +14,6 @@ import { DRPNode } from "../src/index.js";
 
 describe("DPRNode with verify and sign signature", () => {
 	let drpNode: DRPNode;
-	let drpObject: DRPObject<SetDRP<number>>;
 	beforeAll(async () => {
 		drpNode = new DRPNode();
 		await drpNode.start();

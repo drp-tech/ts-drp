@@ -1,13 +1,13 @@
 import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import { type DRP, DRPObject, HashGraph } from "@ts-drp/object";
-import { FetchState, Message, MessageType, Sync, Vertex } from "@ts-drp/types";
 import { type IMetrics } from "@ts-drp/tracer";
+import { FetchState, Message, MessageType, Sync, type Vertex } from "@ts-drp/types";
 
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
 
-export function createObject<T extends DRP>(node: DRPNode, object: DRPObject<T>):void {
+export function createObject<T extends DRP>(node: DRPNode, object: DRPObject<T>): void {
 	node.objectStore.put(object.id, object);
 	object.subscribe((obj, originFn, vertices) => {
 		drpObjectChangesHandler(node, obj, originFn, vertices);
@@ -86,7 +86,11 @@ export async function fetchState(node: DRPNode, objectId: string, peerId?: strin
 /*
   data: { vertex_hashes: string[] }
 */
-export async function syncObject<T extends DRP>(node: DRPNode, objectId: string, peerId?: string):Promise<void> {
+export async function syncObject<T extends DRP>(
+	node: DRPNode,
+	objectId: string,
+	peerId?: string
+): Promise<void> {
 	const object: DRPObject<T> | undefined = node.objectStore.get(objectId);
 	if (!object) {
 		log.error("::syncObject: Object not found");
