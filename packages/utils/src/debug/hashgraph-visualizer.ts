@@ -1,4 +1,4 @@
-import { Hash, HashGraph } from "@ts-drp/object";
+import type { Hash, IHashGraph } from "@ts-drp/types";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -271,7 +271,7 @@ export class HashGraphVizualizer {
 	 *
 	 * @param hashGraph - The HashGraph to visualize
 	 */
-	public draw(hashGraph: HashGraph): void {
+	public draw(hashGraph: IHashGraph): void {
 		const nodes = new Set<string>();
 
 		const edges: { from: Hash; to: Hash }[] = [];
