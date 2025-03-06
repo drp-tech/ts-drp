@@ -96,8 +96,8 @@ function run(metrics?: IMetrics): void {
 			metrics,
 		});
 		gridState.gridDRP = gridState.drpObject.drp;
-		 createConnectHandlers();
-		 addUser();
+		createConnectHandlers();
+		addUser();
 		render();
 	};
 
@@ -120,8 +120,8 @@ function run(metrics?: IMetrics): void {
 				metrics,
 			});
 			gridState.gridDRP = gridState.drpObject.drp;
-			 createConnectHandlers();
-			 addUser();
+			createConnectHandlers();
+			addUser();
 			render();
 			console.log("Succeeded in connecting with DRP", drpId);
 		} catch (e) {

@@ -3,7 +3,7 @@ import type { Stream } from "@libp2p/interface";
 import { peerIdFromPublicKey } from "@libp2p/peer-id";
 import { Signature } from "@noble/secp256k1";
 import { streamToUint8Array } from "@ts-drp/network";
-import { DRP, type DRPObject, HashGraph } from "@ts-drp/object";
+import { type DRP, type DRPObject, HashGraph } from "@ts-drp/object";
 import {
 	type Vertex,
 	type AggregatedAttestation,
@@ -176,7 +176,7 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array): P
 	if (object.acl.permissionless) {
 		verifiedVertices = updateMessage.vertices;
 	} else {
-		verifiedVertices = await verifyACLIncomingVertices(updateMessage.vertices);
+		verifiedVertices = verifyACLIncomingVertices(updateMessage.vertices);
 	}
 
 	const [merged, _] = object.merge(verifiedVertices);
@@ -279,7 +279,7 @@ async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array
 	if (object.acl.permissionless) {
 		verifiedVertices = syncAcceptMessage.requested;
 	} else {
-		verifiedVertices = await verifyACLIncomingVertices(syncAcceptMessage.requested);
+		verifiedVertices = verifyACLIncomingVertices(syncAcceptMessage.requested);
 	}
 
 	if (verifiedVertices.length !== 0) {
@@ -391,7 +391,7 @@ export function signFinalityVertices<T extends DRP>(
 	node: DRPNode,
 	obj: DRPObject<T>,
 	vertices: Vertex[]
-) :Attestation[]  {
+): Attestation[] {
 	if (!obj.acl.query_isFinalitySigner(node.networkNode.peerId)) {
 		return [];
 	}
@@ -428,7 +428,7 @@ function getAttestations<T extends DRP>(
 		.filter((a) => a !== undefined);
 }
 
-export async function verifyACLIncomingVertices(incomingVertices: Vertex[]): Promise<Vertex[]> {
+export function verifyACLIncomingVertices(incomingVertices: Vertex[]): Vertex[] {
 	const vertices: Vertex[] = incomingVertices.map((vertex) => {
 		return {
 			hash: vertex.hash,
@@ -444,31 +444,32 @@ export async function verifyACLIncomingVertices(incomingVertices: Vertex[]): Pro
 		};
 	});
 
-	const verifiedVertices: Vertex[] = vertices.map((vertex) => {
-		if (vertex.signature.length === 0) {
-			return null;
-		}
+	const verifiedVertices: Vertex[] = vertices
+		.map((vertex) => {
+			if (vertex.signature.length === 0) {
+				return null;
+			}
 
-		try {
-			const hashData = crypto.createHash("sha256").update(vertex.hash).digest("hex");
-			const recovery = vertex.signature[0];
-			const compactSignature = vertex.signature.slice(1);
-			const signatureWithRecovery =
-				Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
+			try {
+				const hashData = crypto.createHash("sha256").update(vertex.hash).digest("hex");
+				const recovery = vertex.signature[0];
+				const compactSignature = vertex.signature.slice(1);
+				const signatureWithRecovery =
+					Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
 
-			const rawSecp256k1PublicKey = signatureWithRecovery
-				.recoverPublicKey(hashData)
-				.toRawBytes(true);
-			const secp256k1PublicKey = publicKeyFromRaw(rawSecp256k1PublicKey);
-			const expectedPeerId = peerIdFromPublicKey(secp256k1PublicKey).toString();
-			const isValid = expectedPeerId === vertex.peerId;
-			return isValid ? vertex : null;
-		} catch (error) {
-			console.error("Error verifying signature:", error);
-			return null;
-		}
-	}).filter((vertex: Vertex | null): vertex is Vertex => vertex !== null);
-
+				const rawSecp256k1PublicKey = signatureWithRecovery
+					.recoverPublicKey(hashData)
+					.toRawBytes(true);
+				const secp256k1PublicKey = publicKeyFromRaw(rawSecp256k1PublicKey);
+				const expectedPeerId = peerIdFromPublicKey(secp256k1PublicKey).toString();
+				const isValid = expectedPeerId === vertex.peerId;
+				return isValid ? vertex : null;
+			} catch (error) {
+				console.error("Error verifying signature:", error);
+				return null;
+			}
+		})
+		.filter((vertex: Vertex | null): vertex is Vertex => vertex !== null);
 
 	return verifiedVertices;
 }

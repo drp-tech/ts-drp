@@ -1,9 +1,8 @@
 import { bls } from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
 import { Logger } from "@ts-drp/logger";
-import { ACLGroup, ObjectACL, ACL } from "@ts-drp/object";
-import {  DRPObject, DrpType } from "@ts-drp/object";
-import { type Vertex,  } from "@ts-drp/types";
+import { ACLGroup, ObjectACL, type ACL, DRPObject, DrpType } from "@ts-drp/object";
+import { type Vertex } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
@@ -76,11 +75,11 @@ describe("DPRNode with verify and sign signature", () => {
 			},
 		];
 		await signGeneratedVertices(drpNode, vertices);
-		const verifiedVertices = await verifyACLIncomingVertices(vertices);
+		const verifiedVertices = verifyACLIncomingVertices(vertices);
 		expect(verifiedVertices.length).toBe(1);
 	});
 
-	test("Ignore vertex if the signature is invalid", async () => {
+	test("Ignore vertex if the signature is invalid", () => {
 		const vertices = [
 			{
 				hash: "hash",
@@ -95,7 +94,7 @@ describe("DPRNode with verify and sign signature", () => {
 				signature: new Uint8Array(),
 			},
 		];
-		const verifiedVertices = await verifyACLIncomingVertices(vertices);
+		const verifiedVertices = verifyACLIncomingVertices(vertices);
 		expect(verifiedVertices.length).toBe(0);
 	});
 });
