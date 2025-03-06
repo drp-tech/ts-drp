@@ -7,7 +7,7 @@ import {
 	type ResolveConflictsType,
 	type LoggerOptions,
 	type Operation,
-	type HashGraph as HashGraphInterface,
+	type IHashGraph,
 } from "@ts-drp/types";
 
 import { BitSet } from "./bitset.js";
@@ -26,7 +26,7 @@ export type VertexDistance = {
 	closestDependency?: Hash;
 };
 
-export class HashGraph implements HashGraphInterface {
+export class HashGraph implements IHashGraph {
 	peerId: string;
 	semanticsTypeDRP?: SemanticsType;
 

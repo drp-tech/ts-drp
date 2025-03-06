@@ -1,9 +1,9 @@
-import { type BitSet } from "./bitset.js";
+import { type IBitSet } from "./bitset.js";
 import { type DRPPublicCredential } from "./credentials.js";
 import { type Hash } from "./hashgraph.js";
 import { type AggregatedAttestation, type Attestation } from "./proto/drp/v1/object_pb.js";
 
-export interface FinalityState {
+export interface IFinalityState {
 	/**
 	 * The data of the finality state.
 	 */
@@ -19,7 +19,7 @@ export interface FinalityState {
 	/**
 	 * The aggregation bits of the finality state.
 	 */
-	aggregation_bits: BitSet;
+	aggregation_bits: IBitSet;
 	/**
 	 * The signature of the finality state.
 	 */
@@ -45,11 +45,11 @@ export interface FinalityState {
 	merge(attestation: AggregatedAttestation): void;
 }
 
-export interface FinalityStore {
+export interface IFinalityStore {
 	/**
 	 * The states of the finality store.
 	 */
-	states: Map<string, FinalityState>;
+	states: Map<string, IFinalityState>;
 	/**
 	 * The finality threshold of the finality store.
 	 */

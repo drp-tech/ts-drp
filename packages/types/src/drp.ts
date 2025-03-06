@@ -15,7 +15,7 @@ export enum DrpType {
 	DRP = "DRP",
 }
 
-export interface DRP {
+export interface IDRP {
 	/**
 	 * The semantics type of the DRP.
 	 */

@@ -8,10 +8,10 @@ import {
 	type IMetrics,
 	Message,
 	MessageType,
-	type ACL,
-	type DRP,
+	type IACL,
+	type IDRP,
 	type LoggerOptions,
-	type DRPObject as DRPObjectInterface,
+	type IDRPObject,
 } from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
@@ -98,8 +98,8 @@ export class DRPNode {
 	}
 
 	async createObject(options: {
-		drp?: DRP;
-		acl?: ACL;
+		drp?: IDRP;
+		acl?: IACL;
 		id?: string;
 		sync?: {
 			enabled: boolean;
@@ -132,12 +132,12 @@ export class DRPNode {
 	*/
 	async connectObject(options: {
 		id: string;
-		drp?: DRP;
+		drp?: IDRP;
 		sync?: {
 			peerId?: string;
 		};
 		metrics?: IMetrics;
-	}): Promise<DRPObjectInterface> {
+	}): Promise<IDRPObject> {
 		const object = await operations.connectObject(this, options.id, {
 			peerId: options.sync?.peerId,
 			drp: options.drp,

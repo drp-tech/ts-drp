@@ -1,5 +1,5 @@
 import { type DRPPublicCredential } from "./credentials.js";
-import { type DRP } from "./drp.js";
+import { type IDRP } from "./drp.js";
 
 export enum ACLConflictResolution {
 	/**
@@ -38,7 +38,7 @@ export interface PeerPermissions {
 	permissions: Set<ACLGroup>;
 }
 
-export interface ACL extends DRP {
+export interface IACL extends IDRP {
 	/**
 	 * Whether the ACL is permissionless.
 	 */

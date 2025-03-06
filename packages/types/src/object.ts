@@ -1,7 +1,7 @@
-import { type ACL } from "./acl.js";
-import { type DRP } from "./drp.js";
-import { type FinalityStore } from "./finality.js";
-import { type HashGraph } from "./hashgraph.js";
+import { type IACL } from "./acl.js";
+import { type IDRP } from "./drp.js";
+import { type IFinalityStore } from "./finality.js";
+import { type IHashGraph } from "./hashgraph.js";
 import { type LoggerOptions } from "./logger.js";
 import { type IMetrics } from "./metrics.js";
 import {
@@ -16,7 +16,7 @@ export interface LcaAndOperations {
 	linearizedOperations: Operation[];
 }
 
-export interface DRPObject extends DRPObjectBase {
+export interface IDRPObject extends DRPObjectBase {
 	/**
 	 * The id of the DRP object.
 	 */
@@ -24,24 +24,24 @@ export interface DRPObject extends DRPObjectBase {
 	/**
 	 * The ACL of the DRP object.
 	 */
-	acl?: ProxyHandler<ACL>;
+	acl?: ProxyHandler<IACL>;
 	/**
 	 * The DRP of the DRP object.
 	 */
-	drp?: ProxyHandler<DRP>;
+	drp?: ProxyHandler<IDRP>;
 
 	/**
 	 * The original DRP of the DRP object.
 	 */
-	originalDRP?: DRP;
+	originalDRP?: IDRP;
 	/**
 	 * The original ACL of the DRP object.
 	 */
-	originalObjectACL?: ACL;
+	originalObjectACL?: IACL;
 	/**
 	 * The finality store of the DRP object.
 	 */
-	finalityStore: FinalityStore;
+	finalityStore: IFinalityStore;
 	/**
 	 * The subscriptions of the DRP object.
 	 */
@@ -59,7 +59,7 @@ export interface DRPObject extends DRPObjectBase {
 	/**
 	 * The hash graph of the DRP object.
 	 */
-	hashGraph: HashGraph;
+	hashGraph: IHashGraph;
 
 	/**
 	 * Subscribe to the DRP object.
@@ -72,12 +72,12 @@ export interface DRPObject extends DRPObjectBase {
 	merge(vertices: Vertex[]): [merged: boolean, missing: string[]];
 }
 
-export type DRPObjectCallback = (object: DRPObject, origin: string, vertices: Vertex[]) => void;
+export type DRPObjectCallback = (object: IDRPObject, origin: string, vertices: Vertex[]) => void;
 
 export type ConnectObjectOptions = {
 	peerId: string;
 	id?: string;
-	drp?: DRP;
+	drp?: IDRP;
 	metrics?: IMetrics;
 	log_config?: LoggerOptions;
 };

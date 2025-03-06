@@ -1,4 +1,4 @@
-import { type BitSet } from "./bitset.js";
+import { type IBitSet } from "./bitset.js";
 import { type Vertex, type Vertex_Operation as Operation } from "./proto/drp/v1/object_pb.js";
 
 export type Hash = string;
@@ -53,7 +53,7 @@ export interface ResolveConflictsType {
 	vertices?: Hash[];
 }
 
-export interface HashGraph {
+export interface IHashGraph {
 	peerId: string;
 	resolveConflictsACL(vertices: Vertex[]): ResolveConflictsType;
 	resolveConflictsDRP(vertices: Vertex[]): ResolveConflictsType;
@@ -72,6 +72,6 @@ export interface HashGraph {
 	getDependencies(vertexHash: Hash): Hash[];
 	getVertex(hash: Hash): Vertex | undefined;
 	getAllVertices(): Vertex[];
-	getReachablePredecessors(hash: Hash): BitSet | undefined;
+	getReachablePredecessors(hash: Hash): IBitSet | undefined;
 	getCurrentBitsetSize(): number;
 }

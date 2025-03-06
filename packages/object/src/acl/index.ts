@@ -5,12 +5,12 @@ import {
 	type DRPPublicCredential,
 	ACLGroup,
 	type PeerPermissions,
-	type ACL,
+	type IACL,
 	ACLConflictResolution,
 	type ResolveConflictsType,
 } from "@ts-drp/types";
 
-export class ObjectACL implements ACL {
+export class ObjectACL implements IACL {
 	semanticsType = SemanticsType.pair;
 
 	// if true, any peer can write to the object

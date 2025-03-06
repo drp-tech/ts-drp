@@ -14,8 +14,8 @@ import {
 	Sync,
 	SyncAccept,
 	Update,
-	type DRPObject,
-	type ACL,
+	type IDRPObject,
+	type IACL,
 	type Vertex,
 	type AggregatedAttestation,
 	type Attestation,
@@ -135,7 +135,7 @@ function fetchStateResponseHandler(node: DRPNode, data: Uint8Array): void {
 		object.aclStates.set(fetchStateResponse.vertexHash, state);
 		for (const e of state.state) {
 			if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value;
-			(object.acl as ACL)[e.key] = e.value;
+			(object.acl as IACL)[e.key] = e.value;
 		}
 		node.objectStore.put(object.id, object);
 		return;
@@ -157,7 +157,7 @@ function attestationUpdateHandler(node: DRPNode, sender: string, data: Uint8Arra
 		return;
 	}
 
-	if ((object.acl as ACL).query_isFinalitySigner(sender)) {
+	if ((object.acl as IACL).query_isFinalitySigner(sender)) {
 		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
 	}
 }
@@ -175,7 +175,7 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array): P
 	}
 
 	let verifiedVertices: Vertex[] = [];
-	if ((object.acl as ACL).permissionless) {
+	if ((object.acl as IACL).permissionless) {
 		verifiedVertices = updateMessage.vertices;
 	} else {
 		verifiedVertices = await verifyACLIncomingVertices(updateMessage.vertices);
@@ -278,7 +278,7 @@ async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array
 	}
 
 	let verifiedVertices: Vertex[] = [];
-	if ((object.acl as ACL).permissionless) {
+	if ((object.acl as IACL).permissionless) {
 		verifiedVertices = syncAcceptMessage.requested;
 	} else {
 		verifiedVertices = await verifyACLIncomingVertices(syncAcceptMessage.requested);
@@ -333,7 +333,7 @@ function syncRejectHandler(_node: DRPNode, _data: Uint8Array): void {
 
 export function drpObjectChangesHandler(
 	node: DRPNode,
-	obj: DRPObject,
+	obj: IDRPObject,
 	originFn: string,
 	vertices: Vertex[]
 ): void {
@@ -391,10 +391,10 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]): 
 // Signs the vertices. Returns the attestations
 export function signFinalityVertices(
 	node: DRPNode,
-	obj: DRPObject,
+	obj: IDRPObject,
 	vertices: Vertex[]
 ): Attestation[] {
-	if (!(obj.acl as ACL).query_isFinalitySigner(node.networkNode.peerId)) {
+	if (!(obj.acl as IACL).query_isFinalitySigner(node.networkNode.peerId)) {
 		return [];
 	}
 	const attestations = generateAttestations(node, obj, vertices);
@@ -402,7 +402,7 @@ export function signFinalityVertices(
 	return attestations;
 }
 
-function generateAttestations(node: DRPNode, object: DRPObject, vertices: Vertex[]): Attestation[] {
+function generateAttestations(node: DRPNode, object: IDRPObject, vertices: Vertex[]): Attestation[] {
 	// Two condition:
 	// - The node can sign the vertex
 	// - The node hasn't signed for the vertex
@@ -417,7 +417,7 @@ function generateAttestations(node: DRPNode, object: DRPObject, vertices: Vertex
 	}));
 }
 
-function getAttestations(object: DRPObject, vertices: Vertex[]): AggregatedAttestation[] {
+function getAttestations(object: IDRPObject, vertices: Vertex[]): AggregatedAttestation[] {
 	return (
 		vertices
 			.map((v) => object.finalityStore.getAttestation(v.hash))
