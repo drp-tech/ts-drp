@@ -1,10 +1,16 @@
-import { type Vertex, ActionType, SemanticsType } from "@ts-drp/types";
+import {
+	type Vertex,
+	ActionType,
+	SemanticsType,
+	type DRPPublicCredential,
+	ACLGroup,
+	type PeerPermissions,
+	type IACL,
+	ACLConflictResolution,
+	type ResolveConflictsType,
+} from "@ts-drp/types";
 
-import { type ResolveConflictsType } from "../index.js";
-import type { DRPPublicCredential } from "../interface.js";
-import { type ACL, ACLConflictResolution, type PeerPermissions, ACLGroup } from "./interface.js";
-
-export class ObjectACL implements ACL {
+export class ObjectACL implements IACL {
 	semanticsType = SemanticsType.pair;
 
 	// if true, any peer can write to the object

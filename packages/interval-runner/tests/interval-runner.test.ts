@@ -13,16 +13,16 @@ describe("IntervalRunner", () => {
 
 	describe("constructor", () => {
 		it("should throw error if interval is less than or equal to 0", () => {
-			expect(() => new IntervalRunner({ interval: 0, fn: () => true })).toThrow(
+			expect(() => new IntervalRunner({ interval: 0, fn: (): boolean => true })).toThrow(
 				"Interval must be greater than 0"
 			);
-			expect(() => new IntervalRunner({ interval: -1, fn: () => true })).toThrow(
+			expect(() => new IntervalRunner({ interval: -1, fn: (): boolean => true })).toThrow(
 				"Interval must be greater than 0"
 			);
 		});
 
 		it("should create instance with valid interval", () => {
-			const runner = new IntervalRunner({ interval: 1000, fn: () => true });
+			const runner = new IntervalRunner({ interval: 1000, fn: (): boolean => true });
 			expect(runner.interval).toBe(1000);
 			expect(runner.state).toBe("stopped");
 		});
@@ -285,6 +285,7 @@ describe("IntervalRunner", () => {
 
 	it("should log that the runner is stopped when scheduleNext detects state 0", async () => {
 		const callback = vi.fn(async function* () {
+			await Promise.resolve();
 			yield true;
 		});
 		const runner = new IntervalRunner({ interval: 100, fn: callback, logConfig: {} });
@@ -379,13 +380,13 @@ describe("IntervalRunner", () => {
 
 	describe("start and stop", () => {
 		it("should throw error when starting already running interval", () => {
-			const runner = new IntervalRunner({ interval: 1000, fn: () => true });
+			const runner = new IntervalRunner({ interval: 1000, fn: (): boolean => true });
 			runner.start();
 			expect(() => runner.start()).toThrow("Interval runner is already running");
 		});
 
 		it("should throw error when stopping already stopped interval", () => {
-			const runner = new IntervalRunner({ interval: 1000, fn: () => true });
+			const runner = new IntervalRunner({ interval: 1000, fn: (): boolean => true });
 			expect(() => runner.stop()).toThrow("Interval runner is not running");
 		});
 

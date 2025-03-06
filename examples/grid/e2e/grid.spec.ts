@@ -50,12 +50,18 @@ function chackFileUntilMatches(
 	});
 }
 
-async function clearLogFile() {
+async function clearLogFile(): Promise<void> {
 	const logPath = path.join(process.cwd(), "test.e2e.log");
 	await fs.promises.writeFile(logPath, "");
 }
 
-async function getGlowingPeer(page: Page, peerID: string) {
+interface GlowingPeer {
+	peerID: string;
+	left: number;
+	top: number;
+}
+
+async function getGlowingPeer(page: Page, peerID: string): Promise<GlowingPeer> {
 	const div = page.locator(`div[data-glowing-peer-id="${peerID}"]`);
 	const style = await div.getAttribute("style");
 	if (!style) throw new Error("style is not defined");
@@ -74,7 +80,7 @@ async function getGlowingPeer(page: Page, peerID: string) {
 	};
 }
 
-async function getPeerID(page: Page) {
+async function getPeerID(page: Page): Promise<string> {
 	const peerID = await (
 		await page.waitForSelector(peerIdSelector, {
 			timeout: 10000,
@@ -85,7 +91,7 @@ async function getPeerID(page: Page) {
 	return peerID.trim();
 }
 
-function getPeerIDRegex(peerID: string) {
+function getPeerIDRegex(peerID: string): RegExp {
 	return new RegExp(
 		`peerId: PeerId\\(${peerID}\\),.*?signedPeerRecord: {\\n.*?addresses: \\[\\n      Multiaddr\\(/ip4/127\\.0\\.0\\.1/tcp/50000/ws/p2p/16Uiu2HAkyHjtPSYAveXoTGMskeGWwP7FmbkR29EJJRsmixeAM2xn/p2p-circuit\\)`,
 		"gms"
@@ -102,7 +108,7 @@ test.describe("grid", () => {
 		page1 = await browser.newPage();
 		let peerID1 = "";
 		await Promise.all([
-			(async () => {
+			(async (): Promise<void> => {
 				await page1.goto("/");
 				await page1.waitForSelector("#loadingMessage", { state: "hidden" });
 				peerID1 = await getPeerID(page1);

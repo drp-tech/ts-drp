@@ -1,9 +1,8 @@
 import { bls } from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
 import { Logger } from "@ts-drp/logger";
-import { ACLGroup, ObjectACL } from "@ts-drp/object";
-import { type DRP, DRPObject, DrpType } from "@ts-drp/object";
-import { type Vertex } from "@ts-drp/types";
+import { DRPObject, ObjectACL } from "@ts-drp/object";
+import { type DRP, DrpType, type Vertex, ACLGroup } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
@@ -14,25 +13,10 @@ import {
 import { DRPNode } from "../src/index.js";
 
 describe("DPRNode with verify and sign signature", () => {
-	let drp: DRP;
 	let drpNode: DRPNode;
-	let drpObject: DRPObject;
 	beforeAll(async () => {
 		drpNode = new DRPNode();
 		await drpNode.start();
-	});
-
-	beforeEach(async () => {
-		drp = new SetDRP();
-		const acl = new ObjectACL({
-			admins: [drpNode.networkNode.peerId],
-		});
-		acl.setKey(
-			drpNode.networkNode.peerId,
-			drpNode.networkNode.peerId,
-			drpNode.keychain.getPublicCredential()
-		);
-		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
 	});
 
 	test("Node will not sign vertex if it is not the creator", async () => {
@@ -90,7 +74,7 @@ describe("DPRNode with verify and sign signature", () => {
 			},
 		];
 		await signGeneratedVertices(drpNode, vertices);
-		const verifiedVertices = await verifyACLIncomingVertices(drpObject, vertices);
+		const verifiedVertices = await verifyACLIncomingVertices(vertices);
 		expect(verifiedVertices.length).toBe(1);
 	});
 
@@ -109,7 +93,7 @@ describe("DPRNode with verify and sign signature", () => {
 				signature: new Uint8Array(),
 			},
 		];
-		const verifiedVertices = await verifyACLIncomingVertices(drpObject, vertices);
+		const verifiedVertices = await verifyACLIncomingVertices(vertices);
 		expect(verifiedVertices.length).toBe(0);
 	});
 });
@@ -129,7 +113,7 @@ describe("DRPNode voting tests", () => {
 		await nodeB.start();
 	});
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		const acl = new ObjectACL({
 			admins: [nodeA.networkNode.peerId],
 		});
@@ -158,7 +142,7 @@ describe("DRPNode voting tests", () => {
 		});
 	});
 
-	test("Nodes in writer set are able to sign", async () => {
+	test("Nodes in writer set are able to sign", () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
@@ -181,7 +165,7 @@ describe("DRPNode voting tests", () => {
 		expect(obj2.finalityStore.getNumberOfSignatures(V1.hash)).toBe(1);
 	});
 
-	test("Other nodes are not able to sign", async () => {
+	test("Other nodes are not able to sign", () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1) ---- A:REVOKE(B) ---- B:ADD(2)
 		*/
@@ -205,7 +189,7 @@ describe("DRPNode voting tests", () => {
 		expect(obj2.finalityStore.getNumberOfSignatures(V2.hash)).toBe(0);
 	});
 
-	test("Signatures are aggregated", async () => {
+	test("Signatures are aggregated", () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
@@ -256,7 +240,7 @@ describe("DRPNode with rpc", () => {
 		});
 		mockLogger = new Logger("drp::network", {});
 	});
-	beforeEach(async () => {
+	beforeEach(() => {
 		drp = new SetDRP();
 		const acl = new ObjectACL({
 			admins: [drpNode.networkNode.peerId],
@@ -277,16 +261,16 @@ describe("DRPNode with rpc", () => {
 		expect(object).toBeDefined();
 	});
 
-	test("should run unsubscribeObject", async () => {
-		await drpNode.unsubscribeObject(drpObject.id);
+	test("should run unsubscribeObject", () => {
+		drpNode.unsubscribeObject(drpObject.id);
 		expect(mockLogger.info).toHaveBeenCalledWith(
 			"::unsubscribe: Successfuly unsubscribed the topic",
 			drpObject.id
 		);
 	});
 
-	test("should run unsubscribeObject with purge", async () => {
-		await drpNode.unsubscribeObject(drpObject.id, true);
+	test("should run unsubscribeObject with purge", () => {
+		drpNode.unsubscribeObject(drpObject.id, true);
 		const store = drpNode.objectStore.get(drpObject.id);
 		expect(store).toBeUndefined();
 	});
@@ -300,7 +284,7 @@ describe("DRPNode with rpc", () => {
 		expect(mockLogger.info).toHaveBeenCalledWith("::restart: Node restarted");
 	});
 
-	test("Should subscribe to object", async () => {
+	test("Should subscribe to object", () => {
 		drpNode.objectStore.subscribe(drpObject.id, () => {
 			mockLogger.info("::subscribe: Subscribed to object");
 		});
@@ -308,8 +292,8 @@ describe("DRPNode with rpc", () => {
 		expect(_subscriptions.has(drpObject.id)).toBe(true);
 	});
 
-	test("Should unsubscribe to object", async () => {
-		const callBack = () => {
+	test("Should unsubscribe to object", () => {
+		const callBack = (): void => {
 			mockLogger.info("::unsubscribe: Unsubscribed to object");
 		};
 		drpNode.objectStore.subscribe(drpObject.id, callBack);

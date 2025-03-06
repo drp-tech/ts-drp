@@ -26,6 +26,7 @@ describe("utils", () => {
 			).toBe(false);
 			expect(
 				isPromise(async function* () {
+					await Promise.resolve();
 					yield 1;
 				})
 			).toBe(false);
@@ -35,13 +36,13 @@ describe("utils", () => {
 
 	describe("isGenerator", () => {
 		test("should return true if the value is a generator", () => {
-			function* gen() {
+			function* gen(): Generator<number, void, unknown> {
 				yield 1;
 			}
 			const generator = gen();
 			expect(isGenerator(generator)).toBe(true);
 
-			const genObj = (function* () {
+			const genObj = (function* (): Generator<number, void, unknown> {
 				yield 1;
 			})();
 			expect(isGenerator(genObj)).toBe(true);
@@ -63,6 +64,7 @@ describe("utils", () => {
 			).toBe(false); // generator function, not generator
 			expect(
 				isGenerator(async function* () {
+					await Promise.resolve();
 					yield 1;
 				})
 			).toBe(false);
@@ -74,13 +76,15 @@ describe("utils", () => {
 
 	describe("isAsyncGenerator", () => {
 		test("should return true if the value is an async generator", () => {
-			async function* asyncGen() {
+			async function* asyncGen(): AsyncGenerator<number, void, unknown> {
+				await Promise.resolve();
 				yield 1;
 			}
 			const asyncGenerator = asyncGen();
 			expect(isAsyncGenerator(asyncGenerator)).toBe(true);
 
-			const asyncGenObj = (async function* () {
+			const asyncGenObj = (async function* (): AsyncGenerator<number, void, unknown> {
+				await Promise.resolve();
 				yield 1;
 			})();
 			expect(isAsyncGenerator(asyncGenObj)).toBe(true);
@@ -102,6 +106,7 @@ describe("utils", () => {
 			).toBe(false);
 			expect(
 				isAsyncGenerator(async function* () {
+					await Promise.resolve();
 					yield 1;
 				})
 			).toBe(false); // async generator function, not generator

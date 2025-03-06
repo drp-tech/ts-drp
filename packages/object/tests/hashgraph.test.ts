@@ -1,10 +1,18 @@
-import { MapConflictResolution, MapDRP } from "@ts-drp/blueprints/src/Map/index.js";
-import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
-import { type Vertex, Operation, ActionType, SemanticsType } from "@ts-drp/types";
+import { MapConflictResolution, MapDRP, SetDRP } from "@ts-drp/blueprints";
+import {
+	type Vertex,
+	type Operation,
+	ActionType,
+	SemanticsType,
+	type Hash,
+	DrpType,
+	ACLGroup,
+	type DRP,
+} from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { ACLGroup, DRP, DRPObject, DrpType, Hash, HashGraph, newVertex } from "../src/index.js";
+import { DRPObject, HashGraph, newVertex } from "../src/index.js";
 import { ObjectSet } from "../src/utils/objectSet.js";
 
 const acl = new ObjectACL({
@@ -54,7 +62,7 @@ describe("HashGraph construction tests", () => {
 		admins: ["peer1"],
 	});
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 
@@ -220,7 +228,7 @@ describe("HashGraph for SetDRP tests", () => {
 		admins: ["peer1", "peer2"],
 	});
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 	});
@@ -441,7 +449,7 @@ describe("HashGraph for undefined operations tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 	});
@@ -472,7 +480,7 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 		admins: ["peer1", "peer2"],
 	});
 
-	beforeAll(async () => {
+	beforeAll(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl });
@@ -523,7 +531,7 @@ describe("Vertex state tests", () => {
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
@@ -618,7 +626,7 @@ describe("Vertex timestamp tests", () => {
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
@@ -683,7 +691,7 @@ describe("Writer permission tests", () => {
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		const acl = new ObjectACL({ admins: ["peer1"] });
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
@@ -818,7 +826,7 @@ describe("HashGraph for set wins map tests", () => {
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
 			acl,
@@ -924,7 +932,7 @@ describe("HashGraph for delete wins map tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
 			acl,
@@ -993,7 +1001,7 @@ describe("HashGraph for delete wins map tests", () => {
 describe("Hash validation tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
 			acl,
@@ -1043,7 +1051,7 @@ describe("Hash validation tests", () => {
 describe("HashGraph hook tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 	});
@@ -1052,7 +1060,7 @@ describe("HashGraph hook tests", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		const newVertices: Vertex[] = [];
 
-		obj1.subscribe((object, origin, vertices) => {
+		obj1.subscribe((_, origin, vertices) => {
 			if (origin === "callFn") {
 				newVertices.push(...vertices);
 			}
@@ -1069,7 +1077,7 @@ describe("HashGraph hook tests", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		const newVertices: Vertex[] = [];
 
-		obj2.subscribe((object, origin, vertices) => {
+		obj2.subscribe((_, origin, vertices) => {
 			if (origin === "merge") {
 				newVertices.push(...vertices);
 			}
