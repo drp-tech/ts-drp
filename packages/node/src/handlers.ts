@@ -25,6 +25,7 @@ import * as crypto from "crypto";
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
 import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
+
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
   You need to setup stream xor data
@@ -402,7 +403,11 @@ export function signFinalityVertices(
 	return attestations;
 }
 
-function generateAttestations(node: DRPNode, object: IDRPObject, vertices: Vertex[]): Attestation[] {
+function generateAttestations(
+	node: DRPNode,
+	object: IDRPObject,
+	vertices: Vertex[]
+): Attestation[] {
 	// Two condition:
 	// - The node can sign the vertex
 	// - The node hasn't signed for the vertex
