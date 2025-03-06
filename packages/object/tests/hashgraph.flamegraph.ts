@@ -5,7 +5,7 @@ import * as pprof from "pprof";
 import { DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
-	admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
+	admins: new Map([["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
 });
 
 type DRPManipulationStrategy = (drp: SetDRP<number>, value: number) => void;
@@ -33,12 +33,12 @@ const createWithStrategy = (
 	return obj;
 };
 const manipulationStrategies: DRPManipulationStrategy[] = [
-	(drp, value) => drp.add(value),
-	(drp, value) => {
+	(drp, value): void => drp.add(value),
+	(drp, value): void => {
 		drp.delete(value);
 		drp.add(value);
 	},
-	(drp, value) => {
+	(drp, value): void => {
 		drp.add(value);
 		drp.delete(value);
 	},
@@ -68,7 +68,7 @@ function flamegraphForSetDRP(numDRPs: number, verticesPerDRP: number, mergeFn: b
 	}
 }
 
-async function pprofTime() {
+async function pprofTime(): Promise<void> {
 	console.log("start to profile >>>");
 	const profile = await pprof.time.profile({
 		durationMillis: 1000,

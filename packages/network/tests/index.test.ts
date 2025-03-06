@@ -16,10 +16,10 @@ describe("isDialable", () => {
 			listen_addresses: ["/ip4/0.0.0.0/tcp/0/ws"],
 			bootstrap_peers: [],
 		});
-		await btNode.start(keychain.ed25519PrivateKey);
+		await btNode.start(keychain.secp256k1PrivateKey);
 	});
 
-	const isDialable = async (node: DRPNetworkNode, timeout = false) => {
+	const isDialable = async (node: DRPNetworkNode, timeout = false): Promise<boolean> => {
 		let resolver: (value: boolean) => void;
 		const promise = new Promise<boolean>((resolve) => {
 			resolver = resolve;
@@ -31,12 +31,12 @@ describe("isDialable", () => {
 			}, 10);
 		}
 
-		const callback = () => {
+		const callback = (): void => {
 			resolver(true);
 		};
 
 		await node.isDialable(callback);
-		return await promise;
+		return promise;
 	};
 
 	test("should return true if the node is dialable", async () => {
@@ -47,7 +47,7 @@ describe("isDialable", () => {
 		const node = new DRPNetworkNode({
 			bootstrap_peers: btNode.getMultiaddrs()?.map((addr) => addr.toString()) || [],
 		});
-		await node.start(keychain1.ed25519PrivateKey);
+		await node.start(keychain1.secp256k1PrivateKey);
 		expect(await isDialable(node)).toBe(true);
 	});
 
@@ -60,7 +60,7 @@ describe("isDialable", () => {
 			bootstrap_peers: btNode.getMultiaddrs()?.map((addr) => addr.toString()) || [],
 			listen_addresses: [],
 		});
-		await node.start(keychain2.ed25519PrivateKey);
+		await node.start(keychain2.secp256k1PrivateKey);
 		expect(await isDialable(node, true)).toBe(false);
 	});
 });

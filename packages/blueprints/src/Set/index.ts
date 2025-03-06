@@ -1,4 +1,5 @@
-import { type DRP, SemanticsType } from "@ts-drp/object";
+import { type DRP } from "@ts-drp/object";
+import { SemanticsType } from "@ts-drp/types";
 
 export class SetDRP<T> implements DRP {
 	semanticsType = SemanticsType.pair;

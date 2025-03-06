@@ -1,18 +1,25 @@
 import { MapConflictResolution, MapDRP } from "@ts-drp/blueprints/src/Map/index.js";
 import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
-import { type Vertex, Operation } from "@ts-drp/types";
+import { type Vertex, type Operation, ActionType, SemanticsType } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { ActionType, SemanticsType } from "../src/hashgraph/index.js";
-import { ACLGroup, DRPObject, DrpType, Hash, HashGraph, newVertex } from "../src/index.js";
+import {
+	ACLGroup,
+	type DRP,
+	DRPObject,
+	DrpType,
+	type Hash,
+	HashGraph,
+	newVertex,
+} from "../src/index.js";
 import { ObjectSet } from "../src/utils/objectSet.js";
 
 const acl = new ObjectACL({
 	admins: new Map([
-		["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-		["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
-		["peer3", { ed25519PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
+		["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+		["peer2", { secp256k1PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
+		["peer3", { secp256k1PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
 	]),
 });
 
@@ -56,10 +63,10 @@ describe("HashGraph construction tests", () => {
 	let obj1: DRPObject<SetDRP<number>>;
 	let obj2: DRPObject<SetDRP<number>>;
 	const acl = new ObjectACL({
-		admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
+		admins: new Map([["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
 	});
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 
@@ -209,7 +216,7 @@ describe("HashGraph construction tests", () => {
 	test("Root vertex acl state should not be modified", () => {
 		const acl1 = obj1.acl;
 		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey2",
+			secp256k1PublicKey: "pubKey2",
 			blsPublicKey: "pubKey2",
 		});
 		expect(acl1.query_isWriter("peer2")).toBe(true);
@@ -226,12 +233,12 @@ describe("HashGraph for AddWinSet tests", () => {
 	let obj2: DRPObject<SetDRP<number>>;
 	const acl = new ObjectACL({
 		admins: new Map([
-			["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-			["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
+			["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+			["peer2", { secp256k1PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
 		]),
 	});
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 	});
@@ -452,7 +459,7 @@ describe("HashGraph for undefined operations tests", () => {
 	let obj1: DRPObject<SetDRP<number>>;
 	let obj2: DRPObject<SetDRP<number>>;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 	});
@@ -481,12 +488,12 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 	let obj3: DRPObject<SetDRP<number>>;
 	const acl = new ObjectACL({
 		admins: new Map([
-			["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-			["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
+			["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+			["peer2", { secp256k1PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
 		]),
 	});
 
-	beforeAll(async () => {
+	beforeAll(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl });
@@ -537,7 +544,7 @@ describe("Vertex state tests", () => {
 	let obj2: DRPObject<SetDRP<number>>;
 	let obj3: DRPObject<SetDRP<number>>;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
@@ -632,7 +639,7 @@ describe("Vertex timestamp tests", () => {
 	let obj2: DRPObject<SetDRP<number>>;
 	let obj3: DRPObject<SetDRP<number>>;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
@@ -697,9 +704,9 @@ describe("Writer permission tests", () => {
 	let obj2: DRPObject<SetDRP<number>>;
 	let obj3: DRPObject<SetDRP<number>>;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		const peerIdToPublicKeyMap = new Map([
-			["peer1", { ed25519PublicKey: "publicKey1", blsPublicKey: "" }],
+			["peer1", { secp256k1PublicKey: "publicKey1", blsPublicKey: "" }],
 		]);
 		const acl = new ObjectACL({ admins: peerIdToPublicKeyMap });
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
@@ -738,7 +745,7 @@ describe("Writer permission tests", () => {
 
 		drp1?.add(1);
 		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey2",
+			secp256k1PublicKey: "pubKey2",
 			blsPublicKey: "pubKey2",
 		});
 		expect(acl1.query_isAdmin("peer1")).toBe(true);
@@ -766,11 +773,11 @@ describe("Writer permission tests", () => {
 		const acl1 = obj1.acl;
 
 		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey2",
+			secp256k1PublicKey: "pubKey2",
 			blsPublicKey: "pubKey2",
 		});
 		acl1.grant("peer1", "peer3", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey3",
+			secp256k1PublicKey: "pubKey3",
 			blsPublicKey: "pubKey3",
 		});
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -802,7 +809,7 @@ describe("Writer permission tests", () => {
 		const acl1 = obj1.acl;
 		const newAdminPeer1 = "newAdminPeer1";
 		const newAdmin = {
-			ed25519PublicKey: "newAdmin",
+			secp256k1PublicKey: "newAdmin",
 			blsPublicKey: "newAdmin",
 		};
 		acl1.grant("peer1", "newAdminPeer1", ACLGroup.Admin, newAdmin);
@@ -815,7 +822,7 @@ describe("Writer permission tests", () => {
 		  					\_ V4:ADD(3) (invalid)
 		*/
 		const acl = new ObjectACL({
-			admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
+			admins: new Map([["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
 		});
 		const obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		const obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
@@ -828,7 +835,7 @@ describe("Writer permission tests", () => {
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		drp1?.add(2);
 		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey2",
+			secp256k1PublicKey: "pubKey2",
 			blsPublicKey: "pubKey2",
 		});
 
@@ -851,7 +858,7 @@ describe("HashGraph for set wins map tests", () => {
 	let obj2: DRPObject<MapDRP<string, string>>;
 	let obj3: DRPObject<MapDRP<string, string>>;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
 			acl,
@@ -957,7 +964,7 @@ describe("HashGraph for delete wins map tests", () => {
 	let obj1: DRPObject<MapDRP<string, string>>;
 	let obj2: DRPObject<MapDRP<string, string>>;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
 			acl,
@@ -1085,7 +1092,7 @@ describe("HashGraph hook tests", () => {
 		const drp1 = obj1.drp;
 		const newVertices: Vertex[] = [];
 
-		obj1.subscribe((object, origin, vertices) => {
+		obj1.subscribe((_, origin, vertices) => {
 			if (origin === "callFn") {
 				newVertices.push(...vertices);
 			}
@@ -1102,7 +1109,7 @@ describe("HashGraph hook tests", () => {
 		const drp1 = obj1.drp;
 		const newVertices: Vertex[] = [];
 
-		obj2.subscribe((object, origin, vertices) => {
+		obj2.subscribe((_, origin, vertices) => {
 			if (origin === "merge") {
 				newVertices.push(...vertices);
 			}

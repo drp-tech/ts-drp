@@ -1,9 +1,8 @@
-import { type Vertex } from "@ts-drp/types";
+import { type Vertex, ActionType, SemanticsType } from "@ts-drp/types";
 
-import { ActionType, type ResolveConflictsType, SemanticsType } from "../index.js";
+import { type ResolveConflictsType } from "../index.js";
 import type { DRPPublicCredential } from "../interface.js";
-import type { PeerPermissions } from "./interface.js";
-import { type ACL, ACLConflictResolution, ACLGroup } from "./interface.js";
+import { type ACL, ACLConflictResolution, type PeerPermissions, ACLGroup } from "./interface.js";
 
 export class ObjectACL implements ACL {
 	semanticsType = SemanticsType.pair;

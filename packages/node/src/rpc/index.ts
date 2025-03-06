@@ -5,7 +5,8 @@ import * as reflection from "@grpc/reflection";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { type DRPNode, log } from "../index.js";
+import { type DRPNode } from "../index.js";
+import { log } from "../logger.js";
 import { DrpRpcService } from "../proto/drp/node/v1/rpc_grpc_pb.js";
 import type {
 	AddCustomGroupRequest,
@@ -18,11 +19,11 @@ import type {
 	UnsubscribeDRPRequest,
 } from "../proto/drp/node/v1/rpc_pb.js";
 
-export function init(node: DRPNode) {
+export function init(node: DRPNode, port: number = 6969): void {
 	async function subscribeDRP(
 		call: ServerUnaryCall<SubscribeDRPRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
-	) {
+	): Promise<void> {
 		let returnCode = 0;
 		try {
 			await node.connectObject({
@@ -42,7 +43,7 @@ export function init(node: DRPNode) {
 	function unsubscribeDRP(
 		call: ServerUnaryCall<UnsubscribeDRPRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
-	) {
+	): void {
 		let returnCode = 0;
 		try {
 			node.unsubscribeObject(call.request.drpId);
@@ -60,7 +61,7 @@ export function init(node: DRPNode) {
 	function getDRPHashGraph(
 		call: ServerUnaryCall<GetDRPHashGraphRequest, GetDRPHashGraphResponse>,
 		callback: sendUnaryData<GetDRPHashGraphResponse>
-	) {
+	): void {
 		const hashes: string[] = [];
 		try {
 			const object = node.objectStore.get(call.request.drpId);
@@ -82,7 +83,7 @@ export function init(node: DRPNode) {
 	async function syncDRPObject(
 		call: ServerUnaryCall<SubscribeDRPRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
-	) {
+	): Promise<void> {
 		let returnCode = 0;
 		try {
 			await node.syncObject(call.request.drpId);
@@ -100,7 +101,7 @@ export function init(node: DRPNode) {
 	async function sendCustomMessage(
 		call: ServerUnaryCall<SendCustomMessageRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
-	) {
+	): Promise<void> {
 		let returnCode = 0;
 		try {
 			await node.sendCustomMessage(call.request.peerId, call.request.data);
@@ -118,7 +119,7 @@ export function init(node: DRPNode) {
 	async function sendGroupMessage(
 		call: ServerUnaryCall<SendGroupMessageRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
-	) {
+	): Promise<void> {
 		let returnCode = 0;
 		try {
 			await node.sendGroupMessage(call.request.group, call.request.data);
@@ -136,7 +137,7 @@ export function init(node: DRPNode) {
 	function addCustomGroup(
 		call: ServerUnaryCall<AddCustomGroupRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
-	) {
+	): void {
 		let returnCode = 0;
 		try {
 			node.addCustomGroup(call.request.group);
@@ -160,16 +161,21 @@ export function init(node: DRPNode) {
 
 	const server = new grpc.Server();
 	reflectionService.addToServer(server);
+	// TODO: fix this
 	server.addService(DrpRpcService, {
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		subscribeDRP,
 		unsubscribeDRP,
 		getDRPHashGraph,
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		syncDRPObject,
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		sendCustomMessage,
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		sendGroupMessage,
 		addCustomGroup,
 	});
-	server.bindAsync("0.0.0.0:6969", grpc.ServerCredentials.createInsecure(), (_error, _port) => {
+	server.bindAsync(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure(), (_error, _port) => {
 		log.info("::rpc::init: running grpc in port:", _port);
 	});
 }

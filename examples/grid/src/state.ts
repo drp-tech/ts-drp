@@ -1,7 +1,7 @@
 import { DRPNode } from "@ts-drp/node";
-import { DRPObject } from "@ts-drp/object";
+import { type DRPObject } from "@ts-drp/object";
 
-import { Grid } from "./objects/grid";
+import { type Grid } from "./objects/grid";
 
 interface GridState {
 	node: DRPNode;

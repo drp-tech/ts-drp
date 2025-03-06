@@ -1,6 +1,6 @@
-import { Operation, Vertex } from "@ts-drp/types";
+import { ActionType, type Operation, type Vertex } from "@ts-drp/types";
 
-import { ActionType, type Hash, type HashGraph } from "../hashgraph/index.js";
+import { type Hash, type HashGraph } from "../hashgraph/index.js";
 import type { ObjectSet } from "../utils/objectSet.js";
 
 export function linearizeMultipleSemantics(

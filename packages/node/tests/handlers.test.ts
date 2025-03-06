@@ -3,8 +3,15 @@ import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { DrpType } from "@ts-drp/object";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
-import { AttestationUpdate, Message, Sync, SyncAccept, Update } from "@ts-drp/types";
-import { MessageType } from "@ts-drp/types/src/index.js";
+import {
+	AttestationUpdate,
+	FetchState,
+	Message,
+	Sync,
+	SyncAccept,
+	Update,
+	MessageType,
+} from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test, afterAll, vi } from "vitest";
 
@@ -15,7 +22,7 @@ describe("drpMessagesHandler inputs", () => {
 	let node: DRPNode;
 	const consoleSpy = vi.spyOn(console, "error");
 
-	beforeAll(async () => {
+	beforeAll(() => {
 		node = new DRPNode();
 	});
 
@@ -58,7 +65,7 @@ describe("Handle message correctly", () => {
 	let libp2pNode2: Libp2p;
 	let libp2pNode1: Libp2p;
 
-	const isDialable = async (node: DRPNetworkNode, timeout = false) => {
+	const isDialable = async (node: DRPNetworkNode, timeout = false): Promise<boolean> => {
 		let resolver: (value: boolean) => void;
 		const promise = new Promise<boolean>((resolve) => {
 			resolver = resolve;
@@ -70,12 +77,12 @@ describe("Handle message correctly", () => {
 			}, 10);
 		}
 
-		const callback = () => {
+		const callback = (): void => {
 			resolver(true);
 		};
 
 		await node.isDialable(callback);
-		return await promise;
+		return promise;
 	};
 
 	beforeAll(async () => {
@@ -181,6 +188,26 @@ describe("Handle message correctly", () => {
 		]);
 	});
 
+	test("should handle fetch state", async () => {
+		const message = Message.create({
+			sender: node1.networkNode.peerId,
+			type: MessageType.MESSAGE_TYPE_FETCH_STATE,
+			data: FetchState.encode(
+				FetchState.create({
+					objectId: drpObject.id,
+					vertexHash: drpObject.vertices[0].hash,
+				})
+			).finish(),
+		});
+
+		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+		const drp = node1.objectStore.get(drpObject.id);
+		const drp2 = node2.objectStore.get(drpObject.id);
+		// After fetching the state, the vertices should be the same
+		expect(drp?.vertices.length).toEqual(drp2?.vertices.length);
+	});
+
 	test("should handle sync message correctly", async () => {
 		const node1DrpObject = node1.objectStore.get(drpObject.id);
 		expect(node1DrpObject).toBeDefined();
@@ -236,7 +263,7 @@ describe("Handle message correctly", () => {
 
 	test("should handle update attestation message correctly", async () => {
 		const hash = drpObject.vertices[1].hash;
-		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
+		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
 		const attestations = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
 			return {
 				data: vertex.hash,

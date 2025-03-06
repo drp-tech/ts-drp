@@ -1,20 +1,14 @@
-import type { DRPPublicCredential } from "../interface.js";
-import type { DRP } from "../interface.js";
+import type { DRPPublicCredential, DRP } from "../interface.js";
 
 export interface ACL extends DRP {
 	permissionless: boolean;
-	grant: (
-		senderId: string,
-		peerId: string,
-		group: ACLGroup,
-		publicKey?: DRPPublicCredential
-	) => void;
-	revoke: (senderId: string, peerId: string, group: ACLGroup) => void;
-	query_getFinalitySigners: () => Map<string, DRPPublicCredential>;
-	query_isAdmin: (peerId: string) => boolean;
-	query_isFinalitySigner: (peerId: string) => boolean;
-	query_isWriter: (peerId: string) => boolean;
-	query_getPeerKey: (peerId: string) => DRPPublicCredential | undefined;
+	grant(senderId: string, peerId: string, group: ACLGroup, publicKey?: DRPPublicCredential): void;
+	revoke(senderId: string, peerId: string, group: ACLGroup): void;
+	query_getFinalitySigners(): Map<string, DRPPublicCredential>;
+	query_isAdmin(peerId: string): boolean;
+	query_isFinalitySigner(peerId: string): boolean;
+	query_isWriter(peerId: string): boolean;
+	query_getPeerKey(peerId: string): DRPPublicCredential | undefined;
 }
 
 export enum ACLConflictResolution {

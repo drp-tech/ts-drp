@@ -1,16 +1,14 @@
 import { SetDRP } from "@ts-drp/blueprints/src/index.js";
-import { type Vertex } from "@ts-drp/types";
+import { type Vertex, ActionType, SemanticsType } from "@ts-drp/types";
 import { beforeEach, describe, expect, it, test, vi } from "vitest";
 
-import { SemanticsType } from "../dist/src/hashgraph/index.js";
-import { ActionType } from "../dist/src/hashgraph/index.js";
-import { DRP, DRPObject, ObjectACL, ResolveConflictsType } from "../src/index.js";
+import { type DRP, DRPObject, ObjectACL, type ResolveConflictsType } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: new Map([
-		["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-		["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
-		["peer3", { ed25519PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
+		["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+		["peer2", { secp256k1PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
+		["peer3", { secp256k1PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
 	]),
 });
 
@@ -25,7 +23,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 
 	test("Test creating DRPObject w/ publicCred", () => {
 		const cred = {
-			ed25519PublicKey: "cred",
+			secp256k1PublicKey: "cred",
 			blsPublicKey: "cred",
 		};
 		const obj = new DRPObject({ peerId: "", publicCredential: cred });
@@ -41,7 +39,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 describe("Drp Object should be able to change state value", () => {
 	let drpObject: DRPObject<SetDRP<number>>;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		drpObject = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 	});
 
@@ -85,7 +83,7 @@ describe("Test for duplicate call issue", () => {
 			this._counter = 0;
 		}
 
-		test() {
+		test(): number {
 			this._counter++;
 			counter++;
 			return this._counter;
@@ -100,7 +98,7 @@ describe("Test for duplicate call issue", () => {
 		const obj = new DRPObject({
 			peerId: "",
 			publicCredential: {
-				ed25519PublicKey: "cred",
+				secp256k1PublicKey: "cred",
 				blsPublicKey: "cred",
 			},
 			drp: new CounterDRP(),

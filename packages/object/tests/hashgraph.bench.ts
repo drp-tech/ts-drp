@@ -1,11 +1,10 @@
-import { MapDRP } from "@ts-drp/blueprints/src/index.js";
-import { SetDRP } from "@ts-drp/blueprints/src/index.js";
+import { MapDRP, SetDRP } from "@ts-drp/blueprints/src/index.js";
 import Benchmark from "benchmark";
 
-import { DRPObject, ObjectACL } from "../src/index.js";
+import { type DRP, DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
-	admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
+	admins: new Map([["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
 });
 
 const NUMBER_OF_OPERATIONS = Number.parseInt(process.argv[2], 10) || 1000;
@@ -15,7 +14,7 @@ function benchmarkForAddWinSet(
 	numDRPs: number,
 	verticesPerDRP: number,
 	mergeFn: boolean
-) {
+): Benchmark.Suite {
 	return suite.add(name, () => {
 		const objects: DRPObject<SetDRP<number>>[] = [];
 		for (let i = 0; i < numDRPs; i++) {
@@ -157,8 +156,14 @@ suite.add(
 suite.add(
 	`Create 2 HashGraphs with ${NUMBER_OF_OPERATIONS} operations each for set wins map and merge with random operations`,
 	() => {
+<<<<<<< HEAD
 		function initialize(drp: MapDRP<number, number> | undefined) {
 			if (!drp) return;
+||||||| 0ccd832
+		function initialize(drp: MapDRP<number, number>) {
+=======
+		function initialize(drp: MapDRP<number, number>): void {
+>>>>>>> origin
 			for (let i = 0; i < 250; i += 4) {
 				drp.set(i, i);
 				if (i % 2 === 0) {
