@@ -331,7 +331,7 @@ async function syncAcceptHandler({ node, message, stream }: HandleParams): Promi
 }
 
 /* data: { id: string } */
-function syncRejectHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
+function syncRejectHandler(_handleParams: HandleParams): ReturnType<IHandlerStrategy> {
 	// TODO: handle reject. Possible actions:
 	// - Retry sync
 	// - Ask sync from another peer
