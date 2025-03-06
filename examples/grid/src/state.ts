@@ -1,11 +1,11 @@
 import { DRPNode } from "@ts-drp/node";
-import { type DRPObject } from "@ts-drp/object";
+import { type IDRPObject } from "@ts-drp/types";
 
 import { type Grid } from "./objects/grid";
 
 interface GridState {
 	node: DRPNode;
-	drpObject: DRPObject | undefined;
+	drpObject: IDRPObject | undefined;
 	gridDRP: Grid | undefined;
 	peers: string[];
 	discoveryPeers: string[];

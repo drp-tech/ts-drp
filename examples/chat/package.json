@@ -3,7 +3,7 @@
 	"version": "0.8.5",
 	"license": "MIT",
 	"scripts": {
-		"build": "vite build",
+		"build": "tsc --noEmit && vite build",
 		"clean": "rm -rf dist/ node_modules/",
 		"dev": "vite serve",
 		"start": "vite preview --host --port 5173"

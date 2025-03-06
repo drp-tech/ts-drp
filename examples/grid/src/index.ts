@@ -1,5 +1,6 @@
 import { DRPNode, type DRPNodeConfig } from "@ts-drp/node";
-import { enableTracing, type IMetrics, OpentelemetryMetrics } from "@ts-drp/tracer";
+import { enableTracing, OpentelemetryMetrics } from "@ts-drp/tracer";
+import { type IMetrics } from "@ts-drp/types";
 
 import { env } from "./env";
 import { Grid } from "./objects/grid";
