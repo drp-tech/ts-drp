@@ -21,4 +21,7 @@ export default defineConfig({
 			"@ts-drp": path.resolve(__dirname, "../../packages"),
 		},
 	},
+	test: {
+		exclude: ["**/node_modules", "**/e2e"],
+	},
 });
