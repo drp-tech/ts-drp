@@ -4,6 +4,7 @@
 	"license": "MIT",
 	"scripts": {
 		"build": "vite build",
+		"typecheck": "tsc --noEmit",
 		"clean": "rm -rf dist/ node_modules/",
 		"dev": "vite serve",
 		"start": "vite preview --host --port 5173"

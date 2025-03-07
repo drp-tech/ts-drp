@@ -3,11 +3,11 @@
 	"compilerOptions": {
 		"outDir": "dist"
 	},
-	"references": [
-		{
-			"path": "../object"
-		}
+	"include": [
+		"src/**/*.ts",
+		"tests/**/*.ts"
 	],
-	"include": ["src/**/*.ts"],
-	"exclude": ["src/**/*.asc.ts"]
+	"exclude": [
+		"src/**/*.asc.ts"
+	]
 }

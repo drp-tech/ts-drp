@@ -1,7 +1,12 @@
-import { type DRP, type ResolveConflictsType } from "@ts-drp/object";
-import { ActionType, SemanticsType, type Vertex } from "@ts-drp/types";
+import {
+	type IDRP,
+	type ResolveConflictsType,
+	ActionType,
+	SemanticsType,
+	type Vertex,
+} from "@ts-drp/types";
 
-export class Grid implements DRP {
+export class Grid implements IDRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
 	positions: Map<string, { x: number; y: number }>;
 
