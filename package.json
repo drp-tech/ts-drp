@@ -20,7 +20,7 @@
 		"bench": "vitest bench",
 		"build": "pnpm -r build",
 		"build:examples": "pnpm --filter 'ts-drp-example*' build",
-		"build:packages": "pnpm -r --filter '@ts-drp/*' --with-deps build",
+		"build:packages": "pnpm --filter '@ts-drp/*' build",
 		"clean": "pnpm --filter '@ts-drp/*' clean && rm -r node_modules/ docs/",
 		"cli": "tsx ./packages/node/src/run.ts",
 		"coverage": "pnpm tsx scripts/coverage.ts",
