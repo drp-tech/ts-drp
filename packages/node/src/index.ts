@@ -22,13 +22,14 @@ import { DRPObjectStore } from "./store/index.js";
 
 export { loadConfig };
 
-export class DRPNode {
+export class DRPNode extends EventTarget {
 	config?: DRPNodeConfig;
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
 	keychain: Keychain;
 
 	constructor(config?: DRPNodeConfig) {
+		super();
 		this.config = config;
 		const newLogger = new Logger("drp::node", config?.log_config);
 		log.trace = newLogger.trace;
@@ -154,5 +155,9 @@ export class DRPNode {
 
 	async syncObject(id: string, peerId?: string): Promise<void> {
 		await operations.syncObject(this, id, peerId);
+	}
+
+	emitEvent(event: string, detail: any) {
+		this.dispatchEvent(new CustomEvent(event, { detail }));
 	}
 }
