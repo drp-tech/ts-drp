@@ -1,5 +1,6 @@
 import { DRPNode } from "@ts-drp/node";
 import type { DRPObject } from "@ts-drp/object";
+import { DRP_DISCOVERY_TOPIC } from "@ts-drp/types";
 
 import { Chat } from "./objects/chat";
 
@@ -75,7 +76,7 @@ async function main(): Promise<void> {
 	// generic message handler
 	node.addCustomGroupMessageHandler("", () => {
 		peers = node.networkNode.getAllPeers();
-		discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
+		discoveryPeers = node.networkNode.getGroupPeers(DRP_DISCOVERY_TOPIC);
 		render();
 	});
 

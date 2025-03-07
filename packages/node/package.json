@@ -47,6 +47,8 @@
 		"@libp2p/peer-id": "^5.0.14",
 		"@noble/secp256k1": "^2.2.3",
 		"@ts-drp/blueprints": "0.8.5",
+		"@ts-drp/interval-discovery": "0.8.5",
+		"@ts-drp/interval-runner": "0.8.5",
 		"@ts-drp/keychain": "0.8.5",
 		"@ts-drp/logger": "0.8.5",
 		"@ts-drp/network": "0.8.5",

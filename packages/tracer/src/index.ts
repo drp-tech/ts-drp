@@ -1,4 +1,4 @@
-import { type Span, SpanStatusCode, context, trace } from "@opentelemetry/api";
+import { context, type Span, SpanStatusCode, trace } from "@opentelemetry/api";
 import { AsyncHooksContextManager } from "@opentelemetry/context-async-hooks";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";

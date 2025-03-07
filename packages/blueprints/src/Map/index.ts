@@ -1,9 +1,9 @@
 import {
 	ActionType,
-	SemanticsType,
-	type Vertex,
 	type IDRP,
 	type ResolveConflictsType,
+	SemanticsType,
+	type Vertex,
 } from "@ts-drp/types";
 
 export enum MapConflictResolution {

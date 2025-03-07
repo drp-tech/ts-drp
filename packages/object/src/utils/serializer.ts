@@ -1,4 +1,4 @@
-import { encode, decode, ExtensionCodec } from "@msgpack/msgpack";
+import { decode, encode, ExtensionCodec } from "@msgpack/msgpack";
 import {
 	DRPState,
 	DRPStateEntry,

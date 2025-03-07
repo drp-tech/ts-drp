@@ -1,13 +1,13 @@
-import { type GossipSub, type GossipsubMessage, gossipsub } from "@chainsafe/libp2p-gossipsub";
+import { gossipsub, type GossipSub, type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import {
-	type TopicScoreParams,
 	createPeerScoreParams,
 	createTopicScoreParams,
+	type TopicScoreParams,
 } from "@chainsafe/libp2p-gossipsub/score";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
-import { type BootstrapComponents, bootstrap } from "@libp2p/bootstrap";
+import { bootstrap, type BootstrapComponents } from "@libp2p/bootstrap";
 import { circuitRelayServer, circuitRelayTransport } from "@libp2p/circuit-relay-v2";
 import { privateKeyFromRaw } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
@@ -17,22 +17,29 @@ import type {
 	Address,
 	EventCallback,
 	PeerDiscovery,
+	PeerId,
 	Stream,
 	StreamHandler,
 } from "@libp2p/interface";
+import { peerIdFromString } from "@libp2p/peer-id";
 import { ping } from "@libp2p/ping";
 import {
-	type PubSubPeerDiscoveryComponents,
 	pubsubPeerDiscovery,
+	type PubSubPeerDiscoveryComponents,
 } from "@libp2p/pubsub-peer-discovery";
 import { webRTC } from "@libp2p/webrtc";
 import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
-import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
+import { multiaddr, type MultiaddrInput } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger } from "@ts-drp/logger";
-import { Message, type LoggerOptions } from "@ts-drp/types";
-import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
+import {
+	DRP_DISCOVERY_TOPIC,
+	type DRPNetworkNode as DRPNetworkNodeInterface,
+	type LoggerOptions,
+	Message,
+} from "@ts-drp/types";
+import { createLibp2p, type Libp2p, type ServiceFactoryMap } from "libp2p";
 
 import { uint8ArrayToStream } from "./stream.js";
 
@@ -62,7 +69,7 @@ type PeerDiscoveryFunction =
 	| ((components: PubSubPeerDiscoveryComponents) => PeerDiscovery)
 	| ((components: BootstrapComponents) => PeerDiscovery);
 
-export class DRPNetworkNode {
+export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: GossipSub;
@@ -88,7 +95,7 @@ export class DRPNetworkNode {
 
 		const _peerDiscovery: Array<PeerDiscoveryFunction> = [
 			pubsubPeerDiscovery({
-				topics: ["drp::discovery"],
+				topics: [DRP_DISCOVERY_TOPIC],
 				interval: this._config?.pubsub?.peer_discovery_interval || 5000,
 			}),
 		];
@@ -124,7 +131,7 @@ export class DRPNetworkNode {
 						return 0;
 					},
 					topics: {
-						"drp::discovery": createTopicScoreParams({
+						[DRP_DISCOVERY_TOPIC]: createTopicScoreParams({
 							topicWeight: 1,
 						}),
 					},
@@ -231,7 +238,7 @@ export class DRPNetworkNode {
 		);
 
 		// needded as I've disabled the pubsubPeerDiscovery
-		this._pubsub?.subscribe("drp::discovery");
+		this._pubsub?.subscribe(DRP_DISCOVERY_TOPIC);
 	}
 
 	async stop(): Promise<void> {
@@ -317,9 +324,10 @@ export class DRPNetworkNode {
 		}
 	}
 
-	async connect(addr: MultiaddrInput): Promise<void> {
+	async connect(addr: MultiaddrInput | MultiaddrInput[]): Promise<void> {
 		try {
-			await this._node?.dial([multiaddr(addr)]);
+			const multiaddrs = Array.isArray(addr) ? addr.map(multiaddr) : [multiaddr(addr)];
+			await this._node?.dial(multiaddrs);
 			log.info("::connect: Successfuly dialed", addr);
 		} catch (e) {
 			log.error("::connect:", e);
@@ -333,6 +341,14 @@ export class DRPNetworkNode {
 		} catch (e) {
 			log.error("::disconnect:", e);
 		}
+	}
+
+	async getPeerMultiaddrs(peerId: PeerId | string): Promise<Address[]> {
+		const peerIdObj: PeerId = typeof peerId === "string" ? peerIdFromString(peerId) : peerId;
+
+		const peer = await this._node?.peerStore.get(peerIdObj);
+		if (!peer) return [];
+		return peer.addresses;
 	}
 
 	getBootstrapNodes(): string[] {

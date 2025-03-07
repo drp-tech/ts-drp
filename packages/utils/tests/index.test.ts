@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { isPromise, isGenerator, isAsyncGenerator } from "../src/index.js";
+import { isAsyncGenerator, isGenerator, isPromise } from "../src/index.js";
 
 describe("utils", () => {
 	describe("isPromise", () => {

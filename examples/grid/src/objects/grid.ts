@@ -1,7 +1,7 @@
 import {
+	ActionType,
 	type IDRP,
 	type ResolveConflictsType,
-	ActionType,
 	SemanticsType,
 	type Vertex,
 } from "@ts-drp/types";

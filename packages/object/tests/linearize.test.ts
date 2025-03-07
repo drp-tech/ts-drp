@@ -1,5 +1,5 @@
-import { type Vertex, ActionType, DrpType, SemanticsType } from "@ts-drp/types";
-import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
+import { ActionType, DrpType, SemanticsType, type Vertex } from "@ts-drp/types";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { HashGraph, newVertex } from "../src/index.js";
 import { linearizeMultipleSemantics } from "../src/linearize/multipleSemantics.js";

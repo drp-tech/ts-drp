@@ -1,3 +1,5 @@
+import { DRP_DISCOVERY_TOPIC } from "@ts-drp/types";
+
 import { gridState } from "./state";
 import { getColorForPeerId, hexToRgba } from "./util/color";
 
@@ -52,7 +54,7 @@ function renderClickablePeerList(
 let isDiscoveryPeersOpen = false;
 
 const renderDiscoveryPeers = (): void => {
-	gridState.discoveryPeers = gridState.node.networkNode.getGroupPeers("drp::discovery");
+	gridState.discoveryPeers = gridState.node.networkNode.getGroupPeers(DRP_DISCOVERY_TOPIC);
 
 	renderClickablePeerList(gridState.discoveryPeers, isDiscoveryPeersOpen, "discoveryPeers", () => {
 		isDiscoveryPeersOpen = !isDiscoveryPeersOpen;

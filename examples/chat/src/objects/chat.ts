@@ -1,4 +1,4 @@
-import { type IDRP, type ResolveConflictsType, ActionType, SemanticsType } from "@ts-drp/types";
+import { ActionType, type IDRP, type ResolveConflictsType, SemanticsType } from "@ts-drp/types";
 
 export class Chat implements IDRP {
 	semanticsType: SemanticsType = SemanticsType.pair;

@@ -1,21 +1,21 @@
 import { Logger } from "@ts-drp/logger";
 import {
-	type IDRP,
+	type ConnectObjectOptions,
+	type DRPObjectBase,
 	type DRPObjectCallback,
+	type DRPPublicCredential,
 	DRPState,
 	DRPStateEntry,
-	type Vertex,
-	type IACL,
-	type DRPPublicCredential,
 	DrpType,
-	type ConnectObjectOptions,
-	type LcaAndOperations,
-	type IMetrics,
-	type IDRPObject,
 	type Hash,
+	type IACL,
+	type IDRP,
+	type IDRPObject,
+	type IMetrics,
+	type LcaAndOperations,
 	type LoggerOptions,
-	type DRPObjectBase,
 	type Operation,
+	type Vertex,
 } from "@ts-drp/types";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";

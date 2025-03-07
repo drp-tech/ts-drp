@@ -1,10 +1,10 @@
 import { SetDRP } from "@ts-drp/blueprints";
 import {
-	type IDRP,
-	type Vertex,
 	ActionType,
-	SemanticsType,
+	type IDRP,
 	type ResolveConflictsType,
+	SemanticsType,
+	type Vertex,
 } from "@ts-drp/types";
 import { beforeEach, describe, expect, it, test, vi } from "vitest";
 

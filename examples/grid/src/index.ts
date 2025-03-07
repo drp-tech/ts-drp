@@ -4,7 +4,7 @@ import { type DRPNodeConfig, type IMetrics } from "@ts-drp/types";
 
 import { env } from "./env";
 import { Grid } from "./objects/grid";
-import { render, enableUIControls, renderInfo } from "./render";
+import { enableUIControls, render, renderInfo } from "./render";
 import { gridState } from "./state";
 import { getColorForPeerId } from "./util/color";
 

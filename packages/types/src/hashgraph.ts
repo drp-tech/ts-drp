@@ -1,5 +1,5 @@
 import { type IBitSet } from "./bitset.js";
-import { type Vertex, type Vertex_Operation as Operation } from "./proto/drp/v1/object_pb.js";
+import { type Vertex_Operation as Operation, type Vertex } from "./proto/drp/v1/object_pb.js";
 
 export type Hash = string;
 

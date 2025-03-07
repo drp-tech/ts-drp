@@ -2,23 +2,24 @@ import { publicKeyFromRaw } from "@libp2p/crypto/keys";
 import type { Stream } from "@libp2p/interface";
 import { peerIdFromPublicKey } from "@libp2p/peer-id";
 import { Signature } from "@noble/secp256k1";
+import { DRPIntervalDiscovery } from "@ts-drp/interval-discovery";
 import { streamToUint8Array } from "@ts-drp/network";
-import { HashGraph, deserializeDRPState, serializeDRPState } from "@ts-drp/object";
+import { deserializeDRPState, HashGraph, serializeDRPState } from "@ts-drp/object";
 import {
+	type AggregatedAttestation,
+	type Attestation,
 	AttestationUpdate,
 	type DRPState,
 	FetchState,
 	FetchStateResponse,
+	type IACL,
+	type IDRPObject,
 	Message,
 	MessageType,
 	Sync,
 	SyncAccept,
 	Update,
-	type IDRPObject,
-	type IACL,
 	type Vertex,
-	type AggregatedAttestation,
-	type Attestation,
 } from "@ts-drp/types";
 import { isPromise } from "@ts-drp/utils";
 import * as crypto from "crypto";
@@ -45,6 +46,9 @@ const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
 	[MessageType.MESSAGE_TYPE_SYNC_ACCEPT]: syncAcceptHandler,
 	[MessageType.MESSAGE_TYPE_SYNC_REJECT]: syncRejectHandler,
 	[MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE]: attestationUpdateHandler,
+	[MessageType.MESSAGE_TYPE_DRP_DISCOVERY]: drpDiscoveryHandler,
+	[MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE]: ({ node, message }) =>
+		node.handleDiscoveryResponse(message.sender, message.data),
 	[MessageType.MESSAGE_TYPE_CUSTOM]: undefined,
 	[MessageType.UNRECOGNIZED]: undefined,
 };
@@ -333,6 +337,10 @@ async function syncAcceptHandler({ node, message, stream }: HandleParams): Promi
 	node.networkNode.sendMessage(sender, messageSyncAccept).catch((e) => {
 		log.error("::syncAcceptHandler: Error sending message", e);
 	});
+}
+
+async function drpDiscoveryHandler({ node, message }: HandleParams): Promise<void> {
+	await DRPIntervalDiscovery.handleDiscoveryRequest(message.sender, message.data, node.networkNode);
 }
 
 /* data: { id: string } */

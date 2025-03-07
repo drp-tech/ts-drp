@@ -1,11 +1,11 @@
 import { bls } from "@chainsafe/bls/herumi";
 import { Logger } from "@ts-drp/logger";
 import {
+	type AggregatedAttestation,
+	type Attestation,
 	type DRPPublicCredential,
 	type Hash,
 	type LoggerOptions,
-	type AggregatedAttestation,
-	type Attestation,
 } from "@ts-drp/types";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 

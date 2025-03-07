@@ -1,5 +1,5 @@
 import * as grpc from "@grpc/grpc-js";
-import type { ServerUnaryCall, sendUnaryData } from "@grpc/grpc-js";
+import type { sendUnaryData, ServerUnaryCall } from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
 import * as reflection from "@grpc/reflection";
 import path, { dirname } from "node:path";

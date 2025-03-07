@@ -1,4 +1,4 @@
-import { SemanticsType, type IDRP } from "@ts-drp/types";
+import { type IDRP, SemanticsType } from "@ts-drp/types";
 
 export class SetDRP<T> implements IDRP {
 	semanticsType = SemanticsType.pair;
