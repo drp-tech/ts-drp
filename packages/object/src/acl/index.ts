@@ -147,6 +147,9 @@ export class ObjectACL implements IACL {
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		if (!vertices[0].operation || !vertices[1].operation) return { action: ActionType.Nop };
+		if (vertices[0].operation.opType === "setKey" || vertices[1].operation.opType === "setKey") {
+			return { action: ActionType.Nop };
+		}
 		if (
 			vertices[0].operation.opType === vertices[1].operation.opType ||
 			vertices[0].operation.value[0] !== vertices[1].operation.value[0]
