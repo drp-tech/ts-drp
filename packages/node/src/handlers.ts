@@ -4,7 +4,7 @@ import { peerIdFromPublicKey } from "@libp2p/peer-id";
 import { Signature } from "@noble/secp256k1";
 import { DRPIntervalDiscovery } from "@ts-drp/interval-discovery";
 import { streamToUint8Array } from "@ts-drp/network";
-import { HashGraph } from "@ts-drp/object";
+import { deserializeDRPState, HashGraph, serializeDRPState } from "@ts-drp/object";
 import {
 	type AggregatedAttestation,
 	type Attestation,
@@ -26,7 +26,6 @@ import * as crypto from "crypto";
 
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
-import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
 
 interface HandleParams {
 	node: DRPNode;
@@ -104,8 +103,8 @@ function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandler
 	const response = FetchStateResponse.create({
 		objectId: fetchState.objectId,
 		vertexHash: fetchState.vertexHash,
-		aclState: serializeStateMessage(aclState),
-		drpState: serializeStateMessage(drpState),
+		aclState: serializeDRPState(aclState),
+		drpState: serializeDRPState(drpState),
 	});
 
 	const messageFetchStateResponse = Message.create({
@@ -134,8 +133,8 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 		return;
 	}
 
-	const aclState = deserializeStateMessage(fetchStateResponse.aclState);
-	const drpState = deserializeStateMessage(fetchStateResponse.drpState);
+	const aclState = deserializeDRPState(fetchStateResponse.aclState);
+	const drpState = deserializeDRPState(fetchStateResponse.drpState);
 	if (fetchStateResponse.vertexHash === HashGraph.rootHash) {
 		const state = aclState;
 		object.aclStates.set(fetchStateResponse.vertexHash, state);

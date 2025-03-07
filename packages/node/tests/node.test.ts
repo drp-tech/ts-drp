@@ -2,7 +2,7 @@ import { bls } from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
 import { Logger } from "@ts-drp/logger";
 import { DRPObject, ObjectACL } from "@ts-drp/object";
-import { ACLGroup, type DRP, DrpType, type Vertex } from "@ts-drp/types";
+import { ACLGroup, DrpType, type IDRP, type Vertex } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
@@ -222,7 +222,7 @@ describe("DRPNode voting tests", () => {
 });
 
 describe("DRPNode with rpc", () => {
-	let drp: DRP;
+	let drp: IDRP;
 	let drpNode: DRPNode;
 	let drpObject: DRPObject;
 	let mockLogger: Logger;

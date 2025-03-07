@@ -1,6 +1,8 @@
+import { type DRPNodeConfig } from "@ts-drp/types";
+
 import { program } from "./cli/index.js";
 import { loadConfig } from "./config.js";
-import { DRPNode, type DRPNodeConfig } from "./index.js";
+import { DRPNode } from "./index.js";
 import { init as rpc_init } from "./rpc/index.js";
 
 export const run = async (port: number = 6969): Promise<void> => {

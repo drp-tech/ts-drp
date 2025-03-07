@@ -1,7 +1,8 @@
-import { MapDRP, SetDRP } from "@ts-drp/blueprints/src/index.js";
+import { MapDRP, SetDRP } from "@ts-drp/blueprints";
+import { type IDRP } from "@ts-drp/types";
 import Benchmark from "benchmark";
 
-import { type DRP, DRPObject, ObjectACL } from "../src/index.js";
+import { DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: new Map([["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
@@ -71,7 +72,7 @@ suite.add("Create a HashGraph with 1000 operations for set wins map", () => {
 		acl,
 		drp: new MapDRP<number, number>(),
 	});
-	const drp = object.drp as DRP as MapDRP<number, number>;
+	const drp = object.drp as IDRP as MapDRP<number, number>;
 	for (let i = 0; i < 1000; ++i) {
 		drp.set(i, i);
 	}
@@ -83,7 +84,7 @@ suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wi
 		acl,
 		drp: new MapDRP<number, number>(),
 	});
-	const drp = object.drp as DRP as MapDRP<number, number>;
+	const drp = object.drp as IDRP as MapDRP<number, number>;
 	for (let i = 0; i < NUMBER_OF_OPERATIONS; ++i) {
 		drp.set(i, i);
 	}
@@ -97,7 +98,7 @@ suite.add(
 			acl,
 			drp: new MapDRP<number, number>(),
 		});
-		const drp = object.drp as DRP as MapDRP<number, number>;
+		const drp = object.drp as IDRP as MapDRP<number, number>;
 		for (let i = 0; i < NUMBER_OF_OPERATIONS; ++i) {
 			drp.set(i, i);
 		}
@@ -115,7 +116,7 @@ suite.add(
 			acl,
 			drp: new MapDRP<number, number>(),
 		});
-		const drp = object.drp as DRP as MapDRP<number, number>;
+		const drp = object.drp as IDRP as MapDRP<number, number>;
 		for (let i = 0; i < NUMBER_OF_OPERATIONS; ++i) {
 			drp.set(i, i);
 		}
@@ -134,7 +135,7 @@ suite.add(
 			acl,
 			drp: new MapDRP<number, number>(),
 		});
-		const drp = object.drp as DRP as MapDRP<number, number>;
+		const drp = object.drp as IDRP as MapDRP<number, number>;
 		for (let i = 0; i < 250; i += 4) {
 			drp.set(i, i);
 			if (i % 2 === 0) {
@@ -179,7 +180,7 @@ suite.add(
 			acl,
 			drp: new MapDRP<number, number>(),
 		});
-		const drp1 = object1.drp as DRP as MapDRP<number, number>;
+		const drp1 = object1.drp as IDRP as MapDRP<number, number>;
 		initialize(drp1);
 
 		const object2: DRPObject = new DRPObject({
@@ -187,7 +188,7 @@ suite.add(
 			acl,
 			drp: new MapDRP<number, number>(),
 		});
-		const drp2 = object2.drp as DRP as MapDRP<number, number>;
+		const drp2 = object2.drp as IDRP as MapDRP<number, number>;
 		initialize(drp2);
 
 		object1.merge(object2.hashGraph.getAllVertices());

@@ -1,36 +1,30 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
 import { createDRPDiscovery } from "@ts-drp/interval-discovery";
-import { Keychain, type KeychainConfig } from "@ts-drp/keychain";
+import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
-import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
+import { DRPNetworkNode } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
 import {
 	DRP_DISCOVERY_TOPIC,
 	DRPDiscoveryResponse,
-	type DRPIntervalDiscoveryOptions,
+	type DRPNodeConfig,
 	type IACL,
 	type IDRP,
 	type IDRPObject,
 	type IMetrics,
 	type IntervalRunnerMap,
-	type LoggerOptions,
 	Message,
 	MessageType,
 } from "@ts-drp/types";
 
+import { loadConfig } from "./config.js";
 import { drpMessagesHandler } from "./handlers.js";
 import { log } from "./logger.js";
 import * as operations from "./operations.js";
 import { DRPObjectStore } from "./store/index.js";
 
-// snake_casing to match the JSON config
-export interface DRPNodeConfig {
-	log_config?: LoggerOptions;
-	network_config?: DRPNetworkNodeConfig;
-	keychain_config?: KeychainConfig;
-	interval_discovery_options?: Omit<DRPIntervalDiscoveryOptions, "id" | "networkNode">;
-}
+export { loadConfig };
 
 export class DRPNode {
 	config: DRPNodeConfig;

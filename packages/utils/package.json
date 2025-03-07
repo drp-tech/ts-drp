@@ -21,12 +21,13 @@
 		}
 	},
 	"scripts": {
-		"build": "tsc -b",
+		"build": "tsc -b tsconfig.build.json",
 		"clean": "rm -rf dist/ node_modules/",
 		"cli": "tsx ./src/run.ts",
 		"prebuild": "node -p \"'export const VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
 		"prepack": "tsc -b",
 		"test": "vitest",
+		"typecheck": "tsc --noEmit",
 		"watch": "tsc -b -w"
 	}
 }

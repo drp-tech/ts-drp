@@ -18,7 +18,7 @@
 	"type": "module",
 	"scripts": {
 		"bench": "vitest bench",
-		"build": "pnpm build:packages && pnpm build:examples",
+		"build": "pnpm -r build",
 		"build:examples": "pnpm --filter 'ts-drp-example*' build",
 		"build:packages": "pnpm --filter '@ts-drp/*' build",
 		"clean": "pnpm --filter '@ts-drp/*' clean && rm -r node_modules/ docs/",
@@ -34,6 +34,7 @@
 		"proto-gen:types": "buf generate packages/types/src/proto -o packages/types/src/proto",
 		"release": "release-it",
 		"test": "vitest",
+		"typecheck": "pnpm --parallel typecheck",
 		"watch": "pnpm --parallel --filter '@ts-drp/*' watch"
 	},
 	"dependencies": {
@@ -45,7 +46,7 @@
 		"@playwright/test": "^1.49.1",
 		"@release-it-plugins/workspaces": "^4.2.0",
 		"@typescript-eslint/parser": "^8.21.0",
-		"@vitest/coverage-v8": "3.0.5",
+		"@vitest/coverage-v8": "^3.0.5",
 		"assemblyscript": "^0.27.29",
 		"eslint": "^9.19.0",
 		"eslint-config-prettier": "^10.0.1",
