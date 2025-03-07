@@ -68,7 +68,7 @@ export class HashGraphVizualizer {
 			if (!node) continue;
 			result.push(node);
 			graph.get(node)?.forEach((neighbor) => {
-				inDegree.set(neighbor, (inDegree.get(neighbor) ?? 0) - 1);
+				inDegree.set(neighbor, (inDegree.get(neighbor) || 0) - 1);
 				if (inDegree.get(neighbor) === 0) queue.push(neighbor);
 			});
 
@@ -106,7 +106,7 @@ export class HashGraphVizualizer {
 		sortedNodes.forEach((node) => {
 			const deps = dependencies.get(node) || [];
 			if (deps.length > 0) {
-				const maxDepLayer = Math.max(...deps.map((dep) => layers.get(dep) ?? 0));
+				const maxDepLayer = Math.max(...deps.map((dep) => layers.get(dep) || 0));
 				layers.set(node, maxDepLayer + 1);
 			}
 		});

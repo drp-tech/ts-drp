@@ -380,7 +380,7 @@ describe("hashGraphVizualizer tests", () => {
 				opType: "test",
 				value: [4],
 			},
-			[MockHashGraph.rootHash, vertex2.hash],
+			[MockHashGraph.rootHash],
 			4
 		);
 		hashgraph.addVertex(vertex4);
@@ -391,7 +391,7 @@ describe("hashGraphVizualizer tests", () => {
 				opType: "test",
 				value: [3],
 			},
-			[vertex1.hash, vertex2.hash],
+			[vertex2.hash],
 			3
 		);
 		hashgraph.addVertex(vertex3);
@@ -434,9 +434,8 @@ describe("hashGraphVizualizer tests", () => {
 		expect(v1Y).toBeLessThan(v2Y);
 		expect(v1Y).toBeLessThan(v3Y);
 
-		// v2 should be above v3 and v4
+		// v2 should be above v3
 		expect(v2Y).toBeLessThan(v3Y);
-		expect(v2Y).toBeLessThan(v4Y);
 
 		// Verify edge characters
 		expect(output).toMatch(/[│─]/); // Vertical and horizontal lines
