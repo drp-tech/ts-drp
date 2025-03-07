@@ -260,10 +260,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 
 		// Validate writer permission
-		if (
-			vertex.operation?.drpType !== DrpType.ACL &&
-			!this._checkWriterPermission(vertex.peerId, vertex.dependencies)
-		) {
+		if (this._checkWriterPermission(vertex.peerId, vertex.dependencies)) {
 			throw new Error(`Vertex ${vertex.peerId} does not have write permission.`);
 		}
 	}
