@@ -1,7 +1,7 @@
 import { type GossipSub, type MeshPeer } from "@chainsafe/libp2p-gossipsub";
 import { MapDRP } from "@ts-drp/blueprints";
-import { DRPNode, type DRPNodeConfig } from "@ts-drp/node";
-import { DRP_DISCOVERY_TOPIC } from "@ts-drp/types";
+import { DRPNode } from "@ts-drp/node";
+import { DRP_DISCOVERY_TOPIC, type DRPNodeConfig } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -151,13 +151,24 @@ describe("Heartbeat integration test", () => {
 		});
 
 		vi.advanceTimersByTime(1000);
-
-		const loggerInstance = node1["_intervals"].get(id)?.["_logger"];
-
-		vi.advanceTimersByTime(1000);
 		await new Promise(process.nextTick);
 		vi.advanceTimersByTime(1000);
-		expect(loggerInstance.error).toHaveBeenCalledWith("No peers found after 1000ms of searching");
+
+		// Access internal logger safely with proper type assertion
+		const interval = node1["_intervals"].get(id);
+		type LoggerType = { error(message: string): void };
+
+		// First cast to unknown, then to the specific type
+		const loggerInstance = interval
+			? (interval as unknown as { _logger: LoggerType })["_logger"]
+			: undefined;
+
+		if (loggerInstance) {
+			expect(loggerInstance.error).toHaveBeenCalledWith("No peers found after 1000ms of searching");
+		} else {
+			throw new Error("Logger instance should not be null");
+		}
+
 		vi.useRealTimers();
 	});
 });
