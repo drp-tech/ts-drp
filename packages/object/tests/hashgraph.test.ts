@@ -686,7 +686,7 @@ describe("Vertex timestamp tests", () => {
 	});
 });
 
-describe("Writer permission tests", () => {
+describe("Hashgraph for SetDRP and ACL tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 	let obj3: DRPObject;
@@ -818,6 +818,42 @@ describe("Writer permission tests", () => {
 
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		expect(drp1.query_has(3)).toBe(false);
+	});
+
+	test("Should update key in the ACL", () => {
+		const acl1 = obj1.acl as ObjectACL;
+		acl1.setKey("peer1", "peer1", {
+			secp256k1PublicKey: "secp256k1PublicKey1",
+			blsPublicKey: "blsPublicKey1",
+		});
+
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		const acl2 = obj2.acl as ObjectACL;
+		expect(acl2.query_getPeerKey("peer1")).toStrictEqual({
+			secp256k1PublicKey: "secp256k1PublicKey1",
+			blsPublicKey: "blsPublicKey1",
+		});
+
+		const acl3 = obj3.acl as ObjectACL;
+		acl3.setKey("peer3", "peer3", {
+			secp256k1PublicKey: "secp256k1PublicKey3",
+			blsPublicKey: "blsPublicKey3",
+		});
+		acl2.setKey("peer2", "peer2", {
+			secp256k1PublicKey: "secp256k1PublicKey2",
+			blsPublicKey: "blsPublicKey2",
+		});
+
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		obj1.merge(obj3.hashGraph.getAllVertices());
+		expect(acl1.query_getPeerKey("peer2")).toStrictEqual({
+			secp256k1PublicKey: "secp256k1PublicKey2",
+			blsPublicKey: "blsPublicKey2",
+		});
+		expect(acl1.query_getPeerKey("peer3")).toStrictEqual({
+			secp256k1PublicKey: "secp256k1PublicKey3",
+			blsPublicKey: "blsPublicKey3",
+		});
 	});
 });
 
