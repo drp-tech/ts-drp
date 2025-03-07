@@ -1,4 +1,10 @@
 import { encode, decode, ExtensionCodec } from "@msgpack/msgpack";
+import {
+	DRPState,
+	DRPStateEntry,
+	DRPStateEntryOtherTheWire,
+	DRPStateOtherTheWire,
+} from "@ts-drp/types";
 
 const extensionCodec = new ExtensionCodec();
 
@@ -65,4 +71,29 @@ export function serializeValue(obj: unknown): Uint8Array {
  */
 export function deserializeValue(value: Uint8Array): unknown {
 	return decode(value, { extensionCodec });
+}
+
+export function serializeDRPState(state?: DRPState): DRPStateOtherTheWire {
+	const drpState = DRPStateOtherTheWire.create();
+	for (const e of state?.state ?? []) {
+		const entry = DRPStateEntryOtherTheWire.create({
+			key: e.key,
+			data: serializeValue(e.value),
+		});
+		drpState.state.push(entry);
+	}
+	return drpState;
+}
+
+export function deserializeDRPState(state?: DRPStateOtherTheWire): DRPState {
+	const drpState = DRPState.create();
+
+	for (const e of state?.state ?? []) {
+		const entry = DRPStateEntry.create({
+			key: e.key,
+			value: deserializeValue(e.data),
+		});
+		drpState.state.push(entry);
+	}
+	return drpState;
 }

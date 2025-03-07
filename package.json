@@ -18,9 +18,9 @@
 	"type": "module",
 	"scripts": {
 		"bench": "vitest bench",
-		"build": "pnpm build:packages && pnpm build:examples",
+		"build": "pnpm -r build",
 		"build:examples": "pnpm --filter 'ts-drp-example*' build",
-		"build:packages": "pnpm --filter '@ts-drp/*' build",
+		"build:packages": "pnpm -r --filter '@ts-drp/*' --with-deps build",
 		"clean": "pnpm --filter '@ts-drp/*' clean && rm -r node_modules/ docs/",
 		"cli": "tsx ./packages/node/src/run.ts",
 		"coverage": "pnpm tsx scripts/coverage.ts",
