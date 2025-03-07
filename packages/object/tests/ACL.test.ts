@@ -32,6 +32,26 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 		expect(acl.query_isAdmin(newAdmin)).toBe(true);
 	});
 
+	test("Nodes should not able to setKey for another node", () => {
+		expect(() => {
+			acl.setKey("peer1", "peer2", {
+				secp256k1PublicKey: "secp256k1PublicKey1",
+				blsPublicKey: "blsPublicKey1",
+			});
+		}).toThrowError("Cannot set key for another peer.");
+	});
+
+	test("Nodes should be able to setKey for themselves", () => {
+		acl.setKey("peer1", "peer1", {
+			secp256k1PublicKey: "secp256k1PublicKey1",
+			blsPublicKey: "blsPublicKey1",
+		});
+		expect(acl.query_getPeerKey("peer1")).toStrictEqual({
+			secp256k1PublicKey: "secp256k1PublicKey1",
+			blsPublicKey: "blsPublicKey1",
+		});
+	});
+
 	test("Should grant finality permission to a new finality", () => {
 		const newFinality = "newFinality";
 		acl.grant("peer1", newFinality, ACLGroup.Finality);
