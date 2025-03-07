@@ -1,22 +1,22 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
 import { createDRPDiscovery } from "@ts-drp/interval-discovery";
-import { type KeychainConfig, Keychain } from "@ts-drp/keychain";
+import { Keychain, type KeychainConfig } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
 import {
 	DRP_DISCOVERY_TOPIC,
-	type DRPIntervalDiscoveryOptions,
 	DRPDiscoveryResponse,
-	type IntervalRunnerMap,
-	type IMetrics,
-	Message,
-	MessageType,
+	type DRPIntervalDiscoveryOptions,
 	type IACL,
 	type IDRP,
-	type LoggerOptions,
 	type IDRPObject,
+	type IMetrics,
+	type IntervalRunnerMap,
+	type LoggerOptions,
+	Message,
+	MessageType,
 } from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";

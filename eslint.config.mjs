@@ -5,7 +5,7 @@ import prettier from "eslint-plugin-prettier";
 import unusedImports from "eslint-plugin-unused-imports";
 import vitest from "eslint-plugin-vitest";
 import globals from "globals";
-import { config as tsLintConfig, configs, plugin } from "typescript-eslint";
+import { configs, plugin, config as tsLintConfig } from "typescript-eslint";
 
 /** @type {import("typescript-eslint").ConfigArray} */
 const config = tsLintConfig(
@@ -106,12 +106,16 @@ const config = tsLintConfig(
 					},
 				},
 			],
-			"import/no-unresolved": [
+			"sort-imports": [
 				"error",
 				{
-					ignore: ["@libp2p/bootstrap", "@libp2p/pubsub-peer-discovery"],
+					ignoreCase: true,
+					ignoreDeclarationSort: true, // Keep `import/order` sorting statements
+					ignoreMemberSort: false, // Enforce sorting within named imports
+					allowSeparatedGroups: true,
 				},
 			],
+			"import/no-unresolved": ["error", { ignore: ["@libp2p/pubsub-peer-discovery"] }],
 			"import/no-cycle": "error",
 			"import/no-self-import": "error",
 			"import/no-duplicates": "error",

@@ -1,5 +1,5 @@
 import { SetDRP } from "@ts-drp/blueprints/src/index.js";
-import { type Vertex, ActionType, SemanticsType } from "@ts-drp/types";
+import { ActionType, SemanticsType, type Vertex } from "@ts-drp/types";
 import { beforeEach, describe, expect, it, test, vi } from "vitest";
 
 import { type DRP, DRPObject, ObjectACL, type ResolveConflictsType } from "../src/index.js";

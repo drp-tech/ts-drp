@@ -1,14 +1,14 @@
 import { IntervalRunner } from "@ts-drp/interval-runner";
 import { Logger } from "@ts-drp/logger";
 import {
-	type DRPIntervalDiscoveryOptions,
-	type IDRPIntervalDiscovery,
-	type DRPNetworkNode,
-	MessageType,
+	DRP_DISCOVERY_TOPIC,
 	DRPDiscovery as DRPDiscoveryRequest,
 	DRPDiscoveryResponse,
+	type DRPIntervalDiscoveryOptions,
+	type DRPNetworkNode,
+	type IDRPIntervalDiscovery,
 	Message,
-	DRP_DISCOVERY_TOPIC,
+	MessageType,
 	type SubscriberInfo,
 } from "@ts-drp/types";
 

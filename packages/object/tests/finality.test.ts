@@ -1,7 +1,7 @@
 import { bls } from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints/src/index.js";
 import { Keychain } from "@ts-drp/keychain/src/keychain.js";
-import { type Attestation, type AggregatedAttestation } from "@ts-drp/types";
+import { type AggregatedAttestation, type Attestation } from "@ts-drp/types";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { beforeEach, describe, expect, test } from "vitest";
 

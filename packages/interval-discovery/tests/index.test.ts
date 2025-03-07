@@ -3,7 +3,7 @@ import { MapDRP } from "@ts-drp/blueprints";
 import { DRPNode, type DRPNodeConfig } from "@ts-drp/node";
 import { DRP_DISCOVERY_TOPIC } from "@ts-drp/types";
 import { raceEvent } from "race-event";
-import { expect, describe, test, afterEach, beforeEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 describe("Heartbeat integration test", () => {
 	let node1: DRPNode;

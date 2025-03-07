@@ -6,20 +6,20 @@ import { DRPIntervalDiscovery } from "@ts-drp/interval-discovery";
 import { streamToUint8Array } from "@ts-drp/network";
 import { HashGraph } from "@ts-drp/object";
 import {
+	type AggregatedAttestation,
+	type Attestation,
 	AttestationUpdate,
 	type DRPState,
 	FetchState,
 	FetchStateResponse,
+	type IACL,
+	type IDRPObject,
 	Message,
 	MessageType,
 	Sync,
 	SyncAccept,
 	Update,
-	type IDRPObject,
-	type IACL,
 	type Vertex,
-	type AggregatedAttestation,
-	type Attestation,
 } from "@ts-drp/types";
 import { isPromise } from "@ts-drp/utils";
 import * as crypto from "crypto";
