@@ -1,7 +1,6 @@
+import type { DRPNodeConfig } from "@ts-drp/types";
 import * as dotenv from "dotenv";
 import fs from "node:fs";
-
-import type { DRPNodeConfig } from "./index.js";
 
 export function loadConfig(configPath?: string | undefined): DRPNodeConfig | undefined {
 	let config: DRPNodeConfig | undefined;

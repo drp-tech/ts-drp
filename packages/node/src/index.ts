@@ -1,16 +1,16 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
-import { type KeychainConfig, Keychain } from "@ts-drp/keychain";
+import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
-import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
+import { DRPNetworkNode } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
 import {
 	type IMetrics,
+	type DRPNodeConfig,
 	Message,
 	MessageType,
 	type IACL,
 	type IDRP,
-	type LoggerOptions,
 	type IDRPObject,
 } from "@ts-drp/types";
 
@@ -24,13 +24,6 @@ import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
 export { loadConfig };
 
 export { serializeStateMessage, deserializeStateMessage };
-
-// snake_casing to match the JSON config
-export interface DRPNodeConfig {
-	log_config?: LoggerOptions;
-	network_config?: DRPNetworkNodeConfig;
-	keychain_config?: KeychainConfig;
-}
 
 export class DRPNode {
 	config?: DRPNodeConfig;
