@@ -1,4 +1,4 @@
-import { ActionType } from "@ts-drp/types";
+import { ActionType, type Vertex } from "@ts-drp/types";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { AddMulDRP } from "../src/AddMul/index.js";
@@ -25,12 +25,15 @@ describe("AddMulDRP tests", () => {
 
 	test("Test: Add (Weird inputs)", () => {
 		drp.add(5);
+		// @ts-expect-error - weird input
 		drp.add("");
 		expect(drp.query_value()).toEqual(5);
 
+		// @ts-expect-error - weird input
 		drp.add(true);
 		expect(drp.query_value()).toEqual(5);
 
+		// @ts-expect-error - weird input
 		drp.add({});
 		expect(drp.query_value()).toEqual(5);
 	});
@@ -51,12 +54,15 @@ describe("AddMulDRP tests", () => {
 
 	test("Test: Mul (Weird inputs)", () => {
 		drp.add(5);
+		// @ts-expect-error - weird input
 		drp.mul("");
 		expect(drp.query_value()).toEqual(5);
 
+		// @ts-expect-error - weird input
 		drp.mul(true);
 		expect(drp.query_value()).toEqual(5);
 
+		// @ts-expect-error - weird input
 		drp.mul({});
 		expect(drp.query_value()).toEqual(5);
 	});
@@ -76,15 +82,19 @@ describe("AddMulDRP tests", () => {
 	});
 
 	test("Test: initialValue (Weird inputs)", () => {
+		// @ts-expect-error - weird input
 		drp = new AddMulDRP("10");
 		expect(drp.query_value()).toEqual(0);
 
+		// @ts-expect-error - weird input
 		drp = new AddMulDRP(true);
 		expect(drp.query_value()).toEqual(0);
 
+		// @ts-expect-error - weird input
 		drp = new AddMulDRP({});
 		expect(drp.query_value()).toEqual(0);
 
+		// @ts-expect-error - weird input
 		drp = new AddMulDRP([]);
 		expect(drp.query_value()).toEqual(0);
 	});
@@ -166,24 +176,28 @@ describe("AddMulDRP tests", () => {
 	});
 
 	test("Test: resolveConflicts (Weird inputs)", () => {
-		const vertex1 = {
+		const vertex1: Vertex = {
 			hash: "1",
+			// @ts-expect-error - operation is missing
 			operation: {
 				opType: "add",
 			},
 		};
-		const vertex2 = {
+		const vertex2: Vertex = {
 			hash: "2",
+			// @ts-expect-error - operation is missing
 			operation: {
 				opType: "mulx",
 			},
 		};
-		const vertex3 = {
+		const vertex3: Vertex = {
+			// @ts-expect-error - operation is missing
 			operation: {
 				opType: "mul",
 			},
 		};
-		const vertex4 = {};
+		// @ts-expect-error - operation is missing
+		const vertex4: Vertex = {};
 
 		let action = drp.resolveConflicts([vertex1, vertex2]);
 		expect(action).toEqual({ action: ActionType.Nop });

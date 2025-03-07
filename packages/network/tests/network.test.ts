@@ -6,11 +6,11 @@ import {
 	type Libp2p,
 	type SubscriptionChangeData,
 } from "@libp2p/interface";
-import { loadConfig } from "@ts-drp/node/src/config.js";
-import { Message } from "@ts-drp/types";
+import { type DRPNodeConfig, Message } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test, afterAll } from "vitest";
 
+import rawConfig from "../../../configs/local-bootstrap.json" with { type: "json" };
 import { DRPNetworkNode, type DRPNetworkNodeConfig, streamToUint8Array } from "../src/node.js";
 
 describe("DRPNetworkNode can connect & send messages", () => {
@@ -42,9 +42,9 @@ describe("DRPNetworkNode can connect & send messages", () => {
 	};
 
 	beforeAll(async () => {
-		const configPath = `${__dirname}/../../../configs/local-bootstrap.json`;
+		const config: DRPNodeConfig = rawConfig;
 		const bootstrapConfig: DRPNetworkNodeConfig = {
-			...loadConfig(configPath)?.network_config,
+			...config.network_config,
 			log_config: { level: "silent" },
 		};
 		bootstrapNode = new DRPNetworkNode(bootstrapConfig);

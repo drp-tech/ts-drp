@@ -1,10 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SetDRP } from "@ts-drp/blueprints/src/index.js";
-import { serializeStateMessage, deserializeStateMessage } from "@ts-drp/node/src/utils.js";
+import { SetDRP } from "@ts-drp/blueprints";
 import { FetchStateResponse } from "@ts-drp/types";
 import { expect, describe, it } from "vitest";
 
-import { DRPObject, HashGraph, serializeValue, deserializeValue } from "../src/index.js";
+import {
+	DRPObject,
+	HashGraph,
+	serializeValue,
+	deserializeValue,
+	serializeDRPState,
+	deserializeDRPState,
+} from "../src/index.js";
 
 class TestCustomClass {
 	constructor(
@@ -231,13 +237,13 @@ describe("Serialize & deserialize", () => {
 		const response = FetchStateResponse.create({
 			objectId: "test",
 			vertexHash: "test",
-			aclState: serializeStateMessage(aclState),
-			drpState: serializeStateMessage(drpState),
+			aclState: serializeDRPState(aclState),
+			drpState: serializeDRPState(drpState),
 		});
 		const data = FetchStateResponse.encode(response).finish();
 		const decoded = FetchStateResponse.decode(data);
-		const aclStateDecoded = deserializeStateMessage(decoded.aclState);
-		const drpStateDecoded = deserializeStateMessage(decoded.drpState);
+		const aclStateDecoded = deserializeDRPState(decoded.aclState);
+		const drpStateDecoded = deserializeDRPState(decoded.drpState);
 		expect(aclStateDecoded).toStrictEqual(aclState);
 		expect(drpStateDecoded).toStrictEqual(drpState);
 	});

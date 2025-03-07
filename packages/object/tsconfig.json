@@ -3,10 +3,12 @@
 	"compilerOptions": {
 		"outDir": "dist"
 	},
-	"references": [
-		{
-			"path": "../logger"
-		}
+	"include": [
+		"src/**/*.ts",
+		"tests/**/*.ts"
 	],
-	"include": ["src/**/*.ts"]
+	"exclude": [
+		"dist",
+		"./*.d.ts",
+	]
 }

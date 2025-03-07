@@ -1,4 +1,4 @@
-import { SetDRP } from "@ts-drp/blueprints/src/index.js";
+import { SetDRP } from "@ts-drp/blueprints";
 import fs from "fs";
 import * as pprof from "pprof";
 
