@@ -10,6 +10,21 @@ import {
 	type ResolveConflictsType,
 } from "@ts-drp/types";
 
+function getPeerPermissions(params?: {
+	publicKey?: DRPPublicCredential;
+	permissions?: Set<ACLGroup>;
+}): PeerPermissions {
+	const { publicKey, permissions } = params ?? {};
+
+	return {
+		publicKey: publicKey ?? {
+			secp256k1PublicKey: "",
+			blsPublicKey: "",
+		},
+		permissions: permissions ?? new Set(),
+	};
+}
+
 export class ObjectACL implements IACL {
 	semanticsType = SemanticsType.pair;
 
@@ -31,16 +46,7 @@ export class ObjectACL implements IACL {
 		}
 
 		this._authorizedPeers = new Map(
-			[...options.admins].map((adminId) => [
-				adminId,
-				{
-					publicKey: {
-						secp256k1PublicKey: "",
-						blsPublicKey: "",
-					},
-					permissions,
-				},
-			])
+			[...options.admins].map((adminId) => [adminId, getPeerPermissions({ permissions })])
 		);
 		this._conflictResolution = options.conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
@@ -51,13 +57,7 @@ export class ObjectACL implements IACL {
 		}
 		let peerPermissions = this._authorizedPeers.get(peerId);
 		if (!peerPermissions) {
-			peerPermissions = {
-				publicKey: {
-					secp256k1PublicKey: "",
-					blsPublicKey: "",
-				},
-				permissions: new Set(),
-			};
+			peerPermissions = getPeerPermissions();
 			this._authorizedPeers.set(peerId, peerPermissions);
 		}
 
@@ -108,10 +108,7 @@ export class ObjectACL implements IACL {
 		}
 		let peerPermissions = this._authorizedPeers.get(peerId);
 		if (!peerPermissions) {
-			peerPermissions = {
-				publicKey: key,
-				permissions: new Set(),
-			};
+			peerPermissions = getPeerPermissions({ publicKey: key });
 		} else {
 			peerPermissions.publicKey = key;
 		}
