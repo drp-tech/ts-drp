@@ -190,9 +190,6 @@ importers:
       '@thi.ng/random':
         specifier: ^4.1.0
         version: 4.1.12
-      '@ts-drp/object':
-        specifier: 0.8.5
-        version: link:../object
       '@ts-drp/types':
         specifier: 0.8.5
         version: link:../types
@@ -229,9 +226,6 @@ importers:
       '@noble/secp256k1':
         specifier: ^2.2.3
         version: 2.2.3
-      '@ts-drp/object':
-        specifier: 0.8.5
-        version: link:../object
       '@ts-drp/types':
         specifier: ^0.8.5
         version: link:../types

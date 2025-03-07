@@ -30,7 +30,6 @@
 	},
 	"dependencies": {
 		"@thi.ng/random": "^4.1.0",
-		"@ts-drp/object": "0.8.5",
 		"@ts-drp/types": "0.8.5"
 	}
 }
