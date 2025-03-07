@@ -1,38 +1,33 @@
 import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import { HashGraph, DRPObject as DRPObjectImpl } from "@ts-drp/object";
+import { DRPObject, HashGraph } from "@ts-drp/object";
 import {
+	type ConnectObjectOptions,
+	FetchState,
 	type IDRP,
 	type IDRPObject,
-	FetchState,
-	type IMetrics,
 	Message,
 	MessageType,
 	Sync,
+	type Vertex,
 } from "@ts-drp/types";
 
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
 
-export function createObject(node: DRPNode, object: IDRPObject): void {
+export function createObject<T extends IDRP>(node: DRPNode, object: IDRPObject<T>): void {
 	node.objectStore.put(object.id, object);
 	object.subscribe((obj, originFn, vertices) => {
 		drpObjectChangesHandler(node, obj, originFn, vertices);
 	});
 }
 
-export type ConnectObjectOptions = {
-	drp?: IDRP;
-	peerId?: string;
-	metrics?: IMetrics;
-};
-
-export async function connectObject(
+export async function connectObject<T extends IDRP>(
 	node: DRPNode,
 	id: string,
-	options: ConnectObjectOptions
-): Promise<IDRPObject> {
-	const object = DRPObjectImpl.createObject({
+	options: ConnectObjectOptions<T>
+): Promise<IDRPObject<T>> {
+	const object = DRPObject.createObject({
 		peerId: node.networkNode.peerId,
 		id,
 		drp: options.drp,
@@ -48,7 +43,7 @@ export async function connectObject(
 			await syncObject(node, id, options.peerId);
 			subscribeObject(node, id);
 			object.subscribe((obj, originFn, vertices) => {
-				drpObjectChangesHandler(node, obj as IDRPObject, originFn, vertices);
+				drpObjectChangesHandler(node, obj as IDRPObject<T>, originFn, vertices);
 			});
 			clearInterval(interval);
 		}
@@ -93,15 +88,19 @@ export async function fetchState(node: DRPNode, objectId: string, peerId?: strin
 /*
   data: { vertex_hashes: string[] }
 */
-export async function syncObject(node: DRPNode, objectId: string, peerId?: string): Promise<void> {
-	const object: IDRPObject | undefined = node.objectStore.get(objectId);
+export async function syncObject<T extends IDRP>(
+	node: DRPNode,
+	objectId: string,
+	peerId?: string
+): Promise<void> {
+	const object: IDRPObject<T> | undefined = node.objectStore.get(objectId);
 	if (!object) {
 		log.error("::syncObject: Object not found");
 		return;
 	}
 	const data = Sync.create({
 		objectId,
-		vertexHashes: object.vertices.map((v) => v.hash),
+		vertexHashes: object.vertices.map((v: Vertex) => v.hash),
 	});
 	const message = Message.create({
 		sender: node.networkNode.peerId,

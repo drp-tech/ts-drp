@@ -2,7 +2,7 @@ import { bls } from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
 import { Logger } from "@ts-drp/logger";
 import { DRPObject, ObjectACL } from "@ts-drp/object";
-import { type IDRP, DrpType, type Vertex, ACLGroup } from "@ts-drp/types";
+import { DrpType, type Vertex, ACLGroup, type IACL } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
@@ -74,11 +74,11 @@ describe("DPRNode with verify and sign signature", () => {
 			},
 		];
 		await signGeneratedVertices(drpNode, vertices);
-		const verifiedVertices = await verifyACLIncomingVertices(vertices);
+		const verifiedVertices = verifyACLIncomingVertices(vertices);
 		expect(verifiedVertices.length).toBe(1);
 	});
 
-	test("Ignore vertex if the signature is invalid", async () => {
+	test("Ignore vertex if the signature is invalid", () => {
 		const vertices = [
 			{
 				hash: "hash",
@@ -93,18 +93,18 @@ describe("DPRNode with verify and sign signature", () => {
 				signature: new Uint8Array(),
 			},
 		];
-		const verifiedVertices = await verifyACLIncomingVertices(vertices);
+		const verifiedVertices = verifyACLIncomingVertices(vertices);
 		expect(verifiedVertices.length).toBe(0);
 	});
 });
 
 describe("DRPNode voting tests", () => {
-	let drp1: SetDRP<number>;
-	let acl1: ObjectACL;
+	let drp1: SetDRP<number> | undefined;
+	let acl1: IACL;
 	let nodeA: DRPNode;
 	let nodeB: DRPNode;
-	let obj1: DRPObject;
-	let obj2: DRPObject;
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
 
 	beforeAll(async () => {
 		nodeA = new DRPNode();
@@ -123,8 +123,8 @@ describe("DRPNode voting tests", () => {
 			acl,
 			drp: new SetDRP(),
 		});
-		drp1 = obj1.drp as SetDRP<number>;
-		acl1 = obj1.acl as ObjectACL;
+		drp1 = obj1.drp;
+		acl1 = obj1.acl;
 		obj2 = new DRPObject({
 			peerId: nodeB.networkNode.peerId,
 			acl: acl1,
@@ -143,7 +143,7 @@ describe("DRPNode voting tests", () => {
 			ACLGroup.Finality,
 			nodeB.keychain.getPublicCredential()
 		);
-		drp1.add(1);
+		drp1?.add(1);
 
 		obj2.merge(obj1.vertices);
 		const V1 = obj2.vertices.find(
@@ -171,9 +171,9 @@ describe("DRPNode voting tests", () => {
 			ACLGroup.Writer,
 			nodeB.keychain.getPublicCredential()
 		);
-		drp1.add(1);
+		drp1?.add(1);
 		acl1.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
-		drp1.add(2);
+		drp1?.add(2);
 
 		obj2.merge(obj1.vertices);
 		const V2 = obj2.vertices.find(
@@ -200,7 +200,7 @@ describe("DRPNode voting tests", () => {
 			ACLGroup.Finality,
 			nodeB.keychain.getPublicCredential()
 		);
-		drp1.add(1);
+		drp1?.add(1);
 		obj2.merge(obj1.vertices);
 		const V1 = obj2.vertices.find(
 			(v) => v.operation?.value !== null && v.operation?.value[0] === 1
@@ -222,9 +222,9 @@ describe("DRPNode voting tests", () => {
 });
 
 describe("DRPNode with rpc", () => {
-	let drp: IDRP;
+	let drp: SetDRP<number>;
 	let drpNode: DRPNode;
-	let drpObject: DRPObject;
+	let drpObject: DRPObject<SetDRP<number>>;
 	let mockLogger: Logger;
 
 	beforeAll(async () => {

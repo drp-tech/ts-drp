@@ -94,8 +94,8 @@ export class DRPNode {
 		await this.networkNode.sendMessage(peerId, message);
 	}
 
-	async createObject(options: {
-		drp?: IDRP;
+	async createObject<T extends IDRP>(options: {
+		drp?: T;
 		acl?: IACL;
 		id?: string;
 		sync?: {
@@ -103,8 +103,8 @@ export class DRPNode {
 			peerId?: string;
 		};
 		metrics?: IMetrics;
-	}): Promise<DRPObject> {
-		const object = new DRPObject({
+	}): Promise<DRPObject<T>> {
+		const object = new DRPObject<T>({
 			peerId: this.networkNode.peerId,
 			publicCredential: options.acl ? undefined : this.keychain.getPublicCredential(),
 			acl: options.acl,
@@ -127,15 +127,15 @@ export class DRPNode {
 			where we just want the HG state
 		@param options.sync.peerId - The peer ID to sync with
 	*/
-	async connectObject(options: {
+	async connectObject<T extends IDRP>(options: {
 		id: string;
-		drp?: IDRP;
+		drp?: T;
 		sync?: {
 			peerId?: string;
 		};
 		metrics?: IMetrics;
-	}): Promise<IDRPObject> {
-		const object = await operations.connectObject(this, options.id, {
+	}): Promise<IDRPObject<T>> {
+		const object = operations.connectObject(this, options.id, {
 			peerId: options.sync?.peerId,
 			drp: options.drp,
 			metrics: options.metrics,

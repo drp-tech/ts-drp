@@ -6,16 +6,13 @@ import {
 	type LoggerOptions,
 	type AggregatedAttestation,
 	type Attestation,
+	type FinalityConfig,
 } from "@ts-drp/types";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { BitSet } from "../hashgraph/bitset.js";
 
 const DEFAULT_FINALITY_THRESHOLD = 0.51;
-
-export interface FinalityConfig {
-	finality_threshold?: number;
-}
 
 export class FinalityState {
 	data: string;

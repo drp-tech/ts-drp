@@ -3,6 +3,16 @@ import { type DRPPublicCredential } from "./credentials.js";
 import { type Hash } from "./hashgraph.js";
 import { type AggregatedAttestation, type Attestation } from "./proto/drp/v1/object_pb.js";
 
+/**
+ * The configuration for the finality store.
+ */
+export interface FinalityConfig {
+	/**
+	 * The threshold for the finality store.
+	 */
+	finality_threshold?: number;
+}
+
 export interface IFinalityState {
 	/**
 	 * The data of the finality state.

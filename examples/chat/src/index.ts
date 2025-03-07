@@ -4,8 +4,8 @@ import type { DRPObject } from "@ts-drp/object";
 import { Chat } from "./objects/chat";
 
 const node = new DRPNode();
-let drpObject: DRPObject;
-let chatDRP: Chat;
+let drpObject: DRPObject<Chat>;
+let chatDRP: Chat | undefined;
 let peers: string[] = [];
 let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
@@ -85,7 +85,7 @@ async function main(): Promise<void> {
 
 	const create = async (): Promise<void> => {
 		drpObject = await node.createObject({ drp: new Chat() });
-		chatDRP = drpObject.drp as Chat;
+		chatDRP = drpObject.drp;
 		createConnectHandlers();
 		render();
 	};
@@ -100,7 +100,7 @@ async function main(): Promise<void> {
 		}
 
 		drpObject = await node.createObject({ id: objectId, drp: new Chat() });
-		chatDRP = drpObject.drp as Chat;
+		chatDRP = drpObject.drp;
 		createConnectHandlers();
 		render();
 	};

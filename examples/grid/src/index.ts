@@ -96,7 +96,7 @@ function run(metrics?: IMetrics): void {
 			drp: new Grid(),
 			metrics,
 		});
-		gridState.gridDRP = gridState.drpObject.drp as Grid;
+		gridState.gridDRP = gridState.drpObject.drp;
 		createConnectHandlers();
 		addUser();
 		render();
@@ -120,7 +120,7 @@ function run(metrics?: IMetrics): void {
 				drp: new Grid(),
 				metrics,
 			});
-			gridState.gridDRP = gridState.drpObject.drp as Grid;
+			gridState.gridDRP = gridState.drpObject.drp;
 			createConnectHandlers();
 			addUser();
 			render();
