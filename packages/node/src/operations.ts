@@ -1,30 +1,32 @@
 import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import { type DRP, DRPObject, HashGraph } from "@ts-drp/object";
-import { type IMetrics } from "@ts-drp/tracer";
-import { FetchState, Message, MessageType, Sync, type Vertex } from "@ts-drp/types";
+import { DRPObject, HashGraph } from "@ts-drp/object";
+import {
+	type ConnectObjectOptions,
+	FetchState,
+	type IDRP,
+	type IDRPObject,
+	Message,
+	MessageType,
+	Sync,
+	type Vertex,
+} from "@ts-drp/types";
 
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
 
-export function createObject<T extends DRP>(node: DRPNode, object: DRPObject<T>): void {
+export function createObject<T extends IDRP>(node: DRPNode, object: IDRPObject<T>): void {
 	node.objectStore.put(object.id, object);
 	object.subscribe((obj, originFn, vertices) => {
 		drpObjectChangesHandler(node, obj, originFn, vertices);
 	});
 }
 
-export type ConnectObjectOptions<T extends DRP> = {
-	drp?: T;
-	peerId?: string;
-	metrics?: IMetrics;
-};
-
-export async function connectObject<T extends DRP>(
+export async function connectObject<T extends IDRP>(
 	node: DRPNode,
 	id: string,
 	options: ConnectObjectOptions<T>
-): Promise<DRPObject<T>> {
+): Promise<IDRPObject<T>> {
 	const object = DRPObject.createObject({
 		peerId: node.networkNode.peerId,
 		id,
@@ -41,7 +43,7 @@ export async function connectObject<T extends DRP>(
 			await syncObject(node, id, options.peerId);
 			subscribeObject(node, id);
 			object.subscribe((obj, originFn, vertices) => {
-				drpObjectChangesHandler(node, obj, originFn, vertices);
+				drpObjectChangesHandler(node, obj as IDRPObject<T>, originFn, vertices);
 			});
 			clearInterval(interval);
 		}
@@ -86,12 +88,12 @@ export async function fetchState(node: DRPNode, objectId: string, peerId?: strin
 /*
   data: { vertex_hashes: string[] }
 */
-export async function syncObject<T extends DRP>(
+export async function syncObject<T extends IDRP>(
 	node: DRPNode,
 	objectId: string,
 	peerId?: string
 ): Promise<void> {
-	const object: DRPObject<T> | undefined = node.objectStore.get(objectId);
+	const object: IDRPObject<T> | undefined = node.objectStore.get(objectId);
 	if (!object) {
 		log.error("::syncObject: Object not found");
 		return;

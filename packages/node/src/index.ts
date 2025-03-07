@@ -1,22 +1,26 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
-import { type KeychainConfig, Keychain } from "@ts-drp/keychain";
+import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
-import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
-import { type ACL, type DRP, DRPObject } from "@ts-drp/object";
-import { type IMetrics } from "@ts-drp/tracer";
-import { Message, MessageType, type LoggerOptions } from "@ts-drp/types";
+import { DRPNetworkNode } from "@ts-drp/network";
+import { DRPObject } from "@ts-drp/object";
+import {
+	type IMetrics,
+	type DRPNodeConfig,
+	Message,
+	MessageType,
+	type IACL,
+	type IDRP,
+	type IDRPObject,
+} from "@ts-drp/types";
 
+import { loadConfig } from "./config.js";
 import { drpMessagesHandler } from "./handlers.js";
 import { log } from "./logger.js";
 import * as operations from "./operations.js";
 import { DRPObjectStore } from "./store/index.js";
-// snake_casing to match the JSON config
-export interface DRPNodeConfig {
-	log_config?: LoggerOptions;
-	network_config?: DRPNetworkNodeConfig;
-	keychain_config?: KeychainConfig;
-}
+
+export { loadConfig };
 
 export class DRPNode {
 	config?: DRPNodeConfig;
@@ -90,9 +94,9 @@ export class DRPNode {
 		await this.networkNode.sendMessage(peerId, message);
 	}
 
-	async createObject<T extends DRP>(options: {
+	async createObject<T extends IDRP>(options: {
 		drp?: T;
-		acl?: ACL;
+		acl?: IACL;
 		id?: string;
 		sync?: {
 			enabled: boolean;
@@ -123,14 +127,14 @@ export class DRPNode {
 			where we just want the HG state
 		@param options.sync.peerId - The peer ID to sync with
 	*/
-	async connectObject<T extends DRP>(options: {
+	async connectObject<T extends IDRP>(options: {
 		id: string;
 		drp?: T;
 		sync?: {
 			peerId?: string;
 		};
 		metrics?: IMetrics;
-	}): Promise<DRPObject<T>> {
+	}): Promise<IDRPObject<T>> {
 		const object = operations.connectObject(this, options.id, {
 			peerId: options.sync?.peerId,
 			drp: options.drp,

@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- DRPObject is not typed on purpose to allow for dynamic typing */
-import type { DRP, DRPObject } from "@ts-drp/object";
+import type { IDRP, IDRPObject } from "@ts-drp/types";
 
-export type DRPObjectStoreCallback<T extends DRP = any> = (
+export type DRPObjectStoreCallback<T extends IDRP = any> = (
 	objectId: string,
-	object: DRPObject<T>
+	object: IDRPObject<T>
 ) => void;
 
-export class DRPObjectStore<T extends DRP = any> {
-	private _store: Map<string, DRPObject<T>>;
+export class DRPObjectStore<T extends IDRP = any> {
+	private _store: Map<string, IDRPObject<T>>;
 	private _subscriptions: Map<string, DRPObjectStoreCallback<T>[]>;
 
 	constructor() {
@@ -15,11 +15,11 @@ export class DRPObjectStore<T extends DRP = any> {
 		this._subscriptions = new Map();
 	}
 
-	get(objectId: string): DRPObject<T> | undefined {
+	get(objectId: string): IDRPObject<T> | undefined {
 		return this._store.get(objectId);
 	}
 
-	put(objectId: string, object: DRPObject<T>): void {
+	put(objectId: string, object: IDRPObject<T>): void {
 		this._store.set(objectId, object);
 		this._notifySubscribers(objectId, object);
 	}
@@ -41,7 +41,7 @@ export class DRPObjectStore<T extends DRP = any> {
 		}
 	}
 
-	private _notifySubscribers(objectId: string, object: DRPObject<T>): void {
+	private _notifySubscribers(objectId: string, object: IDRPObject<T>): void {
 		const callbacks = this._subscriptions.get(objectId);
 		if (callbacks) {
 			for (const callback of callbacks) {

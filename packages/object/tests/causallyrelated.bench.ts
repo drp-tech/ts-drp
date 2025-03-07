@@ -1,7 +1,8 @@
-import { SetDRP } from "@ts-drp/blueprints/src/index.js";
+import { SetDRP } from "@ts-drp/blueprints";
+import { type Hash } from "@ts-drp/types";
 import { bench, describe } from "vitest";
 
-import { DRPObject, type Hash } from "../src/index.js";
+import { DRPObject } from "../src/index.js";
 
 describe("AreCausallyDependent benchmark", () => {
 	const samples = 100000;

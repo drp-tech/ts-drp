@@ -9,11 +9,8 @@ import {
 	WebTracerProvider,
 } from "@opentelemetry/sdk-trace-web";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
+import { type IMetrics } from "@ts-drp/types";
 import { isAsyncGenerator, isGenerator, isPromise } from "@ts-drp/utils";
-
-import { IMetrics } from "./interface.js";
-
-export { IMetrics };
 
 let enabled = false;
 let provider: WebTracerProvider | undefined;

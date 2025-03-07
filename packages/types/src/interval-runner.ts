@@ -19,7 +19,7 @@ export interface IntervalRunnerOptions {
 	id?: string;
 }
 
-export interface IntervalRunner<Args extends unknown[] = []> {
+export interface IIntervalRunner<Args extends unknown[] = []> {
 	/**
 	 * The interval in milliseconds
 	 */

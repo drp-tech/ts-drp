@@ -21,9 +21,10 @@
 		}
 	},
 	"scripts": {
-		"build": "tsc -b",
+		"build": "tsc -b tsconfig.build.json",
 		"clean": "rm -rf dist/ node_modules/",
 		"prepack": "tsc -b",
+		"typecheck": "tsc --noEmit",
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {

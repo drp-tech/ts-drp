@@ -1,4 +1,4 @@
-import { Keychain } from "@ts-drp/keychain/src/keychain.js";
+import { Keychain } from "@ts-drp/keychain";
 import { beforeAll, describe, expect, test } from "vitest";
 
 import { DRPNetworkNode } from "../src/node.js";

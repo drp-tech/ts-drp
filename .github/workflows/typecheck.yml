@@ -1,0 +1,22 @@
+name: Typecheck
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck:
+    name: Run typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - shell: bash
+        run: |
+          pnpm install --no-frozen-lockfile
+
+      - shell: bash
+        run: pnpm run typecheck

@@ -21,7 +21,8 @@
 		}
 	},
 	"scripts": {
-		"build": "tsc -b",
+		"build": "tsc -b tsconfig.build.json",
+		"typecheck": "tsc --noEmit",
 		"clean": "rm -rf dist/ node_modules/",
 		"prepack": "tsc -b",
 		"test": "vitest",
@@ -29,7 +30,6 @@
 	},
 	"dependencies": {
 		"@thi.ng/random": "^4.1.0",
-		"@ts-drp/object": "0.8.5",
 		"@ts-drp/types": "0.8.5"
 	}
 }

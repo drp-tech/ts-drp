@@ -1,7 +1,6 @@
-import { type DRP } from "@ts-drp/object";
-import { SemanticsType } from "@ts-drp/types";
+import { SemanticsType, type IDRP } from "@ts-drp/types";
 
-export class SetDRP<T> implements DRP {
+export class SetDRP<T> implements IDRP {
 	semanticsType = SemanticsType.pair;
 
 	private _set: Set<T>;

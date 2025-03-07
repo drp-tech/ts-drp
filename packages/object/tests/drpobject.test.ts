@@ -1,8 +1,14 @@
-import { SetDRP } from "@ts-drp/blueprints/src/index.js";
-import { type Vertex, ActionType, SemanticsType } from "@ts-drp/types";
+import { SetDRP } from "@ts-drp/blueprints";
+import {
+	type IDRP,
+	type Vertex,
+	ActionType,
+	SemanticsType,
+	type ResolveConflictsType,
+} from "@ts-drp/types";
 import { beforeEach, describe, expect, it, test, vi } from "vitest";
 
-import { type DRP, DRPObject, ObjectACL, type ResolveConflictsType } from "../src/index.js";
+import { DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: new Map([
@@ -74,7 +80,7 @@ describe("Drp Object should be able to change state value", () => {
 describe("Test for duplicate call issue", () => {
 	let counter = 0;
 
-	class CounterDRP implements DRP {
+	class CounterDRP implements IDRP {
 		semanticsType = SemanticsType.pair;
 
 		private _counter: number;

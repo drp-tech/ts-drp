@@ -1,8 +1,8 @@
 import { bls } from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
 import { Logger } from "@ts-drp/logger";
-import { ACLGroup, ObjectACL, type ACL, DRPObject, DrpType } from "@ts-drp/object";
-import { type Vertex } from "@ts-drp/types";
+import { DRPObject, ObjectACL } from "@ts-drp/object";
+import { DrpType, type Vertex, ACLGroup, type IACL } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
@@ -100,7 +100,7 @@ describe("DPRNode with verify and sign signature", () => {
 
 describe("DRPNode voting tests", () => {
 	let drp1: SetDRP<number> | undefined;
-	let acl1: ACL;
+	let acl1: IACL;
 	let nodeA: DRPNode;
 	let nodeB: DRPNode;
 	let obj1: DRPObject<SetDRP<number>>;

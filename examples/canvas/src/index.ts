@@ -1,10 +1,10 @@
 import { DRPNode } from "@ts-drp/node";
-import type { DRPObject } from "@ts-drp/object";
+import { type IDRPObject } from "@ts-drp/types";
 
 import { Canvas } from "./objects/canvas";
 
 const node = new DRPNode();
-let drpObject: DRPObject;
+let drpObject: IDRPObject<Canvas>;
 let canvasDRP: Canvas;
 let peers: string[] = [];
 let discoveryPeers: string[] = [];
@@ -84,7 +84,9 @@ async function init(): Promise<void> {
 	const create_button = <HTMLButtonElement>document.getElementById("create");
 	const create = async (): Promise<void> => {
 		drpObject = await node.createObject({ drp: new Canvas(5, 10) });
-		canvasDRP = drpObject.drp;
+		if (drpObject.drp) {
+			canvasDRP = drpObject.drp;
+		}
 
 		createConnectHandlers();
 		render();
@@ -100,7 +102,9 @@ async function init(): Promise<void> {
 				id: drpId,
 				drp: new Canvas(5, 10),
 			});
-			canvasDRP = drpObject.drp;
+			if (drpObject.drp) {
+				canvasDRP = drpObject.drp;
+			}
 
 			createConnectHandlers();
 			render();
