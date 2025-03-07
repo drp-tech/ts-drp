@@ -146,11 +146,18 @@ describe("Handle message correctly", () => {
 
 	test("should handle update message correctly", async () => {
 		const acl = new ObjectACL({
-			admins: new Map([
-				[node1.networkNode.peerId, node1.keychain.getPublicCredential()],
-				[node2.networkNode.peerId, node2.keychain.getPublicCredential()],
-			]),
+			admins: [node1.networkNode.peerId, node2.networkNode.peerId],
 		});
+		acl.setKey(
+			node1.networkNode.peerId,
+			node1.networkNode.peerId,
+			node1.keychain.getPublicCredential()
+		);
+		acl.setKey(
+			node2.networkNode.peerId,
+			node2.networkNode.peerId,
+			node2.keychain.getPublicCredential()
+		);
 		drpObject = await node2.createObject({
 			drp: new SetDRP<number>(),
 			acl: acl,
