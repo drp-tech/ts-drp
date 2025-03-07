@@ -1,8 +1,8 @@
 import { IntervalRunner } from "@ts-drp/interval-runner";
 import { Logger } from "@ts-drp/logger";
 import {
-	type IntervalRunner as IntervalRunnerInterface,
 	type DRPIntervalDiscoveryOptions,
+	type IDRPIntervalDiscovery,
 	type DRPNetworkNode,
 	MessageType,
 	DRPDiscovery as DRPDiscoveryRequest,
@@ -16,7 +16,7 @@ import {
  * Enhanced DRP Discovery service using composition pattern
  * Implements IntervalRunnerInterface to maintain compatibility with IntervalRunner[] arrays
  */
-export class DRPIntervalDiscovery implements IntervalRunnerInterface<"interval:discovery"> {
+export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	readonly type = "interval:discovery";
 
 	/** Network node instance used for peer communication */

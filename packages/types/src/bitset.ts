@@ -1,4 +1,4 @@
-export interface BitSet {
+export interface IBitSet {
 	/**
 	 * Returns the bytes of the bit set.
 	 *
@@ -35,27 +35,27 @@ export interface BitSet {
 	 * @param other - The other bit set.
 	 * @returns The intersection of the two bit sets.
 	 */
-	and(other: BitSet): BitSet;
+	and(other: IBitSet): IBitSet;
 	/**
 	 * Returns the bit set that is the union of the two bit sets.
 	 *
 	 * @param other - The other bit set.
 	 * @returns The union of the two bit sets.
 	 */
-	or(other: BitSet): BitSet;
+	or(other: IBitSet): IBitSet;
 	/**
 	 * Returns the bit set that is the symmetric difference of the two bit sets.
 	 *
 	 * @param other - The other bit set.
 	 * @returns The symmetric difference of the two bit sets.
 	 */
-	xor(other: BitSet): BitSet;
+	xor(other: IBitSet): IBitSet;
 	/**
 	 * Returns the bit set that is the negation of the bit set.
 	 *
 	 * @returns The negation of the bit set.
 	 */
-	not(): BitSet;
+	not(): IBitSet;
 	/**
 	 * Returns the bit set as a string of 0s and 1s.
 	 *

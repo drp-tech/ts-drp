@@ -1,6 +1,6 @@
 import {
 	ActionType,
-	type DRP,
+	type IDRP,
 	type ResolveConflictsType,
 	SemanticsType,
 	type Vertex,
@@ -8,7 +8,7 @@ import {
 
 import { Pixel } from "./pixel";
 
-export class Canvas implements DRP {
+export class Canvas implements IDRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
 
 	width: number;

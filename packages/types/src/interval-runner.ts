@@ -19,7 +19,7 @@ export interface IntervalRunnerOptions {
 	id?: string;
 }
 
-export interface IntervalRunner<Type extends string, Args extends unknown[] = []> {
+export interface IIntervalRunner<Type extends string, Args extends unknown[] = []> {
 	/**
 	 * The type of the interval runner
 	 */

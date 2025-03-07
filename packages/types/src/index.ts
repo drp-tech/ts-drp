@@ -1,5 +1,5 @@
-import { type DRPIntervalDiscovery } from "./drp-interval-discovery.js";
-import { type IntervalRunner } from "./interval-runner.js";
+import { type IDRPIntervalDiscovery } from "./drp-interval-discovery.js";
+import { type IIntervalRunner } from "./interval-runner.js";
 
 export {
 	Vertex,
@@ -49,10 +49,10 @@ export interface IntervalRunnerMap {
 	/**
 	 * The interval runner for the interval runner
 	 */
-	"interval:runner": IntervalRunner<"interval:runner">;
+	"interval:runner": IIntervalRunner<"interval:runner">;
 
 	/**
 	 * The interval runner for the interval discovery
 	 */
-	"interval:discovery": DRPIntervalDiscovery;
+	"interval:discovery": IDRPIntervalDiscovery;
 }

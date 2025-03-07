@@ -1,3 +1,6 @@
+import { type IBitSet } from "./bitset.js";
+import { type Vertex, type Vertex_Operation as Operation } from "./proto/drp/v1/object_pb.js";
+
 export type Hash = string;
 
 /**
@@ -48,4 +51,27 @@ export enum SemanticsType {
 export interface ResolveConflictsType {
 	action: ActionType;
 	vertices?: Hash[];
+}
+
+export interface IHashGraph {
+	peerId: string;
+	resolveConflictsACL(vertices: Vertex[]): ResolveConflictsType;
+	resolveConflictsDRP(vertices: Vertex[]): ResolveConflictsType;
+	semanticsTypeDRP?: SemanticsType;
+	vertices: Map<Hash, Vertex>;
+	frontier: Hash[];
+	forwardEdges: Map<Hash, Hash[]>;
+
+	resolveConflicts(vertices: Vertex[]): ResolveConflictsType;
+	createVertex(operation: Operation, dependencies: Hash[], timestamp: number): Vertex;
+	addVertex(vertex: Vertex): void;
+	areCausallyRelatedUsingBitsets(hash1: Hash, hash2: Hash): boolean;
+	swapReachablePredecessors(hash1: Hash, hash2: Hash): void;
+	areCausallyRelatedUsingBFS(hash1: Hash, hash2: Hash): boolean;
+	getFrontier(): Hash[];
+	getDependencies(vertexHash: Hash): Hash[];
+	getVertex(hash: Hash): Vertex | undefined;
+	getAllVertices(): Vertex[];
+	getReachablePredecessors(hash: Hash): IBitSet | undefined;
+	getCurrentBitsetSize(): number;
 }

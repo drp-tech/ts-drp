@@ -1,4 +1,3 @@
-// External imports
 import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import { type TopicScoreParams } from "@chainsafe/libp2p-gossipsub/score";
 import {
@@ -9,7 +8,6 @@ import {
 } from "@libp2p/interface";
 import { type MultiaddrInput } from "@multiformats/multiaddr";
 
-// Internal imports
 import { type LoggerOptions } from "./logger.js";
 import { type Message } from "./proto/drp/v1/messages_pb.js";
 

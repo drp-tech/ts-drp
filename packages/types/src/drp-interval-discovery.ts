@@ -1,4 +1,4 @@
-import { type IntervalRunner, type IntervalRunnerOptions } from "./interval-runner.js";
+import { type IIntervalRunner, type IntervalRunnerOptions } from "./interval-runner.js";
 import { type DRPNetworkNode } from "./network.js";
 
 /**
@@ -19,9 +19,9 @@ export interface DRPIntervalDiscoveryOptions extends Omit<IntervalRunnerOptions,
 
 /**
  * Configuration interface for DRPIntervalDiscovery
- * @interface DRPIntervalDiscovery
+ * @interface IDRPIntervalDiscovery
  */
-export interface DRPIntervalDiscovery extends IntervalRunner<"interval:discovery"> {
+export interface IDRPIntervalDiscovery extends IIntervalRunner<"interval:discovery"> {
 	/** Unique identifier for the object */
 	readonly id: string;
 	/** Network node instance used for peer communication */

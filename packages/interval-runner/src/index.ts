@@ -1,14 +1,10 @@
 import { Logger } from "@ts-drp/logger";
-import type {
-	AnyBooleanCallback,
-	IntervalRunner as IntervalRunnerInterface,
-	IntervalRunnerOptions,
-} from "@ts-drp/types";
+import type { AnyBooleanCallback, IIntervalRunner, IntervalRunnerOptions } from "@ts-drp/types";
 import { isAsyncGenerator, isGenerator, isPromise } from "@ts-drp/utils";
 import * as crypto from "node:crypto";
 
 export class IntervalRunner<Args extends unknown[] = []>
-	implements IntervalRunnerInterface<"interval:runner", Args>
+	implements IIntervalRunner<"interval:runner", Args>
 {
 	readonly type = "interval:runner";
 	readonly interval: number;

@@ -6,16 +6,17 @@ import { Logger } from "@ts-drp/logger";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
 import {
-	type IMetrics,
-	Message,
-	MessageType,
-	type ACL,
-	type DRP,
+	DRP_DISCOVERY_TOPIC,
 	type DRPIntervalDiscoveryOptions,
 	DRPDiscoveryResponse,
 	type IntervalRunnerMap,
-	DRP_DISCOVERY_TOPIC,
+	type IMetrics,
+	Message,
+	MessageType,
+	type IACL,
+	type IDRP,
 	type LoggerOptions,
+	type IDRPObject,
 } from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
@@ -124,8 +125,8 @@ export class DRPNode {
 	}
 
 	async createObject(options: {
-		drp?: DRP;
-		acl?: ACL;
+		drp?: IDRP;
+		acl?: IACL;
 		id?: string;
 		sync?: {
 			enabled: boolean;
@@ -159,13 +160,13 @@ export class DRPNode {
 	*/
 	async connectObject(options: {
 		id: string;
-		drp?: DRP;
+		drp?: IDRP;
 		sync?: {
 			peerId?: string;
 		};
 		metrics?: IMetrics;
-	}): Promise<DRPObject> {
-		const object = operations.connectObject(this, options.id, {
+	}): Promise<IDRPObject> {
+		const object = await operations.connectObject(this, options.id, {
 			peerId: options.sync?.peerId,
 			drp: options.drp,
 			metrics: options.metrics,
