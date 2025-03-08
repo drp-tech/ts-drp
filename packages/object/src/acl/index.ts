@@ -25,13 +25,16 @@ export class ObjectACL implements IACL {
 	}) {
 		this.permissionless = options.permissionless ?? false;
 
-		const permissions = new Set<ACLGroup>([ACLGroup.Admin, ACLGroup.Finality]);
+		const adminPermissions = new Set<ACLGroup>([ACLGroup.Admin, ACLGroup.Finality]);
 		if (!options.permissionless) {
-			permissions.add(ACLGroup.Writer);
+			adminPermissions.add(ACLGroup.Writer);
 		}
 
 		this._authorizedPeers = new Map(
-			[...options.admins.entries()].map(([key, value]) => [key, { publicKey: value, permissions }])
+			[...options.admins.entries()].map(([key, value]) => [
+				key,
+				{ publicKey: value, permissions: new Set(adminPermissions) },
+			])
 		);
 		this._conflictResolution = options.conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
