@@ -147,4 +147,22 @@ describe("AccessControl tests with permissionless", () => {
 			});
 		}).toThrow("Cannot grant write permissions to a peer in permissionless mode.");
 	});
+
+	test("Should not update other admin permissions", () => {
+		const acl1 = new ObjectACL({
+			admins: new Map([
+				["peer1", { secp256k1PublicKey: "secp256k1PublicKey1", blsPublicKey: "blsPublicKey1" }],
+				["peer2", { secp256k1PublicKey: "secp256k1PublicKey2", blsPublicKey: "blsPublicKey2" }],
+			]),
+			permissionless: true,
+		});
+
+		acl1.permissionless = false;
+		expect(acl1.query_isWriter("peer1")).toBe(false);
+		expect(acl1.query_isWriter("peer2")).toBe(false);
+
+		acl1.grant("peer1", "peer2", ACLGroup.Writer);
+		expect(acl1.query_isWriter("peer1")).toBe(false);
+		expect(acl1.query_isWriter("peer2")).toBe(true);
+	});
 });
