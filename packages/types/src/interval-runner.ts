@@ -13,24 +13,17 @@ type AnyFnCallback<T, Args extends unknown[] = []> =
 export type AnyBooleanCallback<Args extends unknown[] = []> = AnyFnCallback<boolean, Args>;
 
 export interface IntervalRunnerOptions {
-	interval: number;
 	fn: AnyBooleanCallback;
+	interval?: number;
 	logConfig?: LoggerOptions;
 	id?: string;
 }
 
-export interface IIntervalRunner<Args extends unknown[] = []> {
+export interface IIntervalRunner<Type extends string, Args extends unknown[] = []> {
 	/**
-	 * The interval in milliseconds
+	 * The type of the interval runner
 	 */
-	readonly interval: number;
-
-	/**
-	 * The function to run when the interval is up.
-	 *
-	 * @returns `true` if the interval should continue, `false` if it should stop
-	 */
-	readonly fn: AnyBooleanCallback<Args>;
+	readonly type: Type;
 
 	/**
 	 * The id of the IntervalRunner

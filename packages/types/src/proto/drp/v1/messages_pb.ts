@@ -18,6 +18,8 @@ export enum MessageType {
   MESSAGE_TYPE_SYNC_REJECT = 6,
   MESSAGE_TYPE_ATTESTATION_UPDATE = 7,
   MESSAGE_TYPE_CUSTOM = 8,
+  MESSAGE_TYPE_DRP_DISCOVERY = 9,
+  MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE = 10,
   UNRECOGNIZED = -1,
 }
 
@@ -50,6 +52,12 @@ export function messageTypeFromJSON(object: any): MessageType {
     case 8:
     case "MESSAGE_TYPE_CUSTOM":
       return MessageType.MESSAGE_TYPE_CUSTOM;
+    case 9:
+    case "MESSAGE_TYPE_DRP_DISCOVERY":
+      return MessageType.MESSAGE_TYPE_DRP_DISCOVERY;
+    case 10:
+    case "MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE":
+      return MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -77,6 +85,10 @@ export function messageTypeToJSON(object: MessageType): string {
       return "MESSAGE_TYPE_ATTESTATION_UPDATE";
     case MessageType.MESSAGE_TYPE_CUSTOM:
       return "MESSAGE_TYPE_CUSTOM";
+    case MessageType.MESSAGE_TYPE_DRP_DISCOVERY:
+      return "MESSAGE_TYPE_DRP_DISCOVERY";
+    case MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE:
+      return "MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE";
     case MessageType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -125,6 +137,24 @@ export interface SyncAccept {
 }
 
 export interface SyncReject {
+}
+
+export interface DRPDiscovery {
+  objectId: string;
+}
+
+export interface DRPDiscoveryResponse {
+  objectId: string;
+  subscribers: { [key: string]: DRPDiscoveryResponse_Subscribers };
+}
+
+export interface DRPDiscoveryResponse_Subscribers {
+  multiaddrs: string[];
+}
+
+export interface DRPDiscoveryResponse_SubscribersEntry {
+  key: string;
+  value: DRPDiscoveryResponse_Subscribers | undefined;
 }
 
 function createBaseMessage(): Message {
@@ -814,6 +844,312 @@ export const SyncReject: MessageFns<SyncReject> = {
   },
 };
 
+function createBaseDRPDiscovery(): DRPDiscovery {
+  return { objectId: "" };
+}
+
+export const DRPDiscovery: MessageFns<DRPDiscovery> = {
+  encode(message: DRPDiscovery, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.objectId !== "") {
+      writer.uint32(10).string(message.objectId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DRPDiscovery {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDRPDiscovery();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.objectId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DRPDiscovery {
+    return { objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "" };
+  },
+
+  toJSON(message: DRPDiscovery): unknown {
+    const obj: any = {};
+    if (message.objectId !== "") {
+      obj.objectId = message.objectId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DRPDiscovery>, I>>(base?: I): DRPDiscovery {
+    return DRPDiscovery.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DRPDiscovery>, I>>(object: I): DRPDiscovery {
+    const message = createBaseDRPDiscovery();
+    message.objectId = object.objectId ?? "";
+    return message;
+  },
+};
+
+function createBaseDRPDiscoveryResponse(): DRPDiscoveryResponse {
+  return { objectId: "", subscribers: {} };
+}
+
+export const DRPDiscoveryResponse: MessageFns<DRPDiscoveryResponse> = {
+  encode(message: DRPDiscoveryResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.objectId !== "") {
+      writer.uint32(10).string(message.objectId);
+    }
+    Object.entries(message.subscribers).forEach(([key, value]) => {
+      DRPDiscoveryResponse_SubscribersEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).join();
+    });
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DRPDiscoveryResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDRPDiscoveryResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.objectId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          const entry2 = DRPDiscoveryResponse_SubscribersEntry.decode(reader, reader.uint32());
+          if (entry2.value !== undefined) {
+            message.subscribers[entry2.key] = entry2.value;
+          }
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DRPDiscoveryResponse {
+    return {
+      objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
+      subscribers: isObject(object.subscribers)
+        ? Object.entries(object.subscribers).reduce<{ [key: string]: DRPDiscoveryResponse_Subscribers }>(
+          (acc, [key, value]) => {
+            acc[key] = DRPDiscoveryResponse_Subscribers.fromJSON(value);
+            return acc;
+          },
+          {},
+        )
+        : {},
+    };
+  },
+
+  toJSON(message: DRPDiscoveryResponse): unknown {
+    const obj: any = {};
+    if (message.objectId !== "") {
+      obj.objectId = message.objectId;
+    }
+    if (message.subscribers) {
+      const entries = Object.entries(message.subscribers);
+      if (entries.length > 0) {
+        obj.subscribers = {};
+        entries.forEach(([k, v]) => {
+          obj.subscribers[k] = DRPDiscoveryResponse_Subscribers.toJSON(v);
+        });
+      }
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DRPDiscoveryResponse>, I>>(base?: I): DRPDiscoveryResponse {
+    return DRPDiscoveryResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DRPDiscoveryResponse>, I>>(object: I): DRPDiscoveryResponse {
+    const message = createBaseDRPDiscoveryResponse();
+    message.objectId = object.objectId ?? "";
+    message.subscribers = Object.entries(object.subscribers ?? {}).reduce<
+      { [key: string]: DRPDiscoveryResponse_Subscribers }
+    >((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = DRPDiscoveryResponse_Subscribers.fromPartial(value);
+      }
+      return acc;
+    }, {});
+    return message;
+  },
+};
+
+function createBaseDRPDiscoveryResponse_Subscribers(): DRPDiscoveryResponse_Subscribers {
+  return { multiaddrs: [] };
+}
+
+export const DRPDiscoveryResponse_Subscribers: MessageFns<DRPDiscoveryResponse_Subscribers> = {
+  encode(message: DRPDiscoveryResponse_Subscribers, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.multiaddrs) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DRPDiscoveryResponse_Subscribers {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDRPDiscoveryResponse_Subscribers();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.multiaddrs.push(reader.string());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DRPDiscoveryResponse_Subscribers {
+    return {
+      multiaddrs: globalThis.Array.isArray(object?.multiaddrs)
+        ? object.multiaddrs.map((e: any) => globalThis.String(e))
+        : [],
+    };
+  },
+
+  toJSON(message: DRPDiscoveryResponse_Subscribers): unknown {
+    const obj: any = {};
+    if (message.multiaddrs?.length) {
+      obj.multiaddrs = message.multiaddrs;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DRPDiscoveryResponse_Subscribers>, I>>(
+    base?: I,
+  ): DRPDiscoveryResponse_Subscribers {
+    return DRPDiscoveryResponse_Subscribers.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DRPDiscoveryResponse_Subscribers>, I>>(
+    object: I,
+  ): DRPDiscoveryResponse_Subscribers {
+    const message = createBaseDRPDiscoveryResponse_Subscribers();
+    message.multiaddrs = object.multiaddrs?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseDRPDiscoveryResponse_SubscribersEntry(): DRPDiscoveryResponse_SubscribersEntry {
+  return { key: "", value: undefined };
+}
+
+export const DRPDiscoveryResponse_SubscribersEntry: MessageFns<DRPDiscoveryResponse_SubscribersEntry> = {
+  encode(message: DRPDiscoveryResponse_SubscribersEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      DRPDiscoveryResponse_Subscribers.encode(message.value, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DRPDiscoveryResponse_SubscribersEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDRPDiscoveryResponse_SubscribersEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = DRPDiscoveryResponse_Subscribers.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DRPDiscoveryResponse_SubscribersEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? DRPDiscoveryResponse_Subscribers.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: DRPDiscoveryResponse_SubscribersEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = DRPDiscoveryResponse_Subscribers.toJSON(message.value);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DRPDiscoveryResponse_SubscribersEntry>, I>>(
+    base?: I,
+  ): DRPDiscoveryResponse_SubscribersEntry {
+    return DRPDiscoveryResponse_SubscribersEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DRPDiscoveryResponse_SubscribersEntry>, I>>(
+    object: I,
+  ): DRPDiscoveryResponse_SubscribersEntry {
+    const message = createBaseDRPDiscoveryResponse_SubscribersEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? DRPDiscoveryResponse_Subscribers.fromPartial(object.value)
+      : undefined;
+    return message;
+  },
+};
+
 function bytesFromBase64(b64: string): Uint8Array {
   if ((globalThis as any).Buffer) {
     return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
@@ -851,6 +1187,10 @@ type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
