@@ -1,4 +1,4 @@
-import type { Operation, Hash } from "@ts-drp/types";
+import type { Hash, Operation } from "@ts-drp/types";
 import * as crypto from "node:crypto";
 
 export function computeHash(

@@ -1,14 +1,14 @@
 import { type GossipSub, type MeshPeer } from "@chainsafe/libp2p-gossipsub";
 import {
-	type Stream,
 	type Connection,
 	type IdentifyResult,
 	type Libp2p,
+	type Stream,
 	type SubscriptionChangeData,
 } from "@libp2p/interface";
 import { type DRPNodeConfig, Message } from "@ts-drp/types";
 import { raceEvent } from "race-event";
-import { beforeAll, describe, expect, test, afterAll } from "vitest";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import rawConfig from "../../../configs/local-bootstrap.json" with { type: "json" };
 import { DRPNetworkNode, type DRPNetworkNodeConfig, streamToUint8Array } from "../src/node.js";

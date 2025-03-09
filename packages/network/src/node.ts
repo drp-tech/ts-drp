@@ -1,13 +1,13 @@
-import { type GossipSub, type GossipsubMessage, gossipsub } from "@chainsafe/libp2p-gossipsub";
+import { gossipsub, type GossipSub, type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import {
-	type TopicScoreParams,
 	createPeerScoreParams,
 	createTopicScoreParams,
+	type TopicScoreParams,
 } from "@chainsafe/libp2p-gossipsub/score";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
-import { type BootstrapComponents, bootstrap } from "@libp2p/bootstrap";
+import { bootstrap, type BootstrapComponents } from "@libp2p/bootstrap";
 import { circuitRelayServer, circuitRelayTransport } from "@libp2p/circuit-relay-v2";
 import { privateKeyFromRaw } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
@@ -22,17 +22,17 @@ import type {
 } from "@libp2p/interface";
 import { ping } from "@libp2p/ping";
 import {
-	type PubSubPeerDiscoveryComponents,
 	pubsubPeerDiscovery,
+	type PubSubPeerDiscoveryComponents,
 } from "@libp2p/pubsub-peer-discovery";
 import { webRTC } from "@libp2p/webrtc";
 import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
-import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
+import { multiaddr, type MultiaddrInput } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger } from "@ts-drp/logger";
-import { Message, type LoggerOptions } from "@ts-drp/types";
-import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
+import { type LoggerOptions, Message } from "@ts-drp/types";
+import { createLibp2p, type Libp2p, type ServiceFactoryMap } from "libp2p";
 
 import { uint8ArrayToStream } from "./stream.js";
 

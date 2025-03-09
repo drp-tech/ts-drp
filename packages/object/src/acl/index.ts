@@ -1,13 +1,13 @@
 import {
-	type Vertex,
-	ActionType,
-	SemanticsType,
-	type DRPPublicCredential,
-	ACLGroup,
-	type PeerPermissions,
-	type IACL,
 	ACLConflictResolution,
+	ACLGroup,
+	ActionType,
+	type DRPPublicCredential,
+	type IACL,
+	type PeerPermissions,
 	type ResolveConflictsType,
+	SemanticsType,
+	type Vertex,
 } from "@ts-drp/types";
 
 export class ObjectACL implements IACL {

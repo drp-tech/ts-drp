@@ -1,13 +1,13 @@
 import { MapConflictResolution, MapDRP, SetDRP } from "@ts-drp/blueprints";
 import {
-	type Vertex,
-	type Operation,
-	ActionType,
-	SemanticsType,
-	type Hash,
-	DrpType,
 	ACLGroup,
+	ActionType,
+	DrpType,
+	type Hash,
 	type IDRP,
+	type Operation,
+	SemanticsType,
+	type Vertex,
 } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
