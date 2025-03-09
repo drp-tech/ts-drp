@@ -93,7 +93,7 @@ async function getPeerID(page: Page): Promise<string> {
 
 function getPeerIDRegex(peerID: string): RegExp {
 	return new RegExp(
-		`peerId: PeerId\\(${peerID}\\),.*?signedPeerRecord: {\\n.*?addresses: \\[\\n      Multiaddr\\(/ip4/127\\.0\\.0\\.1/tcp/50000/ws/p2p/16Uiu2HAkyHjtPSYAveXoTGMskeGWwP7FmbkR29EJJRsmixeAM2xn/p2p-circuit\\)`,
+		`peerId: PeerId\\(${peerID}\\),.*?signedPeerRecord: {\\n.*?addresses: \\[\\n      Multiaddr\\(/ip4/127\\.0\\.0\\.1/tcp/50000/ws/p2p/16Uiu2HAmTY71bbCHtmYD3nvVKUGbk7NWqLBbPFNng4jhaXJHi3W5/p2p-circuit\\)`,
 		"gms"
 	);
 }

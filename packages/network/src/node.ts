@@ -40,8 +40,8 @@ export * from "./stream.js";
 
 export const DRP_MESSAGE_PROTOCOL = "/drp/message/0.0.1";
 export const BOOTSTRAP_NODES = [
-	"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/16Uiu2HAmBtu5tjHtbMWe5CVvuJ5zD3hTG4GDKsof57dMFA2mRSKL",
-	"/dns4/bootstrap2.topology.gg/tcp/443/wss/p2p/16Uiu2HAmEczduFyyQmHDVoujwCm5vgS7m138S7EG97g7MZSHVXet",
+	"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/16Uiu2HAm4MeUv712cWmXpvGEZ1r1741YoWvsCcmptCza43b7opdK",
+	"/dns4/bootstrap2.topology.gg/tcp/443/wss/p2p/16Uiu2HAmGjAVQyzgTCumpB9TuojKT4LZTBC5HRiZyuwGG9VHodLC",
 ];
 let log: Logger;
 
