@@ -25,11 +25,12 @@ export class MessageQueue<T> extends EventEmitter implements IMessageQueue<T> {
 			this.emit(MessageQueueEvent.Full);
 		}
 
+		console.log("Enqueue", this.queue.length, message);
 		this.queue.push(message);
 		this.emit(MessageQueueEvent.Enqueued, message);
 
 		// If we're processing messages and this is the only message, process it
-		if (this.processing && this.queue.length === 1) {
+		if (this.processing && this.getLength() === 1) {
 			void this.processNextMessage();
 		}
 
@@ -58,6 +59,13 @@ export class MessageQueue<T> extends EventEmitter implements IMessageQueue<T> {
 
 		this.processing = false;
 		this.emit(MessageQueueEvent.Stopped);
+	}
+
+	/**
+	 * Get the length of the queue
+	 */
+	public getLength(): number {
+		return this.queue.length - this.head;
 	}
 
 	/**
