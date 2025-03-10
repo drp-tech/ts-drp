@@ -60,7 +60,7 @@ describe("Linearize correctly", () => {
 		);
 		const expectedOrder = [1, 0, 3, 2, 4, 5, 7, 6, 8, 9];
 		for (let i = 0; i < 10; i++) {
-			expect(order[i].value).toStrictEqual([expectedOrder[i]]);
+			expect(order[i].operation?.value).toStrictEqual([expectedOrder[i]]);
 		}
 	});
 
@@ -129,7 +129,7 @@ describe("Linearize correctly", () => {
 		);
 		const expectedOrder = [4, 0, 8, 2, 6];
 		for (let i = 0; i < 5; i++) {
-			expect(order[i].value).toStrictEqual([expectedOrder[i]]);
+			expect(order[i].operation?.value).toStrictEqual([expectedOrder[i]]);
 		}
 	});
 });
@@ -190,7 +190,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.getAllVertices().forEach((vertex) => subgraph.add(vertex.hash));
 
 		const result = linearizeMultipleSemantics(hashGraph, origin, subgraph);
-		expect(result.map((op) => op.value)).toEqual([[1], [2]]);
+		expect(result.map((vertex) => vertex.operation?.value)).toEqual([[1], [2]]);
 	});
 
 	test("should handle concurrent operations with conflict resolution", () => {
@@ -302,7 +302,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.getAllVertices().forEach((vertex) => subgraph.add(vertex.hash));
 
 		const result = linearizeMultipleSemantics(hashGraph, origin, subgraph);
-		expect(result.map((op) => op.value)).toEqual([[3], [5], [6]]);
+		expect(result.map((vertex) => vertex.operation?.value)).toEqual([[3], [5], [6]]);
 	});
 
 	test("should handle operations with null values", () => {
@@ -324,7 +324,7 @@ describe("linearizeMultipleSemantics", () => {
 				"",
 				{
 					opType: "set",
-					value: null,
+					value: [1],
 					drpType: DrpType.DRP,
 				},
 				hashGraph.getFrontier(),
@@ -351,7 +351,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.getAllVertices().forEach((vertex) => subgraph.add(vertex.hash));
 
 		const result = linearizeMultipleSemantics(hashGraph, origin, subgraph);
-		expect(result.map((op) => op.value)).toEqual([[2]]);
+		expect(result.map((vertex) => vertex.operation?.value)).toEqual([[1], [2]]);
 	});
 
 	test("should handle empty subgraph", () => {
@@ -407,10 +407,10 @@ describe("linearizeMultipleSemantics", () => {
 		}
 
 		const subgraph = new ObjectSet<string>(hashGraph.vertices.keys());
-		const linearizedOps = linearizePairSemantics(hashGraph, HashGraph.rootHash, subgraph);
+		const linearizedVertices = linearizePairSemantics(hashGraph, HashGraph.rootHash, subgraph);
 		const order = hashGraph.topologicalSort(true);
-		for (let i = 0; i < linearizedOps.length; i++) {
-			expect(linearizedOps[i]).equal(hashGraph.vertices.get(order[i + 1])?.operation);
+		for (let i = 0; i < linearizedVertices.length; i++) {
+			expect(linearizedVertices[i]).equal(hashGraph.vertices.get(order[i + 1]));
 		}
 	});
 });

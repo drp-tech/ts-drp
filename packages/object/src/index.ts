@@ -12,8 +12,8 @@ import {
 	type IDRP,
 	type IDRPObject,
 	type IMetrics,
-	type LcaAndOperations,
 	type LoggerOptions,
+	type LowestCommonAncestorResult,
 	type Operation,
 	type Vertex,
 } from "@ts-drp/types";
@@ -371,14 +371,14 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 	// compute the DRP based on all dependencies of the current vertex using partial linearization
 	private _computeDRP(
 		vertexDependencies: Hash[],
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
 	): IDRP {
 		if (!this.drp || !this.originalDRP) {
 			throw new Error("DRP is undefined");
 		}
 
-		const { lca, linearizedOperations } = preCompute ?? this.computeLCA(vertexDependencies);
+		const { lca, linearizedVertices } = preCompute ?? this.computeLCA(vertexDependencies);
 
 		const drp = cloneDeep(this.originalDRP);
 
@@ -393,9 +393,9 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			drp[entry.key] = entry.value;
 		}
 
-		for (const op of linearizedOperations) {
-			if (op.drpType === DrpType.DRP) {
-				this._applyOperation(drp, op);
+		for (const vertex of linearizedVertices) {
+			if (vertex.operation?.drpType === DrpType.DRP) {
+				this._applyOperation(drp, vertex.operation);
 			}
 		}
 		if (vertexOperation && vertexOperation.drpType === DrpType.DRP) {
@@ -407,14 +407,14 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 	private _computeObjectACL(
 		vertexDependencies: Hash[],
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
 	): IACL {
 		if (!this.acl || !this.originalObjectACL) {
 			throw new Error("ObjectACL is undefined");
 		}
 
-		const { lca, linearizedOperations } = preCompute ?? this.computeLCA(vertexDependencies);
+		const { lca, linearizedVertices } = preCompute ?? this.computeLCA(vertexDependencies);
 
 		const acl = cloneDeep(this.originalObjectACL);
 
@@ -428,9 +428,9 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		for (const entry of state.state) {
 			acl[entry.key] = entry.value;
 		}
-		for (const op of linearizedOperations) {
-			if (op.drpType === DrpType.ACL) {
-				this._applyOperation(acl, op);
+		for (const vertex of linearizedVertices) {
+			if (vertex.operation?.drpType === DrpType.ACL) {
+				this._applyOperation(acl, vertex.operation);
 			}
 		}
 		if (vertexOperation && vertexOperation.drpType === DrpType.ACL) {
@@ -440,7 +440,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		return acl;
 	}
 
-	private computeLCA(vertexDependencies: string[]): LcaAndOperations {
+	private computeLCA(vertexDependencies: string[]): LowestCommonAncestorResult {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
@@ -450,9 +450,9 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			vertexDependencies.length === 1
 				? vertexDependencies[0]
 				: this.hashGraph.lowestCommonAncestorMultipleVertices(vertexDependencies, subgraph);
-		const linearizedOperations =
-			vertexDependencies.length === 1 ? [] : this.hashGraph.linearizeOperations(lca, subgraph);
-		return { lca, linearizedOperations };
+		const linearizedVertices =
+			vertexDependencies.length === 1 ? [] : this.hashGraph.linearizeVertices(lca, subgraph);
+		return { lca, linearizedVertices };
 	}
 
 	// get the map representing the state of the given DRP by mapping variable names to their corresponding values
@@ -474,7 +474,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 	private _computeDRPState(
 		vertexDependencies: Hash[],
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
 	): DRPState {
 		const drp = this._computeDRP(vertexDependencies, preCompute, vertexOperation);
@@ -483,7 +483,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 	private _computeObjectACLState(
 		vertexDependencies: Hash[],
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
 	): DRPState {
 		const acl = this._computeObjectACL(vertexDependencies, preCompute, vertexOperation);
@@ -492,7 +492,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 	private _setObjectACLState(
 		vertex: Vertex,
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		drpState?: DRPState
 	): void {
 		if (this.acl) {
@@ -503,7 +503,11 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 	}
 
-	private _setDRPState(vertex: Vertex, preCompute?: LcaAndOperations, drpState?: DRPState): void {
+	private _setDRPState(
+		vertex: Vertex,
+		preCompute?: LowestCommonAncestorResult,
+		drpState?: DRPState
+	): void {
 		this.drpStates.set(
 			vertex.hash,
 			drpState ?? this._computeDRPState(vertex.dependencies, preCompute, vertex.operation)
