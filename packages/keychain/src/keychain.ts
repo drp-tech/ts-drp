@@ -26,8 +26,7 @@ export class Keychain {
 
 	async start(): Promise<void> {
 		if (this._config?.private_key_seed) {
-			const tmp = this._config.private_key_seed.padEnd(64, "0");
-			const seed = uint8ArrayFromString(tmp);
+			const seed = crypto.createHash("sha512").update(this._config.private_key_seed).digest();
 			const rawSecp256k1PrivateKey = etc.hashToPrivateKey(seed);
 			const key = privateKeyFromRaw(rawSecp256k1PrivateKey);
 			if (key.type !== "secp256k1") throw new Error("Expected secp256k1 key");

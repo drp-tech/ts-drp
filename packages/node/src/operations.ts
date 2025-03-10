@@ -1,9 +1,9 @@
 import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import { HashGraph, DRPObject as DRPObjectImpl } from "@ts-drp/object";
+import { DRPObject as DRPObjectImpl, HashGraph } from "@ts-drp/object";
 import {
+	FetchState,
 	type IDRP,
 	type IDRPObject,
-	FetchState,
 	type IMetrics,
 	Message,
 	MessageType,

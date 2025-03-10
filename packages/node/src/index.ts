@@ -5,13 +5,13 @@ import { Logger } from "@ts-drp/logger";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
 import {
-	type IMetrics,
 	type DRPNodeConfig,
-	Message,
-	MessageType,
 	type IACL,
 	type IDRP,
 	type IDRPObject,
+	type IMetrics,
+	Message,
+	MessageType,
 } from "@ts-drp/types";
 
 import { loadConfig } from "./config.js";

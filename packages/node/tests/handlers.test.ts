@@ -4,16 +4,16 @@ import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
 import {
 	AttestationUpdate,
+	DrpType,
+	FetchState,
 	Message,
+	MessageType,
 	Sync,
 	SyncAccept,
 	Update,
-	MessageType,
-	DrpType,
-	FetchState,
 } from "@ts-drp/types";
 import { raceEvent } from "race-event";
-import { beforeAll, describe, expect, test, afterAll, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 
 import { drpMessagesHandler, signGeneratedVertices } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
