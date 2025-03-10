@@ -1,5 +1,5 @@
 import { SetDRP } from "@ts-drp/blueprints";
-import { DRPObject, deserializeDRPState, serializeDRPState } from "@ts-drp/object";
+import { deserializeDRPState, DRPObject, serializeDRPState } from "@ts-drp/object";
 import { beforeAll, describe, expect, test } from "vitest";
 
 describe("State message utils", () => {

@@ -3,22 +3,22 @@ import type { Stream } from "@libp2p/interface";
 import { peerIdFromPublicKey } from "@libp2p/peer-id";
 import { Signature } from "@noble/secp256k1";
 import { streamToUint8Array } from "@ts-drp/network";
-import { HashGraph, deserializeDRPState, serializeDRPState } from "@ts-drp/object";
+import { deserializeDRPState, HashGraph, serializeDRPState } from "@ts-drp/object";
 import {
+	type AggregatedAttestation,
+	type Attestation,
 	AttestationUpdate,
 	type DRPState,
 	FetchState,
 	FetchStateResponse,
+	type IACL,
+	type IDRPObject,
 	Message,
 	MessageType,
 	Sync,
 	SyncAccept,
 	Update,
-	type IDRPObject,
-	type IACL,
 	type Vertex,
-	type AggregatedAttestation,
-	type Attestation,
 } from "@ts-drp/types";
 import { isPromise } from "@ts-drp/utils";
 import * as crypto from "crypto";

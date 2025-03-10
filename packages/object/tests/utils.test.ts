@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SetDRP } from "@ts-drp/blueprints";
 import { FetchStateResponse } from "@ts-drp/types";
-import { expect, describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
+	deserializeDRPState,
+	deserializeValue,
 	DRPObject,
 	HashGraph,
-	serializeValue,
-	deserializeValue,
 	serializeDRPState,
-	deserializeDRPState,
+	serializeValue,
 } from "../src/index.js";
 
 class TestCustomClass {
