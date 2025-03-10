@@ -1,14 +1,14 @@
 import {
-	type Vertex,
-	SemanticsType,
 	ActionType,
-	type IHashGraph,
 	DrpType,
 	type Hash,
 	type IBitSet,
+	type IHashGraph,
 	type Operation,
+	SemanticsType,
+	type Vertex,
 } from "@ts-drp/types";
-import { describe, test, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { HashGraphVizualizer } from "../src/debug/hashgraph-visualizer.js";
 
