@@ -31,15 +31,9 @@ import * as filters from "@libp2p/websockets/filters";
 import { multiaddr, type MultiaddrInput } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger } from "@ts-drp/logger";
-import {
-	type IMessageQueueOptions,
-	type LoggerOptions,
-	Message,
-	MessageQueueEvent,
-} from "@ts-drp/types";
+import { type LoggerOptions, Message } from "@ts-drp/types";
 import { createLibp2p, type Libp2p, type ServiceFactoryMap } from "libp2p";
 
-import { MessageQueue } from "./message-queue.js";
 import { uint8ArrayToStream } from "./stream.js";
 
 export * from "./stream.js";
@@ -62,7 +56,6 @@ export interface DRPNetworkNodeConfig {
 	pubsub?: {
 		peer_discovery_interval?: number;
 	};
-	messageQueueOptions?: IMessageQueueOptions;
 }
 
 type PeerDiscoveryFunction =
@@ -73,35 +66,12 @@ export class DRPNetworkNode {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: GossipSub;
-	private _messageQueue: MessageQueue<CustomEvent<GossipsubMessage>>;
-	private _messageHandlers: Map<string, EventCallback<CustomEvent<GossipsubMessage>>>;
 
 	peerId = "";
 
 	constructor(config?: DRPNetworkNodeConfig) {
 		this._config = config;
 		log = new Logger("drp::network", config?.log_config);
-
-		this._messageQueue = new MessageQueue<CustomEvent<GossipsubMessage>>(
-			config?.messageQueueOptions
-		);
-		this._messageHandlers = new Map();
-
-		// Setup a listener for processing messages
-		this._messageQueue.on(
-			MessageQueueEvent.Processing,
-			(message: CustomEvent<GossipsubMessage>) => {
-				if (!this._messageHandlers.has(message.detail.msg.topic)) {
-					log.error("::processing: No handler found for topic", message.detail.msg.topic);
-					return;
-				}
-				this._messageHandlers.get(message.detail.msg.topic)?.(message);
-			}
-		);
-
-		this._messageQueue.on(MessageQueueEvent.Full, () => {
-			log.warn("Message queue is full");
-		});
 	}
 
 	async start(rawPrivateKey?: Uint8Array): Promise<void> {
@@ -242,9 +212,6 @@ export class DRPNetworkNode {
 		this._pubsub = this._node.services.pubsub as GossipSub;
 		this.peerId = this._node.peerId.toString();
 
-		// Start message queue processing
-		this._messageQueue.start();
-
 		log.info("::start: Successfully started DRP network w/ peer_id", this.peerId);
 
 		this._node.addEventListener("peer:connect", (e) =>
@@ -269,7 +236,6 @@ export class DRPNetworkNode {
 
 	async stop(): Promise<void> {
 		if (this._node?.status === "stopped") throw new Error("Node not started");
-		this._messageQueue.stop();
 		await this._node?.stop();
 	}
 
@@ -429,13 +395,9 @@ export class DRPNetworkNode {
 		group: string,
 		handler: EventCallback<CustomEvent<GossipsubMessage>>
 	): void {
-		this._messageHandlers.set(group, handler);
 		this._pubsub?.addEventListener("gossipsub:message", (e) => {
 			if (group && e.detail.msg.topic !== group) return;
-			const enqueued = this._messageQueue.enqueue(e);
-			if (!enqueued) {
-				log.error("::addGroupMessageHandler: Failed to enqueue incoming message", { group });
-			}
+			handler(e);
 		});
 	}
 

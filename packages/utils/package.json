@@ -29,5 +29,8 @@
 		"test": "vitest",
 		"typecheck": "tsc --noEmit",
 		"watch": "tsc -b -w"
+	},
+	"dependencies": {
+		"@ts-drp/types": "^0.9.1"
 	}
 }

@@ -1,5 +1,5 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
+import type { EventCallback, IncomingStreamData, Stream, StreamHandler } from "@libp2p/interface";
 import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
 import { DRPNetworkNode } from "@ts-drp/network";
@@ -11,8 +11,10 @@ import {
 	type IDRPObject,
 	type IMetrics,
 	Message,
+	MessageQueueEvent,
 	MessageType,
 } from "@ts-drp/types";
+import { MessageQueue } from "@ts-drp/utils";
 
 import { loadConfig } from "./config.js";
 import { drpMessagesHandler } from "./handlers.js";
@@ -27,6 +29,7 @@ export class DRPNode {
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
 	keychain: Keychain;
+	messageQueue: MessageQueue<Stream>;
 
 	constructor(config?: DRPNodeConfig) {
 		this.config = config;
@@ -39,18 +42,29 @@ export class DRPNode {
 		this.networkNode = new DRPNetworkNode(config?.network_config);
 		this.objectStore = new DRPObjectStore();
 		this.keychain = new Keychain(config?.keychain_config);
+		this.messageQueue = new MessageQueue<Stream>(config?.message_queue_options);
+
+		this.messageQueue.on(MessageQueueEvent.Processing, (stream: Stream) => {
+			void drpMessagesHandler(this, stream);
+		});
+
+		this.messageQueue.on(MessageQueueEvent.Full, () => {
+			log.warn("Message queue is full");
+		});
 	}
 
 	async start(): Promise<void> {
 		await this.keychain.start();
 		await this.networkNode.start(this.keychain.secp256k1PrivateKey);
-		await this.networkNode.addMessageHandler(
-			({ stream }: IncomingStreamData) => void drpMessagesHandler(this, stream)
-		);
+		this.messageQueue.start();
+		await this.networkNode.addMessageHandler(({ stream }: IncomingStreamData) => {
+			this.messageQueue.enqueue(stream);
+		});
 	}
 
 	async restart(config?: DRPNodeConfig): Promise<void> {
 		await this.networkNode.stop();
+		this.messageQueue.stop();
 		this.networkNode = new DRPNetworkNode(
 			config ? config.network_config : this.config?.network_config
 		);

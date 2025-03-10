@@ -1,3 +1,5 @@
+export * from "./message-queue.js";
+
 export function isPromise<T>(obj: unknown): obj is Promise<T> {
 	return typeof (obj as { then?: unknown })?.then === "function";
 }

@@ -25,7 +25,7 @@ export class MessageQueue<T> extends EventEmitter implements IMessageQueue<T> {
 			this.emit(MessageQueueEvent.Full);
 		}
 
-		console.log("Enqueue", this.queue.length, message);
+		console.log("Enqueue", this.getLength(), message);
 		this.queue.push(message);
 		this.emit(MessageQueueEvent.Enqueued, message);
 
@@ -83,7 +83,7 @@ export class MessageQueue<T> extends EventEmitter implements IMessageQueue<T> {
 			this.emit(MessageQueueEvent.Processed, message);
 
 			// Only remove messages after successful processing
-			if (this.head > this.options.maxSize >> 3) {
+			if (this.head > this.options.maxSize >> 2) {
 				this.queue.splice(0, this.head);
 				this.head = 0;
 			}
