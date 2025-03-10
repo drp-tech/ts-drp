@@ -1,7 +1,8 @@
-import { type IDRP, SemanticsType } from "@ts-drp/types";
+import { type DRPRequestContext, type IDRP, SemanticsType } from "@ts-drp/types";
 
 export class SetDRP<T> implements IDRP {
 	semanticsType = SemanticsType.pair;
+	context: DRPRequestContext = { peerId: "" };
 
 	private _set: Set<T>;
 
