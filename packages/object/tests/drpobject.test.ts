@@ -1,6 +1,7 @@
 import { SetDRP } from "@ts-drp/blueprints";
 import {
 	ActionType,
+	type DRPRequestContext,
 	type IDRP,
 	type ResolveConflictsType,
 	SemanticsType,
@@ -82,6 +83,7 @@ describe("Test for duplicate call issue", () => {
 
 	class CounterDRP implements IDRP {
 		semanticsType = SemanticsType.pair;
+		context: DRPRequestContext = { peerId: "" };
 
 		private _counter: number;
 

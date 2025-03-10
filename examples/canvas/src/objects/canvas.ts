@@ -1,5 +1,6 @@
 import {
 	ActionType,
+	type DRPRequestContext,
 	type IDRP,
 	type ResolveConflictsType,
 	SemanticsType,
@@ -10,6 +11,7 @@ import { Pixel } from "./pixel";
 
 export class Canvas implements IDRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
+	context: DRPRequestContext = { peerId: "" };
 
 	width: number;
 	height: number;

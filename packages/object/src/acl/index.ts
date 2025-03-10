@@ -3,6 +3,7 @@ import {
 	ACLGroup,
 	ActionType,
 	type DRPPublicCredential,
+	type DRPRequestContext,
 	type IACL,
 	type PeerPermissions,
 	type ResolveConflictsType,
@@ -12,6 +13,7 @@ import {
 
 export class ObjectACL implements IACL {
 	semanticsType = SemanticsType.pair;
+	context: DRPRequestContext = { peerId: "" };
 
 	// if true, any peer can write to the object
 	permissionless: boolean;

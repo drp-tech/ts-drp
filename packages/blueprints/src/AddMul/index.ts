@@ -8,6 +8,7 @@ import {
 
 export class AddMulDRP implements IDRP {
 	semanticsType = SemanticsType.pair;
+	context = { peerId: "" };
 
 	private _value: number;
 
