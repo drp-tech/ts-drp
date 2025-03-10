@@ -31,9 +31,15 @@ import * as filters from "@libp2p/websockets/filters";
 import { multiaddr, type MultiaddrInput } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger } from "@ts-drp/logger";
-import { type LoggerOptions, Message } from "@ts-drp/types";
+import {
+	type IMessageQueueOptions,
+	type LoggerOptions,
+	Message,
+	MessageQueueEvent,
+} from "@ts-drp/types";
 import { createLibp2p, type Libp2p, type ServiceFactoryMap } from "libp2p";
 
+import { MessageQueue } from "./message-queue.js";
 import { uint8ArrayToStream } from "./stream.js";
 
 export * from "./stream.js";
@@ -56,6 +62,7 @@ export interface DRPNetworkNodeConfig {
 	pubsub?: {
 		peer_discovery_interval?: number;
 	};
+	messageQueueOptions?: IMessageQueueOptions;
 }
 
 type PeerDiscoveryFunction =
@@ -66,12 +73,35 @@ export class DRPNetworkNode {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: GossipSub;
+	private _messageQueue: MessageQueue<CustomEvent<GossipsubMessage>>;
+	private _messageHandlers: Map<string, EventCallback<CustomEvent<GossipsubMessage>>>;
 
 	peerId = "";
 
 	constructor(config?: DRPNetworkNodeConfig) {
 		this._config = config;
 		log = new Logger("drp::network", config?.log_config);
+
+		this._messageQueue = new MessageQueue<CustomEvent<GossipsubMessage>>(
+			config?.messageQueueOptions
+		);
+		this._messageHandlers = new Map();
+
+		// Setup a listener for processing messages
+		this._messageQueue.on(
+			MessageQueueEvent.Processing,
+			(message: CustomEvent<GossipsubMessage>) => {
+				if (!this._messageHandlers.has(message.detail.msg.topic)) {
+					log.error("::processing: No handler found for topic", message.detail.msg.topic);
+					return;
+				}
+				this._messageHandlers.get(message.detail.msg.topic)?.(message);
+			}
+		);
+
+		this._messageQueue.on(MessageQueueEvent.Full, () => {
+			log.warn("Message queue is full");
+		});
 	}
 
 	async start(rawPrivateKey?: Uint8Array): Promise<void> {
@@ -212,7 +242,10 @@ export class DRPNetworkNode {
 		this._pubsub = this._node.services.pubsub as GossipSub;
 		this.peerId = this._node.peerId.toString();
 
-		log.info("::start: Successfuly started DRP network w/ peer_id", this.peerId);
+		// Start message queue processing
+		this._messageQueue.start();
+
+		log.info("::start: Successfully started DRP network w/ peer_id", this.peerId);
 
 		this._node.addEventListener("peer:connect", (e) =>
 			log.info("::start::peer::connect", e.detail)
@@ -236,6 +269,7 @@ export class DRPNetworkNode {
 
 	async stop(): Promise<void> {
 		if (this._node?.status === "stopped") throw new Error("Node not started");
+		this._messageQueue.stop();
 		await this._node?.stop();
 	}
 
@@ -297,7 +331,7 @@ export class DRPNetworkNode {
 		try {
 			this._pubsub?.subscribe(topic);
 			this._pubsub?.getPeers();
-			log.info("::subscribe: Successfuly subscribed the topic", topic);
+			log.info("::subscribe: Successfully subscribed the topic", topic);
 		} catch (e) {
 			log.error("::subscribe:", e);
 		}
@@ -311,7 +345,7 @@ export class DRPNetworkNode {
 
 		try {
 			this._pubsub?.unsubscribe(topic);
-			log.info("::unsubscribe: Successfuly unsubscribed the topic", topic);
+			log.info("::unsubscribe: Successfully unsubscribed the topic", topic);
 		} catch (e) {
 			log.error("::unsubscribe:", e);
 		}
@@ -320,7 +354,7 @@ export class DRPNetworkNode {
 	async connect(addr: MultiaddrInput): Promise<void> {
 		try {
 			await this._node?.dial([multiaddr(addr)]);
-			log.info("::connect: Successfuly dialed", addr);
+			log.info("::connect: Successfully dialed", addr);
 		} catch (e) {
 			log.error("::connect:", e);
 		}
@@ -329,7 +363,7 @@ export class DRPNetworkNode {
 	async disconnect(peerId: string): Promise<void> {
 		try {
 			await this._node?.hangUp(multiaddr(`/p2p/${peerId}`));
-			log.info("::disconnect: Successfuly disconnected", peerId);
+			log.info("::disconnect: Successfully disconnected", peerId);
 		} catch (e) {
 			log.error("::disconnect:", e);
 		}
@@ -359,8 +393,7 @@ export class DRPNetworkNode {
 		try {
 			const messageBuffer = Message.encode(message).finish();
 			await this._pubsub?.publish(topic, messageBuffer);
-
-			log.info("::broadcastMessage: Successfuly broadcasted message to topic", topic);
+			log.info("::broadcastMessage: Successfully broadcasted message to topic", topic);
 		} catch (e) {
 			log.error("::broadcastMessage:", e);
 		}
@@ -384,7 +417,7 @@ export class DRPNetworkNode {
 			const peerId = peers[Math.floor(Math.random() * peers.length)];
 
 			const connection = await this._node?.dial(peerId);
-			const stream: Stream = (await connection?.newStream(DRP_MESSAGE_PROTOCOL)) as Stream;
+			const stream = <Stream>await connection?.newStream(DRP_MESSAGE_PROTOCOL);
 			const messageBuffer = Message.encode(message).finish();
 			await uint8ArrayToStream(stream, messageBuffer);
 		} catch (e) {
@@ -396,9 +429,13 @@ export class DRPNetworkNode {
 		group: string,
 		handler: EventCallback<CustomEvent<GossipsubMessage>>
 	): void {
+		this._messageHandlers.set(group, handler);
 		this._pubsub?.addEventListener("gossipsub:message", (e) => {
 			if (group && e.detail.msg.topic !== group) return;
-			handler(e);
+			const enqueued = this._messageQueue.enqueue(e);
+			if (!enqueued) {
+				log.error("::addGroupMessageHandler: Failed to enqueue incoming message", { group });
+			}
 		});
 	}
 

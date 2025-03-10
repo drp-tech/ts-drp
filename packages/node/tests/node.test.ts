@@ -264,7 +264,7 @@ describe("DRPNode with rpc", () => {
 	test("should run unsubscribeObject", () => {
 		drpNode.unsubscribeObject(drpObject.id);
 		expect(mockLogger.info).toHaveBeenCalledWith(
-			"::unsubscribe: Successfuly unsubscribed the topic",
+			"::unsubscribe: Successfully unsubscribed the topic",
 			drpObject.id
 		);
 	});

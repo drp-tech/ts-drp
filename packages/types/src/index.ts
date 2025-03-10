@@ -29,6 +29,7 @@ export type * from "./finality.js";
 export * from "./hashgraph.js";
 export type * from "./keychain.js";
 export type * from "./logger.js";
+export * from "./message-queue.js";
 export type * from "./metrics.js";
 export type * from "./network.js";
 export type * from "./node.js";
