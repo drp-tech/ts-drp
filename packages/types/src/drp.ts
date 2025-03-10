@@ -15,7 +15,21 @@ export enum DrpType {
 	DRP = "DRP",
 }
 
+/**
+ * The context metadata for a request.
+ */
+export interface DRPRequestContext {
+	/**
+	 * The peer that initiated the request.
+	 */
+	peerId: string;
+}
+
 export interface IDRP {
+	/**
+	 * The context metadata for a request.
+	 */
+	context: DRPRequestContext;
 	/**
 	 * The semantics type of the DRP.
 	 */
