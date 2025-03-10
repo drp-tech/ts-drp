@@ -14,10 +14,30 @@
 		"!dist/test",
 		"!**/*.tsbuildinfo"
 	],
+	"typesVersions": {
+		"*": {
+			"*": [
+				"*",
+				"dist/*",
+				"dist/src/*",
+				"dist/src/*/index"
+			],
+			"src/*": [
+				"*",
+				"dist/*",
+				"dist/src/*",
+				"dist/src/*/index"
+			]
+		}
+	},
 	"exports": {
 		".": {
 			"types": "./dist/src/index.d.ts",
 			"import": "./dist/src/index.js"
+		},
+		"./debug": {
+			"types": "./dist/src/debug/index.d.ts",
+			"import": "./dist/src/debug/index.js"
 		}
 	},
 	"scripts": {
@@ -29,5 +49,8 @@
 		"test": "vitest",
 		"typecheck": "tsc --noEmit",
 		"watch": "tsc -b -w"
+	},
+	"dependencies": {
+		"@ts-drp/types": "^0.9.1"
 	}
 }
