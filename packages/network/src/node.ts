@@ -113,7 +113,7 @@ export class DRPNetworkNode {
 			identify: identify(),
 			identifyPush: identifyPush(),
 			pubsub: gossipsub({
-				doPX: true,
+				doPX: false, // Only enable doPX on trusted bootstrap nodes
 				allowPublishToZeroTopicPeers: true,
 				scoreParams: createPeerScoreParams({
 					IPColocationFactorWeight: 0,
@@ -130,6 +130,9 @@ export class DRPNetworkNode {
 					},
 				}),
 				fallbackToFloodsub: false,
+				scoreThresholds: {
+					acceptPXThreshold: 1000,
+				},
 			}),
 		};
 
