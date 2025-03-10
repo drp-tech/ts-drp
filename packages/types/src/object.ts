@@ -4,16 +4,11 @@ import { type IFinalityStore } from "./finality.js";
 import { type IHashGraph } from "./hashgraph.js";
 import { type LoggerOptions } from "./logger.js";
 import { type IMetrics } from "./metrics.js";
-import {
-	type DRPObjectBase,
-	type DRPState,
-	type Vertex_Operation as Operation,
-	type Vertex,
-} from "./proto/drp/v1/object_pb.js";
+import { type DRPObjectBase, type DRPState, type Vertex } from "./proto/drp/v1/object_pb.js";
 
-export interface LcaAndOperations {
+export interface LowestCommonAncestorResult {
 	lca: string;
-	linearizedOperations: Operation[];
+	linearizedVertices: Vertex[];
 }
 
 export interface IDRPObject extends DRPObjectBase {

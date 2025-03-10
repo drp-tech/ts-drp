@@ -107,7 +107,7 @@ describe("HashGraph construction tests", () => {
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		expect(selfCheckConstraints(obj2.hashGraph)).toBe(true);
 
-		const linearOps = obj2.hashGraph.linearizeOperations();
+		const linearOps = obj2.hashGraph.linearizeVertices();
 		expect(linearOps).toEqual([
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [2], drpType: DrpType.DRP },
@@ -197,7 +197,7 @@ describe("HashGraph construction tests", () => {
 		}).toThrowError(`Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}.`);
 		expect(selfCheckConstraints(obj1.hashGraph)).toBe(true);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearOps = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [{ opType: "add", value: [1], drpType: DrpType.DRP }];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -253,7 +253,7 @@ describe("HashGraph for SetDRP tests", () => {
 		drp1.delete(1);
 		expect(drp1.query_has(1)).toBe(false);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearOps = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "delete", value: [1], drpType: DrpType.DRP },
@@ -283,7 +283,7 @@ describe("HashGraph for SetDRP tests", () => {
 		expect(drp1.query_has(1)).toBe(false);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearOps = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "delete", value: [1], drpType: DrpType.DRP },
@@ -313,7 +313,7 @@ describe("HashGraph for SetDRP tests", () => {
 		expect(drp1.query_has(2)).toBe(true);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearOps = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [2], drpType: DrpType.DRP },
@@ -348,7 +348,7 @@ describe("HashGraph for SetDRP tests", () => {
 		expect(drp1.query_has(5)).toBe(false);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearOps = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "delete", value: [1], drpType: DrpType.DRP },
@@ -381,7 +381,7 @@ describe("HashGraph for SetDRP tests", () => {
 		expect(drp1.query_has(2)).toBe(true);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearOps = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "delete", value: [1], drpType: DrpType.DRP },
@@ -416,7 +416,7 @@ describe("HashGraph for SetDRP tests", () => {
 		expect(drp1.query_has(2)).toBe(false);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearOps = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [2], drpType: DrpType.DRP },
@@ -442,13 +442,13 @@ describe("HashGraph for SetDRP tests", () => {
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
 		const order1 = obj1.hashGraph.topologicalSort();
-		const linearizedOps1 = obj1.hashGraph.linearizeOperations();
+		const linearizedOps1 = obj1.hashGraph.linearizeVertices();
 		for (let i = 0; i < linearizedOps1.length; ++i) {
 			expect(linearizedOps1[i]).toBe(obj1.hashGraph.vertices.get(order1[i + 1])?.operation);
 		}
 
 		const order2 = obj2.hashGraph.topologicalSort();
-		const linearizedOps2 = obj2.hashGraph.linearizeOperations();
+		const linearizedOps2 = obj2.hashGraph.linearizeVertices();
 		for (let i = 0; i < linearizedOps2.length; ++i) {
 			expect(linearizedOps2[i]).toBe(obj2.hashGraph.vertices.get(order2[i + 1])?.operation);
 		}
@@ -476,7 +476,7 @@ describe("HashGraph for undefined operations tests", () => {
 
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
-		const linearOps = obj2.hashGraph.linearizeOperations();
+		const linearOps = obj2.hashGraph.linearizeVertices();
 		// Should only have one, since we skipped the undefined operations
 		expect(linearOps).toEqual([{ opType: "add", value: [2], drpType: DrpType.DRP }]);
 	});
@@ -526,7 +526,7 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 		expect(drp1.query_has(2)).toBe(false);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearOps = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [2], drpType: DrpType.DRP },

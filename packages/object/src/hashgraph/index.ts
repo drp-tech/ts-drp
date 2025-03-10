@@ -210,10 +210,10 @@ export class HashGraph implements IHashGraph {
 		return result;
 	}
 
-	linearizeOperations(
+	linearizeVertices(
 		origin: Hash = HashGraph.rootHash,
 		subgraph: ObjectSet<string> = new ObjectSet(this.vertices.keys())
-	): Operation[] {
+	): Vertex[] {
 		switch (this.semanticsTypeDRP) {
 			case SemanticsType.pair:
 				return linearizePairSemantics(this, origin, subgraph);
