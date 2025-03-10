@@ -181,7 +181,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		args: any,
 		drpType: DrpType
-	): void {
+	): unknown {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
@@ -340,7 +340,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 	}
 
 	// apply the operation to the DRP
-	private _applyOperation(drp: IDRP, operation: Operation): void {
+	private _applyOperation(drp: IDRP, operation: Operation): unknown {
 		const { opType, value } = operation;
 
 		const typeParts = opType.split(".");
