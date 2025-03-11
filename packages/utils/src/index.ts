@@ -123,3 +123,49 @@ export function processSequentially<T, C>(
 
 	return context;
 }
+
+/**
+ * Handles a value that might be a Promise, applying a transformation function.
+ * If the value is a Promise, the function is applied to the resolved value.
+ * If the value is not a Promise, the function is applied directly.
+ *
+ * @template T - The type of the input value
+ * @template R - The type of the transformed value
+ * @param {T | Promise<T>} value - The value or Promise to process
+ * @param {(value: T) => R} fn - Function to apply to the (possibly resolved) value
+ * @returns {R | Promise<R>} Either the direct result or a Promise resolving to the result
+ *
+ * @example
+ * ```ts
+ * // Synchronous usage
+ * const result = handlePromiseOrValue(42, x => x * 2);
+ * console.log(result); // 84
+ *
+ * // Promise usage
+ * const promise = Promise.resolve(42);
+ * const result2 = await handlePromiseOrValue(promise, x => x * 2);
+ * console.log(result2); // 84
+ *
+ * // With async transform
+ * const result3 = await handlePromiseOrValue(42, async x => {
+ *   const multiplier = await fetchMultiplier();
+ *   return x * multiplier;
+ * });
+ *
+ * // With type transformation
+ * interface User { id: number; name: string; }
+ * const user: User = { id: 1, name: "Test" };
+ * const formatted = handlePromiseOrValue(user,
+ *   user => `${user.id}-${user.name}`
+ * ); // returns "1-Test"
+ * ```
+ */
+export function handlePromiseOrValue<T, R>(
+	value: T | Promise<T>,
+	fn: (value: T) => R
+): R | Promise<R> {
+	if (isPromise(value)) {
+		return value.then(fn);
+	}
+	return fn(value);
+}

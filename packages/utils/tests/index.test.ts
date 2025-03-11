@@ -1,6 +1,12 @@
 import { describe, expect, test } from "vitest";
 
-import { isAsyncGenerator, isGenerator, isPromise, processSequentially } from "../src/index.js";
+import {
+	handlePromiseOrValue,
+	isAsyncGenerator,
+	isGenerator,
+	isPromise,
+	processSequentially,
+} from "../src/index.js";
 
 describe("utils", () => {
 	describe("isPromise", () => {
@@ -267,6 +273,79 @@ describe("utils", () => {
 				"async-end-4",
 			]);
 			expect(context.sum).toBe(10);
+		});
+	});
+
+	describe("handlePromiseOrValue", () => {
+		test("should handle synchronous values", () => {
+			const input = 42;
+			const result = handlePromiseOrValue(input, (x: number) => x * 2);
+			expect(result).toBe(84);
+		});
+
+		test("should handle promises", async () => {
+			const input = Promise.resolve(42);
+			const result = handlePromiseOrValue(input, (x: number) => x * 2);
+			expect(result).toBeInstanceOf(Promise);
+			expect(await result).toBe(84);
+		});
+
+		test("should handle async transform functions", async () => {
+			const input = 42;
+			const result = handlePromiseOrValue(input, async (x: number) => {
+				await Promise.resolve();
+				return x * 2;
+			});
+			expect(result).toBeInstanceOf(Promise);
+			expect(await result).toBe(84);
+		});
+
+		test("should handle promise input with async transform", async () => {
+			const input = Promise.resolve(42);
+			const result = handlePromiseOrValue(input, async (x: number) => {
+				await Promise.resolve();
+				return x * 2;
+			});
+			expect(result).toBeInstanceOf(Promise);
+			expect(await result).toBe(84);
+		});
+
+		test("should propagate errors from input promise", async () => {
+			const error = new Error("Test error");
+			const input = Promise.reject(error);
+			await expect(handlePromiseOrValue(input, (x: unknown) => x)).rejects.toBe(error);
+		});
+
+		test("should propagate errors from transform function", () => {
+			const error = new Error("Transform error");
+			const input = 42;
+			expect(() =>
+				handlePromiseOrValue(input, () => {
+					throw error;
+				})
+			).toThrow(error);
+		});
+
+		test("should handle null and undefined inputs", () => {
+			expect(handlePromiseOrValue(null, (x: null) => x)).toBe(null);
+			expect(handlePromiseOrValue(undefined, (x: undefined) => x)).toBe(undefined);
+		});
+
+		test("should handle complex transformations", () => {
+			interface User {
+				id: number;
+				name: string;
+			}
+			const input: User = { id: 1, name: "Test" };
+			const result = handlePromiseOrValue(input, (user: User) => ({
+				...user,
+				formatted: `${user.id}-${user.name}`,
+			}));
+			expect(result).toEqual({
+				id: 1,
+				name: "Test",
+				formatted: "1-Test",
+			});
 		});
 	});
 });

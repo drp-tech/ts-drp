@@ -17,7 +17,7 @@ import {
 	type Operation,
 	type Vertex,
 } from "@ts-drp/types";
-import { isPromise, processSequentially } from "@ts-drp/utils";
+import { handlePromiseOrValue, isPromise, processSequentially } from "@ts-drp/utils";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 import * as crypto from "node:crypto";
@@ -216,19 +216,11 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		const operation: Operation = { drpType, opType: fn, value: args };
 		const contextWithoutInitialDRP = this._newOperationContext(operation);
 
-		if (isPromise(contextWithoutInitialDRP.maybeInitialDRP)) {
-			return contextWithoutInitialDRP.maybeInitialDRP.then((drp) => {
-				// mutate the context to have the resolved DRP
-				const context: OperationContext = { ...contextWithoutInitialDRP, initialDRP: drp };
-				return this._executeOperation(context);
-			});
-		}
-
-		const context: OperationContext = {
-			...contextWithoutInitialDRP,
-			initialDRP: contextWithoutInitialDRP.maybeInitialDRP,
-		};
-		return this._executeOperation(context);
+		return handlePromiseOrValue(contextWithoutInitialDRP.maybeInitialDRP, (drp) => {
+			// mutate the context to have the resolved DRP
+			const context: OperationContext = { ...contextWithoutInitialDRP, initialDRP: drp };
+			return this._executeOperation(context);
+		});
 	}
 
 	private _executeOperation(context: OperationContext): unknown | Promise<unknown> {
@@ -246,14 +238,10 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			return result;
 		}
 
-		if (isPromise(result)) {
-			return result.then((result) => {
-				context.result = result;
-				return this._processOperationResult(context, clonedDRP);
-			});
-		}
-		context.result = result;
-		return this._processOperationResult(context, clonedDRP);
+		return handlePromiseOrValue(result, (result) => {
+			context.result = result;
+			return this._processOperationResult(context, clonedDRP);
+		});
 	}
 
 	private _hasStateChanged(a: IDRP | IACL, b: IDRP | IACL): boolean {
@@ -579,12 +567,9 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			const stateComputation =
 				drpState ?? this._computeObjectACLState(vertex.dependencies, preCompute, vertex.operation);
 
-			if (isPromise(stateComputation)) {
-				return stateComputation.then((state): void => {
-					this.aclStates.set(vertex.hash, state);
-				});
-			}
-			this.aclStates.set(vertex.hash, stateComputation);
+			return handlePromiseOrValue(stateComputation, (state) => {
+				this.aclStates.set(vertex.hash, state);
+			});
 		}
 	}
 
@@ -596,12 +581,9 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		const stateComputation =
 			drpState ?? this._computeDRPState(vertex.dependencies, preCompute, vertex.operation);
 
-		if (isPromise(stateComputation)) {
-			return stateComputation.then((state): void => {
-				this.drpStates.set(vertex.hash, state);
-			});
-		}
-		this.drpStates.set(vertex.hash, stateComputation);
+		return handlePromiseOrValue(stateComputation, (state) => {
+			this.drpStates.set(vertex.hash, state);
+		});
 	}
 
 	private _updateState(drp: IDRP, state: DRPState): void {
@@ -619,12 +601,9 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 		const currentDRP = this.drp as IDRP;
 		const newState = this._computeDRPState(this.hashGraph.getFrontier());
-		if (isPromise(newState)) {
-			return newState.then((state): void => {
-				this._updateState(currentDRP, state);
-			});
-		}
-		this._updateState(currentDRP, newState);
+		return handlePromiseOrValue(newState, (state) => {
+			this._updateState(currentDRP, state);
+		});
 	}
 
 	private _updateObjectACLState(): void | Promise<void> {
@@ -633,12 +612,9 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 		const currentObjectACL = this.acl as IACL;
 		const newState = this._computeObjectACLState(this.hashGraph.getFrontier());
-		if (isPromise(newState)) {
-			return newState.then((state): void => {
-				this._updateState(currentObjectACL, state);
-			});
-		}
-		this._updateState(currentObjectACL, newState);
+		return handlePromiseOrValue(newState, (state) => {
+			this._updateState(currentObjectACL, state);
+		});
 	}
 
 	private _setRootStates(): void {
