@@ -11,28 +11,14 @@ import { beforeEach, describe, expect, it, test, vi } from "vitest";
 import { DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
-	admins: new Map([
-		["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-		["peer2", { secp256k1PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
-		["peer3", { secp256k1PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
-	]),
+	admins: ["peer1", "peer2", "peer3"],
 });
 
 describe("AccessControl tests with RevokeWins resolution", () => {
 	beforeEach(() => {});
 
-	test("Test creating DRPObject wo/ ACL and publicCred", () => {
-		expect(() => new DRPObject({ peerId: "" })).toThrow(
-			"Either publicCredential or acl must be provided to create a DRPObject"
-		);
-	});
-
-	test("Test creating DRPObject w/ publicCred", () => {
-		const cred = {
-			secp256k1PublicKey: "cred",
-			blsPublicKey: "cred",
-		};
-		const obj = new DRPObject({ peerId: "", publicCredential: cred });
+	test("Test creating DRPObject wo/ ACL", () => {
+		const obj = new DRPObject({ peerId: "" });
 		expect(obj.acl).toBeDefined();
 	});
 
@@ -103,10 +89,6 @@ describe("Test for duplicate call issue", () => {
 	test("Detect duplicate call", () => {
 		const obj = new DRPObject({
 			peerId: "",
-			publicCredential: {
-				secp256k1PublicKey: "cred",
-				blsPublicKey: "cred",
-			},
 			drp: new CounterDRP(),
 		});
 

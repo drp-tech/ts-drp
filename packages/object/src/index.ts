@@ -3,7 +3,6 @@ import {
 	type ConnectObjectOptions,
 	type DRPObjectBase,
 	type DRPObjectCallback,
-	type DRPPublicCredential,
 	DRPState,
 	DRPStateEntry,
 	DrpType,
@@ -12,8 +11,8 @@ import {
 	type IDRP,
 	type IDRPObject,
 	type IMetrics,
-	type LcaAndOperations,
 	type LoggerOptions,
+	type LowestCommonAncestorResult,
 	type Operation,
 	type Vertex,
 } from "@ts-drp/types";
@@ -68,17 +67,12 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 	constructor(options: {
 		peerId: string;
-		publicCredential?: DRPPublicCredential;
 		acl?: IACL;
 		drp?: IDRP;
 		id?: string;
 		config?: DRPObjectConfig;
 		metrics?: IMetrics;
 	}) {
-		if (!options.acl && !options.publicCredential) {
-			throw new Error("Either publicCredential or acl must be provided to create a DRPObject");
-		}
-
 		log = new Logger("drp::object", options.config?.log_config);
 		this.id =
 			options.id ??
@@ -91,7 +85,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		const objAcl =
 			options.acl ??
 			new ObjectACL({
-				admins: new Map([[options.peerId, options.publicCredential as DRPPublicCredential]]),
+				admins: [options.peerId],
 				permissionless: true,
 			});
 		this.acl = new Proxy(objAcl, this.proxyDRPHandler(DrpType.ACL));
@@ -136,7 +130,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 	static createObject(options: ConnectObjectOptions): DRPObject {
 		const aclObj = new ObjectACL({
-			admins: new Map(),
+			admins: [],
 			permissionless: true,
 		});
 		const object = new DRPObject({
@@ -447,14 +441,14 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 	// compute the DRP based on all dependencies of the current vertex using partial linearization
 	private _computeDRP(
 		vertexDependencies: Hash[],
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
 	): IDRP | Promise<IDRP> {
 		if (!this.drp || !this.originalDRP) {
 			throw new Error("DRP is undefined");
 		}
 
-		const { lca, linearizedOperations } = preCompute ?? this.computeLCA(vertexDependencies);
+		const { lca, linearizedVertices } = preCompute ?? this.computeLCA(vertexDependencies);
 
 		const drp = cloneDeep(this.originalDRP);
 
@@ -468,7 +462,12 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		for (const entry of state.state) {
 			drp[entry.key] = entry.value;
 		}
-		const operations: Operation[] = linearizedOperations.filter((op) => op.drpType === DrpType.DRP);
+		const operations: Operation[] = [];
+		for (const vertex of linearizedVertices) {
+			if (vertex.operation && vertex.operation.drpType === DrpType.DRP) {
+				operations.push(vertex.operation);
+			}
+		}
 		if (vertexOperation && vertexOperation.drpType === DrpType.DRP) {
 			operations.push(vertexOperation);
 		}
@@ -478,14 +477,14 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 	private _computeObjectACL(
 		vertexDependencies: Hash[],
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
 	): IACL | Promise<IACL> {
 		if (!this.acl || !this.originalObjectACL) {
 			throw new Error("ObjectACL is undefined");
 		}
 
-		const { lca, linearizedOperations } = preCompute ?? this.computeLCA(vertexDependencies);
+		const { lca, linearizedVertices } = preCompute ?? this.computeLCA(vertexDependencies);
 
 		const acl = cloneDeep(this.originalObjectACL);
 
@@ -500,7 +499,13 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			acl[entry.key] = entry.value;
 		}
 
-		const operations = linearizedOperations.filter((op) => op.drpType === DrpType.ACL);
+		const operations: Operation[] = [];
+		for (const v of linearizedVertices) {
+			if (v.operation && v.operation.drpType === DrpType.ACL) {
+				operations.push(v.operation);
+			}
+		}
+
 		if (vertexOperation && vertexOperation.drpType === DrpType.ACL) {
 			operations.push(vertexOperation);
 		}
@@ -508,7 +513,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		return processSequentially(operations, (op: Operation) => this._applyOperation(acl, op), acl);
 	}
 
-	private computeLCA(vertexDependencies: string[]): LcaAndOperations {
+	private computeLCA(vertexDependencies: string[]): LowestCommonAncestorResult {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
@@ -518,9 +523,9 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			vertexDependencies.length === 1
 				? vertexDependencies[0]
 				: this.hashGraph.lowestCommonAncestorMultipleVertices(vertexDependencies, subgraph);
-		const linearizedOperations =
-			vertexDependencies.length === 1 ? [] : this.hashGraph.linearizeOperations(lca, subgraph);
-		return { lca, linearizedOperations };
+		const linearizedVertices =
+			vertexDependencies.length === 1 ? [] : this.hashGraph.linearizeVertices(lca, subgraph);
+		return { lca, linearizedVertices };
 	}
 
 	// get the map representing the state of the given DRP by mapping variable names to their corresponding values
@@ -542,7 +547,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 	private _computeDRPState(
 		vertexDependencies: Hash[],
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
 	): DRPState | Promise<DRPState> {
 		const drp = this._computeDRP(vertexDependencies, preCompute, vertexOperation);
@@ -551,7 +556,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 	private _computeObjectACLState(
 		vertexDependencies: Hash[],
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
 	): DRPState | Promise<DRPState> {
 		const acl = this._computeObjectACL(vertexDependencies, preCompute, vertexOperation);
@@ -560,7 +565,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 	private _setObjectACLState(
 		vertex: Vertex,
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		drpState?: DRPState
 	): void | Promise<void> {
 		if (this.acl) {
@@ -575,7 +580,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 	private _setDRPState(
 		vertex: Vertex,
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		drpState?: DRPState
 	): void | Promise<void> {
 		const stateComputation =
