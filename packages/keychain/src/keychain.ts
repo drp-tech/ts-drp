@@ -4,7 +4,7 @@ import { deriveKeyFromEntropy } from "@chainsafe/bls-keygen";
 import { generateKeyPair, privateKeyFromRaw } from "@libp2p/crypto/keys";
 import type { Secp256k1PrivateKey } from "@libp2p/interface";
 import { etc, signAsync } from "@noble/secp256k1";
-import type { DRPPublicCredential } from "@ts-drp/object";
+import { type DRPPublicCredential } from "@ts-drp/types";
 import * as crypto from "crypto";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
@@ -24,10 +24,9 @@ export class Keychain {
 		this._config = config;
 	}
 
-	async start() {
+	async start(): Promise<void> {
 		if (this._config?.private_key_seed) {
-			const tmp = this._config.private_key_seed.padEnd(64, "0");
-			const seed = uint8ArrayFromString(tmp);
+			const seed = crypto.createHash("sha512").update(this._config.private_key_seed).digest();
 			const rawSecp256k1PrivateKey = etc.hashToPrivateKey(seed);
 			const key = privateKeyFromRaw(rawSecp256k1PrivateKey);
 			if (key.type !== "secp256k1") throw new Error("Expected secp256k1 key");

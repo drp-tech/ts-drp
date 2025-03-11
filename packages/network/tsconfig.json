@@ -8,5 +8,8 @@
 			"path": "../logger"
 		}
 	],
-	"include": ["src/**/*.ts"]
+	"include": [
+		"src/**/*.ts",
+		"tests/**/*.ts"
+	]
 }

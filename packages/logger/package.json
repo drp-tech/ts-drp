@@ -1,6 +1,6 @@
 {
 	"name": "@ts-drp/logger",
-	"version": "0.8.5",
+	"version": "0.9.2",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -21,13 +21,15 @@
 		}
 	},
 	"scripts": {
-		"build": "tsc -b",
+		"build": "tsc -b tsconfig.build.json",
 		"clean": "rm -rf dist/ node_modules/",
 		"prepack": "tsc -b",
+		"typecheck": "tsc --noEmit",
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
 		"loglevel": "^1.9.2",
-		"loglevel-plugin-prefix": "^0.8.4"
+		"loglevel-plugin-prefix": "^0.8.4",
+		"@ts-drp/types": "^0.9.2"
 	}
 }

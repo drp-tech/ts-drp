@@ -1,8 +1,14 @@
-import { SetDRP } from "@ts-drp/blueprints/src/index.js";
-import { type Vertex, ActionType, SemanticsType } from "@ts-drp/types";
+import { SetDRP } from "@ts-drp/blueprints";
+import {
+	ActionType,
+	type IDRP,
+	type ResolveConflictsType,
+	SemanticsType,
+	type Vertex,
+} from "@ts-drp/types";
 import { beforeEach, describe, expect, it, test, vi } from "vitest";
 
-import { DRP, DRPObject, ObjectACL, ResolveConflictsType } from "../src/index.js";
+import { DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: new Map([
@@ -39,7 +45,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 describe("Drp Object should be able to change state value", () => {
 	let drpObject: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		drpObject = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 	});
 
@@ -74,7 +80,7 @@ describe("Drp Object should be able to change state value", () => {
 describe("Test for duplicate call issue", () => {
 	let counter = 0;
 
-	class CounterDRP implements DRP {
+	class CounterDRP implements IDRP {
 		semanticsType = SemanticsType.pair;
 
 		private _counter: number;
@@ -83,7 +89,7 @@ describe("Test for duplicate call issue", () => {
 			this._counter = 0;
 		}
 
-		test() {
+		test(): number {
 			this._counter++;
 			counter++;
 			return this._counter;

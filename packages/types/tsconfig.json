@@ -5,6 +5,8 @@
     },
     "include": [
         "src/**/*.ts",
-        "src/**/*.js"
+        "src/**/*.js",
+        "tests/**/*.ts",
+        "tests/**/*.js"
     ]
 }

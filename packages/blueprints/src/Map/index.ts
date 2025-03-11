@@ -1,12 +1,17 @@
-import { type DRP, type ResolveConflictsType } from "@ts-drp/object";
-import { ActionType, SemanticsType, type Vertex } from "@ts-drp/types";
+import {
+	ActionType,
+	type IDRP,
+	type ResolveConflictsType,
+	SemanticsType,
+	type Vertex,
+} from "@ts-drp/types";
 
 export enum MapConflictResolution {
 	SetWins = 0,
 	DeleteWins = 1,
 }
 
-export class MapDRP<K, V> implements DRP {
+export class MapDRP<K, V> implements IDRP {
 	semanticsType = SemanticsType.pair;
 
 	private _conflictResolution: MapConflictResolution;

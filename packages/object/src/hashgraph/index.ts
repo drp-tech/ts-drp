@@ -1,5 +1,14 @@
-import { Logger, LoggerOptions } from "@ts-drp/logger";
-import { Operation, Vertex, ActionType, SemanticsType } from "@ts-drp/types";
+import { Logger } from "@ts-drp/logger";
+import {
+	ActionType,
+	type Hash,
+	type IHashGraph,
+	type LoggerOptions,
+	type Operation,
+	type ResolveConflictsType,
+	SemanticsType,
+	Vertex,
+} from "@ts-drp/types";
 
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
@@ -7,27 +16,18 @@ import { linearizePairSemantics } from "../linearize/pairSemantics.js";
 import { computeHash } from "../utils/computeHash.js";
 import { ObjectSet } from "../utils/objectSet.js";
 
-export type Hash = string;
-
 export enum OperationType {
+	// TODO: rename this and make it part of action type this is the init action for the object
 	NOP = "-1",
 }
-
-// In the case of multi-vertex semantics, we are returning an array of vertices (their hashes) to be reduced.
-export type ResolveConflictsType = {
-	action: ActionType;
-	vertices?: Hash[];
-};
 
 export type VertexDistance = {
 	distance: number;
 	closestDependency?: Hash;
 };
 
-export class HashGraph {
+export class HashGraph implements IHashGraph {
 	peerId: string;
-	resolveConflictsDRP?: (vertices: Vertex[]) => ResolveConflictsType;
-	resolveConflictsACL?: (vertices: Vertex[]) => ResolveConflictsType;
 	semanticsTypeDRP?: SemanticsType;
 
 	vertices: Map<Hash, Vertex> = new Map();
@@ -61,8 +61,8 @@ export class HashGraph {
 		logConfig?: LoggerOptions
 	) {
 		this.peerId = peerId;
-		this.resolveConflictsACL = resolveConflictsACL;
-		this.resolveConflictsDRP = resolveConflictsDRP;
+		if (resolveConflictsACL) this.resolveConflictsACL = resolveConflictsACL;
+		if (resolveConflictsDRP) this.resolveConflictsDRP = resolveConflictsDRP;
 		this.semanticsTypeDRP = semanticsTypeDRP;
 		this.log = new Logger("drp::hashgraph", logConfig);
 
@@ -86,15 +86,18 @@ export class HashGraph {
 		});
 	}
 
+	resolveConflictsDRP(_: Vertex[]): ResolveConflictsType {
+		return { action: ActionType.Nop };
+	}
+	resolveConflictsACL(_: Vertex[]): ResolveConflictsType {
+		return { action: ActionType.Nop };
+	}
+
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		if (vertices[0].operation?.drpType === "ACL") {
-			return this.resolveConflictsACL
-				? this.resolveConflictsACL(vertices)
-				: { action: ActionType.Nop };
+			return this.resolveConflictsACL(vertices);
 		}
-		return this.resolveConflictsDRP
-			? this.resolveConflictsDRP(vertices)
-			: { action: ActionType.Nop };
+		return this.resolveConflictsDRP(vertices);
 	}
 
 	createVertex(operation: Operation, dependencies: Hash[], timestamp: number): Vertex {
@@ -107,36 +110,8 @@ export class HashGraph {
 		});
 	}
 
-	addToFrontier(vertex: Vertex) {
-		this.vertices.set(vertex.hash, vertex);
-		// Update forward edges
-		for (const dep of vertex.dependencies) {
-			if (!this.forwardEdges.has(dep)) {
-				this.forwardEdges.set(dep, []);
-			}
-			this.forwardEdges.get(dep)?.push(vertex.hash);
-		}
-
-		// Compute the distance of the vertex
-		const vertexDistance: VertexDistance = {
-			distance: Number.MAX_VALUE,
-			closestDependency: "",
-		};
-		for (const dep of vertex.dependencies) {
-			const depDistance = this.vertexDistances.get(dep);
-			if (depDistance && depDistance.distance + 1 < vertexDistance.distance) {
-				vertexDistance.distance = depDistance.distance + 1;
-				vertexDistance.closestDependency = dep;
-			}
-		}
-		this.vertexDistances.set(vertex.hash, vertexDistance);
-
-		this.frontier = [vertex.hash];
-		this.arePredecessorsFresh = false;
-	}
-
 	// Add a new vertex to the hashgraph.
-	addVertex(vertex: Vertex) {
+	addVertex(vertex: Vertex): void {
 		this.vertices.set(vertex.hash, vertex);
 		this.frontier.push(vertex.hash);
 		// Update forward edges

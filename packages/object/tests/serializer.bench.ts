@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Benchmark from "benchmark";
 
-import { deserializeValue } from "../dist/src/index.js";
-import { serializeValue } from "../src/utils/serializer.js";
+import { deserializeValue, serializeValue } from "../src/utils/serializer.js";
 function createNestedObject(depth: number, breadth: number): any {
 	if (depth <= 0) {
 		return {
@@ -26,7 +25,7 @@ function createNestedObject(depth: number, breadth: number): any {
 }
 
 const suite = new Benchmark.Suite();
-function benchmarkSerializeValue(depth: number, breadth: number) {
+function benchmarkSerializeValue(depth: number, breadth: number): Benchmark.Suite {
 	return suite.add(`Serialize ${depth} depth ${breadth} breadth`, () => {
 		// Create a deeply nested structure
 		// Create test data with depth=5 and breadth=3
@@ -67,7 +66,7 @@ suite
 	})
 	.run({ async: true });
 
-function benchmarkDeserializeValue(depth: number, breadth: number) {
+function benchmarkDeserializeValue(depth: number, breadth: number): Benchmark.Suite {
 	return suite.add(`Deserialize ${depth} depth ${breadth} breadth`, () => {
 		// Create a deeply nested structure
 		// Create test data with depth=5 and breadth=3
