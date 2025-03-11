@@ -1,10 +1,10 @@
-import { AddMulDRP } from "@ts-drp/blueprints/src/AddMul/index.js";
+import { AddMulDRP } from "@ts-drp/blueprints";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
-	admins: new Map(),
+	admins: [],
 	permissionless: true,
 });
 

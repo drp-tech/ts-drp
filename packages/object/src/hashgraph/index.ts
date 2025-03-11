@@ -1,54 +1,41 @@
-import { type Vertex_Operation as Operation, Vertex } from "@ts-drp/types";
+import { Logger } from "@ts-drp/logger";
+import {
+	ActionType,
+	type Hash,
+	type IHashGraph,
+	type LoggerOptions,
+	type Operation,
+	type ResolveConflictsType,
+	SemanticsType,
+	Vertex,
+} from "@ts-drp/types";
 
-import { log } from "../index.js";
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../linearize/pairSemantics.js";
 import { computeHash } from "../utils/computeHash.js";
 import { ObjectSet } from "../utils/objectSet.js";
 
-// Reexporting the Vertex and Operation types from the protobuf file
-export type { Vertex, Operation };
-
-export type Hash = string;
-
 export enum OperationType {
+	// TODO: rename this and make it part of action type this is the init action for the object
 	NOP = "-1",
 }
-
-export enum ActionType {
-	Nop = 0,
-	DropLeft = 1,
-	DropRight = 2,
-	Swap = 3,
-	Drop = 4,
-}
-
-export enum SemanticsType {
-	pair = 0,
-	multiple = 1,
-}
-
-// In the case of multi-vertex semantics, we are returning an array of vertices (their hashes) to be reduced.
-export type ResolveConflictsType = {
-	action: ActionType;
-	vertices?: Hash[];
-};
 
 export type VertexDistance = {
 	distance: number;
 	closestDependency?: Hash;
 };
 
-export class HashGraph {
+export class HashGraph implements IHashGraph {
 	peerId: string;
-	resolveConflictsDRP?: (vertices: Vertex[]) => ResolveConflictsType;
-	resolveConflictsACL: (vertices: Vertex[]) => ResolveConflictsType;
 	semanticsTypeDRP?: SemanticsType;
 
 	vertices: Map<Hash, Vertex> = new Map();
 	frontier: Hash[] = [];
 	forwardEdges: Map<Hash, Hash[]> = new Map();
+
+	private log: Logger;
+
 	/*
 	computeHash(
 		"",
@@ -68,14 +55,16 @@ export class HashGraph {
 
 	constructor(
 		peerId: string,
-		resolveConflictsACL: (vertices: Vertex[]) => ResolveConflictsType,
+		resolveConflictsACL?: (vertices: Vertex[]) => ResolveConflictsType,
 		resolveConflictsDRP?: (vertices: Vertex[]) => ResolveConflictsType,
-		semanticsTypeDRP?: SemanticsType
+		semanticsTypeDRP?: SemanticsType,
+		logConfig?: LoggerOptions
 	) {
 		this.peerId = peerId;
-		this.resolveConflictsACL = resolveConflictsACL;
-		this.resolveConflictsDRP = resolveConflictsDRP;
+		if (resolveConflictsACL) this.resolveConflictsACL = resolveConflictsACL;
+		if (resolveConflictsDRP) this.resolveConflictsDRP = resolveConflictsDRP;
 		this.semanticsTypeDRP = semanticsTypeDRP;
+		this.log = new Logger("drp::hashgraph", logConfig);
 
 		const rootVertex: Vertex = {
 			hash: HashGraph.rootHash,
@@ -97,13 +86,18 @@ export class HashGraph {
 		});
 	}
 
+	resolveConflictsDRP(_: Vertex[]): ResolveConflictsType {
+		return { action: ActionType.Nop };
+	}
+	resolveConflictsACL(_: Vertex[]): ResolveConflictsType {
+		return { action: ActionType.Nop };
+	}
+
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		if (vertices[0].operation?.drpType === "ACL") {
 			return this.resolveConflictsACL(vertices);
 		}
-		return this.resolveConflictsDRP
-			? this.resolveConflictsDRP(vertices)
-			: { action: ActionType.Nop };
+		return this.resolveConflictsDRP(vertices);
 	}
 
 	createVertex(operation: Operation, dependencies: Hash[], timestamp: number): Vertex {
@@ -116,36 +110,8 @@ export class HashGraph {
 		});
 	}
 
-	addToFrontier(vertex: Vertex) {
-		this.vertices.set(vertex.hash, vertex);
-		// Update forward edges
-		for (const dep of vertex.dependencies) {
-			if (!this.forwardEdges.has(dep)) {
-				this.forwardEdges.set(dep, []);
-			}
-			this.forwardEdges.get(dep)?.push(vertex.hash);
-		}
-
-		// Compute the distance of the vertex
-		const vertexDistance: VertexDistance = {
-			distance: Number.MAX_VALUE,
-			closestDependency: "",
-		};
-		for (const dep of vertex.dependencies) {
-			const depDistance = this.vertexDistances.get(dep);
-			if (depDistance && depDistance.distance + 1 < vertexDistance.distance) {
-				vertexDistance.distance = depDistance.distance + 1;
-				vertexDistance.closestDependency = dep;
-			}
-		}
-		this.vertexDistances.set(vertex.hash, vertexDistance);
-
-		this.frontier = [vertex.hash];
-		this.arePredecessorsFresh = false;
-	}
-
 	// Add a new vertex to the hashgraph.
-	addVertex(vertex: Vertex) {
+	addVertex(vertex: Vertex): void {
 		this.vertices.set(vertex.hash, vertex);
 		this.frontier.push(vertex.hash);
 		// Update forward edges
@@ -244,10 +210,10 @@ export class HashGraph {
 		return result;
 	}
 
-	linearizeOperations(
+	linearizeVertices(
 		origin: Hash = HashGraph.rootHash,
 		subgraph: ObjectSet<string> = new ObjectSet(this.vertices.keys())
-	): Operation[] {
+	): Vertex[] {
 		switch (this.semanticsTypeDRP) {
 			case SemanticsType.pair:
 				return linearizePairSemantics(this, origin, subgraph);
@@ -301,18 +267,18 @@ export class HashGraph {
 		while (currentHash1 !== currentHash2) {
 			const distance1 = this.vertexDistances.get(currentHash1);
 			if (!distance1) {
-				log.error("::hashgraph::LCA: Vertex not found");
+				this.log.error("::hashgraph::LCA: Vertex not found");
 				return;
 			}
 			const distance2 = this.vertexDistances.get(currentHash2);
 			if (!distance2) {
-				log.error("::hashgraph::LCA: Vertex not found");
+				this.log.error("::hashgraph::LCA: Vertex not found");
 				return;
 			}
 
 			if (distance1.distance > distance2.distance) {
 				if (!distance1.closestDependency) {
-					log.error("::hashgraph::LCA: Closest dependency not found");
+					this.log.error("::hashgraph::LCA: Closest dependency not found");
 					return;
 				}
 				for (const dep of this.vertices.get(currentHash1)?.dependencies || []) {
@@ -327,7 +293,7 @@ export class HashGraph {
 				visited.add(currentHash1);
 			} else {
 				if (!distance2.closestDependency) {
-					log.error("::hashgraph::LCA: Closest dependency not found");
+					this.log.error("::hashgraph::LCA: Closest dependency not found");
 					return;
 				}
 				for (const dep of this.vertices.get(currentHash2)?.dependencies || []) {

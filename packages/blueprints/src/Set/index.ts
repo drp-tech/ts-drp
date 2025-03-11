@@ -1,6 +1,6 @@
-import { ActionType, type DRP, type ResolveConflictsType, SemanticsType } from "@ts-drp/object";
+import { type IDRP, SemanticsType } from "@ts-drp/types";
 
-export class SetDRP<T> implements DRP {
+export class SetDRP<T> implements IDRP {
 	semanticsType = SemanticsType.pair;
 
 	private _set: Set<T>;
@@ -23,9 +23,5 @@ export class SetDRP<T> implements DRP {
 
 	query_getValues(): T[] {
 		return Array.from(this._set.values());
-	}
-
-	resolveConflicts(): ResolveConflictsType {
-		return { action: ActionType.Nop };
 	}
 }

@@ -1,10 +1,19 @@
-import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { IMetrics } from "@ts-drp/tracer";
+import { Logger } from "@ts-drp/logger";
 import {
-	DRPObjectBase,
+	type ConnectObjectOptions,
+	type DRPObjectBase,
+	type DRPObjectCallback,
 	DRPState,
 	DRPStateEntry,
-	type Vertex_Operation as Operation,
+	DrpType,
+	type Hash,
+	type IACL,
+	type IDRP,
+	type IDRPObject,
+	type IMetrics,
+	type LoggerOptions,
+	type LowestCommonAncestorResult,
+	type Operation,
 	type Vertex,
 } from "@ts-drp/types";
 import { cloneDeep } from "es-toolkit";
@@ -12,25 +21,14 @@ import { deepEqual } from "fast-equals";
 import * as crypto from "node:crypto";
 
 import { ObjectACL } from "./acl/index.js";
-import type { ACL } from "./acl/interface.js";
 import { type FinalityConfig, FinalityStore } from "./finality/index.js";
-import { type Hash, HashGraph } from "./hashgraph/index.js";
-import {
-	ConnectObjectOptions,
-	type DRP,
-	type DRPObjectCallback,
-	type DRPPublicCredential,
-	DrpType,
-	type LcaAndOperations,
-} from "./interface.js";
+import { HashGraph } from "./hashgraph/index.js";
 import { computeHash } from "./utils/computeHash.js";
 import { ObjectSet } from "./utils/objectSet.js";
 
 export * from "./utils/serializer.js";
 export * from "./acl/index.js";
 export * from "./hashgraph/index.js";
-export * from "./acl/interface.js";
-export * from "./interface.js";
 
 // snake_casing to match the JSON config
 export interface DRPObjectConfig {
@@ -40,34 +38,29 @@ export interface DRPObjectConfig {
 
 export let log: Logger;
 
-export class DRPObject implements DRPObjectBase {
+export class DRPObject implements DRPObjectBase, IDRPObject {
 	id: string;
 	vertices: Vertex[] = [];
-	acl?: ProxyHandler<ACL>;
-	drp?: ProxyHandler<DRP>;
+	acl?: ProxyHandler<IACL>;
+	drp?: ProxyHandler<IDRP>;
 	// @ts-expect-error: initialized in constructor
 	hashGraph: HashGraph;
 	// mapping from vertex hash to the DRP state
 	drpStates: Map<string, DRPState>;
 	aclStates: Map<string, DRPState>;
-	originalDRP?: DRP;
-	originalObjectACL?: ACL;
+	originalDRP?: IDRP;
+	originalObjectACL?: IACL;
 	finalityStore: FinalityStore;
 	subscriptions: DRPObjectCallback[] = [];
 
 	constructor(options: {
 		peerId: string;
-		publicCredential?: DRPPublicCredential;
-		acl?: ACL;
-		drp?: DRP;
+		acl?: IACL;
+		drp?: IDRP;
 		id?: string;
 		config?: DRPObjectConfig;
 		metrics?: IMetrics;
 	}) {
-		if (!options.acl && !options.publicCredential) {
-			throw new Error("Either publicCredential or acl must be provided to create a DRPObject");
-		}
-
 		log = new Logger("drp::object", options.config?.log_config);
 		this.id =
 			options.id ??
@@ -80,7 +73,7 @@ export class DRPObject implements DRPObjectBase {
 		const objAcl =
 			options.acl ??
 			new ObjectACL({
-				admins: new Map([[options.peerId, options.publicCredential as DRPPublicCredential]]),
+				admins: [options.peerId],
 				permissionless: true,
 			});
 		this.acl = new Proxy(objAcl, this.proxyDRPHandler(DrpType.ACL));
@@ -107,25 +100,25 @@ export class DRPObject implements DRPObjectBase {
 			this._computeDRP;
 	}
 
-	private _initLocalDrpInstance(peerId: string, drp: DRP, acl: DRP) {
+	private _initLocalDrpInstance(peerId: string, drp: IDRP, acl: IDRP): void {
 		this.drp = new Proxy(drp, this.proxyDRPHandler(DrpType.DRP));
 		this.hashGraph = new HashGraph(
 			peerId,
-			acl.resolveConflicts.bind(acl),
-			drp.resolveConflicts.bind(drp),
+			acl.resolveConflicts?.bind(acl),
+			drp.resolveConflicts?.bind(drp),
 			drp.semanticsType
 		);
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
-	private _initNonLocalDrpInstance(peerId: string, acl: DRP) {
-		this.hashGraph = new HashGraph(peerId, acl.resolveConflicts.bind(this.acl));
+	private _initNonLocalDrpInstance(peerId: string, acl: IDRP): void {
+		this.hashGraph = new HashGraph(peerId, acl.resolveConflicts?.bind(this.acl));
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
-	static createObject(options: ConnectObjectOptions) {
+	static createObject(options: ConnectObjectOptions): DRPObject {
 		const aclObj = new ObjectACL({
-			admins: new Map(),
+			admins: [],
 			permissionless: true,
 		});
 		const object = new DRPObject({
@@ -134,6 +127,9 @@ export class DRPObject implements DRPObjectBase {
 			acl: aclObj,
 			drp: options.drp,
 			metrics: options.metrics,
+			config: {
+				log_config: options.log_config,
+			},
 		});
 		return object;
 	}
@@ -143,13 +139,17 @@ export class DRPObject implements DRPObjectBase {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const obj = this;
 		return {
-			get(target, propKey, receiver) {
+			get(target: object, propKey: string | symbol, receiver: unknown): unknown {
 				const value = Reflect.get(target, propKey, receiver);
 
 				if (typeof value === "function") {
 					const fullPropKey = String(propKey);
 					return new Proxy(target[propKey as keyof object], {
-						apply(applyTarget, thisArg, args) {
+						apply(
+							applyTarget: (...args: unknown[]) => unknown,
+							thisArg: unknown,
+							args: unknown[]
+						): unknown {
 							if ((propKey as string).startsWith("query_")) {
 								return Reflect.apply(applyTarget, thisArg, args);
 							}
@@ -175,7 +175,7 @@ export class DRPObject implements DRPObjectBase {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		args: any,
 		drpType: DrpType
-	) {
+	): void {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
@@ -206,12 +206,12 @@ export class DRPObject implements DRPObjectBase {
 		}
 
 		const [drp, acl] = isACL
-			? [this._computeDRP(vertexDependencies, preComputeLca), clonedDRP as ACL]
-			: [clonedDRP as DRP, this._computeObjectACL(vertexDependencies, preComputeLca)];
+			? [this._computeDRP(vertexDependencies, preComputeLca), clonedDRP as IACL]
+			: [clonedDRP as IDRP, this._computeObjectACL(vertexDependencies, preComputeLca)];
 
 		const vertex = this.hashGraph.createVertex(vertexOperation, vertexDependencies, now);
 
-		this.hashGraph.addToFrontier(vertex);
+		this.hashGraph.addVertex(vertex);
 		this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
 		this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
 		this._initializeFinalityState(vertex.hash, acl);
@@ -219,13 +219,13 @@ export class DRPObject implements DRPObjectBase {
 		this.vertices.push(vertex);
 		this._notify("callFn", [vertex]);
 
-		if (!isACL) Object.assign(this.drp as DRP, clonedDRP);
+		if (!isACL) Object.assign(this.drp as IDRP, clonedDRP);
 		else Object.assign(this.acl as ObjectACL, clonedDRP);
 
 		return appliedOperationResult;
 	}
 
-	validateVertex(vertex: Vertex) {
+	validateVertex(vertex: Vertex): void {
 		// Validate hash value
 		if (
 			vertex.hash !==
@@ -254,7 +254,10 @@ export class DRPObject implements DRPObjectBase {
 		}
 
 		// Validate writer permission
-		if (!this._checkWriterPermission(vertex.peerId, vertex.dependencies)) {
+		if (
+			vertex.operation?.drpType === DrpType.DRP &&
+			!this._checkWriterPermission(vertex.peerId, vertex.dependencies)
+		) {
 			throw new Error(`Vertex ${vertex.peerId} does not have write permission.`);
 		}
 	}
@@ -312,29 +315,29 @@ export class DRPObject implements DRPObjectBase {
 		return [missing.length === 0, missing];
 	}
 
-	subscribe(callback: DRPObjectCallback) {
+	subscribe(callback: DRPObjectCallback): void {
 		this.subscriptions.push(callback);
 	}
 
-	private _notify(origin: string, vertices: Vertex[]) {
+	private _notify(origin: string, vertices: Vertex[]): void {
 		for (const callback of this.subscriptions) {
 			callback(this, origin, vertices);
 		}
 	}
 
 	// initialize the attestation store for the given vertex hash
-	private _initializeFinalityState(hash: Hash, acl: ACL) {
+	private _initializeFinalityState(hash: Hash, acl: IACL): void {
 		this.finalityStore.initializeState(hash, acl.query_getFinalitySigners());
 	}
 
 	// check if the given peer has write permission
 	private _checkWriterPermission(peerId: string, deps: Hash[]): boolean {
 		const acl = this._computeObjectACL(deps);
-		return (acl as ACL).query_isWriter(peerId);
+		return (acl as IACL).query_isWriter(peerId);
 	}
 
 	// apply the operation to the DRP
-	private _applyOperation(drp: DRP, operation: Operation) {
+	private _applyOperation(drp: IDRP, operation: Operation): void {
 		const { opType, value } = operation;
 
 		const typeParts = opType.split(".");
@@ -362,14 +365,14 @@ export class DRPObject implements DRPObjectBase {
 	// compute the DRP based on all dependencies of the current vertex using partial linearization
 	private _computeDRP(
 		vertexDependencies: Hash[],
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
-	): DRP {
+	): IDRP {
 		if (!this.drp || !this.originalDRP) {
 			throw new Error("DRP is undefined");
 		}
 
-		const { lca, linearizedOperations } = preCompute ?? this.computeLCA(vertexDependencies);
+		const { lca, linearizedVertices } = preCompute ?? this.computeLCA(vertexDependencies);
 
 		const drp = cloneDeep(this.originalDRP);
 
@@ -384,9 +387,9 @@ export class DRPObject implements DRPObjectBase {
 			drp[entry.key] = entry.value;
 		}
 
-		for (const op of linearizedOperations) {
-			if (op.drpType === DrpType.DRP) {
-				this._applyOperation(drp, op);
+		for (const vertex of linearizedVertices) {
+			if (vertex.operation?.drpType === DrpType.DRP) {
+				this._applyOperation(drp, vertex.operation);
 			}
 		}
 		if (vertexOperation && vertexOperation.drpType === DrpType.DRP) {
@@ -398,14 +401,14 @@ export class DRPObject implements DRPObjectBase {
 
 	private _computeObjectACL(
 		vertexDependencies: Hash[],
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
-	): ACL {
+	): IACL {
 		if (!this.acl || !this.originalObjectACL) {
 			throw new Error("ObjectACL is undefined");
 		}
 
-		const { lca, linearizedOperations } = preCompute ?? this.computeLCA(vertexDependencies);
+		const { lca, linearizedVertices } = preCompute ?? this.computeLCA(vertexDependencies);
 
 		const acl = cloneDeep(this.originalObjectACL);
 
@@ -419,9 +422,9 @@ export class DRPObject implements DRPObjectBase {
 		for (const entry of state.state) {
 			acl[entry.key] = entry.value;
 		}
-		for (const op of linearizedOperations) {
-			if (op.drpType === DrpType.ACL) {
-				this._applyOperation(acl, op);
+		for (const vertex of linearizedVertices) {
+			if (vertex.operation?.drpType === DrpType.ACL) {
+				this._applyOperation(acl, vertex.operation);
 			}
 		}
 		if (vertexOperation && vertexOperation.drpType === DrpType.ACL) {
@@ -431,7 +434,7 @@ export class DRPObject implements DRPObjectBase {
 		return acl;
 	}
 
-	private computeLCA(vertexDependencies: string[]) {
+	private computeLCA(vertexDependencies: string[]): LowestCommonAncestorResult {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
@@ -441,13 +444,13 @@ export class DRPObject implements DRPObjectBase {
 			vertexDependencies.length === 1
 				? vertexDependencies[0]
 				: this.hashGraph.lowestCommonAncestorMultipleVertices(vertexDependencies, subgraph);
-		const linearizedOperations =
-			vertexDependencies.length === 1 ? [] : this.hashGraph.linearizeOperations(lca, subgraph);
-		return { lca, linearizedOperations };
+		const linearizedVertices =
+			vertexDependencies.length === 1 ? [] : this.hashGraph.linearizeVertices(lca, subgraph);
+		return { lca, linearizedVertices };
 	}
 
 	// get the map representing the state of the given DRP by mapping variable names to their corresponding values
-	private _getDRPState(drp: DRP): DRPState {
+	private _getDRPState(drp: IDRP): DRPState {
 		const varNames: string[] = Object.keys(drp);
 		const drpState: DRPState = {
 			state: [],
@@ -465,7 +468,7 @@ export class DRPObject implements DRPObjectBase {
 
 	private _computeDRPState(
 		vertexDependencies: Hash[],
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
 	): DRPState {
 		const drp = this._computeDRP(vertexDependencies, preCompute, vertexOperation);
@@ -474,14 +477,18 @@ export class DRPObject implements DRPObjectBase {
 
 	private _computeObjectACLState(
 		vertexDependencies: Hash[],
-		preCompute?: LcaAndOperations,
+		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
 	): DRPState {
 		const acl = this._computeObjectACL(vertexDependencies, preCompute, vertexOperation);
 		return this._getDRPState(acl);
 	}
 
-	private _setObjectACLState(vertex: Vertex, preCompute?: LcaAndOperations, drpState?: DRPState) {
+	private _setObjectACLState(
+		vertex: Vertex,
+		preCompute?: LowestCommonAncestorResult,
+		drpState?: DRPState
+	): void {
 		if (this.acl) {
 			this.aclStates.set(
 				vertex.hash,
@@ -490,7 +497,11 @@ export class DRPObject implements DRPObjectBase {
 		}
 	}
 
-	private _setDRPState(vertex: Vertex, preCompute?: LcaAndOperations, drpState?: DRPState) {
+	private _setDRPState(
+		vertex: Vertex,
+		preCompute?: LowestCommonAncestorResult,
+		drpState?: DRPState
+	): void {
 		this.drpStates.set(
 			vertex.hash,
 			drpState ?? this._computeDRPState(vertex.dependencies, preCompute, vertex.operation)
@@ -498,11 +509,11 @@ export class DRPObject implements DRPObjectBase {
 	}
 
 	// update the DRP's attributes based on all the vertices in the hashgraph
-	private _updateDRPState() {
+	private _updateDRPState(): void {
 		if (!this.drp || !this.hashGraph) {
 			throw new Error("DRP or hashgraph is undefined");
 		}
-		const currentDRP = this.drp as DRP;
+		const currentDRP = this.drp as IDRP;
 		const newState = this._computeDRPState(this.hashGraph.getFrontier());
 		for (const entry of newState.state) {
 			if (entry.key in currentDRP && typeof currentDRP[entry.key] !== "function") {
@@ -511,11 +522,11 @@ export class DRPObject implements DRPObjectBase {
 		}
 	}
 
-	private _updateObjectACLState() {
+	private _updateObjectACLState(): void {
 		if (!this.acl || !this.hashGraph) {
 			throw new Error("ObjectACL or hashgraph is undefined");
 		}
-		const currentObjectACL = this.acl as ACL;
+		const currentObjectACL = this.acl as IACL;
 		const newState = this._computeObjectACLState(this.hashGraph.getFrontier());
 		for (const entry of newState.state) {
 			if (entry.key in currentObjectACL && typeof currentObjectACL[entry.key] !== "function") {
@@ -524,8 +535,8 @@ export class DRPObject implements DRPObjectBase {
 		}
 	}
 
-	private _setRootStates() {
-		const acl = this.acl as ACL;
+	private _setRootStates(): void {
+		const acl = this.acl as IACL;
 		const aclState = [];
 		for (const key of Object.keys(acl)) {
 			if (typeof acl[key] !== "function") {
@@ -537,7 +548,7 @@ export class DRPObject implements DRPObjectBase {
 				);
 			}
 		}
-		const drp = (this.drp as DRP) ?? {};
+		const drp = (this.drp as IDRP) ?? {};
 		const drpState = [];
 		for (const key of Object.keys(drp)) {
 			if (typeof drp[key] !== "function") {

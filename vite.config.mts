@@ -4,10 +4,10 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
 	plugins: [tsconfigPaths()],
 	test: {
-		exclude: ["**/node_modules", "**/e2e"],
+		exclude: ["**/node_modules", "**/e2e", "**/dist"],
 		coverage: {
 			enabled: true,
-			reporter: ["text", "lcov"],
+			reporter: ["text", "lcov", "json-summary", "json"],
 			include: ["packages/**/*.{ts,tsx}"],
 			exclude: [
 				"**/node_modules/**",
@@ -15,6 +15,7 @@ export default defineConfig({
 				"**/tests/**",
 				"**/proto/**",
 				"**/dist/**",
+				"**/version.ts",
 			],
 		},
 		testTimeout: 10000,

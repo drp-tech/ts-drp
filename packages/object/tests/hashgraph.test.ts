@@ -1,28 +1,22 @@
-import { MapConflictResolution, MapDRP } from "@ts-drp/blueprints/src/Map/index.js";
-import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
-import { Vertex } from "@ts-drp/types";
+import { MapConflictResolution, MapDRP, SetDRP } from "@ts-drp/blueprints";
+import {
+	ACLGroup,
+	ActionType,
+	DrpType,
+	type Hash,
+	type IDRP,
+	type Operation,
+	SemanticsType,
+	type Vertex,
+} from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { ActionType, SemanticsType } from "../src/hashgraph/index.js";
-import {
-	ACLGroup,
-	DRP,
-	DRPObject,
-	DrpType,
-	Hash,
-	HashGraph,
-	newVertex,
-	type Operation,
-} from "../src/index.js";
+import { DRPObject, HashGraph, newVertex } from "../src/index.js";
 import { ObjectSet } from "../src/utils/objectSet.js";
 
 const acl = new ObjectACL({
-	admins: new Map([
-		["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-		["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
-		["peer3", { ed25519PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
-	]),
+	admins: ["peer1", "peer2", "peer3"],
 });
 
 function selfCheckConstraints(hg: HashGraph): boolean {
@@ -65,10 +59,10 @@ describe("HashGraph construction tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 	const acl = new ObjectACL({
-		admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
+		admins: ["peer1"],
 	});
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 
@@ -107,11 +101,10 @@ describe("HashGraph construction tests", () => {
 		drp1.add(1);
 		drp2.add(2);
 		obj2.merge(obj1.hashGraph.getAllVertices());
-
 		expect(selfCheckConstraints(obj2.hashGraph)).toBe(true);
 
-		const linearOps = obj2.hashGraph.linearizeOperations();
-		expect(linearOps).toEqual([
+		const linearizedVertices = obj2.hashGraph.linearizeVertices();
+		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual([
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [2], drpType: DrpType.DRP },
 		] as Operation[]);
@@ -200,9 +193,9 @@ describe("HashGraph construction tests", () => {
 		}).toThrowError(`Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}.`);
 		expect(selfCheckConstraints(obj1.hashGraph)).toBe(true);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearizedVertices = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [{ opType: "add", value: [1], drpType: DrpType.DRP }];
-		expect(linearOps).toEqual(expectedOps);
+		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
 
 	test("Root vertex drp state should not be modified", () => {
@@ -218,10 +211,7 @@ describe("HashGraph construction tests", () => {
 
 	test("Root vertex acl state should not be modified", () => {
 		const acl1 = obj1.acl as ObjectACL;
-		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey2",
-			blsPublicKey: "pubKey2",
-		});
+		acl1.grant("peer1", "peer2", ACLGroup.Writer);
 		expect(acl1.query_isWriter("peer2")).toBe(true);
 		const rootACLState = obj1.aclStates.get(HashGraph.rootHash);
 		const authorizedPeers = rootACLState?.state.filter((e) => e.key === "_authorizedPeers")[0]
@@ -231,17 +221,14 @@ describe("HashGraph construction tests", () => {
 	});
 });
 
-describe("HashGraph for AddWinSet tests", () => {
+describe("HashGraph for SetDRP tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 	const acl = new ObjectACL({
-		admins: new Map([
-			["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-			["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
-		]),
+		admins: ["peer1", "peer2"],
 	});
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 	});
@@ -256,12 +243,12 @@ describe("HashGraph for AddWinSet tests", () => {
 		drp1.delete(1);
 		expect(drp1.query_has(1)).toBe(false);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearizedVertices = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "delete", value: [1], drpType: DrpType.DRP },
 		];
-		expect(linearOps).toEqual(expectedOps);
+		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
 
 	test("Test: Add Two Concurrent Vertices With Same Value", () => {
@@ -286,12 +273,12 @@ describe("HashGraph for AddWinSet tests", () => {
 		expect(drp1.query_has(1)).toBe(false);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearizedVertices = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "delete", value: [1], drpType: DrpType.DRP },
 		];
-		expect(linearOps).toEqual(expectedOps);
+		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
 
 	test("Test: Add Two Concurrent Vertices With Different Values", () => {
@@ -316,13 +303,13 @@ describe("HashGraph for AddWinSet tests", () => {
 		expect(drp1.query_has(2)).toBe(true);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearizedVertices = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [2], drpType: DrpType.DRP },
 			{ opType: "delete", value: [1], drpType: DrpType.DRP },
 		];
-		expect(linearOps).toEqual(expectedOps);
+		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
 
 	test("Test: Tricky Case", () => {
@@ -351,13 +338,13 @@ describe("HashGraph for AddWinSet tests", () => {
 		expect(drp1.query_has(5)).toBe(false);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearizedVertices = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "delete", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [10], drpType: DrpType.DRP },
 		];
-		expect(linearOps).toEqual(expectedOps);
+		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
 
 	test("Test: Yuta Papa's Case", () => {
@@ -384,13 +371,13 @@ describe("HashGraph for AddWinSet tests", () => {
 		expect(drp1.query_has(2)).toBe(true);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearizedVertices = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "delete", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [2], drpType: DrpType.DRP },
 		];
-		expect(linearOps).toEqual(expectedOps);
+		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
 
 	test("Test: Joao's latest brain teaser", () => {
@@ -419,13 +406,46 @@ describe("HashGraph for AddWinSet tests", () => {
 		expect(drp1.query_has(2)).toBe(false);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearizedVertices = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [2], drpType: DrpType.DRP },
 			{ opType: "delete", value: [2], drpType: DrpType.DRP },
 		];
-		expect(linearOps).toEqual(expectedOps);
+		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
+	});
+
+	test("Should return topological sort order when linearizing vertices", () => {
+		const drp1 = obj1.drp as SetDRP<number>;
+		const drp2 = obj2.drp as SetDRP<number>;
+
+		drp1.add(1);
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		drp1.add(2);
+		drp2.delete(2);
+		drp2.delete(2);
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		drp1.delete(2);
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		const order1 = obj1.hashGraph.topologicalSort();
+		const linearizedVertices1 = obj1.hashGraph.linearizeVertices();
+		for (let i = 0; i < linearizedVertices1.length; ++i) {
+			expect(linearizedVertices1[i].operation).toBe(
+				obj1.hashGraph.vertices.get(order1[i + 1])?.operation
+			);
+		}
+
+		const order2 = obj2.hashGraph.topologicalSort();
+		const linearizedVertices2 = obj2.hashGraph.linearizeVertices();
+		for (let i = 0; i < linearizedVertices2.length; ++i) {
+			expect(linearizedVertices2[i].operation).toBe(
+				obj2.hashGraph.vertices.get(order2[i + 1])?.operation
+			);
+		}
 	});
 });
 
@@ -433,7 +453,7 @@ describe("HashGraph for undefined operations tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 	});
@@ -450,9 +470,11 @@ describe("HashGraph for undefined operations tests", () => {
 
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
-		const linearOps = obj2.hashGraph.linearizeOperations();
+		const linearizedVertices = obj2.hashGraph.linearizeVertices();
 		// Should only have one, since we skipped the undefined operations
-		expect(linearOps).toEqual([{ opType: "add", value: [2], drpType: DrpType.DRP }]);
+		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual([
+			{ opType: "add", value: [2], drpType: DrpType.DRP },
+		]);
 	});
 });
 
@@ -461,13 +483,10 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 	const acl = new ObjectACL({
-		admins: new Map([
-			["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-			["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
-		]),
+		admins: ["peer1", "peer2"],
 	});
 
-	beforeAll(async () => {
+	beforeAll(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl });
@@ -500,13 +519,13 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 		expect(drp1.query_has(2)).toBe(false);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
-		const linearOps = obj1.hashGraph.linearizeOperations();
+		const linearizedVertices = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [2], drpType: DrpType.DRP },
 			{ opType: "delete", value: [2], drpType: DrpType.DRP },
 		];
-		expect(linearOps).toEqual(expectedOps);
+		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 
 		obj3.merge(obj1.hashGraph.getAllVertices());
 		expect(obj3.hashGraph.vertices).toEqual(obj1.hashGraph.vertices);
@@ -518,7 +537,7 @@ describe("Vertex state tests", () => {
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
@@ -613,7 +632,7 @@ describe("Vertex timestamp tests", () => {
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
@@ -673,16 +692,13 @@ describe("Vertex timestamp tests", () => {
 	});
 });
 
-describe("Writer permission tests", () => {
+describe("Hashgraph for SetDRP and ACL tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 
-	beforeEach(async () => {
-		const peerIdToPublicKeyMap = new Map([
-			["peer1", { ed25519PublicKey: "publicKey1", blsPublicKey: "" }],
-		]);
-		const acl = new ObjectACL({ admins: peerIdToPublicKeyMap });
+	beforeEach(() => {
+		const acl = new ObjectACL({ admins: ["peer1"] });
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
@@ -718,10 +734,7 @@ describe("Writer permission tests", () => {
 		const acl2 = obj2.acl as ObjectACL;
 
 		drp1.add(1);
-		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey2",
-			blsPublicKey: "pubKey2",
-		});
+		acl1.grant("peer1", "peer2", ACLGroup.Writer);
 		expect(acl1.query_isAdmin("peer1")).toBe(true);
 
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -746,14 +759,8 @@ describe("Writer permission tests", () => {
 		const drp3 = obj3.drp as SetDRP<number>;
 		const acl1 = obj1.acl as ObjectACL;
 
-		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey2",
-			blsPublicKey: "pubKey2",
-		});
-		acl1.grant("peer1", "peer3", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey3",
-			blsPublicKey: "pubKey3",
-		});
+		acl1.grant("peer1", "peer2", ACLGroup.Writer);
+		acl1.grant("peer1", "peer3", ACLGroup.Writer);
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		obj3.merge(obj1.hashGraph.getAllVertices());
 
@@ -782,11 +789,7 @@ describe("Writer permission tests", () => {
 	test("Should grant admin permission to a peer", () => {
 		const acl1 = obj1.acl as ObjectACL;
 		const newAdminPeer1 = "newAdminPeer1";
-		const newAdmin = {
-			ed25519PublicKey: "newAdmin",
-			blsPublicKey: "newAdmin",
-		};
-		acl1.grant("peer1", "newAdminPeer1", ACLGroup.Admin, newAdmin);
+		acl1.grant("peer1", "newAdminPeer1", ACLGroup.Admin);
 		expect(acl1.query_isAdmin(newAdminPeer1)).toBe(true);
 	});
 
@@ -796,7 +799,7 @@ describe("Writer permission tests", () => {
 		  					\_ V4:ADD(3) (invalid)
 		*/
 		const acl = new ObjectACL({
-			admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
+			admins: ["peer1"],
 		});
 		const obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		const obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
@@ -808,10 +811,7 @@ describe("Writer permission tests", () => {
 		const hash1 = obj1.hashGraph.getFrontier()[0];
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		drp1.add(2);
-		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
-			ed25519PublicKey: "pubKey2",
-			blsPublicKey: "pubKey2",
-		});
+		acl1.grant("peer1", "peer2", ACLGroup.Writer);
 
 		const vertex = newVertex(
 			"peer2",
@@ -825,6 +825,42 @@ describe("Writer permission tests", () => {
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		expect(drp1.query_has(3)).toBe(false);
 	});
+
+	test("Should update key in the ACL", () => {
+		const acl1 = obj1.acl as ObjectACL;
+		acl1.setKey("peer1", "peer1", {
+			secp256k1PublicKey: "secp256k1PublicKey1",
+			blsPublicKey: "blsPublicKey1",
+		});
+
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		const acl2 = obj2.acl as ObjectACL;
+		expect(acl2.query_getPeerKey("peer1")).toStrictEqual({
+			secp256k1PublicKey: "secp256k1PublicKey1",
+			blsPublicKey: "blsPublicKey1",
+		});
+
+		const acl3 = obj3.acl as ObjectACL;
+		acl3.setKey("peer3", "peer3", {
+			secp256k1PublicKey: "secp256k1PublicKey3",
+			blsPublicKey: "blsPublicKey3",
+		});
+		acl2.setKey("peer2", "peer2", {
+			secp256k1PublicKey: "secp256k1PublicKey2",
+			blsPublicKey: "blsPublicKey2",
+		});
+
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		obj1.merge(obj3.hashGraph.getAllVertices());
+		expect(acl1.query_getPeerKey("peer2")).toStrictEqual({
+			secp256k1PublicKey: "secp256k1PublicKey2",
+			blsPublicKey: "blsPublicKey2",
+		});
+		expect(acl1.query_getPeerKey("peer3")).toStrictEqual({
+			secp256k1PublicKey: "secp256k1PublicKey3",
+			blsPublicKey: "blsPublicKey3",
+		});
+	});
 });
 
 describe("HashGraph for set wins map tests", () => {
@@ -832,7 +868,7 @@ describe("HashGraph for set wins map tests", () => {
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
 			acl,
@@ -858,8 +894,8 @@ describe("HashGraph for set wins map tests", () => {
 		      \
 		       -- V2:SET("key2, "value2")
 		*/
-		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
-		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
+		const drp1 = obj1.drp as IDRP as MapDRP<string, string>;
+		const drp2 = obj2.drp as IDRP as MapDRP<string, string>;
 		drp1.set("key1", "value1");
 		drp2.set("key2", "value2");
 		drp1.delete("key1");
@@ -880,8 +916,8 @@ describe("HashGraph for set wins map tests", () => {
 		       --- V2:SET("key1", "value1") -- V3:DELETE("key1") -- V4:SET("key2", "value2")
 		*/
 
-		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
-		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
+		const drp1 = obj1.drp as IDRP as MapDRP<string, string>;
+		const drp2 = obj2.drp as IDRP as MapDRP<string, string>;
 
 		drp1.set("key1", "value2"); // smaller hash
 		drp2.set("key1", "value1"); // greater hash
@@ -909,9 +945,9 @@ describe("HashGraph for set wins map tests", () => {
 		       \                                                    ----------------------------\
 		        -- V6:SET("key2", "eulav3") ---------------------------------------------------- v8:SET("key1", "value")
 		*/
-		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
-		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
-		const drp3 = obj3.drp as DRP as MapDRP<string, string>;
+		const drp1 = obj1.drp as IDRP as MapDRP<string, string>;
+		const drp2 = obj2.drp as IDRP as MapDRP<string, string>;
+		const drp3 = obj3.drp as IDRP as MapDRP<string, string>;
 
 		drp1.set("key1", "value1");
 		drp1.delete("key2");
@@ -938,7 +974,7 @@ describe("HashGraph for delete wins map tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
 			acl,
@@ -959,8 +995,8 @@ describe("HashGraph for delete wins map tests", () => {
 		      \
 		       -- V2:SET("key1", "value2") -- DELETE("key1")
 		*/
-		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
-		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
+		const drp1 = obj1.drp as IDRP as MapDRP<string, string>;
+		const drp2 = obj2.drp as IDRP as MapDRP<string, string>;
 
 		drp1.set("key1", "value1"); // greater hash
 		drp2.set("key1", "value2"); // smaller hash
@@ -980,8 +1016,8 @@ describe("HashGraph for delete wins map tests", () => {
 		       --V2:SET("key1", "value1") -- V4:SET("key2", "value3")
 		*/
 
-		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
-		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
+		const drp1 = obj1.drp as IDRP as MapDRP<string, string>;
+		const drp2 = obj2.drp as IDRP as MapDRP<string, string>;
 
 		drp1.set("key1", "value2");
 		drp2.set("key1", "value1");
@@ -1007,7 +1043,7 @@ describe("HashGraph for delete wins map tests", () => {
 describe("Hash validation tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
 			acl,
@@ -1022,8 +1058,8 @@ describe("Hash validation tests", () => {
 	});
 
 	test("Should accept vertices with valid hash", () => {
-		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
-		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
+		const drp1 = obj1.drp as IDRP as MapDRP<string, string>;
+		const drp2 = obj2.drp as IDRP as MapDRP<string, string>;
 		drp1.set("key1", "value1");
 		drp2.set("key2", "value2");
 
@@ -1057,7 +1093,7 @@ describe("Hash validation tests", () => {
 describe("HashGraph hook tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
-	beforeEach(async () => {
+	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 	});
@@ -1066,7 +1102,7 @@ describe("HashGraph hook tests", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		const newVertices: Vertex[] = [];
 
-		obj1.subscribe((object, origin, vertices) => {
+		obj1.subscribe((_, origin, vertices) => {
 			if (origin === "callFn") {
 				newVertices.push(...vertices);
 			}
@@ -1083,7 +1119,7 @@ describe("HashGraph hook tests", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		const newVertices: Vertex[] = [];
 
-		obj2.subscribe((object, origin, vertices) => {
+		obj2.subscribe((_, origin, vertices) => {
 			if (origin === "merge") {
 				newVertices.push(...vertices);
 			}

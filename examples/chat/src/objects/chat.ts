@@ -1,6 +1,6 @@
-import { ActionType, type DRP, type ResolveConflictsType, SemanticsType } from "@ts-drp/object";
+import { ActionType, type IDRP, type ResolveConflictsType, SemanticsType } from "@ts-drp/types";
 
-export class Chat implements DRP {
+export class Chat implements IDRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
 	// store messages as strings in the format (timestamp, message, peerId)
 	messages: Set<string>;
@@ -16,7 +16,7 @@ export class Chat implements DRP {
 		return this.messages;
 	}
 
-	resolveConflicts(_): ResolveConflictsType {
+	resolveConflicts(): ResolveConflictsType {
 		return { action: ActionType.Nop };
 	}
 }

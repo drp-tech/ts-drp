@@ -10,7 +10,7 @@ let peers: string[] = [];
 let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
 
-const render = () => {
+const render = (): void => {
 	const peers_element = <HTMLDivElement>document.getElementById("peers");
 	peers_element.innerHTML = `[${peers.join(", ")}]`;
 
@@ -32,9 +32,9 @@ const render = () => {
 	}
 };
 
-const random_int = (max: number) => Math.floor(Math.random() * max);
+const random_int = (max: number): number => Math.floor(Math.random() * max);
 
-function paint_pixel(pixel: HTMLDivElement) {
+function paint_pixel(pixel: HTMLDivElement): void {
 	const [x, y] = pixel.id.split("-").map((v) => Number.parseInt(v, 10));
 	const painting: [number, number, number] = [random_int(256), random_int(256), random_int(256)];
 	canvasDRP.paint([x, y], painting);
@@ -42,7 +42,7 @@ function paint_pixel(pixel: HTMLDivElement) {
 	pixel.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
 }
 
-async function createConnectHandlers() {
+function createConnectHandlers(): void {
 	node.addCustomGroupMessageHandler(drpObject.id, () => {
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
 		render();
@@ -53,7 +53,7 @@ async function createConnectHandlers() {
 	});
 }
 
-async function init() {
+async function init(): Promise<void> {
 	await node.start();
 	render();
 
@@ -82,17 +82,19 @@ async function init() {
 	});
 
 	const create_button = <HTMLButtonElement>document.getElementById("create");
-	create_button.addEventListener("click", async () => {
+	const create = async (): Promise<void> => {
 		drpObject = await node.createObject({ drp: new Canvas(5, 10) });
 		canvasDRP = drpObject.drp as Canvas;
 
-		await createConnectHandlers();
+		createConnectHandlers();
 		render();
-	});
+	};
 
-	const connect_button = <HTMLButtonElement>document.getElementById("connect");
-	connect_button.addEventListener("click", async () => {
-		const drpId = (<HTMLInputElement>document.getElementById("canvasIdInput")).value;
+	create_button.addEventListener("click", () => void create());
+
+	const canvasIdInput = <HTMLInputElement>document.getElementById("canvasIdInput");
+	const connect = async (): Promise<void> => {
+		const drpId = canvasIdInput.value;
 		try {
 			drpObject = await node.createObject({
 				id: drpId,
@@ -100,12 +102,15 @@ async function init() {
 			});
 			canvasDRP = drpObject.drp as Canvas;
 
-			await createConnectHandlers();
+			createConnectHandlers();
 			render();
 		} catch (e) {
 			console.error("Error while connecting with DRP", drpId, e);
 		}
-	});
+	};
+
+	const connect_button = <HTMLButtonElement>document.getElementById("connect");
+	connect_button.addEventListener("click", () => void connect());
 }
 
 void init();

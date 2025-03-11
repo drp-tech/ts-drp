@@ -1,11 +1,17 @@
-import { GossipSub, MeshPeer } from "@chainsafe/libp2p-gossipsub";
-import { Connection, IdentifyResult, Libp2p, SubscriptionChangeData } from "@libp2p/interface";
-import { loadConfig } from "@ts-drp/node/src/config.js";
-import { MessagesPb as NetworkPb } from "@ts-drp/types";
+import { type GossipSub, type MeshPeer } from "@chainsafe/libp2p-gossipsub";
+import {
+	type Connection,
+	type IdentifyResult,
+	type Libp2p,
+	type Stream,
+	type SubscriptionChangeData,
+} from "@libp2p/interface";
+import { type DRPNodeConfig, Message } from "@ts-drp/types";
 import { raceEvent } from "race-event";
-import { beforeAll, describe, expect, test, afterAll } from "vitest";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { DRPNetworkNode, DRPNetworkNodeConfig, streamToUint8Array } from "../src/node.js";
+import rawConfig from "../../../configs/local-bootstrap.json" with { type: "json" };
+import { DRPNetworkNode, type DRPNetworkNodeConfig, streamToUint8Array } from "../src/node.js";
 
 describe("DRPNetworkNode can connect & send messages", () => {
 	const controller = new AbortController();
@@ -15,7 +21,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 	let bootstrapNode: DRPNetworkNode;
 	let pubsubNode1: GossipSub;
 
-	const isDialable = async (node: DRPNetworkNode, timeout = false) => {
+	const isDialable = async (node: DRPNetworkNode, timeout = false): Promise<boolean> => {
 		let resolver: (value: boolean) => void;
 		const promise = new Promise<boolean>((resolve) => {
 			resolver = resolve;
@@ -27,18 +33,18 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			}, 10);
 		}
 
-		const callback = () => {
+		const callback = (): void => {
 			resolver(true);
 		};
 
 		await node.isDialable(callback);
-		return await promise;
+		return promise;
 	};
 
 	beforeAll(async () => {
-		const configPath = `${__dirname}/../../../configs/local-bootstrap.json`;
+		const config: DRPNodeConfig = rawConfig;
 		const bootstrapConfig: DRPNetworkNodeConfig = {
-			...loadConfig(configPath)?.network_config,
+			...config.network_config,
 			log_config: { level: "silent" },
 		};
 		bootstrapNode = new DRPNetworkNode(bootstrapConfig);
@@ -53,11 +59,9 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		};
 		node1 = new DRPNetworkNode({
 			...nodeConfig,
-			private_key_seed: "node1",
 		});
 		node2 = new DRPNetworkNode({
 			...nodeConfig,
-			private_key_seed: "node2",
 		});
 
 		await node1.start();
@@ -85,17 +89,31 @@ describe("DRPNetworkNode can connect & send messages", () => {
 				event.detail.remotePeer.toString() === node2.peerId && event.detail.limits === undefined,
 		});
 
-		const messageProcessed = new Promise((resolve) => {
-			node2
-				.addMessageHandler(async ({ stream }) => {
+		const streamHandler =
+			(resolve: (boolean: boolean) => void) =>
+			async ({ stream }: { stream: Stream }): Promise<boolean> => {
+				try {
 					const byteArray = await streamToUint8Array(stream);
-					const message = NetworkPb.Message.decode(byteArray);
+					const message = Message.decode(byteArray);
 					expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
 					boolean = true;
 					resolve(true);
-				})
-				.catch((e) => {
+					return true;
+				} catch (e) {
+					// error from the stream
 					console.error(e);
+					resolve(false);
+					return false;
+				}
+			};
+
+		const messageProcessed = new Promise((resolve) => {
+			node2
+				.addMessageHandler(({ stream }) => void streamHandler(resolve)({ stream }))
+				.catch((e) => {
+					// error from the addMessageHandler
+					console.error(e);
+					resolve(false);
 				});
 		});
 
@@ -130,8 +148,8 @@ describe("DRPNetworkNode can connect & send messages", () => {
 
 		node2.subscribe(group);
 		const messageProcessed = new Promise((resolve) => {
-			node2.addGroupMessageHandler(group, async (e) => {
-				const message = NetworkPb.Message.decode(e.detail.msg.data);
+			node2.addGroupMessageHandler(group, (e) => {
+				const message = Message.decode(e.detail.msg.data);
 				expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
 				boolean = true;
 				resolve(true);

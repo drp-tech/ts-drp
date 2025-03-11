@@ -5,7 +5,7 @@ const formatPeerId = (id: string): string => {
 	return `${id.slice(0, 4)}...${id.slice(-4)}`;
 };
 
-export function renderInfo() {
+export function renderInfo(): void {
 	renderPeerId();
 	renderPeers();
 	renderDiscoveryPeers();
@@ -18,7 +18,7 @@ function renderClickablePeerList(
 	elementId: string,
 	callback: () => void,
 	defaultText = "[]"
-) {
+): void {
 	const element = <HTMLDivElement>document.getElementById(elementId);
 	const hasPeers = peers.length > 0;
 	if (!hasPeers) {
@@ -43,7 +43,7 @@ function renderClickablePeerList(
 	element.appendChild(peersList);
 
 	peersList.style.display = isOpen ? "block" : "none";
-	element.onclick = () => {
+	element.onclick = (): void => {
 		peersList.style.display = peersList.style.display === "none" ? "block" : "none";
 		callback();
 	};
@@ -51,7 +51,7 @@ function renderClickablePeerList(
 
 let isDiscoveryPeersOpen = false;
 
-const renderDiscoveryPeers = () => {
+const renderDiscoveryPeers = (): void => {
 	gridState.discoveryPeers = gridState.node.networkNode.getGroupPeers("drp::discovery");
 
 	renderClickablePeerList(gridState.discoveryPeers, isDiscoveryPeersOpen, "discoveryPeers", () => {
@@ -61,7 +61,7 @@ const renderDiscoveryPeers = () => {
 
 let isPeersOpen = false;
 
-const renderPeers = () => {
+const renderPeers = (): void => {
 	gridState.peers = gridState.node.networkNode.getAllPeers();
 
 	renderClickablePeerList(gridState.peers, isPeersOpen, "peers", () => {
@@ -71,7 +71,7 @@ const renderPeers = () => {
 
 let isPeersInDRPOpen = false;
 
-const renderPeersInDRP = () => {
+const renderPeersInDRP = (): void => {
 	if (gridState.drpObject)
 		gridState.objectPeers = gridState.node.networkNode.getGroupPeers(gridState.drpObject.id);
 
@@ -88,10 +88,10 @@ const renderPeersInDRP = () => {
 
 let isPeerIdExpanded = false;
 
-const renderPeerId = () => {
+const renderPeerId = (): void => {
 	const element_peerId = <HTMLDivElement>document.getElementById("peerId");
 
-	const innerHtml = () => `
+	const innerHtml = (): string => `
 	<strong id="peerIdExpanded" 
 			style="color: ${getColorForPeerId(gridState.node.networkNode.peerId)};
 				   ${isPeerIdExpanded ? "" : "display: none;"}">
@@ -105,13 +105,13 @@ const renderPeerId = () => {
 
 	element_peerId.style.cursor = "pointer";
 	element_peerId.innerHTML = innerHtml();
-	element_peerId.onclick = () => {
+	element_peerId.onclick = (): void => {
 		isPeerIdExpanded = !isPeerIdExpanded;
 		element_peerId.innerHTML = innerHtml();
 	};
 };
 
-export const render = () => {
+export const render = (): void => {
 	if (gridState.drpObject) {
 		const gridIdTextElement = <HTMLSpanElement>document.getElementById("gridIdText");
 		gridIdTextElement.innerText = `You're in GRID ID:`;
@@ -211,7 +211,7 @@ export const render = () => {
 	}
 };
 
-export function enableUIControls() {
+export function enableUIControls(): void {
 	const loadingMessage = document.getElementById("loadingMessage");
 	if (loadingMessage) {
 		loadingMessage.style.display = "none";

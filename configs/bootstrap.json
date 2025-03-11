@@ -3,8 +3,10 @@
 		"listen_addresses": ["/ip4/0.0.0.0/tcp/50000/ws", "/ip4/0.0.0.0/tcp/50001"],
 		"bootstrap": true,
 		"bootstrap_peers": [
-			"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/12D3KooWBu1pZ3v2u6tXSmkN35kiMLENpv3bEXcyT1GJTVhipAkG"
-		],
+			"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/16Uiu2HAm4MeUv712cWmXpvGEZ1r1741YoWvsCcmptCza43b7opdK"
+		]
+	},
+	"keychain_config": {
 		"private_key_seed": "bootstrap"
 	}
 }

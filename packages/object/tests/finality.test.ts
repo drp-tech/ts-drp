@@ -1,6 +1,7 @@
-import bls from "@chainsafe/bls/herumi";
-import { SetDRP } from "@ts-drp/blueprints/src/index.js";
-import { DRPCredentialStore } from "@ts-drp/node/src/store/index.js";
+import { bls } from "@chainsafe/bls/herumi";
+import { SetDRP } from "@ts-drp/blueprints";
+import { Keychain } from "@ts-drp/keychain";
+import { type AggregatedAttestation, type Attestation } from "@ts-drp/types";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { beforeEach, describe, expect, test } from "vitest";
 
@@ -8,12 +9,11 @@ import { ObjectACL } from "../src/acl/index.js";
 import { FinalityState, FinalityStore } from "../src/finality/index.js";
 import { BitSet } from "../src/hashgraph/bitset.js";
 import { DRPObject } from "../src/index.js";
-import type { AggregatedAttestation } from "../src/proto/drp/object/v1/object_pb.js";
 
 // initialize log
 const _ = new DRPObject({
 	peerId: "peer1",
-	acl: new ObjectACL({ admins: new Map() }),
+	acl: new ObjectACL({ admins: [] }),
 	drp: new SetDRP(),
 });
 
@@ -21,7 +21,7 @@ describe("Tests for FinalityState", () => {
 	const N = 128;
 	let finalityState: FinalityState;
 	const peers: string[] = [];
-	const stores: DRPCredentialStore[] = [];
+	const stores: Keychain[] = [];
 
 	beforeEach(async () => {
 		for (let i = 0; i < N; i++) {
@@ -30,7 +30,7 @@ describe("Tests for FinalityState", () => {
 		peers.sort();
 
 		for (let i = 0; i < N; i++) {
-			stores.push(new DRPCredentialStore());
+			stores.push(new Keychain());
 			await stores[i].start();
 		}
 
@@ -42,10 +42,10 @@ describe("Tests for FinalityState", () => {
 	});
 
 	test("addSignature: Nodes outside the signer set are rejected", async () => {
-		const credentialStore = new DRPCredentialStore();
-		await credentialStore.start();
+		const keychain = new Keychain();
+		await keychain.start();
 
-		const signature = credentialStore.signWithBls(finalityState.data);
+		const signature = keychain.signWithBls(finalityState.data);
 
 		expect(() => finalityState.addSignature("badNode", signature)).toThrowError(
 			"Peer not found in signer list"
@@ -53,15 +53,15 @@ describe("Tests for FinalityState", () => {
 	});
 
 	test("addSignature: Bad signatures are rejected", async () => {
-		const credentialStore = new DRPCredentialStore();
-		await credentialStore.start();
+		const keychain = new Keychain();
+		await keychain.start();
 
-		const signature = credentialStore.signWithBls(finalityState.data);
+		const signature = keychain.signWithBls(finalityState.data);
 
 		expect(() => finalityState.addSignature(peers[0], signature)).toThrowError("Invalid signature");
 	});
 
-	test("addSignature: signatures are counted correctly", async () => {
+	test("addSignature: signatures are counted correctly", () => {
 		let count = 0;
 		for (let i = 0; i < N; i++) {
 			const signature = stores[i].signWithBls(finalityState.data);
@@ -74,7 +74,7 @@ describe("Tests for FinalityState", () => {
 		}
 	});
 
-	test("Duplicated signatures", async () => {
+	test("Duplicated signatures", () => {
 		finalityState.addSignature(peers[0], stores[0].signWithBls(finalityState.data));
 		finalityState.addSignature(peers[0], stores[0].signWithBls(finalityState.data));
 		expect(finalityState.numberOfSignatures).toEqual(1);
@@ -85,9 +85,9 @@ describe("Tests for FinalityStore", () => {
 	const N = 1000;
 	let finalityStore: FinalityStore;
 	const peers: string[] = [];
-	const stores: DRPCredentialStore[] = [];
+	const stores: Keychain[] = [];
 
-	const generateAttestation = (index: number, hash: string) => {
+	const generateAttestation = (index: number, hash: string): Attestation => {
 		return {
 			data: hash,
 			signature: stores[index].signWithBls(hash),
@@ -103,7 +103,7 @@ describe("Tests for FinalityStore", () => {
 		peers.sort();
 
 		for (let i = 0; i < N; i++) {
-			stores.push(new DRPCredentialStore());
+			stores.push(new Keychain());
 			await stores[i].start();
 		}
 
@@ -116,7 +116,7 @@ describe("Tests for FinalityStore", () => {
 		finalityStore.initializeState("vertex3", signers);
 	});
 
-	test("Runs addSignatures, canSign and signed on 100 attestations", async () => {
+	test("Runs addSignatures, canSign and signed on 100 attestations", () => {
 		for (let i = 0; i < 100; i++) {
 			const peerId = peers[i];
 			const hash = "vertex1";
@@ -133,7 +133,7 @@ describe("Tests for FinalityStore", () => {
 		expect(finalityStore.getNumberOfSignatures("vertex1")).toEqual(100);
 	});
 
-	test("mergeSignatures: Merge signatures for multiple vertices", async () => {
+	test("mergeSignatures: Merge signatures for multiple vertices", () => {
 		const attestations: AggregatedAttestation[] = [];
 
 		// signatures for vertex1
@@ -180,7 +180,7 @@ describe("Tests for FinalityStore", () => {
 		expect(finalityStore.getNumberOfSignatures("vertex3")).toEqual(0);
 	});
 
-	test("Quorum test", async () => {
+	test("Quorum test", () => {
 		for (let i = 0; i < 509; i++) {
 			const attestation = generateAttestation(i, "vertex1");
 			finalityStore.addSignatures(peers[i], [attestation]);
@@ -193,5 +193,5 @@ describe("Tests for FinalityStore", () => {
 		}
 		// 1000 * 0.51 = 510
 		expect(finalityStore.isFinalized("vertex1")).toEqual(true);
-	});
+	}, 30000);
 });

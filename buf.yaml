@@ -3,8 +3,5 @@ modules:
   - path: packages/node/src/proto
     name: buf.build/drp/node
 
-  - path: packages/object/src/proto
-    name: buf.build/drp/object
-
-  - path: packages/network/src/proto
-    name: buf.build/drp/network
+  - path: packages/types/src/proto
+    name: buf.build/drp/types

@@ -1,13 +1,14 @@
 import eslint from "@eslint/js";
 import tsparser from "@typescript-eslint/parser";
-import esimport from "eslint-plugin-import";
+import importPlugin from "eslint-plugin-import";
 import prettier from "eslint-plugin-prettier";
 import unusedImports from "eslint-plugin-unused-imports";
 import vitest from "eslint-plugin-vitest";
 import globals from "globals";
-import tseslint from "typescript-eslint";
+import { configs, plugin, config as tsLintConfig } from "typescript-eslint";
 
-const config = tseslint.config(
+/** @type {import("typescript-eslint").ConfigArray} */
+const config = tsLintConfig(
 	{
 		ignores: [
 			"**/.env",
@@ -30,11 +31,17 @@ const config = tseslint.config(
 		],
 	},
 	eslint.configs.recommended,
-	tseslint.configs.strict,
+	configs.strict,
+	importPlugin.flatConfigs.recommended,
+	importPlugin.flatConfigs.typescript,
 	{
+		settings: {
+			"import/resolver": {
+				typescript: {},
+			},
+		},
 		plugins: {
-			"@typescript-eslint": tseslint.plugin,
-			"import": esimport,
+			"@typescript-eslint": plugin,
 			"prettier": prettier,
 			"unused-imports": unusedImports,
 			"vitest": vitest,
@@ -57,6 +64,7 @@ const config = tseslint.config(
 			"@typescript-eslint/no-unused-vars": [
 				"error",
 				{
+					args: "all",
 					varsIgnorePattern: "_",
 					argsIgnorePattern: "_",
 					caughtErrors: "all",
@@ -68,6 +76,22 @@ const config = tseslint.config(
 			"@typescript-eslint/no-dynamic-delete": "off",
 			"@typescript-eslint/no-inferrable-types": "off",
 			"@typescript-eslint/no-floating-promises": "error",
+			"@typescript-eslint/consistent-type-exports": "error",
+			"@typescript-eslint/no-misused-promises": "error",
+			"@typescript-eslint/explicit-function-return-type": "error",
+			"@typescript-eslint/await-thenable": "error", // disallows awaiting a value that is not a "Thenable"
+			"@typescript-eslint/return-await": ["error", "in-try-catch"], // require awaiting thenables returned from try/catch
+			"@typescript-eslint/method-signature-style": ["error", "method"], // enforce method signature style
+			// cf: the doc https://typescript-eslint.io/rules/require-await/ say to disable it
+			"require-await": "off",
+			"@typescript-eslint/require-await": "error",
+			"@typescript-eslint/consistent-type-imports": [
+				"error",
+				{
+					prefer: "type-imports",
+					fixStyle: "inline-type-imports",
+				},
+			],
 			"no-unused-vars": "off",
 			"unused-imports/no-unused-imports": "error",
 			"prefer-const": "error",
@@ -82,6 +106,26 @@ const config = tseslint.config(
 					},
 				},
 			],
+			"sort-imports": [
+				"error",
+				{
+					ignoreCase: true,
+					ignoreDeclarationSort: true, // Keep `import/order` sorting statements
+					ignoreMemberSort: false, // Enforce sorting within named imports
+					allowSeparatedGroups: true,
+				},
+			],
+			"import/no-unresolved": [
+				"error",
+				{
+					ignore: ["@libp2p/bootstrap", "@libp2p/pubsub-peer-discovery"],
+				},
+			],
+			"import/no-cycle": "error",
+			"import/no-self-import": "error",
+			"import/no-duplicates": "error",
+			"import/no-named-default": "error",
+			"import/no-webpack-loader-syntax": "error",
 		},
 	}
 );

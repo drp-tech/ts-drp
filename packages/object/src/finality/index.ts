@@ -1,10 +1,15 @@
-import bls from "@chainsafe/bls/herumi";
-import { AggregatedAttestation, Attestation } from "@ts-drp/types";
+import { bls } from "@chainsafe/bls/herumi";
+import { Logger } from "@ts-drp/logger";
+import {
+	type AggregatedAttestation,
+	type Attestation,
+	type DRPPublicCredential,
+	type Hash,
+	type LoggerOptions,
+} from "@ts-drp/types";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { BitSet } from "../hashgraph/bitset.js";
-import type { Hash } from "../hashgraph/index.js";
-import { type DRPPublicCredential, log } from "../index.js";
 
 const DEFAULT_FINALITY_THRESHOLD = 0.51;
 
@@ -36,7 +41,7 @@ export class FinalityState {
 		this.numberOfSignatures = 0;
 	}
 
-	addSignature(peerId: string, signature: Uint8Array, verify = true) {
+	addSignature(peerId: string, signature: Uint8Array, verify = true): void {
 		const index = this.signerIndices.get(peerId);
 		if (index === undefined) {
 			throw new Error("Peer not found in signer list");
@@ -65,7 +70,7 @@ export class FinalityState {
 		this.numberOfSignatures++;
 	}
 
-	merge(attestation: AggregatedAttestation) {
+	merge(attestation: AggregatedAttestation): void {
 		if (this.data !== attestation.data) {
 			throw new Error("Hash mismatch");
 		}
@@ -97,12 +102,16 @@ export class FinalityStore {
 	states: Map<string, FinalityState>;
 	finalityThreshold: number;
 
-	constructor(config?: FinalityConfig) {
+	private log: Logger;
+
+	constructor(config?: FinalityConfig, logConfig?: LoggerOptions) {
 		this.states = new Map();
 		this.finalityThreshold = config?.finality_threshold ?? DEFAULT_FINALITY_THRESHOLD;
+
+		this.log = new Logger("drp::finality", logConfig);
 	}
 
-	initializeState(hash: Hash, signers: Map<string, DRPPublicCredential>) {
+	initializeState(hash: Hash, signers: Map<string, DRPPublicCredential>): void {
 		if (!this.states.has(hash)) {
 			this.states.set(hash, new FinalityState(hash, signers));
 		}
@@ -148,12 +157,12 @@ export class FinalityStore {
 	}
 
 	// add signatures to the vertex
-	addSignatures(peerId: string, attestations: Attestation[], verify = true) {
+	addSignatures(peerId: string, attestations: Attestation[], verify = true): void {
 		for (const attestation of attestations) {
 			try {
 				this.states.get(attestation.data)?.addSignature(peerId, attestation.signature, verify);
 			} catch (e) {
-				log.error("::finality::addSignatures", e);
+				this.log.error("::finality::addSignatures", e);
 			}
 		}
 	}
@@ -171,12 +180,12 @@ export class FinalityStore {
 	}
 
 	// merge multiple signatures
-	mergeSignatures(attestations: AggregatedAttestation[]) {
+	mergeSignatures(attestations: AggregatedAttestation[]): void {
 		for (const attestation of attestations) {
 			try {
 				this.states.get(attestation.data)?.merge(attestation);
 			} catch (e) {
-				log.error("::finality::mergeSignatures", e);
+				this.log.error("::finality::mergeSignatures", e);
 			}
 		}
 	}

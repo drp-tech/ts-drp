@@ -1,43 +1,51 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import type { EventCallback, StreamHandler } from "@libp2p/interface";
-import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
-import { type ACL, type DRP, DRPObject } from "@ts-drp/object";
-import { IMetrics } from "@ts-drp/tracer";
-import { Message, MessageType } from "@ts-drp/types";
+import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
+import { Keychain } from "@ts-drp/keychain";
+import { Logger } from "@ts-drp/logger";
+import { DRPNetworkNode } from "@ts-drp/network";
+import { DRPObject } from "@ts-drp/object";
+import {
+	type DRPNodeConfig,
+	type IACL,
+	type IDRP,
+	type IDRPObject,
+	type IMetrics,
+	Message,
+	MessageType,
+} from "@ts-drp/types";
 
+import { loadConfig } from "./config.js";
 import { drpMessagesHandler } from "./handlers.js";
+import { log } from "./logger.js";
 import * as operations from "./operations.js";
-import { type DRPCredentialConfig, DRPCredentialStore, DRPObjectStore } from "./store/index.js";
+import { DRPObjectStore } from "./store/index.js";
 
-// snake_casing to match the JSON config
-export interface DRPNodeConfig {
-	log_config?: LoggerOptions;
-	network_config?: DRPNetworkNodeConfig;
-	credential_config?: DRPCredentialConfig;
-}
-
-export let log: Logger;
+export { loadConfig };
 
 export class DRPNode {
 	config?: DRPNodeConfig;
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
-	credentialStore: DRPCredentialStore;
+	keychain: Keychain;
 
 	constructor(config?: DRPNodeConfig) {
 		this.config = config;
-		log = new Logger("drp::node", config?.log_config);
+		const newLogger = new Logger("drp::node", config?.log_config);
+		log.trace = newLogger.trace;
+		log.debug = newLogger.debug;
+		log.info = newLogger.info;
+		log.warn = newLogger.warn;
+		log.error = newLogger.error;
 		this.networkNode = new DRPNetworkNode(config?.network_config);
 		this.objectStore = new DRPObjectStore();
-		this.credentialStore = new DRPCredentialStore(config?.credential_config);
+		this.keychain = new Keychain(config?.keychain_config);
 	}
 
 	async start(): Promise<void> {
-		await this.credentialStore.start();
-		await this.networkNode.start();
-		await this.networkNode.addMessageHandler(async ({ stream }) =>
-			drpMessagesHandler(this, stream)
+		await this.keychain.start();
+		await this.networkNode.start(this.keychain.secp256k1PrivateKey);
+		await this.networkNode.addMessageHandler(
+			({ stream }: IncomingStreamData) => void drpMessagesHandler(this, stream)
 		);
 	}
 
@@ -47,20 +55,21 @@ export class DRPNode {
 			config ? config.network_config : this.config?.network_config
 		);
 		await this.start();
+		log.info("::restart: Node restarted");
 	}
 
-	addCustomGroup(group: string) {
+	addCustomGroup(group: string): void {
 		this.networkNode.subscribe(group);
 	}
 
 	addCustomGroupMessageHandler(
 		group: string,
 		handler: EventCallback<CustomEvent<GossipsubMessage>>
-	) {
+	): void {
 		this.networkNode.addGroupMessageHandler(group, handler);
 	}
 
-	async sendGroupMessage(group: string, data: Uint8Array) {
+	async sendGroupMessage(group: string, data: Uint8Array): Promise<void> {
 		const message = Message.create({
 			sender: this.networkNode.peerId,
 			type: MessageType.MESSAGE_TYPE_CUSTOM,
@@ -69,11 +78,14 @@ export class DRPNode {
 		await this.networkNode.broadcastMessage(group, message);
 	}
 
-	async addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
+	async addCustomMessageHandler(
+		protocol: string | string[],
+		handler: StreamHandler
+	): Promise<void> {
 		await this.networkNode.addCustomMessageHandler(protocol, handler);
 	}
 
-	async sendCustomMessage(peerId: string, data: Uint8Array) {
+	async sendCustomMessage(peerId: string, data: Uint8Array): Promise<void> {
 		const message = Message.create({
 			sender: this.networkNode.peerId,
 			type: MessageType.MESSAGE_TYPE_CUSTOM,
@@ -83,25 +95,24 @@ export class DRPNode {
 	}
 
 	async createObject(options: {
-		drp?: DRP;
-		acl?: ACL;
+		drp?: IDRP;
+		acl?: IACL;
 		id?: string;
 		sync?: {
 			enabled: boolean;
 			peerId?: string;
 		};
 		metrics?: IMetrics;
-	}) {
+	}): Promise<DRPObject> {
 		const object = new DRPObject({
 			peerId: this.networkNode.peerId,
-			publicCredential: options.acl ? undefined : this.credentialStore.getPublicCredential(),
 			acl: options.acl,
 			drp: options.drp,
 			id: options.id,
 			metrics: options.metrics,
 		});
 		operations.createObject(this, object);
-		await operations.subscribeObject(this, object.id);
+		operations.subscribeObject(this, object.id);
 		if (options.sync?.enabled) {
 			await operations.syncObject(this, object.id, options.sync.peerId);
 		}
@@ -117,13 +128,13 @@ export class DRPNode {
 	*/
 	async connectObject(options: {
 		id: string;
-		drp?: DRP;
+		drp?: IDRP;
 		sync?: {
 			peerId?: string;
 		};
 		metrics?: IMetrics;
-	}) {
-		const object = operations.connectObject(this, options.id, {
+	}): Promise<IDRPObject> {
+		const object = await operations.connectObject(this, options.id, {
 			peerId: options.sync?.peerId,
 			drp: options.drp,
 			metrics: options.metrics,
@@ -131,16 +142,16 @@ export class DRPNode {
 		return object;
 	}
 
-	async subscribeObject(id: string) {
-		await operations.subscribeObject(this, id);
+	subscribeObject(id: string): void {
+		operations.subscribeObject(this, id);
 	}
 
-	unsubscribeObject(id: string, purge?: boolean) {
+	unsubscribeObject(id: string, purge?: boolean): void {
 		operations.unsubscribeObject(this, id, purge);
 		this.networkNode.removeTopicScoreParams(id);
 	}
 
-	async syncObject(id: string, peerId?: string) {
+	async syncObject(id: string, peerId?: string): Promise<void> {
 		await operations.syncObject(this, id, peerId);
 	}
 }

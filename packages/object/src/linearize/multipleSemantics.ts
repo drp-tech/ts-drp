@@ -1,17 +1,27 @@
-import { type Vertex_Operation as Operation, Vertex } from "@ts-drp/types";
+import { ActionType, type Hash, type Vertex } from "@ts-drp/types";
 
-import { ActionType, type Hash, type HashGraph } from "../hashgraph/index.js";
+import { type HashGraph } from "../hashgraph/index.js";
 import type { ObjectSet } from "../utils/objectSet.js";
 
 export function linearizeMultipleSemantics(
 	hashGraph: HashGraph,
 	origin: Hash,
 	subgraph: ObjectSet<string>
-): Operation[] {
+): Vertex[] {
 	const order = hashGraph.topologicalSort(true, origin, subgraph);
+	const result: Vertex[] = [];
+	// if there is no resolveConflicts function, we can just return the operations in topological order
+	if (!hashGraph.resolveConflictsACL && !hashGraph.resolveConflictsDRP) {
+		for (let i = 1; i < order.length; i++) {
+			const vertex = hashGraph.vertices.get(order[i]);
+			if (vertex) {
+				result.push(vertex);
+			}
+		}
+		return result;
+	}
 	const dropped = new Array(order.length).fill(false);
 	const indices: Map<Hash, number> = new Map();
-	const result: Operation[] = [];
 	// always remove the first operation
 	let i = 1;
 
@@ -80,8 +90,10 @@ export function linearizeMultipleSemantics(
 		}
 
 		if (!dropped[i]) {
-			const op = hashGraph.vertices.get(order[i])?.operation;
-			if (op && op.value !== null) result.push(op);
+			const vertex = hashGraph.vertices.get(order[i]);
+			if (vertex) {
+				result.push(vertex);
+			}
 		}
 		i++;
 	}

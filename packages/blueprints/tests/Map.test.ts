@@ -1,4 +1,4 @@
-import { ActionType } from "@ts-drp/object";
+import { ActionType } from "@ts-drp/types";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { MapDRP } from "../src/index.js";

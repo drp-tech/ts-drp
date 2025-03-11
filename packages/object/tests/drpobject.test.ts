@@ -1,33 +1,24 @@
-import { SetDRP } from "@ts-drp/blueprints/src/index.js";
+import { SetDRP } from "@ts-drp/blueprints";
+import {
+	ActionType,
+	type IDRP,
+	type ResolveConflictsType,
+	SemanticsType,
+	type Vertex,
+} from "@ts-drp/types";
 import { beforeEach, describe, expect, it, test, vi } from "vitest";
 
-import { SemanticsType } from "../dist/src/hashgraph/index.js";
-import { ActionType } from "../dist/src/hashgraph/index.js";
-import { DRP, DRPObject, ObjectACL, ResolveConflictsType, Vertex } from "../src/index.js";
+import { DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
-	admins: new Map([
-		["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-		["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
-		["peer3", { ed25519PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
-	]),
+	admins: ["peer1", "peer2", "peer3"],
 });
 
 describe("AccessControl tests with RevokeWins resolution", () => {
 	beforeEach(() => {});
 
-	test("Test creating DRPObject wo/ ACL and publicCred", () => {
-		expect(() => new DRPObject({ peerId: "" })).toThrow(
-			"Either publicCredential or acl must be provided to create a DRPObject"
-		);
-	});
-
-	test("Test creating DRPObject w/ publicCred", () => {
-		const cred = {
-			ed25519PublicKey: "cred",
-			blsPublicKey: "cred",
-		};
-		const obj = new DRPObject({ peerId: "", publicCredential: cred });
+	test("Test creating DRPObject wo/ ACL", () => {
+		const obj = new DRPObject({ peerId: "" });
 		expect(obj.acl).toBeDefined();
 	});
 
@@ -40,7 +31,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 describe("Drp Object should be able to change state value", () => {
 	let drpObject: DRPObject;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		drpObject = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 	});
 
@@ -75,7 +66,7 @@ describe("Drp Object should be able to change state value", () => {
 describe("Test for duplicate call issue", () => {
 	let counter = 0;
 
-	class CounterDRP implements DRP {
+	class CounterDRP implements IDRP {
 		semanticsType = SemanticsType.pair;
 
 		private _counter: number;
@@ -84,7 +75,7 @@ describe("Test for duplicate call issue", () => {
 			this._counter = 0;
 		}
 
-		test() {
+		test(): number {
 			this._counter++;
 			counter++;
 			return this._counter;
@@ -98,10 +89,6 @@ describe("Test for duplicate call issue", () => {
 	test("Detect duplicate call", () => {
 		const obj = new DRPObject({
 			peerId: "",
-			publicCredential: {
-				ed25519PublicKey: "cred",
-				blsPublicKey: "cred",
-			},
 			drp: new CounterDRP(),
 		});
 

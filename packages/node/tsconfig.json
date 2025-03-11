@@ -1,22 +1,11 @@
 {
 	"extends": "../../tsconfig.json",
-
 	"compilerOptions": {
 		"outDir": "dist"
 	},
-	"references": [
-		{
-			"path": "../blueprints"
-		},
-		{
-			"path": "../network"
-		},
-		{
-			"path": "../object"
-		},
-		{
-			"path": "../logger"
-		}
-	],
-	"include": ["src/**/*.ts", "src/**/*.js"]
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.js",
+		"tests/**/*.ts"
+	]
 }

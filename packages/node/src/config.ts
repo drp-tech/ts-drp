@@ -1,7 +1,6 @@
+import type { DRPNodeConfig } from "@ts-drp/types";
 import * as dotenv from "dotenv";
 import fs from "node:fs";
-
-import type { DRPNodeConfig } from "./index.js";
 
 export function loadConfig(configPath?: string | undefined): DRPNodeConfig | undefined {
 	let config: DRPNodeConfig | undefined;
@@ -28,6 +27,8 @@ export function loadConfig(configPath?: string | undefined): DRPNodeConfig | und
 			browser_metrics: process.env.BROWSER_METRICS
 				? process.env.BROWSER_METRICS === "true"
 				: undefined,
+		};
+		config.keychain_config = {
 			private_key_seed: process.env.PRIVATE_KEY_SEED ? process.env.PRIVATE_KEY_SEED : undefined,
 		};
 		return config;

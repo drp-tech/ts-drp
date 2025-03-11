@@ -8,5 +8,14 @@
 	"trailingComma": "es5",
 	"bracketSpacing": true,
 	"arrowParens": "always",
-	"endOfLine": "auto"
+	"endOfLine": "auto",
+	"overrides": [
+		{
+			"files": "package.json",
+			"options": {
+				"useTabs": true,
+				"tabWidth": 2
+			}
+		}
+	]
 }

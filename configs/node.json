@@ -2,8 +2,10 @@
 	"network_config": {
 		"listen_addresses": ["/webrtc"],
 		"bootstrap_peers": [
-			"/ip4/127.0.0.1/tcp/50000/ws/p2p/12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ"
-		],
+			"/ip4/127.0.0.1/tcp/50000/ws/p2p/16Uiu2HAmTY71bbCHtmYD3nvVKUGbk7NWqLBbPFNng4jhaXJHi3W5"
+		]
+	},
+	"keychain_config": {
 		"private_key_seed": "node"
 	}
 }
