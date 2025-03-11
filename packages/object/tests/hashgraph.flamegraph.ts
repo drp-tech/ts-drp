@@ -47,21 +47,25 @@ function createDRPObjects(numDRPs: number, verticesPerDRP: number): DRPObject[] 
 	);
 }
 
-function mergeObjects(objects: DRPObject[]): void {
-	objects.forEach((sourceObject, sourceIndex) => {
-		objects.forEach((targetObject, targetIndex) => {
+async function mergeObjects(objects: DRPObject[]): Promise<void> {
+	for (const [sourceIndex, sourceObject] of objects.entries()) {
+		for (const [targetIndex, targetObject] of objects.entries()) {
 			if (sourceIndex !== targetIndex) {
-				sourceObject.merge(targetObject.hashGraph.getAllVertices());
+				await sourceObject.merge(targetObject.hashGraph.getAllVertices());
 			}
-		});
-	});
+		}
+	}
 }
 
-function flamegraphForSetDRP(numDRPs: number, verticesPerDRP: number, mergeFn: boolean): void {
+async function flamegraphForSetDRP(
+	numDRPs: number,
+	verticesPerDRP: number,
+	mergeFn: boolean
+): Promise<void> {
 	const objects = createDRPObjects(numDRPs, verticesPerDRP);
 
 	if (mergeFn) {
-		mergeObjects(objects);
+		await mergeObjects(objects);
 	}
 }
 
@@ -83,4 +87,4 @@ async function pprofTime(): Promise<void> {
 
 pprofTime().catch(console.error);
 
-flamegraphForSetDRP(1, 1000, false);
+await flamegraphForSetDRP(1, 1000, false);

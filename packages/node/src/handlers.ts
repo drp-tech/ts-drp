@@ -185,7 +185,7 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 		verifiedVertices = await verifyACLIncomingVertices(updateMessage.vertices);
 	}
 
-	const [merged, _] = object.merge(verifiedVertices);
+	const [merged, _] = await object.merge(verifiedVertices);
 
 	if (!merged) {
 		await node.syncObject(updateMessage.objectId, sender);
@@ -297,7 +297,7 @@ async function syncAcceptHandler({ node, message, stream }: HandleParams): Promi
 	}
 
 	if (verifiedVertices.length !== 0) {
-		object.merge(verifiedVertices);
+		await object.merge(verifiedVertices);
 		object.finalityStore.mergeSignatures(syncAcceptMessage.attestations);
 		node.objectStore.put(object.id, object);
 	}

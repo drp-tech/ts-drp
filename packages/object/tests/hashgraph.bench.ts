@@ -16,7 +16,7 @@ function benchmarkForAddWinSet(
 	verticesPerDRP: number,
 	mergeFn: boolean
 ): Benchmark.Suite {
-	return suite.add(name, () => {
+	return suite.add(name, async () => {
 		const objects: DRPObject[] = [];
 		for (let i = 0; i < numDRPs; i++) {
 			const obj: DRPObject = new DRPObject({
@@ -43,7 +43,7 @@ function benchmarkForAddWinSet(
 			for (let i = 0; i < objects.length; i++) {
 				for (let j = 0; j < objects.length; j++) {
 					if (i !== j) {
-						objects[i].merge(objects[j].hashGraph.getAllVertices());
+						await objects[i].merge(objects[j].hashGraph.getAllVertices());
 					}
 				}
 			}
@@ -156,7 +156,7 @@ suite.add(
 
 suite.add(
 	`Create 2 HashGraphs with ${NUMBER_OF_OPERATIONS} operations each for set wins map and merge with random operations`,
-	() => {
+	async () => {
 		function initialize(drp: MapDRP<number, number>): void {
 			for (let i = 0; i < 250; i += 4) {
 				drp.set(i, i);
@@ -191,8 +191,8 @@ suite.add(
 		const drp2 = object2.drp as IDRP as MapDRP<number, number>;
 		initialize(drp2);
 
-		object1.merge(object2.hashGraph.getAllVertices());
-		object2.merge(object1.hashGraph.getAllVertices());
+		await object1.merge(object2.hashGraph.getAllVertices());
+		await object2.merge(object1.hashGraph.getAllVertices());
 	}
 );
 

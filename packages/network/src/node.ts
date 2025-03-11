@@ -317,9 +317,10 @@ export class DRPNetworkNode {
 		}
 	}
 
-	async connect(addr: MultiaddrInput): Promise<void> {
+	async connect(addr: MultiaddrInput | MultiaddrInput[]): Promise<void> {
 		try {
-			await this._node?.dial([multiaddr(addr)]);
+			const addrs = Array.isArray(addr) ? addr.map((a) => multiaddr(a)) : [multiaddr(addr)];
+			await this._node?.dial(addrs);
 			log.info("::connect: Successfuly dialed", addr);
 		} catch (e) {
 			log.error("::connect:", e);

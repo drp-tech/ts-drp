@@ -17,6 +17,7 @@ import {
 	type Operation,
 	type Vertex,
 } from "@ts-drp/types";
+import { isPromise } from "@ts-drp/utils";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 import * as crypto from "node:crypto";
@@ -155,7 +156,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 							applyTarget: (...args: unknown[]) => unknown,
 							thisArg: unknown,
 							args: unknown[]
-						): unknown {
+						): unknown | Promise<unknown> {
 							if ((propKey as string).startsWith("query_")) {
 								return Reflect.apply(applyTarget, thisArg, args);
 							}
@@ -181,7 +182,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		args: any,
 		drpType: DrpType
-	): unknown {
+	): unknown | Promise<unknown> {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
@@ -195,41 +196,172 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			? this._computeObjectACL(vertexDependencies)
 			: this._computeDRP(vertexDependencies);
 
-		const clonedDRP = cloneDeep(preOperationDRP);
-		let appliedOperationResult = undefined;
-		try {
-			appliedOperationResult = this._applyOperation(clonedDRP, vertexOperation);
-		} catch (e) {
-			log.error(`::drpObject::callFn: ${e}`);
-			return appliedOperationResult;
-		}
+		const handlePreoperationResult = (preOperationDRP: IDRP | IACL): unknown | Promise<unknown> => {
+			const clonedDRP = cloneDeep(preOperationDRP);
+			let result: unknown | Promise<unknown> = undefined;
+			try {
+				result = this._applyOperation(clonedDRP, vertexOperation);
+			} catch (e) {
+				log.error(`::drpObject::callFn: ${e}`);
+				return result;
+			}
 
-		const stateChanged = Object.keys(preOperationDRP).some(
-			(key) => !deepEqual(preOperationDRP[key], clonedDRP[key])
-		);
-		if (!stateChanged) {
-			return appliedOperationResult;
-		}
+			const handleResult = (result: unknown | Promise<unknown>): unknown | Promise<unknown> => {
+				const stateChanged = Object.keys(preOperationDRP).some(
+					(key) => !deepEqual(preOperationDRP[key], clonedDRP[key])
+				);
+				if (!stateChanged) {
+					return result;
+				}
 
-		const [drp, acl] = isACL
-			? [this._computeDRP(vertexDependencies, preComputeLca), clonedDRP as IACL]
-			: [clonedDRP as IDRP, this._computeObjectACL(vertexDependencies, preComputeLca)];
+				const [drpMaybePromise, aclMaybePromise] = isACL
+					? [this._computeDRP(vertexDependencies, preComputeLca), clonedDRP as IACL]
+					: [clonedDRP as IDRP, this._computeObjectACL(vertexDependencies, preComputeLca)];
 
-		const vertex = this.hashGraph.createVertex(vertexOperation, vertexDependencies, now);
+				const handleFinaliseState = (drp: IDRP, acl: IACL): unknown | Promise<unknown> => {
+					const vertex = this.hashGraph.createVertex(vertexOperation, vertexDependencies, now);
 
-		this.hashGraph.addVertex(vertex);
-		this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
-		this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
-		this._initializeFinalityState(vertex.hash, acl);
+					this.hashGraph.addVertex(vertex);
+					const setDRPStateResult = this._setDRPState(
+						vertex,
+						preComputeLca,
+						this._getDRPState(drp)
+					);
+					const setObjectACLStateResult = this._setObjectACLState(
+						vertex,
+						preComputeLca,
+						this._getDRPState(acl)
+					);
+					this._initializeFinalityState(vertex.hash, acl);
 
-		this.vertices.push(vertex);
-		this._notify("callFn", [vertex]);
+					this.vertices.push(vertex);
+					this._notify("callFn", [vertex]);
 
-		if (!isACL) Object.assign(this.drp as IDRP, clonedDRP);
-		else Object.assign(this.acl as ObjectACL, clonedDRP);
+					if (!isACL) Object.assign(this.drp as IDRP, clonedDRP);
+					else Object.assign(this.acl as ObjectACL, clonedDRP);
 
-		return appliedOperationResult;
+					if (isPromise(setDRPStateResult) || isPromise(setObjectACLStateResult)) {
+						return Promise.all([setDRPStateResult, setObjectACLStateResult]).then(() => result);
+					}
+
+					return result;
+				};
+
+				if (isPromise(drpMaybePromise) || isPromise(aclMaybePromise)) {
+					return Promise.all([drpMaybePromise, aclMaybePromise]).then(([drp, acl]) =>
+						handleFinaliseState(drp, acl)
+					);
+				}
+
+				return handleFinaliseState(drpMaybePromise, aclMaybePromise);
+			};
+
+			return isPromise(result) ? result.then(handleResult) : handleResult(result);
+		};
+
+		return isPromise(preOperationDRP)
+			? preOperationDRP.then((result) => {
+					console.log("computePreOperationDRP promise", result);
+					return handlePreoperationResult(result);
+				})
+			: handlePreoperationResult(preOperationDRP);
+		//return appliedOperationResult;
 	}
+
+	//private callFn(
+	//	fn: string,
+	//	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	//	args: any,
+	//	drpType: DrpType
+	//): unknown | Promise<unknown> {
+	//	if (!this.hashGraph) {
+	//		throw new Error("Hashgraph is undefined");
+	//	}
+
+	//	const isACL = drpType === DrpType.ACL;
+	//	const vertexDependencies = this.hashGraph.getFrontier();
+	//	const vertexOperation = { drpType, opType: fn, value: args };
+	//	const preComputeLca = this.computeLCA(vertexDependencies);
+	//	const now = Date.now();
+
+	//	const computePreOperationDRP = isACL
+	//		? this._computeObjectACL(vertexDependencies)
+	//		: this._computeDRP(vertexDependencies);
+
+	//	const handleResult = (preOperationDRP: IDRP | IACL): unknown | Promise<unknown> => {
+	//		console.log("preOperationDRP", preOperationDRP, fn);
+
+	//		const clonedDRP = cloneDeep(preOperationDRP);
+	//		let appliedOperationResult;
+	//		try {
+	//			appliedOperationResult = this._applyOperation(clonedDRP, vertexOperation);
+	//		} catch (e) {
+	//			log.error(`::drpObject::callFn: ${e}`);
+	//			return appliedOperationResult;
+	//		}
+
+	//		const stateChanged = Object.keys(preOperationDRP).some(
+	//			(key) => !deepEqual(preOperationDRP[key], clonedDRP[key])
+	//		);
+	//		console.log("stateChanged", stateChanged, appliedOperationResult);
+
+	//		if (!stateChanged) {
+	//			return appliedOperationResult;
+	//		}
+
+	//		const drpResult = isACL
+	//			? this._computeDRP(vertexDependencies, preComputeLca)
+	//			: (clonedDRP as IDRP);
+
+	//		const aclResult = isACL
+	//			? (clonedDRP as IACL)
+	//			: this._computeObjectACL(vertexDependencies, preComputeLca);
+
+	//		const finalizeVertex = (resolvedDRP: IDRP, resolvedACL: IACL): unknown | Promise<unknown> => {
+	//			const vertex = this.hashGraph.createVertex(vertexOperation, vertexDependencies, now);
+
+	//			this.hashGraph.addVertex(vertex);
+
+	//			const ret = this._setDRPState(vertex, preComputeLca, this._getDRPState(resolvedDRP));
+	//			const ret2 = this._setObjectACLState(vertex, preComputeLca, this._getDRPState(resolvedACL));
+
+	//			const assign = (): unknown | Promise<unknown> => {
+	//				this._initializeFinalityState(vertex.hash, resolvedACL);
+
+	//				this.vertices.push(vertex);
+	//				this._notify("callFn", [vertex]);
+
+	//				if (!isACL) Object.assign(this.drp as IDRP, clonedDRP);
+	//				else Object.assign(this.acl as ObjectACL, clonedDRP);
+
+	//				return appliedOperationResult;
+	//			};
+
+	//			if (isPromise(ret) || isPromise(ret2)) {
+	//				return Promise.all([ret, ret2]).then(assign);
+	//			}
+	//			return assign();
+	//		};
+
+	//		const drpPromise = isPromise(drpResult);
+	//		const aclPromise = isPromise(aclResult);
+
+	//		if (drpPromise || aclPromise) {
+	//			return Promise.all([Promise.resolve(drpResult), Promise.resolve(aclResult)]).then(
+	//				([resolvedDRP, resolvedACL]) => finalizeVertex(resolvedDRP, resolvedACL)
+	//			);
+	//		}
+
+	//		return finalizeVertex(drpResult as IDRP, aclResult as IACL);
+	//	};
+
+	//	return isPromise(computePreOperationDRP)
+	//		? computePreOperationDRP.then((result) => {
+	//				console.log("computePreOperationDRP promise", result);
+	//				return handleResult(result);
+	//			})
+	//		: handleResult(computePreOperationDRP);
+	//}
 
 	validateVertex(vertex: Vertex): void {
 		// Validate hash value
@@ -265,20 +397,18 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 	}
 
-	/* Merges the vertices into the hashgraph
-	 * Returns a tuple with a boolean indicating if there were
-	 * missing vertices and an array with the missing vertices
-	 */
-	merge(vertices: Vertex[]): [merged: boolean, missing: string[]] {
+	async merge(vertices: Vertex[]): Promise<[merged: boolean, missing: string[]]> {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
 
 		const missing: Hash[] = [];
 		const newVertices: Vertex[] = [];
+		console.log("merging1", vertices.length);
 		for (const vertex of vertices) {
 			// Check to avoid manually crafted `undefined` operations
 			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
+				console.log("skipping", vertex.hash);
 				continue;
 			}
 
@@ -287,20 +417,21 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 				const preComputeLca = this.computeLCA(vertex.dependencies);
 
 				if (this.drp) {
-					const drp = this._computeDRP(
+					console.log("computing drp", vertex.dependencies, preComputeLca, vertex.operation);
+					const drp = await this._computeDRP(
 						vertex.dependencies,
 						preComputeLca,
 						vertex.operation.drpType === DrpType.DRP ? vertex.operation : undefined
 					);
-					this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
+					await this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
 				}
 
-				const acl = this._computeObjectACL(
+				const acl = await this._computeObjectACL(
 					vertex.dependencies,
 					preComputeLca,
 					vertex.operation.drpType === DrpType.ACL ? vertex.operation : undefined
 				);
-				this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
+				await this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
 
 				this.hashGraph.addVertex(vertex);
 				this._initializeFinalityState(vertex.hash, acl);
@@ -311,12 +442,244 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 
 		this.vertices = this.hashGraph.getAllVertices();
-		this._updateObjectACLState();
-		if (this.drp) this._updateDRPState();
+		await this._updateObjectACLState();
+		if (this.drp) await this._updateDRPState();
 		this._notify("merge", newVertices);
+		console.log("merged", [missing.length === 0, missing]);
 
 		return [missing.length === 0, missing];
 	}
+
+	/* Merges the vertices into the hashgraph
+	 * Returns a tuple with a boolean indicating if there were
+	 * missing vertices and an array with the missing vertices
+	 */
+	//merge(vertices: Vertex[]): MergeResult | PromiseLike<MergeResult> {
+	//	if (!this.hashGraph) {
+	//		throw new Error("Hashgraph is undefined");
+	//	}
+
+	//	const missing: Hash[] = [];
+	//	const newVertices: Vertex[] = [];
+
+	//	// Process all vertices - but collect promises for later execution
+	//	const vertexPromises: Array<{
+	//		vertex: Vertex;
+	//		promise: Promise<void>;
+	//	}> = [];
+
+	//	for (const vertex of vertices) {
+	//		// Check to avoid manually crafted `undefined` operations
+	//		if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
+	//			continue;
+	//		}
+
+	//		try {
+	//			this.validateVertex(vertex);
+	//			const preComputeLca = this.computeLCA(vertex.dependencies);
+
+	//			let processPromise = Promise.resolve();
+
+	//			// Handle DRP processing
+	//			if (this.drp) {
+	//				const drpResult = this._computeDRP(
+	//					vertex.dependencies,
+	//					preComputeLca,
+	//					vertex.operation.drpType === DrpType.DRP ? vertex.operation : undefined
+	//				);
+
+	//				processPromise = processPromise.then(async () => {
+	//					const drpPromise = isPromise(drpResult) ? drpResult : Promise.resolve(drpResult);
+
+	//					const drp = await drpPromise;
+	//					const drpState = this._getDRPState(drp);
+	//					const setResult = this._setDRPState(vertex, preComputeLca, drpState);
+	//					return isPromise(setResult) ? setResult : Promise.resolve();
+	//				});
+	//			}
+
+	//			// Handle ACL processing
+	//			const aclResult = this._computeObjectACL(
+	//				vertex.dependencies,
+	//				preComputeLca,
+	//				vertex.operation.drpType === DrpType.ACL ? vertex.operation : undefined
+	//			);
+
+	//			processPromise = processPromise.then(async () => {
+	//				const aclPromise = isPromise(aclResult) ? aclResult : Promise.resolve(aclResult);
+
+	//				const acl = await aclPromise;
+	//				const aclState = this._getDRPState(acl);
+	//				const setResult = this._setObjectACLState(vertex, preComputeLca, aclState);
+	//				const finalPromise = isPromise(setResult) ? setResult : Promise.resolve();
+	//				await finalPromise;
+	//				this._initializeFinalityState(vertex.hash, acl);
+	//			});
+
+	//			// Save this vertex's processing promise
+	//			vertexPromises.push({
+	//				vertex,
+	//				promise: processPromise,
+	//			});
+	//		} catch (_) {
+	//			missing.push(vertex.hash);
+	//		}
+	//	}
+
+	//	// Schedule asynchronous processing of all vertices
+	//	// We'll process them in sequence to maintain the same order
+	//	let sequentialProcessing = Promise.resolve();
+
+	//	vertexPromises.forEach(({ vertex, promise }) => {
+	//		sequentialProcessing = sequentialProcessing
+	//			.then(() => promise)
+	//			.then(() => {
+	//				this.hashGraph.addVertex(vertex);
+	//				newVertices.push(vertex);
+	//			})
+	//			.catch(() => {
+	//				missing.push(vertex.hash);
+	//			});
+	//	});
+
+	//	// Schedule the final updates after all vertices are processed
+	//	sequentialProcessing = sequentialProcessing
+	//		.then(() => {
+	//			this.vertices = this.hashGraph.getAllVertices();
+
+	//			const updateACL = this._updateObjectACLState();
+	//			return isPromise(updateACL) ? updateACL : Promise.resolve();
+	//		})
+	//		.then(() => {
+	//			if (this.drp) {
+	//				const updateDRP = this._updateDRPState();
+	//				return isPromise(updateDRP) ? updateDRP : Promise.resolve();
+	//			}
+	//		})
+	//		.catch((error) => {
+	//			console.error("Error in pending operations after merge:", error);
+	//		})
+	//		.finally(() => {
+	//			this._notify("merge", newVertices);
+	//		});
+
+	//	// Start the processing chain without waiting for it
+	//	sequentialProcessing.catch((error) => {
+	//		console.error("Error processing vertices:", error);
+	//	});
+	//	// Return immediately
+	//	return [missing.length === 0, missing];
+	//}
+	/* Merges the vertices into the hashgraph
+	 * Returns a tuple with a boolean indicating if there were
+	 * missing vertices and an array with the missing vertices
+	 */
+	//merge(vertices: Vertex[]): MergeResult | Promise<MergeResult> {
+	//	if (!this.hashGraph) {
+	//		throw new Error("Hashgraph is undefined");
+	//	}
+
+	//	const missing: Hash[] = [];
+	//	const newVertices: Vertex[] = [];
+	//	const promises: Promise<void>[] = [];
+
+	//	for (const vertex of vertices) {
+	//		// Check to avoid manually crafted `undefined` operations
+	//		if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
+	//			continue;
+	//		}
+
+	//		try {
+	//			this.validateVertex(vertex);
+	//			const preComputeLca = this.computeLCA(vertex.dependencies);
+
+	//			// Handle DRP computation if DRP is enabled
+	//			if (this.drp) {
+	//				const drpResult = this._computeDRP(
+	//					vertex.dependencies,
+	//					preComputeLca,
+	//					vertex.operation.drpType === DrpType.DRP ? vertex.operation : undefined
+	//				);
+
+	//				// Handle potential Promise return from _computeDRP
+	//				if (drpResult instanceof Promise) {
+	//					const drpPromise = drpResult.then((drp) => {
+	//						const drpState = this._getDRPState(drp);
+	//						const setResult = this._setDRPState(vertex, preComputeLca, drpState);
+	//						if (setResult instanceof Promise) return setResult;
+	//					});
+	//					promises.push(drpPromise);
+	//				} else {
+	//					const drpState = this._getDRPState(drpResult);
+	//					const setResult = this._setDRPState(vertex, preComputeLca, drpState);
+	//					if (setResult instanceof Promise) {
+	//						promises.push(setResult);
+	//					}
+	//				}
+	//			}
+
+	//			// Handle ACL computation
+	//			const aclResult = this._computeObjectACL(
+	//				vertex.dependencies,
+	//				preComputeLca,
+	//				vertex.operation.drpType === DrpType.ACL ? vertex.operation : undefined
+	//			);
+
+	//			// Handle potential Promise return from _computeObjectACL
+	//			if (aclResult instanceof Promise) {
+	//				const aclPromise = aclResult.then((acl) => {
+	//					const aclState = this._getDRPState(acl);
+	//					const setResult = this._setObjectACLState(vertex, preComputeLca, aclState);
+	//					if (setResult instanceof Promise) return setResult;
+	//					this._initializeFinalityState(vertex.hash, acl);
+	//				});
+	//				promises.push(aclPromise);
+	//			} else {
+	//				const aclState = this._getDRPState(aclResult);
+	//				const setResult = this._setObjectACLState(vertex, preComputeLca, aclState);
+	//				if (setResult instanceof Promise) {
+	//					promises.push(
+	//						setResult.then(() => {
+	//							this._initializeFinalityState(vertex.hash, aclResult);
+	//						})
+	//					);
+	//				} else {
+	//					this._initializeFinalityState(vertex.hash, aclResult);
+	//				}
+	//			}
+
+	//			this.hashGraph.addVertex(vertex);
+	//			newVertices.push(vertex);
+	//		} catch (_) {
+	//			missing.push(vertex.hash);
+	//		}
+	//	}
+
+	//	this.vertices = this.hashGraph.getAllVertices();
+
+	//	// Handle updates to state
+	//	const updateAclResult = this._updateObjectACLState();
+	//	if (updateAclResult instanceof Promise) {
+	//		promises.push(updateAclResult);
+	//	}
+
+	//	if (this.drp) {
+	//		const updateDrpResult = this._updateDRPState();
+	//		if (updateDrpResult instanceof Promise) {
+	//			promises.push(updateDrpResult);
+	//		}
+	//	}
+
+	//	this._notify("merge", newVertices);
+
+	//	// If we have any promises, return a Promise that resolves when all are done
+	//	if (promises.length > 0) {
+	//		return Promise.all(promises).then(() => [missing.length === 0, missing]);
+	//	}
+
+	//	// Otherwise return synchronously
+	//	return [missing.length === 0, missing];
+	//}
 
 	subscribe(callback: DRPObjectCallback): void {
 		this.subscriptions.push(callback);
@@ -340,7 +703,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 	}
 
 	// apply the operation to the DRP
-	private _applyOperation(drp: IDRP, operation: Operation): unknown {
+	private _applyOperation(drp: IDRP, operation: Operation): unknown | Promise<unknown> {
 		const { opType, value } = operation;
 
 		const typeParts = opType.split(".");
@@ -359,7 +722,9 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 
 		try {
-			return target[methodName](...value);
+			const result = target[methodName](...value);
+			console.trace("result", result, methodName);
+			return result;
 		} catch (e) {
 			throw new Error(`Error while applying operation ${opType}: ${e}`);
 		}
@@ -370,7 +735,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		vertexDependencies: Hash[],
 		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation
-	): IDRP {
+	): IDRP | Promise<IDRP> {
 		if (!this.drp || !this.originalDRP) {
 			throw new Error("DRP is undefined");
 		}
@@ -389,14 +754,19 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		for (const entry of state.state) {
 			drp[entry.key] = entry.value;
 		}
-
-		for (const op of linearizedOperations) {
-			if (op.drpType === DrpType.DRP) {
-				this._applyOperation(drp, op);
-			}
-		}
+		console.log("linearizedOperations", linearizedOperations.length);
+		const operations = linearizedOperations.filter((op) => op.drpType === DrpType.DRP);
 		if (vertexOperation && vertexOperation.drpType === DrpType.DRP) {
-			this._applyOperation(drp, vertexOperation);
+			operations.push(vertexOperation);
+		}
+		console.log("operations", operations.length);
+		const asyncOps = operations.map((op) => this._applyOperation(drp, op));
+		console.log("asyncOps", asyncOps);
+		const hasAsync = asyncOps.some(isPromise);
+
+		if (hasAsync) {
+			console.log("hasAsync", asyncOps);
+			return Promise.all(asyncOps).then(() => drp);
 		}
 
 		return drp;
@@ -406,7 +776,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		vertexDependencies: Hash[],
 		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation
-	): IACL {
+	): IACL | Promise<IACL> {
 		if (!this.acl || !this.originalObjectACL) {
 			throw new Error("ObjectACL is undefined");
 		}
@@ -425,13 +795,17 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		for (const entry of state.state) {
 			acl[entry.key] = entry.value;
 		}
-		for (const op of linearizedOperations) {
-			if (op.drpType === DrpType.ACL) {
-				this._applyOperation(acl, op);
-			}
-		}
+
+		const operations = linearizedOperations.filter((op) => op.drpType === DrpType.ACL);
 		if (vertexOperation && vertexOperation.drpType === DrpType.ACL) {
-			this._applyOperation(acl, vertexOperation);
+			operations.push(vertexOperation);
+		}
+
+		const asyncOps = operations.map((op) => this._applyOperation(acl, op));
+		const hasAsync = asyncOps.some(isPromise);
+
+		if (hasAsync) {
+			return Promise.all(asyncOps).then(() => acl);
 		}
 
 		return acl;
@@ -473,47 +847,70 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		vertexDependencies: Hash[],
 		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation
-	): DRPState {
+	): DRPState | Promise<DRPState> {
 		const drp = this._computeDRP(vertexDependencies, preCompute, vertexOperation);
-		return this._getDRPState(drp);
+		return isPromise(drp) ? drp.then(this._getDRPState) : this._getDRPState(drp);
 	}
 
 	private _computeObjectACLState(
 		vertexDependencies: Hash[],
 		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation
-	): DRPState {
+	): DRPState | Promise<DRPState> {
 		const acl = this._computeObjectACL(vertexDependencies, preCompute, vertexOperation);
-		return this._getDRPState(acl);
+		return isPromise(acl) ? acl.then(this._getDRPState) : this._getDRPState(acl);
 	}
 
 	private _setObjectACLState(
 		vertex: Vertex,
 		preCompute?: LcaAndOperations,
 		drpState?: DRPState
-	): void {
+	): void | Promise<void> {
 		if (this.acl) {
-			this.aclStates.set(
-				vertex.hash,
-				drpState ?? this._computeObjectACLState(vertex.dependencies, preCompute, vertex.operation)
-			);
+			const stateComputation =
+				drpState ?? this._computeObjectACLState(vertex.dependencies, preCompute, vertex.operation);
+
+			if (isPromise(stateComputation)) {
+				return stateComputation.then((state): void => {
+					this.aclStates.set(vertex.hash, state);
+				});
+			}
+			this.aclStates.set(vertex.hash, stateComputation);
 		}
 	}
 
-	private _setDRPState(vertex: Vertex, preCompute?: LcaAndOperations, drpState?: DRPState): void {
-		this.drpStates.set(
-			vertex.hash,
-			drpState ?? this._computeDRPState(vertex.dependencies, preCompute, vertex.operation)
-		);
+	private _setDRPState(
+		vertex: Vertex,
+		preCompute?: LcaAndOperations,
+		drpState?: DRPState
+	): void | Promise<void> {
+		const stateComputation =
+			drpState ?? this._computeDRPState(vertex.dependencies, preCompute, vertex.operation);
+
+		if (isPromise(stateComputation)) {
+			return stateComputation.then((state): void => {
+				this.drpStates.set(vertex.hash, state);
+			});
+		}
+		this.drpStates.set(vertex.hash, stateComputation);
 	}
 
 	// update the DRP's attributes based on all the vertices in the hashgraph
-	private _updateDRPState(): void {
+	private _updateDRPState(): void | Promise<void> {
 		if (!this.drp || !this.hashGraph) {
 			throw new Error("DRP or hashgraph is undefined");
 		}
 		const currentDRP = this.drp as IDRP;
 		const newState = this._computeDRPState(this.hashGraph.getFrontier());
+		if (isPromise(newState)) {
+			return newState.then((state): void => {
+				for (const entry of state.state) {
+					if (entry.key in currentDRP && typeof currentDRP[entry.key] !== "function") {
+						currentDRP[entry.key] = entry.value;
+					}
+				}
+			});
+		}
 		for (const entry of newState.state) {
 			if (entry.key in currentDRP && typeof currentDRP[entry.key] !== "function") {
 				currentDRP[entry.key] = entry.value;
@@ -521,12 +918,21 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 	}
 
-	private _updateObjectACLState(): void {
+	private _updateObjectACLState(): void | Promise<void> {
 		if (!this.acl || !this.hashGraph) {
 			throw new Error("ObjectACL or hashgraph is undefined");
 		}
 		const currentObjectACL = this.acl as IACL;
 		const newState = this._computeObjectACLState(this.hashGraph.getFrontier());
+		if (isPromise(newState)) {
+			return newState.then((state): void => {
+				for (const entry of state.state) {
+					if (entry.key in currentObjectACL && typeof currentObjectACL[entry.key] !== "function") {
+						currentObjectACL[entry.key] = entry.value;
+					}
+				}
+			});
+		}
 		for (const entry of newState.state) {
 			if (entry.key in currentObjectACL && typeof currentObjectACL[entry.key] !== "function") {
 				currentObjectACL[entry.key] = entry.value;

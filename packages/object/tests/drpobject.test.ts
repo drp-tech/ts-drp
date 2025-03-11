@@ -113,6 +113,7 @@ describe("Test for duplicate call issue", () => {
 		const testDRP = obj.drp as CounterDRP;
 		expect(testDRP).toBeDefined();
 		const ret = testDRP.test();
+		console.log("ret", ret);
 		expect(ret).toBe(counter);
 	});
 });
@@ -126,7 +127,7 @@ describe("Merging vertices tests", () => {
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 	});
 
-	test("Test: merge should skip unknown dependencies", () => {
+	test("Test: merge should skip unknown dependencies", async () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
 		const drp1 = obj1.drp as SetDRP<number>;
@@ -134,7 +135,7 @@ describe("Merging vertices tests", () => {
 
 		drp1.add(1);
 		drp2.add(2);
-		obj1.merge(obj2.hashGraph.getAllVertices());
+		await obj1.merge(obj2.hashGraph.getAllVertices());
 		drp1.add(3);
 
 		const vertex = obj1.vertices.find(
@@ -143,7 +144,7 @@ describe("Merging vertices tests", () => {
 		if (!vertex) {
 			throw new Error("Vertex not found");
 		}
-		expect(obj2.merge([vertex])).toEqual([
+		expect(await obj2.merge([vertex])).toEqual([
 			false,
 			["e5ef52c6186abe51635619df8bc8676c19f5a6519e40f47072683437255f026a"],
 		]);
