@@ -42,7 +42,7 @@ export let log: Logger;
 interface OperationContext {
 	operation: Operation;
 	dependencies: Hash[];
-	initialLCA: LcaAndOperations;
+	initialLCA: LowestCommonAncestorResult;
 	timestamp: number;
 	isACL: boolean;
 	initialDRP: IDRP | IACL;
