@@ -156,7 +156,8 @@ export class DRPNode extends EventTarget {
 		await operations.syncObject(this, id, peerId);
 	}
 
-	emitEvent(event: string, detail: any) {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	emitEvent(event: string, detail: any): void {
 		this.dispatchEvent(new CustomEvent(event, { detail }));
 	}
 }
