@@ -191,4 +191,19 @@ describe("AccessControl tests with permissionless", () => {
 			acl.grant("peer1", "peer3", ACLGroup.Writer);
 		}).toThrow("Cannot grant write permissions to a peer in permissionless mode.");
 	});
+
+	test("Should not update other admin permissions", () => {
+		const acl1 = new ObjectACL({
+			admins: ["peer1", "peer2"],
+			permissionless: true,
+		});
+
+		acl1.permissionless = false;
+		expect(acl1.query_isWriter("peer1")).toBe(false);
+		expect(acl1.query_isWriter("peer2")).toBe(false);
+
+		acl1.grant("peer1", "peer2", ACLGroup.Writer);
+		expect(acl1.query_isWriter("peer1")).toBe(false);
+		expect(acl1.query_isWriter("peer2")).toBe(true);
+	});
 });
