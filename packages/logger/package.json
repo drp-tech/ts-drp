@@ -1,6 +1,6 @@
 {
 	"name": "@ts-drp/logger",
-	"version": "0.9.1",
+	"version": "0.9.2",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -30,6 +30,6 @@
 	"dependencies": {
 		"loglevel": "^1.9.2",
 		"loglevel-plugin-prefix": "^0.8.4",
-		"@ts-drp/types": "^0.9.1"
+		"@ts-drp/types": "^0.9.2"
 	}
 }
