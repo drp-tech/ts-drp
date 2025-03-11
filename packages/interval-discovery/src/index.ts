@@ -45,7 +45,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 		// Create the delegate interval runner
 		this._intervalRunner = new IntervalRunner({
 			...opts,
-			fn: this._runDRPDiscovery,
+			fn: this._runDRPDiscovery.bind(this),
 		});
 	}
 

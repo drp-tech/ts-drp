@@ -108,9 +108,7 @@ export class IntervalRunner<Args extends unknown[] = []>
 	 * Stop the interval runner
 	 */
 	stop(): void {
-		if (this._state === 0) {
-			throw new Error("Interval runner is not running");
-		}
+		if (this._state === 0) return;
 
 		this._state = 0;
 		if (this._intervalId) {
