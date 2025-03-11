@@ -12,6 +12,7 @@ import {
 	type SubscriberInfo,
 } from "@ts-drp/types";
 
+const DEFAULT_SEARCH_DURATION = 5 * 60 * 1000; // 5 minutes
 /**
  * Enhanced DRP Discovery service using composition pattern
  * Implements IntervalRunnerInterface to maintain compatibility with IntervalRunner[] arrays
@@ -38,17 +39,13 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	 * Creates a new DRP Discovery instance
 	 */
 	constructor(opts: DRPIntervalDiscoveryOptions) {
-		const defaultSearchDuration = 5 * 60 * 1000; // 5 minutes
 		this.networkNode = opts.networkNode;
-		this.searchDuration = opts.searchDuration ?? defaultSearchDuration;
+		this.searchDuration = opts.searchDuration ?? DEFAULT_SEARCH_DURATION;
 		this._logger = new Logger(`drp::discovery::${opts.id}`, opts.logConfig);
 		// Create the delegate interval runner
 		this._intervalRunner = new IntervalRunner({
 			...opts,
-			fn: async (): Promise<boolean> => {
-				await this._runDRPDiscovery();
-				return true; // Always continue the interval
-			},
+			fn: this._runDRPDiscovery,
 		});
 	}
 
@@ -59,11 +56,11 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	/**
 	 * Runs a single discovery cycle to find and connect with peers
 	 */
-	private async _runDRPDiscovery(): Promise<void> {
+	private async _runDRPDiscovery(): Promise<boolean> {
 		// Early exit if we already have peers
 		if (this._hasPeers()) {
 			this._searchStartTime = undefined;
-			return;
+			return true;
 		}
 
 		if (!this._searchStartTime) {
@@ -73,10 +70,11 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 		if (this._isSearchTimedOut(this._searchStartTime)) {
 			this._logger.error(`No peers found after ${this.searchDuration}ms of searching`);
 			this._searchStartTime = undefined;
-			return;
+			return true;
 		}
 
 		await this._broadcastDiscoveryRequest();
+		return true;
 	}
 
 	/**
