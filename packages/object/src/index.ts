@@ -17,7 +17,7 @@ import {
 	type Operation,
 	type Vertex,
 } from "@ts-drp/types";
-import { isPromise } from "@ts-drp/utils";
+import { isPromise, processSequentially } from "@ts-drp/utils";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 import * as crypto from "node:crypto";
@@ -347,14 +347,19 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 
 		// Validate writer permission
-		if (
-			vertex.operation?.drpType === DrpType.DRP &&
-			!this._checkWriterPermission(vertex.peerId, vertex.dependencies)
-		) {
+		if (!this._checkWriterPermission(vertex.peerId, vertex.dependencies)) {
 			throw new Error(`Vertex ${vertex.peerId} does not have write permission.`);
 		}
 	}
 
+	/**
+	 * Merges the vertices into the hashgraph
+	 * Returns a tuple with a boolean indicating if there were
+	 * missing vertices and an array with the missing vertices
+	 *
+	 * @param vertices - The vertices to merge
+	 * @returns A tuple with a boolean indicating if there were missing vertices and an array with the missing vertices
+	 */
 	async merge(vertices: Vertex[]): Promise<[merged: boolean, missing: string[]]> {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
@@ -445,8 +450,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 
 		try {
-			const result = target[methodName](...value);
-			return result;
+			return target[methodName](...value);
 		} catch (e) {
 			throw new Error(`Error while applying operation ${opType}: ${e}`);
 		}
@@ -476,18 +480,12 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		for (const entry of state.state) {
 			drp[entry.key] = entry.value;
 		}
-		const operations = linearizedOperations.filter((op) => op.drpType === DrpType.DRP);
+		const operations: Operation[] = linearizedOperations.filter((op) => op.drpType === DrpType.DRP);
 		if (vertexOperation && vertexOperation.drpType === DrpType.DRP) {
 			operations.push(vertexOperation);
 		}
-		const asyncOps = operations.map((op) => this._applyOperation(drp, op));
-		const hasAsync = asyncOps.some(isPromise);
 
-		if (hasAsync) {
-			return Promise.all(asyncOps).then(() => drp);
-		}
-
-		return drp;
+		return processSequentially(operations, (op: Operation) => this._applyOperation(drp, op), drp);
 	}
 
 	private _computeObjectACL(
@@ -519,14 +517,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			operations.push(vertexOperation);
 		}
 
-		const asyncOps = operations.map((op) => this._applyOperation(acl, op));
-		const hasAsync = asyncOps.some(isPromise);
-
-		if (hasAsync) {
-			return Promise.all(asyncOps).then(() => acl);
-		}
-
-		return acl;
+		return processSequentially(operations, (op: Operation) => this._applyOperation(acl, op), acl);
 	}
 
 	private computeLCA(vertexDependencies: string[]): LcaAndOperations {
@@ -613,6 +604,14 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		this.drpStates.set(vertex.hash, stateComputation);
 	}
 
+	private _updateState(drp: IDRP, state: DRPState): void {
+		for (const entry of state.state) {
+			if (entry.key in drp && typeof drp[entry.key] !== "function") {
+				drp[entry.key] = entry.value;
+			}
+		}
+	}
+
 	// update the DRP's attributes based on all the vertices in the hashgraph
 	private _updateDRPState(): void | Promise<void> {
 		if (!this.drp || !this.hashGraph) {
@@ -622,18 +621,10 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		const newState = this._computeDRPState(this.hashGraph.getFrontier());
 		if (isPromise(newState)) {
 			return newState.then((state): void => {
-				for (const entry of state.state) {
-					if (entry.key in currentDRP && typeof currentDRP[entry.key] !== "function") {
-						currentDRP[entry.key] = entry.value;
-					}
-				}
+				this._updateState(currentDRP, state);
 			});
 		}
-		for (const entry of newState.state) {
-			if (entry.key in currentDRP && typeof currentDRP[entry.key] !== "function") {
-				currentDRP[entry.key] = entry.value;
-			}
-		}
+		this._updateState(currentDRP, newState);
 	}
 
 	private _updateObjectACLState(): void | Promise<void> {
@@ -644,18 +635,10 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		const newState = this._computeObjectACLState(this.hashGraph.getFrontier());
 		if (isPromise(newState)) {
 			return newState.then((state): void => {
-				for (const entry of state.state) {
-					if (entry.key in currentObjectACL && typeof currentObjectACL[entry.key] !== "function") {
-						currentObjectACL[entry.key] = entry.value;
-					}
-				}
+				this._updateState(currentObjectACL, state);
 			});
 		}
-		for (const entry of newState.state) {
-			if (entry.key in currentObjectACL && typeof currentObjectACL[entry.key] !== "function") {
-				currentObjectACL[entry.key] = entry.value;
-			}
-		}
+		this._updateState(currentObjectACL, newState);
 	}
 
 	private _setRootStates(): void {

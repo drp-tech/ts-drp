@@ -1,7 +1,37 @@
+/**
+ * Checks if a value is a Promise.
+ *
+ * @template T - The type of value that the Promise resolves to
+ * @param {unknown} obj - The value to check
+ * @returns {boolean} True if the value is a Promise, false otherwise
+ *
+ * @example
+ * ```ts
+ * isPromise(Promise.resolve(42)) // returns true
+ * isPromise(new Promise(resolve => resolve())) // returns true
+ * isPromise(42) // returns false
+ * isPromise({ then: 123 }) // returns false - must have a function 'then'
+ * ```
+ */
 export function isPromise<T>(obj: unknown): obj is Promise<T> {
 	return typeof (obj as { then?: unknown })?.then === "function";
 }
 
+/**
+ * Checks if a value is a Generator object.
+ * Note: This checks for Generator instances, not generator functions.
+ *
+ * @param {unknown} obj - The value to check
+ * @returns {boolean} True if the value is a Generator, false otherwise
+ *
+ * @example
+ * ```ts
+ * function* gen() { yield 1; }
+ * isGenerator(gen()) // returns true - gen() creates a generator
+ * isGenerator(gen) // returns false - gen is a generator function
+ * isGenerator([1,2,3]) // returns false
+ * ```
+ */
 export function isGenerator(obj: unknown): obj is Generator {
 	if (!obj) return false;
 	const iterator = (obj as { [Symbol.iterator]?: unknown })?.[Symbol.iterator];
@@ -11,6 +41,21 @@ export function isGenerator(obj: unknown): obj is Generator {
 	return typeof instance.next === "function";
 }
 
+/**
+ * Checks if a value is an AsyncGenerator object.
+ * Note: This checks for AsyncGenerator instances, not async generator functions.
+ *
+ * @param {unknown} obj - The value to check
+ * @returns {boolean} True if the value is an AsyncGenerator, false otherwise
+ *
+ * @example
+ * ```ts
+ * async function* asyncGen() { yield 1; }
+ * isAsyncGenerator(asyncGen()) // returns true - asyncGen() creates an async generator
+ * isAsyncGenerator(asyncGen) // returns false - asyncGen is an async generator function
+ * isAsyncGenerator(Promise.resolve()) // returns false
+ * ```
+ */
 export function isAsyncGenerator(obj: unknown): obj is AsyncGenerator {
 	if (!obj) return false;
 	const asyncIterator = (obj as { [Symbol.asyncIterator]?: unknown })?.[Symbol.asyncIterator];
@@ -18,4 +63,63 @@ export function isAsyncGenerator(obj: unknown): obj is AsyncGenerator {
 
 	const instance = obj as { next?: unknown };
 	return typeof instance.next === "function";
+}
+
+/**
+ * Processes items sequentially, applying the given function to each item.
+ * If any operation returns a Promise, switches to async mode and returns a Promise.
+ * Otherwise, processes synchronously and returns the context directly.
+ *
+ * @template T - The type of items to process
+ * @template C - The type of the context object
+ * @param {T[]} items - The array of items to process
+ * @param {(item: T) => unknown | Promise<unknown>} processFn - Function to apply to each item
+ * @param {C} context - Context object that will be returned
+ * @returns {C | Promise<C>} The context directly if all operations were synchronous, otherwise a Promise of the context
+ *
+ * @example
+ * ```ts
+ * // Synchronous processing
+ * const numbers = [1, 2, 3];
+ * const context = { sum: 0 };
+ * processSequentially(numbers,
+ *   (n) => { context.sum += n },
+ *   context
+ * ); // returns context immediately
+ *
+ * // Mixed sync/async processing
+ * const urls = ['url1', 'url2'];
+ * const results = { responses: [] };
+ * await processSequentially(urls,
+ *   async (url) => {
+ *     const response = await fetch(url);
+ *     results.responses.push(response);
+ *   },
+ *   results
+ * ); // returns Promise<results>
+ * ```
+ */
+export function processSequentially<T, C>(
+	items: T[],
+	processFn: (item: T) => unknown | Promise<unknown>,
+	context: C
+): C | Promise<C> {
+	for (let i = 0; i < items.length; i++) {
+		const result = processFn(items[i]);
+
+		if (isPromise(result)) {
+			let promise = result;
+
+			// Process remaining items sequentially
+			for (let j = i + 1; j < items.length; j++) {
+				promise = promise.then(() => {
+					return processFn(items[j]);
+				});
+			}
+
+			return promise.then(() => context);
+		}
+	}
+
+	return context;
 }

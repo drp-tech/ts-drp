@@ -81,11 +81,6 @@ describe("Async DRP", () => {
 			(event: CustomEvent<IdentifyResult>): boolean =>
 				event.detail.peerId.equals(peerId) && event.detail.listenAddrs.length > 0;
 
-		console.log(
-			"waiting for peers to identify",
-			node1.networkNode.peerId,
-			node2.networkNode.peerId
-		);
 		await Promise.all([
 			raceEvent(btNodeLibp2p, "peer:identify", undefined, {
 				filter: getFilter(node2.networkNode.peerId),
@@ -95,8 +90,6 @@ describe("Async DRP", () => {
 			}),
 		]);
 
-		console.log("peers identified", node1.networkNode.peerId, node2.networkNode.peerId);
-
 		await Promise.all([
 			node1.networkNode.connect(node2.networkNode["_node"]?.getMultiaddrs()),
 			raceEvent(node1.networkNode["_node"] as Libp2p, "connection:open", undefined, {
@@ -105,7 +98,6 @@ describe("Async DRP", () => {
 					event.detail.limits === undefined,
 			}),
 		]);
-		console.log("connected", node1.networkNode.peerId, node2.networkNode.peerId);
 	});
 
 	afterEach(async () => {
@@ -113,7 +105,6 @@ describe("Async DRP", () => {
 	});
 
 	test("async drp", async () => {
-		console.log("creating object", node1.networkNode.peerId, node2.networkNode.peerId);
 		const drpObjectNode1 = await node1.createObject({
 			drp: new AsyncCounterDRP(),
 		});

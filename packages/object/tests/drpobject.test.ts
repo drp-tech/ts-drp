@@ -151,7 +151,7 @@ describe("Merging vertices tests", () => {
 	});
 });
 
-export class AsyncCounterDRP implements IDRP {
+class AsyncCounterDRP implements IDRP {
 	semanticsType = SemanticsType.pair;
 
 	private _value: number;
@@ -181,7 +181,39 @@ export class AsyncCounterDRP implements IDRP {
 	}
 }
 
-describe("Async DRP", () => {
+class AsyncPushToArrayDRP implements IDRP {
+	semanticsType = SemanticsType.pair;
+
+	private _array: number[];
+
+	constructor() {
+		this._array = [];
+	}
+
+	push(value: number): void {
+		this._array.push(value);
+	}
+
+	async pushAsync(value: number): Promise<void> {
+		await Promise.resolve();
+		this._array.push(value);
+	}
+
+	query_array(): number[] {
+		return this._array;
+	}
+
+	resolveConflicts(v: Vertex[]): ResolveConflictsType {
+		const first = v[0];
+		const second = v[1];
+		if (first.operation?.value[0] > second.operation?.value[0]) {
+			return { action: ActionType.Swap };
+		}
+		return { action: ActionType.Nop };
+	}
+}
+
+describe("Async counter DRP", () => {
 	let drpObject1: DRPObject;
 	let drpObject2: DRPObject;
 
@@ -210,5 +242,44 @@ describe("Async DRP", () => {
 		await drp2.increment();
 		await drpObject1.merge(drpObject2.hashGraph.getAllVertices());
 		expect(drp1.query_value()).toEqual(5);
+	});
+});
+
+describe("Async push to array DRP", () => {
+	let drpObject1: DRPObject;
+	let drpObject2: DRPObject;
+
+	beforeEach(() => {
+		vi.useFakeTimers();
+		drpObject1 = new DRPObject({ peerId: "peer1", acl, drp: new AsyncPushToArrayDRP() });
+		drpObject2 = new DRPObject({ peerId: "peer2", acl, drp: new AsyncPushToArrayDRP() });
+	});
+
+	test("async drp", async () => {
+		const drp1 = drpObject1.drp as AsyncPushToArrayDRP;
+		const drp2 = drpObject2.drp as AsyncPushToArrayDRP;
+
+		drp1.push(1);
+		vi.advanceTimersByTime(1000);
+		drp2.push(2);
+		vi.advanceTimersByTime(1000);
+		drp1.push(3);
+		vi.advanceTimersByTime(1000);
+		const obj1Vertices = drpObject1.hashGraph.getAllVertices();
+		const obj2Vertices = drpObject2.hashGraph.getAllVertices();
+		await drpObject1.merge(obj2Vertices);
+		await drpObject2.merge(obj1Vertices);
+		expect(drp1.query_array()).toEqual([1, 2, 3]);
+		expect(drp2.query_array()).toEqual([1, 2, 3]);
+
+		await drp1.pushAsync(4);
+		vi.advanceTimersByTime(1000);
+		drp1.push(5);
+		vi.advanceTimersByTime(1000);
+		await drp1.pushAsync(6);
+		vi.advanceTimersByTime(1000);
+		await drpObject2.merge(drpObject1.hashGraph.getAllVertices());
+		expect(drp1.query_array()).toEqual([1, 2, 3, 4, 5, 6]);
+		expect(drp2.query_array()).toEqual([1, 2, 3, 4, 5, 6]);
 	});
 });

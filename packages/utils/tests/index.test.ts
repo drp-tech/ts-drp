@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { isAsyncGenerator, isGenerator, isPromise } from "../src/index.js";
+import { isAsyncGenerator, isGenerator, isPromise, processSequentially } from "../src/index.js";
 
 describe("utils", () => {
 	describe("isPromise", () => {
@@ -113,6 +113,160 @@ describe("utils", () => {
 			expect(isAsyncGenerator(Promise.resolve())).toBe(false);
 			expect(isAsyncGenerator({ next: async () => {} })).toBe(false);
 			expect(isAsyncGenerator({ [Symbol.asyncIterator]: () => {} })).toBe(false);
+		});
+	});
+
+	describe("processSequentially", () => {
+		test("should process items synchronously", () => {
+			const items = [1, 2, 3];
+			const results: number[] = [];
+			const context = { sum: 0 };
+
+			const result = processSequentially<number, typeof context>(
+				items,
+				(item: number) => {
+					results.push(item);
+					context.sum += item;
+				},
+				context
+			);
+
+			expect(result).toBe(context); // Should return context directly
+			expect(results).toEqual([1, 2, 3]);
+			expect(context.sum).toBe(6);
+		});
+
+		test("should process items asynchronously when encountering a promise", async () => {
+			const items = [1, 2, 3];
+			const results: number[] = [];
+			const context = { sum: 0 };
+
+			const result = processSequentially<number, typeof context>(
+				items,
+				async (item: number) => {
+					await Promise.resolve();
+					results.push(item);
+					context.sum += item;
+				},
+				context
+			);
+
+			expect(result).toBeInstanceOf(Promise);
+			await result;
+			expect(results).toEqual([1, 2, 3]);
+			expect(context.sum).toBe(6);
+		});
+
+		test("should switch to async mode when encountering first promise", async () => {
+			const items = [1, 2, 3, 4];
+			const results: number[] = [];
+			const context = { sum: 0 };
+
+			const result = processSequentially<number, typeof context>(
+				items,
+				(item: number) => {
+					if (item > 2) {
+						return Promise.resolve().then(() => {
+							results.push(item);
+							context.sum += item;
+						});
+					}
+					results.push(item);
+					context.sum += item;
+				},
+				context
+			);
+
+			expect(result).toBeInstanceOf(Promise);
+			await result;
+			expect(results).toEqual([1, 2, 3, 4]);
+			expect(context.sum).toBe(10);
+		});
+
+		test("should maintain order even with mixed sync/async operations", async () => {
+			const items = [100, 200, 300, 400];
+			const results: number[] = [];
+			const context = { sum: 0 };
+
+			const result = processSequentially<number, typeof context>(
+				items,
+				(item: number) => {
+					if (item === 200 || item === 400) {
+						return Promise.resolve().then(() => {
+							results.push(item);
+							context.sum += item;
+						});
+					}
+					results.push(item);
+					context.sum += item;
+				},
+				context
+			);
+
+			expect(result).toBeInstanceOf(Promise);
+			await result;
+			expect(results).toEqual([100, 200, 300, 400]);
+			expect(context.sum).toBe(1000);
+		});
+
+		test("should handle empty array", () => {
+			const items: number[] = [];
+			const context = { sum: 0 };
+
+			const result = processSequentially<number, typeof context>(
+				items,
+				() => {
+					throw new Error("Should not be called");
+				},
+				context
+			);
+
+			expect(result).toBe(context);
+			expect(context.sum).toBe(0);
+		});
+
+		test("should strictly maintain sequential order with alternating sync/async operations", async () => {
+			const items = [1, 2, 3, 4];
+			const executionOrder: string[] = [];
+			const context = { sum: 0 };
+
+			const delay = (ms: number): Promise<void> =>
+				new Promise((resolve) => setTimeout(resolve, ms));
+
+			const result = processSequentially<number, typeof context>(
+				items,
+				async (item: number) => {
+					if (item % 2 === 1) {
+						// Synchronous operations for odd numbers
+						executionOrder.push(`sync-start-${item}`);
+						context.sum += item;
+						executionOrder.push(`sync-end-${item}`);
+					} else {
+						// Asynchronous operations for even numbers
+						executionOrder.push(`async-start-${item}`);
+						await delay(10); // Small delay to ensure async behavior
+						context.sum += item;
+						executionOrder.push(`async-end-${item}`);
+					}
+				},
+				context
+			);
+
+			expect(result).toBeInstanceOf(Promise);
+			await result;
+
+			// Verify strict sequential ordering
+			expect(executionOrder).toEqual([
+				"sync-start-1",
+				"sync-end-1",
+				"async-start-2",
+				"async-end-2",
+				"sync-start-3",
+				"sync-end-3",
+				"async-start-4",
+				"async-end-4",
+			]);
+			expect(context.sum).toBe(10);
 		});
 	});
 });
