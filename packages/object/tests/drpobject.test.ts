@@ -150,3 +150,65 @@ describe("Merging vertices tests", () => {
 		]);
 	});
 });
+
+export class AsyncCounterDRP implements IDRP {
+	semanticsType = SemanticsType.pair;
+
+	private _value: number;
+
+	constructor(initialValue?: number) {
+		this._value = initialValue ?? 0;
+	}
+
+	async increment(): Promise<number> {
+		await Promise.resolve();
+		this._value++;
+		return this._value;
+	}
+
+	async decrement(): Promise<number> {
+		await Promise.resolve();
+		this._value--;
+		return this._value;
+	}
+
+	query_value(): number {
+		return this._value;
+	}
+
+	resolveConflicts(): ResolveConflictsType {
+		return { action: ActionType.Nop };
+	}
+}
+
+describe("Async DRP", () => {
+	let drpObject1: DRPObject;
+	let drpObject2: DRPObject;
+
+	beforeEach(() => {
+		drpObject1 = new DRPObject({ peerId: "peer1", acl, drp: new AsyncCounterDRP() });
+		drpObject2 = new DRPObject({ peerId: "peer2", acl, drp: new AsyncCounterDRP() });
+	});
+
+	test("async drp", async () => {
+		const drp1 = drpObject1.drp as AsyncCounterDRP;
+		const drp2 = drpObject2.drp as AsyncCounterDRP;
+
+		const value1 = await drp1.increment();
+		const value2 = await drp2.increment();
+
+		expect(value1).toEqual(1);
+		expect(value2).toEqual(1);
+		const obj2Vertices = drpObject2.hashGraph.getAllVertices();
+		const obj1Vertices = drpObject1.hashGraph.getAllVertices();
+		await drpObject1.merge(obj2Vertices);
+		expect(drp1.query_value()).toEqual(2);
+		await drpObject2.merge(obj1Vertices);
+		expect(drp2.query_value()).toEqual(2);
+		await drp2.increment();
+		await drp2.increment();
+		await drp2.increment();
+		await drpObject1.merge(drpObject2.hashGraph.getAllVertices());
+		expect(drp1.query_value()).toEqual(5);
+	});
+});
