@@ -182,6 +182,14 @@ export class DRPNode {
 		await operations.syncObject(this, id, peerId);
 	}
 
+	async reconnectBootstrp(): Promise<void> {
+		// const interval = createDRPReconnectBootstrap({
+		// 	...this.config.interval_reconnect_bootstrap_peers,
+		// 	networkNode: this.networkNode,
+		// });
+		// interval.start();
+	}
+
 	private _createIntervalDiscovery(id: string): void {
 		const existingInterval = this._intervals.get(id);
 		existingInterval?.stop(); // Stop only if it exists

@@ -41,6 +41,7 @@ export type * from "./network.js";
 export type * from "./node.js";
 export type * from "./object.js";
 export type * from "./drp-interval-discovery.js";
+export type * from "./drp-interval-bootstrap.js";
 
 /**
  * A map of all interval runners

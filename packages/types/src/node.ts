@@ -8,4 +8,5 @@ export interface DRPNodeConfig {
 	network_config?: DRPNetworkNodeConfig;
 	keychain_config?: KeychainOptions;
 	interval_discovery_options?: Omit<DRPIntervalDiscoveryOptions, "id" | "networkNode">;
+	interval_reconnect_bootstrap_peers?: number;
 }

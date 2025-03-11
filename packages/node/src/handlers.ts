@@ -80,7 +80,7 @@ export async function drpMessagesHandler(
 
 	const handler = messageHandlers[message.type];
 	if (!handler) {
-		log.error("::messageHandler: Invalid operation");
+		log.error(`::messageHandler: Invalid operation message: ${message.type}`);
 		return;
 	}
 	const result = handler({ node, message, stream });

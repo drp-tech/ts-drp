@@ -173,6 +173,9 @@ async function main(): Promise<void> {
 	});
 
 	if (!hasRun) setInterval(renderInfo, import.meta.env.VITE_RENDER_INFO_INTERVAL);
+	setInterval(() => {
+		console.log("Starting node without dialable check", gridState.node.networkNode.isDialable());
+	}, 10000);
 }
 
 void main();
