@@ -5,7 +5,7 @@ import Benchmark from "benchmark";
 import { DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
-	admins: new Map([["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
+	admins: ["peer1"],
 });
 
 const NUMBER_OF_OPERATIONS = Number.parseInt(process.argv[2], 10) || 1000;
