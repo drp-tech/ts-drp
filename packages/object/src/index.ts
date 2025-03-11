@@ -3,7 +3,6 @@ import {
 	type ConnectObjectOptions,
 	type DRPObjectBase,
 	type DRPObjectCallback,
-	type DRPPublicCredential,
 	DRPState,
 	DRPStateEntry,
 	DrpType,
@@ -56,17 +55,12 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 	constructor(options: {
 		peerId: string;
-		publicCredential?: DRPPublicCredential;
 		acl?: IACL;
 		drp?: IDRP;
 		id?: string;
 		config?: DRPObjectConfig;
 		metrics?: IMetrics;
 	}) {
-		if (!options.acl && !options.publicCredential) {
-			throw new Error("Either publicCredential or acl must be provided to create a DRPObject");
-		}
-
 		log = new Logger("drp::object", options.config?.log_config);
 		this.id =
 			options.id ??
