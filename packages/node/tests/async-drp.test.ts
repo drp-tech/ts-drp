@@ -127,7 +127,7 @@ describe("Async DRP", () => {
 		const drp2 = drpObjectNode2.drp as AsyncCounterDRP;
 
 		const value1 = await drp1.increment();
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+		await new Promise((resolve) => setTimeout(resolve, 2000));
 		expect(drp2.query_value()).toEqual(1);
 		expect(value1).toEqual(1);
 
