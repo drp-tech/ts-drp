@@ -12,9 +12,9 @@ import { DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: new Map([
-		["peer1", { secp256k1PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-		["peer2", { secp256k1PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
-		["peer3", { secp256k1PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
+		["peer1", { blsPublicKey: "pubKey1" }],
+		["peer2", { blsPublicKey: "pubKey2" }],
+		["peer3", { blsPublicKey: "pubKey3" }],
 	]),
 });
 
@@ -28,10 +28,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 
 	test("Test creating DRPObject w/ publicCred", () => {
-		const cred = {
-			secp256k1PublicKey: "cred",
-			blsPublicKey: "cred",
-		};
+		const cred = { blsPublicKey: "cred" };
 		const obj = new DRPObject({ peerId: "", publicCredential: cred });
 		expect(obj.acl).toBeDefined();
 	});
@@ -103,10 +100,7 @@ describe("Test for duplicate call issue", () => {
 	test("Detect duplicate call", () => {
 		const obj = new DRPObject({
 			peerId: "",
-			publicCredential: {
-				secp256k1PublicKey: "cred",
-				blsPublicKey: "cred",
-			},
+			publicCredential: { blsPublicKey: "cred" },
 			drp: new CounterDRP(),
 		});
 

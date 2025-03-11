@@ -8,15 +8,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 
 	beforeEach(() => {
 		acl = new ObjectACL({
-			admins: new Map([
-				[
-					"peer1",
-					{
-						secp256k1PublicKey: "publicKey1",
-						blsPublicKey: "publicKey1",
-					},
-				],
-			]),
+			admins: new Map([["peer1", { blsPublicKey: "publicKey1" }]]),
 		});
 	});
 
@@ -29,29 +21,20 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 
 	test("Grant write permissions to a new writer", () => {
-		acl.grant("peer1", "peer3", ACLGroup.Writer, {
-			secp256k1PublicKey: "publicKey3",
-			blsPublicKey: "publicKey3",
-		});
+		acl.grant("peer1", "peer3", ACLGroup.Writer, { blsPublicKey: "publicKey3" });
 
 		expect(acl.query_isWriter("peer3")).toBe(true);
 	});
 
 	test("Should grant admin permission to a new admin", () => {
 		const newAdmin = "newAdmin";
-		acl.grant("peer1", newAdmin, ACLGroup.Admin, {
-			secp256k1PublicKey: "newAdmin",
-			blsPublicKey: "newAdmin",
-		});
+		acl.grant("peer1", newAdmin, ACLGroup.Admin, { blsPublicKey: "newAdmin" });
 		expect(acl.query_isAdmin(newAdmin)).toBe(true);
 	});
 
 	test("Should grant finality permission to a new finality", () => {
 		const newFinality = "newFinality";
-		acl.grant("peer1", newFinality, ACLGroup.Finality, {
-			secp256k1PublicKey: "newFinality",
-			blsPublicKey: "newFinality",
-		});
+		acl.grant("peer1", newFinality, ACLGroup.Finality, { blsPublicKey: "newFinality" });
 		expect(acl.query_isFinalitySigner(newFinality)).toBe(true);
 	});
 
@@ -70,16 +53,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 
 	test("Revoke write permissions from a writer", () => {
-		acl.grant(
-			"peer1",
-			"peer3",
-
-			ACLGroup.Writer,
-			{
-				secp256k1PublicKey: "publicKey3",
-				blsPublicKey: "publicKey3",
-			}
-		);
+		acl.grant("peer1", "peer3", ACLGroup.Writer, { blsPublicKey: "publicKey3" });
 		acl.revoke("peer1", "peer3", ACLGroup.Writer);
 
 		expect(acl.query_isWriter("peer3")).toBe(false);
@@ -122,15 +96,7 @@ describe("AccessControl tests with permissionless", () => {
 
 	beforeEach(() => {
 		acl = new ObjectACL({
-			admins: new Map([
-				[
-					"peer1",
-					{
-						secp256k1PublicKey: "publicKey1",
-						blsPublicKey: "publicKey1",
-					},
-				],
-			]),
+			admins: new Map([["peer1", { blsPublicKey: "publicKey1" }]]),
 			permissionless: true,
 		});
 	});
@@ -141,10 +107,7 @@ describe("AccessControl tests with permissionless", () => {
 
 	test("Should admin cannot grant write permissions", () => {
 		expect(() => {
-			acl.grant("peer1", "peer3", ACLGroup.Writer, {
-				secp256k1PublicKey: "publicKey3",
-				blsPublicKey: "publicKey3",
-			});
+			acl.grant("peer1", "peer3", ACLGroup.Writer, { blsPublicKey: "publicKey3" });
 		}).toThrow("Cannot grant write permissions to a peer in permissionless mode.");
 	});
 });
