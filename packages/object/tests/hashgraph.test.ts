@@ -699,7 +699,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 	let obj3: DRPObject;
 
 	beforeEach(() => {
-		const acl = new ObjectACL({ admins: ["peer1"], permissionless: true });
+		const acl = new ObjectACL({ admins: ["peer1"] });
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
