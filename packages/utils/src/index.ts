@@ -112,9 +112,7 @@ export function processSequentially<T, C>(
 
 			// Process remaining items sequentially
 			for (let j = i + 1; j < items.length; j++) {
-				promise = promise.then(() => {
-					return processFn(items[j]);
-				});
+				promise = promise.then(() => processFn(items[j]));
 			}
 
 			return promise.then(() => context);

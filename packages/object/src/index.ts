@@ -188,8 +188,8 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		const dependencies = this.hashGraph.getFrontier();
 		const initialLCA = this.computeLCA(dependencies);
 		const initialDRP = isACL
-			? this._computeObjectACL(dependencies)
-			: this._computeDRP(dependencies);
+			? this._computeObjectACL(dependencies, initialLCA)
+			: this._computeDRP(dependencies, initialLCA);
 
 		return {
 			operation,
