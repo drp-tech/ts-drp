@@ -106,7 +106,6 @@ export class DRPNode {
 	}): Promise<DRPObject> {
 		const object = new DRPObject({
 			peerId: this.networkNode.peerId,
-			publicCredential: options.acl ? undefined : this.keychain.getPublicCredential(),
 			acl: options.acl,
 			drp: options.drp,
 			id: options.id,

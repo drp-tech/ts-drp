@@ -13,7 +13,7 @@ import { DRPObject } from "../src/index.js";
 // initialize log
 const _ = new DRPObject({
 	peerId: "peer1",
-	acl: new ObjectACL({ admins: new Map() }),
+	acl: new ObjectACL({ admins: [] }),
 	drp: new SetDRP(),
 });
 
