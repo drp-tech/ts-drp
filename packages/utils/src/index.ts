@@ -108,18 +108,26 @@ export function processSequentially<T, C>(
 		const result = processFn(items[i]);
 
 		if (isPromise(result)) {
-			let promise = result;
-
-			// Process remaining items sequentially
-			for (let j = i + 1; j < items.length; j++) {
-				promise = promise.then(() => processFn(items[j]));
-			}
-
-			return promise.then(() => context);
+			return processRemainingAsync(result, items, processFn, i + 1).then(() => context);
 		}
 	}
 
 	return context;
+}
+
+function processRemainingAsync<T>(
+	initialPromise: Promise<unknown>,
+	items: T[],
+	processFn: (item: T) => unknown | Promise<unknown>,
+	startIndex: number
+): Promise<unknown> {
+	let promise = initialPromise;
+
+	for (let j = startIndex; j < items.length; j++) {
+		promise = promise.then(() => processFn(items[j]));
+	}
+
+	return promise;
 }
 
 /**
