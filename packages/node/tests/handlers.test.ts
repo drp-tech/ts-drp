@@ -13,7 +13,7 @@ import {
 	Update,
 } from "@ts-drp/types";
 import { raceEvent } from "race-event";
-import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { drpMessagesHandler, signGeneratedVertices } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
@@ -85,7 +85,7 @@ describe("Handle message correctly", () => {
 		return promise;
 	};
 
-	beforeAll(async () => {
+	beforeEach(async () => {
 		bootstrapNode = new DRPNetworkNode({
 			bootstrap: true,
 			listen_addresses: ["/ip4/0.0.0.0/tcp/0/ws"],
@@ -142,9 +142,6 @@ describe("Handle message correctly", () => {
 					event.detail.limits === undefined,
 			}),
 		]);
-	});
-
-	test("should handle update message correctly", async () => {
 		const acl = new ObjectACL({
 			admins: [node1.networkNode.peerId, node2.networkNode.peerId],
 		});
@@ -162,7 +159,9 @@ describe("Handle message correctly", () => {
 
 		(drpObject.drp as SetDRP<number>).add(5);
 		(drpObject.drp as SetDRP<number>).add(10);
+	});
 
+	test("should handle update message correctly", async () => {
 		const vertices = drpObject.vertices;
 		await signGeneratedVertices(node2, vertices);
 		const message = Message.create({
@@ -215,7 +214,7 @@ describe("Handle message correctly", () => {
 		(node1DrpObject?.drp as SetDRP<number>).add(2);
 
 		expect(drpObject.vertices.length).toBe(3);
-		expect(node1DrpObject?.vertices.length).toBe(5);
+		expect(node1DrpObject?.vertices.length).toBe(3);
 
 		const message = Message.create({
 			sender: node1.networkNode.peerId,
@@ -240,7 +239,7 @@ describe("Handle message correctly", () => {
 		expect(node1DrpObject).toBeDefined();
 		(node1DrpObject?.drp as SetDRP<number>).add(3);
 		(node1DrpObject?.drp as SetDRP<number>).add(20);
-		expect(node1DrpObject?.vertices.length).toBe(7);
+		expect(node1DrpObject?.vertices.length).toBe(3);
 		await signGeneratedVertices(node1, node1DrpObject?.vertices || []);
 		const message = Message.create({
 			sender: node1.networkNode.peerId,
@@ -256,13 +255,13 @@ describe("Handle message correctly", () => {
 		});
 		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
 		await new Promise((resolve) => setTimeout(resolve, 500));
-		expect(node1.objectStore.get(drpObject.id)?.vertices.length).toBe(7);
-		expect(drpObject.vertices.length).toBe(7);
+		expect(node1.objectStore.get(drpObject.id)?.vertices.length).toBe(5);
+		expect(drpObject.vertices.length).toBe(5);
 	});
 
 	test("should handle update attestation message correctly", async () => {
 		const hash = drpObject.vertices[1].hash;
-		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
+		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
 		const attestations = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
 			return {
 				data: vertex.hash,
