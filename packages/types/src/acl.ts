@@ -51,7 +51,7 @@ export interface IACL extends IDRP {
 	 * @param group - The group to grant.
 	 * @param publicKey - The public key of the peer.
 	 */
-	grant(senderId: string, peerId: string, group: ACLGroup, publicKey?: DRPPublicCredential): void;
+	grant(senderId: string, peerId: string, group: ACLGroup): void;
 	/**
 	 * Revokes a permission from a peer.
 	 *
@@ -60,6 +60,14 @@ export interface IACL extends IDRP {
 	 * @param group - The group to revoke.
 	 */
 	revoke(senderId: string, peerId: string, group: ACLGroup): void;
+	/**
+	 * Set the public key of a peer.
+	 *
+	 * @param senderId - The id of the sender.
+	 * @param peerId - The id of the peer.
+	 * @param key - The public key of the peer.
+	 */
+	setKey(senderId: string, peerId: string, key: DRPPublicCredential): void;
 	/**
 	 * Gets the finality signers.
 	 */
