@@ -100,7 +100,6 @@ describe("HashGraph construction tests", () => {
 
 		drp1.add(1);
 		drp2.add(2);
-		console.log(obj1.hashGraph.getAllVertices());
 		await obj2.merge(obj1.hashGraph.getAllVertices());
 		expect(selfCheckConstraints(obj2.hashGraph)).toBe(true);
 
