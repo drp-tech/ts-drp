@@ -7,6 +7,7 @@ on:
 jobs:
   build-packages:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -19,6 +20,7 @@ jobs:
 
   generate-matrix:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       examples: ${{ steps.list-examples.outputs.examples }}
     steps:
@@ -31,6 +33,7 @@ jobs:
   build-examples:
     needs: generate-matrix
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       matrix:
         example: ${{ fromJSON(needs.generate-matrix.outputs.examples) }}

@@ -17,10 +17,7 @@ function getPeerPermissions(params?: {
 	const { publicKey, permissions } = params ?? {};
 
 	return {
-		publicKey: publicKey ?? {
-			secp256k1PublicKey: "",
-			blsPublicKey: "",
-		},
+		publicKey: publicKey ?? { blsPublicKey: "" },
 		permissions: permissions ?? new Set(),
 	};
 }
