@@ -21,9 +21,8 @@ export function loadConfig(configPath?: string | undefined): DRPNodeConfig | und
 				? process.env.ANNOUNCE_ADDRESSES.split(",")
 				: undefined,
 			bootstrap: process.env.BOOTSTRAP ? process.env.BOOTSTRAP === "true" : undefined,
-			bootstrap_peers: process.env.BOOTSTRAP_PEERS
-				? process.env.BOOTSTRAP_PEERS.split(",")
-				: undefined,
+			bootstrap_peers:
+				process.env.BOOTSTRAP_PEERS != null ? process.env.BOOTSTRAP_PEERS.split(",") : undefined,
 			browser_metrics: process.env.BROWSER_METRICS
 				? process.env.BROWSER_METRICS === "true"
 				: undefined,
