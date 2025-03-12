@@ -273,7 +273,7 @@ export class HashGraphVisualizer {
 	 *
 	 * @param hashGraph - The HashGraph to visualize
 	 */
-	public draw(hashGraph: IHashGraph): void {
+	public stringify(hashGraph: IHashGraph): string {
 		const nodes = new Set<string>();
 
 		const edges: { from: Hash; to: Hash }[] = [];
@@ -288,7 +288,6 @@ export class HashGraphVisualizer {
 		const layers = this.assignLayers(edges, sortedNodes);
 		const positionedNodes = this.positionNodes(layers);
 		const edgeShapes = this.generateEdges(edges, positionedNodes);
-		const output = this.render(positionedNodes, edgeShapes);
-		console.log(output);
+		return this.render(positionedNodes, edgeShapes);
 	}
 }

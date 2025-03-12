@@ -8,7 +8,7 @@ import {
 	SemanticsType,
 	type Vertex,
 } from "@ts-drp/types";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 
 import { HashGraphVisualizer } from "../src/debug/hashgraph-visualizer.js";
 
@@ -126,11 +126,10 @@ describe("hashGraphVizualizer tests", () => {
 
 	test("Should visualize empty graph", () => {
 		// Capture console.log output
-		const consoleSpy = vi.spyOn(console, "log");
-		visualizer.draw(hashgraph);
-
-		expect(consoleSpy).toHaveBeenCalled();
-		consoleSpy.mockRestore();
+		const output = visualizer.stringify(hashgraph);
+		expect(output).toBeDefined();
+		expect(typeof output).toBe("string");
+		expect(output).toBe("");
 	});
 
 	test("should visualize simple linear graph", () => {
@@ -165,11 +164,9 @@ describe("hashGraphVizualizer tests", () => {
 			[vertex2.hash]: vertex2.dependencies,
 		});
 
-		const consoleSpy = vi.spyOn(console, "log");
-		visualizer.draw(hashgraph);
+		const output = visualizer.stringify(hashgraph);
 
 		// Get the visualization output
-		const output = consoleSpy.mock.calls[0][0] as string;
 		expect(output).toBeDefined();
 		expect(typeof output).toBe("string");
 
@@ -185,8 +182,25 @@ describe("hashGraphVizualizer tests", () => {
 		// Print the actual visualization for debugging
 		console.log("Visualization output:");
 		console.log(output);
+		const expected = `┌───────────┐     
+│root...root│     
+└───────────┘     
+      │           
+      v           
+┌───────────┐     
+│  v1...v1  │     
+└───────────┘     
+      │           
+      v           
+┌───────────┐     
+│  v2...v2  │     
+└───────────┘     
+                  
+                  
+                  
+                  `;
 
-		consoleSpy.mockRestore();
+		expect(output).toBe(expected);
 	});
 
 	test("should visualize complex graph with multiple edges and layers", () => {
@@ -280,14 +294,35 @@ describe("hashGraphVizualizer tests", () => {
 			[vertex6.hash]: vertex6.dependencies,
 		});
 
-		const consoleSpy = vi.spyOn(console, "log");
-		visualizer.draw(hashgraph);
+		const output = visualizer.stringify(hashgraph);
+
+		const expected = `┌───────────┐                                       
+│root...root│                                       
+└───────────┘                                       
+      │                                             
+      v────────────────v────────────────v           
+┌───────────┐    ┌───────────┐    ┌───────────┐     
+│  v1...v1  │    │  v2...v2  │    │  v3...v3  │     
+└───────────┘    └───────────┘    └───────────┘     
+      │                │                │           
+      v────────────────│────────────────│           
+┌───────────┐          │                │           
+│  v4...v4  │          │                │           
+└───────────┘          │                │           
+      │                │                │           
+      v────────────────v─────────────────           
+┌───────────┐    ┌───────────┐                      
+│  v5...v5  │    │  v6...v6  │                      
+└───────────┘    └───────────┘                      
+                                                    
+                                                    
+                                                    
+                                                    `;
 
 		// Get the visualization output
-		const output = consoleSpy.mock.calls[0][0] as string;
 		expect(output).toBeDefined();
 		expect(typeof output).toBe("string");
-
+		expect(output).toBe(expected);
 		// Verify all vertices are present
 		const vertices = [
 			MockHashGraph.rootHash,
@@ -337,8 +372,6 @@ describe("hashGraphVizualizer tests", () => {
 		// Print the actual visualization for debugging
 		console.log("Visualization output:");
 		console.log(output);
-
-		consoleSpy.mockRestore();
 	});
 
 	test("should maintain correct topological order in visualization", () => {
@@ -396,11 +429,7 @@ describe("hashGraphVizualizer tests", () => {
 		);
 		hashgraph.addVertex(vertex3);
 
-		const consoleSpy = vi.spyOn(console, "log");
-		visualizer.draw(hashgraph);
-
-		// Get the visualization output
-		const output = consoleSpy.mock.calls[0][0] as string;
+		const output = visualizer.stringify(hashgraph);
 		const lines = output.split("\n");
 
 		// Find y-positions of vertices in the output
@@ -445,6 +474,29 @@ describe("hashGraphVizualizer tests", () => {
 		console.log("Visualization output:");
 		console.log(output);
 
-		consoleSpy.mockRestore();
+		const expected = `┌───────────┐                      
+│root...root│                      
+└───────────┘                      
+      │                            
+      v────────────────v           
+┌───────────┐    ┌───────────┐     
+│  v1...v1  │    │  v4...v4  │     
+└───────────┘    └───────────┘     
+      │                            
+      v                            
+┌───────────┐                      
+│  v2...v2  │                      
+└───────────┘                      
+      │                            
+      v                            
+┌───────────┐                      
+│  v3...v3  │                      
+└───────────┘                      
+                                   
+                                   
+                                   
+                                   `;
+
+		expect(output).toBe(expected);
 	});
 });
