@@ -34,60 +34,33 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 
 	test("Nodes should not able to setKey for another node", () => {
 		expect(() => {
-			acl.setKey("peer1", "peer2", {
-				secp256k1PublicKey: "secp256k1PublicKey1",
-				blsPublicKey: "blsPublicKey1",
-			});
+			acl.setKey("peer1", "peer2", { blsPublicKey: "blsPublicKey1" });
 		}).toThrowError("Cannot set key for another peer.");
 	});
 
 	test("Nodes should be able to setKey for themselves", () => {
-		acl.setKey("peer1", "peer1", {
-			secp256k1PublicKey: "secp256k1PublicKey1",
-			blsPublicKey: "blsPublicKey1",
-		});
-		expect(acl.query_getPeerKey("peer1")).toStrictEqual({
-			secp256k1PublicKey: "secp256k1PublicKey1",
-			blsPublicKey: "blsPublicKey1",
-		});
+		acl.setKey("peer1", "peer1", { blsPublicKey: "blsPublicKey1" });
+		expect(acl.query_getPeerKey("peer1")).toStrictEqual({ blsPublicKey: "blsPublicKey1" });
 	});
 
 	test("Should be able to setKey after grant", () => {
 		acl.grant("peer1", "peer2", ACLGroup.Writer);
 		expect(acl.query_isWriter("peer2")).toBe(true);
-		expect(acl.query_getPeerKey("peer2")).toStrictEqual({
-			secp256k1PublicKey: "",
-			blsPublicKey: "",
-		});
+		expect(acl.query_getPeerKey("peer2")).toStrictEqual({ blsPublicKey: "" });
 
-		acl.setKey("peer2", "peer2", {
-			secp256k1PublicKey: "secpPublicKey2",
-			blsPublicKey: "blsPublicKey2",
-		});
+		acl.setKey("peer2", "peer2", { blsPublicKey: "blsPublicKey2" });
 		expect(acl.query_isWriter("peer2")).toBe(true);
-		expect(acl.query_getPeerKey("peer2")).toStrictEqual({
-			secp256k1PublicKey: "secpPublicKey2",
-			blsPublicKey: "blsPublicKey2",
-		});
+		expect(acl.query_getPeerKey("peer2")).toStrictEqual({ blsPublicKey: "blsPublicKey2" });
 	});
 
 	test("Should be able to setKey before grant", () => {
-		acl.setKey("peer2", "peer2", {
-			secp256k1PublicKey: "secpPublicKey2",
-			blsPublicKey: "blsPublicKey2",
-		});
+		acl.setKey("peer2", "peer2", { blsPublicKey: "blsPublicKey2" });
 		expect(acl.query_isWriter("peer2")).toBe(false);
-		expect(acl.query_getPeerKey("peer2")).toStrictEqual({
-			secp256k1PublicKey: "secpPublicKey2",
-			blsPublicKey: "blsPublicKey2",
-		});
+		expect(acl.query_getPeerKey("peer2")).toStrictEqual({ blsPublicKey: "blsPublicKey2" });
 
 		acl.grant("peer1", "peer2", ACLGroup.Writer);
 		expect(acl.query_isWriter("peer2")).toBe(true);
-		expect(acl.query_getPeerKey("peer2")).toStrictEqual({
-			secp256k1PublicKey: "secpPublicKey2",
-			blsPublicKey: "blsPublicKey2",
-		});
+		expect(acl.query_getPeerKey("peer2")).toStrictEqual({ blsPublicKey: "blsPublicKey2" });
 	});
 
 	test("Resolve conflicts with setKey operation should always return ActionType.Nop", () => {
