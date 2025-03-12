@@ -1,4 +1,5 @@
 import { SetDRP } from "@ts-drp/blueprints";
+import { AsyncCounterDRP } from "@ts-drp/test-utils";
 import {
 	ActionType,
 	type IDRP,
@@ -132,36 +133,6 @@ describe("Merging vertices tests", () => {
 		]);
 	});
 });
-
-class AsyncCounterDRP implements IDRP {
-	semanticsType = SemanticsType.pair;
-
-	private _value: number;
-
-	constructor(initialValue?: number) {
-		this._value = initialValue ?? 0;
-	}
-
-	async increment(): Promise<number> {
-		await Promise.resolve();
-		this._value++;
-		return this._value;
-	}
-
-	async decrement(): Promise<number> {
-		await Promise.resolve();
-		this._value--;
-		return this._value;
-	}
-
-	query_value(): number {
-		return this._value;
-	}
-
-	resolveConflicts(): ResolveConflictsType {
-		return { action: ActionType.Nop };
-	}
-}
 
 class AsyncPushToArrayDRP implements IDRP {
 	semanticsType = SemanticsType.pair;

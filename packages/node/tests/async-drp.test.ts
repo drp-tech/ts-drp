@@ -1,46 +1,11 @@
 import { type Connection, type IdentifyResult, type Libp2p } from "@libp2p/interface";
 import { DRPNetworkNode } from "@ts-drp/network";
-import {
-	ActionType,
-	type DRPNodeConfig,
-	type IDRP,
-	type ResolveConflictsType,
-	SemanticsType,
-} from "@ts-drp/types";
+import { AsyncCounterDRP } from "@ts-drp/test-utils";
+import { type DRPNodeConfig } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { DRPNode } from "../src/index.js";
-
-export class AsyncCounterDRP implements IDRP {
-	semanticsType = SemanticsType.pair;
-
-	private _value: number;
-
-	constructor(initialValue?: number) {
-		this._value = initialValue ?? 0;
-	}
-
-	async increment(): Promise<number> {
-		await Promise.resolve();
-		this._value++;
-		return this._value;
-	}
-
-	async decrement(): Promise<number> {
-		await Promise.resolve();
-		this._value--;
-		return this._value;
-	}
-
-	query_value(): number {
-		return this._value;
-	}
-
-	resolveConflicts(): ResolveConflictsType {
-		return { action: ActionType.Nop };
-	}
-}
 
 describe("Async DRP", () => {
 	let node1: DRPNode;
