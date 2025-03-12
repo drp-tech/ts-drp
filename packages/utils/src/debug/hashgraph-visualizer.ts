@@ -221,7 +221,7 @@ export class HashGraphVisualizer {
 			.concat(edges);
 
 		const maxX = Math.max(...allShapes.map((s) => s.x + (s.width || 0))) + this.padding;
-		const maxY = Math.max(...allShapes.map((s) => s.y + (s.height || 0))) + this.nodeHeight;
+		const maxY = Math.max(...allShapes.map((s) => s.y + (s.height || 0)));
 
 		const grid: string[][] = Array.from({ length: maxY + 1 }, () => Array(maxX + 1).fill(" "));
 
@@ -263,8 +263,7 @@ export class HashGraphVisualizer {
 			grid[node.y + node.height - 1][node.x] = "└";
 			grid[node.y + node.height - 1][node.x + node.width - 1] = "┘";
 		});
-
-		return grid.map((row) => row.join("")).join("\n");
+		return grid.map((row) => row.join("").trimEnd()).join("\n");
 	}
 
 	/**
