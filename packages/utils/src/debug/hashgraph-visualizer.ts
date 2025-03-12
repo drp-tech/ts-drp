@@ -30,7 +30,7 @@ interface Shape {
  * Visualizes a HashGraph structure in ASCII art format
  * Renders nodes as boxes connected by lines and arrows
  */
-export class HashGraphVizualizer {
+export class HashGraphVisualizer {
 	private nodeWidth = 13;
 	private nodeHeight = 3;
 	private padding = 4;

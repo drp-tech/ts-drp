@@ -10,7 +10,7 @@ import {
 } from "@ts-drp/types";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { HashGraphVizualizer } from "../src/debug/hashgraph-visualizer.js";
+import { HashGraphVisualizer } from "../src/debug/hashgraph-visualizer.js";
 
 class MockHashGraph implements IHashGraph {
 	peerId: string;
@@ -118,7 +118,7 @@ class MockHashGraph implements IHashGraph {
 
 describe("hashGraphVizualizer tests", () => {
 	let hashgraph: IHashGraph;
-	const visualizer = new HashGraphVizualizer();
+	const visualizer = new HashGraphVisualizer();
 
 	beforeEach(() => {
 		hashgraph = new MockHashGraph("test-peer", SemanticsType.pair);
