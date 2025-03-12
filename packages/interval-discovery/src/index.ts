@@ -13,6 +13,7 @@ import {
 } from "@ts-drp/types";
 
 const DEFAULT_SEARCH_DURATION = 5 * 60 * 1000; // 5 minutes
+
 /**
  * Enhanced DRP Discovery service using composition pattern
  * Implements IntervalRunnerInterface to maintain compatibility with IntervalRunner[] arrays

@@ -18,7 +18,8 @@ export interface DRPIntervalDiscoveryOptions extends Omit<IntervalRunnerOptions,
 }
 
 /**
- * Configuration interface for DRPIntervalDiscovery
+ * Enhanced DRP Discovery service using composition pattern
+ * Implements IntervalRunnerInterface to maintain compatibility with IntervalRunner[] arrays
  * @interface IDRPIntervalDiscovery
  */
 export interface IDRPIntervalDiscovery extends IIntervalRunner<"interval:discovery"> {
