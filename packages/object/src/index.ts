@@ -223,10 +223,10 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			throw new Error("Initial DRP is undefined");
 		}
 
-		const clonedDRP = cloneDeep(initialDRP);
+		const operationDRP = cloneDeep(initialDRP);
 		let result: unknown | Promise<unknown> = undefined;
 		try {
-			result = this._applyOperation(clonedDRP, operation);
+			result = this._applyOperation(operationDRP, operation);
 		} catch (e) {
 			log.error(`::drpObject::callFn: ${e}`);
 			return result;
@@ -234,7 +234,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 		return handlePromiseOrValue(result, (result) => {
 			context.result = result;
-			return this._processOperationResult(context, clonedDRP);
+			return this._processOperationResult(context, operationDRP);
 		});
 	}
 
@@ -244,22 +244,22 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 	private _processOperationResult(
 		context: OperationContext,
-		clone: IDRP | IACL
+		postOperationDRP: IDRP | IACL
 	): unknown | Promise<unknown> {
 		const { initialDRP, result, operation, initialLCA, isACL, dependencies } = context;
 		if (!initialDRP) {
 			throw new Error("Initial DRP is undefined");
 		}
 
-		const stateChanged = this._hasStateChanged(initialDRP, clone);
+		const stateChanged = this._hasStateChanged(initialDRP, postOperationDRP);
 		// early return if the state has not changed
 		if (!stateChanged) {
 			return result;
 		}
 
 		const [postDRP, postACL] = isACL
-			? [this._computeDRP(dependencies, initialLCA, operation), clone]
-			: [clone, this._computeObjectACL(dependencies, initialLCA, operation)];
+			? [this._computeDRP(dependencies, initialLCA, operation), postOperationDRP]
+			: [postOperationDRP, this._computeObjectACL(dependencies, initialLCA, operation)];
 
 		if (isPromise(postDRP) || isPromise(postACL)) {
 			return Promise.all([postDRP, postACL]).then(([drp, acl]) =>
