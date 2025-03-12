@@ -254,8 +254,8 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 
 	async isDialable(callback?: () => void | Promise<void>): Promise<boolean> {
 		let dialable = await this._node?.isDialable(this._node.getMultiaddrs());
-		if (dialable && callback) {
-			await callback();
+		if (dialable) {
+			if (callback) await callback();
 			return true;
 		}
 		if (!callback) return false;
