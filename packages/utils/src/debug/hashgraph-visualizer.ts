@@ -159,6 +159,8 @@ export class HashGraphVisualizer {
 	 */
 	private generateEdges(edges: Edge[], nodes: Map<string, Node>): Shape[] {
 		const shapes: Shape[] = [];
+		const arrowPositions = new Set<string>();
+
 		edges.forEach(({ from, to }) => {
 			const fromNode = nodes.get(from) as Node;
 			const toNode = nodes.get(to) as Node;
@@ -173,16 +175,15 @@ export class HashGraphVisualizer {
 				shapes.push({ type: "vline", x: startX, y });
 			}
 
+			const arrowKey = `${endX},${endY - 1}`;
 			// Horizontal line at endY - 1 if nodes aren't aligned
 			if (startX !== endX) {
 				const minX = Math.min(startX, endX);
 				const maxX = Math.max(startX, endX);
 				for (let x = minX; x <= maxX; x++) {
+					const key = `${x},${endY - 1}`;
 					// Check if there is an arrow at this position
-					const arrow = shapes.find(
-						(shape) => shape.type === "arrow" && shape.x === x && shape.y === endY - 1
-					);
-					if (!arrow) {
+					if (!arrowPositions.has(key)) {
 						shapes.push({ type: "hline", x, y: endY - 1 });
 					}
 				}
@@ -190,6 +191,7 @@ export class HashGraphVisualizer {
 
 			// Arrow just above the target node
 			shapes.push({ type: "arrow", x: endX, y: endY - 1, dir: "down" });
+			arrowPositions.add(arrowKey);
 		});
 
 		return shapes;
