@@ -192,15 +192,19 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		const clonedDRP = cloneDeep(preOperationDRP);
 		let appliedOperationResult = undefined;
 		try {
-			appliedOperationResult = this._applyOperation(clonedDRP, vertexOperation);
+			appliedOperationResult = this._applyOperation(
+				clonedDRP,
+				vertexOperation,
+				this.hashGraph.peerId
+			);
 		} catch (e) {
 			log.error(`::drpObject::callFn: ${e}`);
 			return appliedOperationResult;
 		}
-
-		const stateChanged = Object.keys(preOperationDRP).some(
-			(key) => !deepEqual(preOperationDRP[key], clonedDRP[key])
-		);
+		const stateChanged = Object.keys(preOperationDRP).some((key) => {
+			if (key === "context") return false;
+			return !deepEqual(preOperationDRP[key], clonedDRP[key]);
+		});
 		if (!stateChanged) {
 			return appliedOperationResult;
 		}
@@ -287,7 +291,8 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 					const drp = this._computeDRP(
 						vertex.dependencies,
 						preComputeLca,
-						vertex.operation.drpType === DrpType.DRP ? vertex.operation : undefined
+						vertex.operation.drpType === DrpType.DRP ? vertex.operation : undefined,
+						vertex.peerId
 					);
 					this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
 				}
@@ -295,7 +300,8 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 				const acl = this._computeObjectACL(
 					vertex.dependencies,
 					preComputeLca,
-					vertex.operation.drpType === DrpType.ACL ? vertex.operation : undefined
+					vertex.operation.drpType === DrpType.ACL ? vertex.operation : undefined,
+					vertex.peerId
 				);
 				this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
 
@@ -337,7 +343,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 	}
 
 	// apply the operation to the DRP
-	private _applyOperation(drp: IDRP, operation: Operation): void {
+	private _applyOperation(drp: IDRP, operation: Operation, caller?: string): void {
 		const { opType, value } = operation;
 
 		const typeParts = opType.split(".");
@@ -348,6 +354,15 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			if (!target) {
 				throw new Error(`Invalid operation type: ${opType}`);
 			}
+		}
+
+		if (!caller) {
+			throw new Error("Caller is undefined");
+		}
+		if (target.context) {
+			target.context.peerId = caller;
+		} else {
+			throw new Error("Target does not have a context to update.");
 		}
 
 		const methodName = typeParts[typeParts.length - 1];
@@ -366,7 +381,8 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 	private _computeDRP(
 		vertexDependencies: Hash[],
 		preCompute?: LowestCommonAncestorResult,
-		vertexOperation?: Operation
+		vertexOperation?: Operation,
+		caller?: string
 	): IDRP {
 		if (!this.drp || !this.originalDRP) {
 			throw new Error("DRP is undefined");
@@ -389,11 +405,11 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 		for (const vertex of linearizedVertices) {
 			if (vertex.operation?.drpType === DrpType.DRP) {
-				this._applyOperation(drp, vertex.operation);
+				this._applyOperation(drp, vertex.operation, vertex.peerId);
 			}
 		}
 		if (vertexOperation && vertexOperation.drpType === DrpType.DRP) {
-			this._applyOperation(drp, vertexOperation);
+			this._applyOperation(drp, vertexOperation, caller);
 		}
 
 		return drp;
@@ -402,7 +418,8 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 	private _computeObjectACL(
 		vertexDependencies: Hash[],
 		preCompute?: LowestCommonAncestorResult,
-		vertexOperation?: Operation
+		vertexOperation?: Operation,
+		caller?: string
 	): IACL {
 		if (!this.acl || !this.originalObjectACL) {
 			throw new Error("ObjectACL is undefined");
@@ -424,11 +441,11 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 		for (const vertex of linearizedVertices) {
 			if (vertex.operation?.drpType === DrpType.ACL) {
-				this._applyOperation(acl, vertex.operation);
+				this._applyOperation(acl, vertex.operation, vertex.peerId);
 			}
 		}
 		if (vertexOperation && vertexOperation.drpType === DrpType.ACL) {
-			this._applyOperation(acl, vertexOperation);
+			this._applyOperation(acl, vertexOperation, caller);
 		}
 
 		return acl;
@@ -469,18 +486,20 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 	private _computeDRPState(
 		vertexDependencies: Hash[],
 		preCompute?: LowestCommonAncestorResult,
-		vertexOperation?: Operation
+		vertexOperation?: Operation,
+		caller?: string
 	): DRPState {
-		const drp = this._computeDRP(vertexDependencies, preCompute, vertexOperation);
+		const drp = this._computeDRP(vertexDependencies, preCompute, vertexOperation, caller);
 		return this._getDRPState(drp);
 	}
 
 	private _computeObjectACLState(
 		vertexDependencies: Hash[],
 		preCompute?: LowestCommonAncestorResult,
-		vertexOperation?: Operation
+		vertexOperation?: Operation,
+		caller?: string
 	): DRPState {
-		const acl = this._computeObjectACL(vertexDependencies, preCompute, vertexOperation);
+		const acl = this._computeObjectACL(vertexDependencies, preCompute, vertexOperation, caller);
 		return this._getDRPState(acl);
 	}
 
@@ -492,7 +511,13 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		if (this.acl) {
 			this.aclStates.set(
 				vertex.hash,
-				drpState ?? this._computeObjectACLState(vertex.dependencies, preCompute, vertex.operation)
+				drpState ??
+					this._computeObjectACLState(
+						vertex.dependencies,
+						preCompute,
+						vertex.operation,
+						vertex.peerId
+					)
 			);
 		}
 	}
@@ -504,7 +529,8 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 	): void {
 		this.drpStates.set(
 			vertex.hash,
-			drpState ?? this._computeDRPState(vertex.dependencies, preCompute, vertex.operation)
+			drpState ??
+				this._computeDRPState(vertex.dependencies, preCompute, vertex.operation, vertex.peerId)
 		);
 	}
 

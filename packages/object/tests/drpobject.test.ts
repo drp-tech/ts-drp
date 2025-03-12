@@ -90,7 +90,7 @@ describe("Test for duplicate call issue", () => {
 
 	test("Detect duplicate call", () => {
 		const obj = new DRPObject({
-			peerId: "",
+			peerId: "peer1",
 			drp: new CounterDRP(),
 		});
 
