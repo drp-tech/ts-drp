@@ -96,7 +96,6 @@ describe("Test for duplicate call issue", () => {
 		const testDRP = obj.drp as CounterDRP;
 		expect(testDRP).toBeDefined();
 		const ret = testDRP.test();
-		console.log("ret", ret);
 		expect(ret).toBe(counter);
 	});
 });
