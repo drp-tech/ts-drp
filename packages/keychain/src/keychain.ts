@@ -43,7 +43,6 @@ export class Keychain {
 			throw new Error("Private key not found");
 		}
 		return {
-			secp256k1PublicKey: uint8ArrayToString(this._secp256k1PrivateKey?.publicKey.raw, "base64"),
 			blsPublicKey: uint8ArrayToString(this._blsPrivateKey?.toPublicKey().toBytes(), "base64"),
 		};
 	}

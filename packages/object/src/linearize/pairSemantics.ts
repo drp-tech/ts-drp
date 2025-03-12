@@ -1,4 +1,4 @@
-import { ActionType, type Hash, type Operation } from "@ts-drp/types";
+import { ActionType, type Hash, type Vertex } from "@ts-drp/types";
 
 import { type HashGraph } from "../hashgraph/index.js";
 import type { ObjectSet } from "../utils/objectSet.js";
@@ -7,15 +7,15 @@ export function linearizePairSemantics(
 	hashGraph: HashGraph,
 	origin: Hash,
 	subgraph: ObjectSet<string>
-): Operation[] {
+): Vertex[] {
 	const order = hashGraph.topologicalSort(true, origin, subgraph);
-	const result: Operation[] = [];
+	const result: Vertex[] = [];
 	// if there is no resolveConflicts function, we can just return the operations in topological order
 	if (!hashGraph.resolveConflictsACL && !hashGraph.resolveConflictsDRP) {
 		for (let i = 1; i < order.length; i++) {
-			const op = hashGraph.vertices.get(order[i])?.operation;
-			if (op && op.value !== null) {
-				result.push(op);
+			const vertex = hashGraph.vertices.get(order[i]);
+			if (vertex) {
+				result.push(vertex);
 			}
 		}
 		return result;
@@ -65,8 +65,8 @@ export function linearizePairSemantics(
 
 		if (!dropped[i]) {
 			const vertex = hashGraph.vertices.get(order[i]);
-			if (vertex?.operation && vertex.operation.value !== null) {
-				result.push(vertex.operation);
+			if (vertex) {
+				result.push(vertex);
 			}
 		}
 	}

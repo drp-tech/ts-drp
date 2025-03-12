@@ -10,6 +10,18 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 
+function getPeerPermissions(params?: {
+	publicKey?: DRPPublicCredential;
+	permissions?: Set<ACLGroup>;
+}): PeerPermissions {
+	const { publicKey, permissions } = params ?? {};
+
+	return {
+		publicKey: publicKey ?? { blsPublicKey: "" },
+		permissions: permissions ?? new Set(),
+	};
+}
+
 export class ObjectACL implements IACL {
 	semanticsType = SemanticsType.pair;
 
@@ -19,33 +31,33 @@ export class ObjectACL implements IACL {
 	private _authorizedPeers: Map<string, PeerPermissions>;
 
 	constructor(options: {
-		admins: Map<string, DRPPublicCredential>;
+		admins: string[];
 		permissionless?: boolean;
 		conflictResolution?: ACLConflictResolution;
 	}) {
 		this.permissionless = options.permissionless ?? false;
 
-		const permissions = new Set<ACLGroup>([ACLGroup.Admin, ACLGroup.Finality]);
+		const adminPermissions = new Set<ACLGroup>([ACLGroup.Admin, ACLGroup.Finality]);
 		if (!options.permissionless) {
-			permissions.add(ACLGroup.Writer);
+			adminPermissions.add(ACLGroup.Writer);
 		}
 
 		this._authorizedPeers = new Map(
-			[...options.admins.entries()].map(([key, value]) => [key, { publicKey: value, permissions }])
+			[...options.admins].map((adminId) => [
+				adminId,
+				getPeerPermissions({ permissions: new Set(adminPermissions) }),
+			])
 		);
 		this._conflictResolution = options.conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
 
-	grant(senderId: string, peerId: string, group: ACLGroup, publicKey?: DRPPublicCredential): void {
+	grant(senderId: string, peerId: string, group: ACLGroup): void {
 		if (!this.query_isAdmin(senderId)) {
 			throw new Error("Only admin peers can grant permissions.");
 		}
 		let peerPermissions = this._authorizedPeers.get(peerId);
 		if (!peerPermissions) {
-			if (!publicKey) {
-				throw new Error("Public key required for new peer.");
-			}
-			peerPermissions = { publicKey, permissions: new Set() };
+			peerPermissions = getPeerPermissions();
 			this._authorizedPeers.set(peerId, peerPermissions);
 		}
 
@@ -90,6 +102,19 @@ export class ObjectACL implements IACL {
 		}
 	}
 
+	setKey(senderId: string, peerId: string, key: DRPPublicCredential): void {
+		if (senderId !== peerId) {
+			throw new Error("Cannot set key for another peer.");
+		}
+		let peerPermissions = this._authorizedPeers.get(peerId);
+		if (!peerPermissions) {
+			peerPermissions = getPeerPermissions({ publicKey: key });
+		} else {
+			peerPermissions.publicKey = key;
+		}
+		this._authorizedPeers.set(peerId, peerPermissions);
+	}
+
 	query_getFinalitySigners(): Map<string, DRPPublicCredential> {
 		return new Map(
 			[...this._authorizedPeers.entries()]
@@ -119,6 +144,9 @@ export class ObjectACL implements IACL {
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		if (!vertices[0].operation || !vertices[1].operation) return { action: ActionType.Nop };
+		if (vertices[0].operation.opType === "setKey" || vertices[1].operation.opType === "setKey") {
+			return { action: ActionType.Nop };
+		}
 		if (
 			vertices[0].operation.opType === vertices[1].operation.opType ||
 			vertices[0].operation.value[0] !== vertices[1].operation.value[0]
