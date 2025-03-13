@@ -1,6 +1,6 @@
 {
 	"name": "@ts-drp/interval-discovery",
-	"version": "0.9.2",
+	"version": "0.10.0",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -29,9 +29,9 @@
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
-		"@ts-drp/interval-runner": "0.9.2",
-		"@ts-drp/logger": "0.9.2",
-		"@ts-drp/types": "0.9.2"
+		"@ts-drp/interval-runner": "0.10.0",
+		"@ts-drp/logger": "0.10.0",
+		"@ts-drp/types": "0.10.0"
 	},
 	"devDependencies": {
 		"@chainsafe/libp2p-gossipsub": "^14.1.0",
