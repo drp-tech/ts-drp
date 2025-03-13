@@ -1,5 +1,6 @@
 import {
 	ActionType,
+	type DRPRequestContext,
 	type IDRP,
 	type ResolveConflictsType,
 	SemanticsType,
@@ -8,7 +9,7 @@ import {
 
 export class AddMulDRP implements IDRP {
 	semanticsType = SemanticsType.pair;
-	context = { caller: "" };
+	context: DRPRequestContext = { caller: "" };
 
 	private _value: number;
 
