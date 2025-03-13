@@ -1,15 +1,19 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
+import { createDRPDiscovery } from "@ts-drp/interval-discovery";
 import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
 import {
+	DRP_DISCOVERY_TOPIC,
+	DRPDiscoveryResponse,
 	type DRPNodeConfig,
 	type IACL,
 	type IDRP,
 	type IDRPObject,
 	type IMetrics,
+	type IntervalRunnerMap,
 	Message,
 	MessageType,
 } from "@ts-drp/types";
@@ -20,13 +24,14 @@ import * as operations from "./operations.js";
 import { DRPObjectStore } from "./store/index.js";
 
 export class DRPNode {
-	config?: DRPNodeConfig;
+	config: DRPNodeConfig;
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
 	keychain: Keychain;
 
+	private _intervals: Map<string, IntervalRunnerMap[keyof IntervalRunnerMap]> = new Map();
+
 	constructor(config?: DRPNodeConfig) {
-		this.config = config;
 		const newLogger = new Logger("drp::node", config?.log_config);
 		log.trace = newLogger.trace;
 		log.debug = newLogger.debug;
@@ -36,6 +41,12 @@ export class DRPNode {
 		this.networkNode = new DRPNetworkNode(config?.network_config);
 		this.objectStore = new DRPObjectStore();
 		this.keychain = new Keychain(config?.keychain_config);
+		this.config = {
+			...config,
+			interval_discovery_options: {
+				...config?.interval_discovery_options,
+			},
+		};
 	}
 
 	async start(): Promise<void> {
@@ -44,13 +55,27 @@ export class DRPNode {
 		await this.networkNode.addMessageHandler(
 			({ stream }: IncomingStreamData) => void drpMessagesHandler(this, stream)
 		);
+		this.networkNode.addGroupMessageHandler(
+			DRP_DISCOVERY_TOPIC,
+			(e: CustomEvent<GossipsubMessage>) =>
+				void drpMessagesHandler(this, undefined, e.detail.msg.data)
+		);
+		this._intervals.forEach((interval) => interval.start());
+	}
+
+	async stop(): Promise<void> {
+		await this.networkNode.stop();
+		this._intervals.forEach((interval) => interval.stop());
 	}
 
 	async restart(config?: DRPNodeConfig): Promise<void> {
-		await this.networkNode.stop();
+		await this.stop();
+
+		// reassign the network node ? I think we might not need to do this
 		this.networkNode = new DRPNetworkNode(
 			config ? config.network_config : this.config?.network_config
 		);
+
 		await this.start();
 		log.info("::restart: Node restarted");
 	}
@@ -113,6 +138,7 @@ export class DRPNode {
 		if (options.sync?.enabled) {
 			await operations.syncObject(this, object.id, options.sync.peerId);
 		}
+		this._createIntervalDiscovery(object.id);
 		return object;
 	}
 
@@ -136,6 +162,7 @@ export class DRPNode {
 			drp: options.drp,
 			metrics: options.metrics,
 		});
+		this._createIntervalDiscovery(options.id);
 		return object;
 	}
 
@@ -150,5 +177,36 @@ export class DRPNode {
 
 	async syncObject(id: string, peerId?: string): Promise<void> {
 		await operations.syncObject(this, id, peerId);
+	}
+
+	private _createIntervalDiscovery(id: string): void {
+		const existingInterval = this._intervals.get(id);
+		existingInterval?.stop(); // Stop only if it exists
+
+		const interval =
+			existingInterval ??
+			createDRPDiscovery({
+				...this.config.interval_discovery_options,
+				id,
+				networkNode: this.networkNode,
+			});
+
+		this._intervals.set(id, interval);
+		interval.start();
+	}
+
+	async handleDiscoveryResponse(sender: string, data: Uint8Array): Promise<void> {
+		const response = DRPDiscoveryResponse.decode(data);
+		const objectId = response.objectId;
+		const interval = this._intervals.get(objectId);
+		if (!interval) {
+			log.error("::handleDiscoveryResponse: Object not found");
+			return;
+		}
+		if (interval.type !== "interval:discovery") {
+			log.error("::handleDiscoveryResponse: Invalid interval type");
+			return;
+		}
+		await interval.handleDiscoveryResponse(sender, response.subscribers);
 	}
 }

@@ -1,4 +1,5 @@
 import { SetDRP } from "@ts-drp/blueprints";
+import { AsyncCounterDRP } from "@ts-drp/test-utils";
 import {
 	ActionType,
 	type IDRP,
@@ -108,7 +109,7 @@ describe("Merging vertices tests", () => {
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 	});
 
-	test("Test: merge should skip unknown dependencies", () => {
+	test("Test: merge should skip unknown dependencies", async () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
 		const drp1 = obj1.drp as SetDRP<number>;
@@ -116,7 +117,7 @@ describe("Merging vertices tests", () => {
 
 		drp1.add(1);
 		drp2.add(2);
-		obj1.merge(obj2.hashGraph.getAllVertices());
+		await obj1.merge(obj2.hashGraph.getAllVertices());
 		drp1.add(3);
 
 		const vertex = obj1.vertices.find(
@@ -125,9 +126,112 @@ describe("Merging vertices tests", () => {
 		if (!vertex) {
 			throw new Error("Vertex not found");
 		}
-		expect(obj2.merge([vertex])).toEqual([
+		expect(await obj2.merge([vertex])).toEqual([
 			false,
 			["e5ef52c6186abe51635619df8bc8676c19f5a6519e40f47072683437255f026a"],
 		]);
+	});
+});
+
+class AsyncPushToArrayDRP implements IDRP {
+	semanticsType = SemanticsType.pair;
+
+	private _array: number[];
+
+	constructor() {
+		this._array = [];
+	}
+
+	push(value: number): void {
+		this._array.push(value);
+	}
+
+	async pushAsync(value: number): Promise<void> {
+		await Promise.resolve();
+		this._array.push(value);
+	}
+
+	query_array(): number[] {
+		return this._array;
+	}
+
+	resolveConflicts(v: Vertex[]): ResolveConflictsType {
+		const first = v[0];
+		const second = v[1];
+		if (first.operation?.value[0] > second.operation?.value[0]) {
+			return { action: ActionType.Swap };
+		}
+		return { action: ActionType.Nop };
+	}
+}
+
+describe("Async counter DRP", () => {
+	let drpObject1: DRPObject;
+	let drpObject2: DRPObject;
+
+	beforeEach(() => {
+		drpObject1 = new DRPObject({ peerId: "peer1", acl, drp: new AsyncCounterDRP() });
+		drpObject2 = new DRPObject({ peerId: "peer2", acl, drp: new AsyncCounterDRP() });
+	});
+
+	test("async drp", async () => {
+		const drp1 = drpObject1.drp as AsyncCounterDRP;
+		const drp2 = drpObject2.drp as AsyncCounterDRP;
+
+		const value1 = await drp1.increment();
+		const value2 = await drp2.increment();
+
+		expect(value1).toEqual(1);
+		expect(value2).toEqual(1);
+		const obj2Vertices = drpObject2.hashGraph.getAllVertices();
+		const obj1Vertices = drpObject1.hashGraph.getAllVertices();
+		await drpObject1.merge(obj2Vertices);
+		expect(drp1.query_value()).toEqual(2);
+		await drpObject2.merge(obj1Vertices);
+		expect(drp2.query_value()).toEqual(2);
+		await drp2.increment();
+		await drp2.increment();
+		await drp2.increment();
+		await drpObject1.merge(drpObject2.hashGraph.getAllVertices());
+		expect(drp1.query_value()).toEqual(5);
+	});
+});
+
+describe("Async push to array DRP", () => {
+	let drpObject1: DRPObject;
+	let drpObject2: DRPObject;
+
+	beforeEach(() => {
+		vi.useFakeTimers();
+		drpObject1 = new DRPObject({ peerId: "peer1", acl, drp: new AsyncPushToArrayDRP() });
+		drpObject2 = new DRPObject({ peerId: "peer2", acl, drp: new AsyncPushToArrayDRP() });
+	});
+
+	test("async drp", async () => {
+		const drp1 = drpObject1.drp as AsyncPushToArrayDRP;
+		const drp2 = drpObject2.drp as AsyncPushToArrayDRP;
+
+		drp1.push(1);
+		vi.advanceTimersByTime(1000);
+		drp2.push(2);
+		vi.advanceTimersByTime(1000);
+		drp1.push(3);
+		vi.advanceTimersByTime(1000);
+		const obj1Vertices = drpObject1.hashGraph.getAllVertices();
+		const obj2Vertices = drpObject2.hashGraph.getAllVertices();
+		await drpObject1.merge(obj2Vertices);
+		await drpObject2.merge(obj1Vertices);
+		expect(drp1.query_array()).toEqual([1, 2, 3]);
+		expect(drp2.query_array()).toEqual([1, 2, 3]);
+
+		await drp1.pushAsync(4);
+		vi.advanceTimersByTime(1000);
+		drp1.push(5);
+		vi.advanceTimersByTime(1000);
+		await drp1.pushAsync(6);
+		vi.advanceTimersByTime(1000);
+		await drpObject2.merge(drpObject1.hashGraph.getAllVertices());
+		expect(drp1.query_array()).toEqual([1, 2, 3, 4, 5, 6]);
+		expect(drp2.query_array()).toEqual([1, 2, 3, 4, 5, 6]);
 	});
 });

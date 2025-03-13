@@ -1,11 +1,12 @@
 {
-	"name": "@ts-drp/types",
+	"name": "@ts-drp/test-utils",
 	"version": "0.10.0",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/drp-tech/ts-drp.git"
 	},
+	"private": true,
 	"type": "module",
 	"types": "./dist/src/index.d.ts",
 	"files": [
@@ -21,22 +22,14 @@
 		}
 	},
 	"scripts": {
-		"build": "tsc -b tsconfig.build.json && node build.mjs",
+		"build": "tsc -b tsconfig.build.json",
 		"clean": "rm -rf dist/ node_modules/",
 		"prepack": "tsc -b",
+		"test": "vitest",
 		"typecheck": "tsc --noEmit",
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
-		"@bufbuild/protobuf": "^2.0.0",
-		"loglevel": "^1.9.2"
-	},
-	"peerDependencies": {
-		"@chainsafe/libp2p-gossipsub": "^14.1.0",
-		"@libp2p/interface": "^2.1.3",
-		"@multiformats/multiaddr": "^12.3.1"
-	},
-	"devDependencies": {
-		"@types/object-inspect": "^1.13.0"
+		"@ts-drp/types": "0.10.0"
 	}
 }

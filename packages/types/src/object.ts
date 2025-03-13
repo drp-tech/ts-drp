@@ -11,6 +11,8 @@ export interface LowestCommonAncestorResult {
 	linearizedVertices: Vertex[];
 }
 
+export type MergeResult = [merged: boolean, missing: string[]];
+
 export interface IDRPObject extends DRPObjectBase {
 	/**
 	 * The id of the DRP object.
@@ -64,7 +66,7 @@ export interface IDRPObject extends DRPObjectBase {
 	/**
 	 * Merge the vertices into the DRP object.
 	 */
-	merge(vertices: Vertex[]): [merged: boolean, missing: string[]];
+	merge(vertices: Vertex[]): Promise<MergeResult>;
 }
 
 export type DRPObjectCallback = (object: IDRPObject, origin: string, vertices: Vertex[]) => void;
