@@ -13,6 +13,7 @@ import {
 	type IMetrics,
 	type LoggerOptions,
 	type LowestCommonAncestorResult,
+	type MergeResult,
 	type Operation,
 	type Vertex,
 } from "@ts-drp/types";
