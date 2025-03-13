@@ -2,6 +2,8 @@ import type { DRPNodeConfig } from "@ts-drp/types";
 import * as dotenv from "dotenv";
 import fs from "node:fs";
 
+dotenv.config();
+
 function parseCommaSeparatedValue(value: string | undefined): string[] | undefined {
 	if (value === undefined) return undefined;
 	return value === "" ? [] : value.split(",");
@@ -19,8 +21,6 @@ export function loadConfig(configPath?: string | undefined): DRPNodeConfig | und
 			throw error;
 		}
 	}
-
-	dotenv.config();
 
 	const hasEnvConfig = [
 		"LISTEN_ADDRESSES",
