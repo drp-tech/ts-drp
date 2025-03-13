@@ -1146,7 +1146,7 @@ describe("DRP Context tests", () => {
 		}
 	});
 
-	test("caller should be the peerId of the node that applied the operation", () => {
+	test("caller should be the peerId of the node that applied the operation", async () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		const drp2 = obj2.drp as SetDRP<number>;
 		const drp3 = obj3.drp as SetDRP<number>;
@@ -1154,24 +1154,24 @@ describe("DRP Context tests", () => {
 		for (let i = 1; i <= 10; ++i) {
 			drp1.add(i);
 			expect(drp1.context.caller).toBe("peer1");
-			obj2.merge(obj1.hashGraph.getAllVertices());
+			await obj2.merge(obj1.hashGraph.getAllVertices());
 
 			drp2.add(10 + i);
 			const vertices2 = obj2.hashGraph.getAllVertices();
-			obj1.merge([vertices2[vertices2.length - 1]]);
+			await obj1.merge([vertices2[vertices2.length - 1]]);
 			expect(drp1.context.caller).toBe("peer2");
 
-			obj3.merge(obj2.hashGraph.getAllVertices());
+			await obj3.merge(obj2.hashGraph.getAllVertices());
 			drp3.add(20 + i);
 			const vertices3 = obj3.hashGraph.getAllVertices();
-			obj2.merge([vertices3[vertices3.length - 1]]);
+			await obj2.merge([vertices3[vertices3.length - 1]]);
 			expect(drp2.context.caller).toBe("peer3");
-			obj1.merge([vertices3[vertices3.length - 1]]);
+			await obj1.merge([vertices3[vertices3.length - 1]]);
 			expect(drp1.context.caller).toBe("peer3");
 		}
 	});
 
-	test("should not update the caller if the state is not changed", () => {
+	test("should not update the caller if the state is not changed", async () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		const drp2 = obj2.drp as SetDRP<number>;
 
@@ -1179,14 +1179,14 @@ describe("DRP Context tests", () => {
 			if (i % 2 === 0) {
 				drp1.add(i);
 				expect(drp1.context.caller).toBe("peer1");
-				obj2.merge(obj1.hashGraph.getAllVertices());
+				await obj2.merge(obj1.hashGraph.getAllVertices());
 				expect(drp2.context.caller).toBe("peer1");
 				drp2.add(i);
 				expect(drp2.context.caller).toBe("peer1");
 			} else {
 				drp2.add(i);
 				expect(drp2.context.caller).toBe("peer2");
-				obj1.merge(obj2.hashGraph.getAllVertices());
+				await obj1.merge(obj2.hashGraph.getAllVertices());
 				expect(drp1.context.caller).toBe("peer2");
 				drp1.add(i);
 				expect(drp1.context.caller).toBe("peer2");
