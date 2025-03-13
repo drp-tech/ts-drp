@@ -34,3 +34,4 @@ export type * from "./network.js";
 export type * from "./node.js";
 export type * from "./object.js";
 export type * from "./interval-runner.js";
+export type * from "./event-target.js";
