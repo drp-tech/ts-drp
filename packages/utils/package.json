@@ -51,6 +51,6 @@
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
-		"@ts-drp/types": "^0.9.1"
+		"@ts-drp/types": "0.10.0"
 	}
 }
