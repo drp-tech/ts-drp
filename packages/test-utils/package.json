@@ -1,6 +1,6 @@
 {
 	"name": "@ts-drp/test-utils",
-	"version": "0.9.2",
+	"version": "0.10.0",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -30,6 +30,6 @@
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
-		"@ts-drp/types": "0.9.2"
+		"@ts-drp/types": "0.10.0"
 	}
 }

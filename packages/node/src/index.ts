@@ -60,7 +60,8 @@ export class DRPNode {
 		);
 		this.networkNode.addGroupMessageHandler(
 			DRP_DISCOVERY_TOPIC,
-			(e) => void drpMessagesHandler(this, undefined, e.detail.msg.data)
+			(e: CustomEvent<GossipsubMessage>) =>
+				void drpMessagesHandler(this, undefined, e.detail.msg.data)
 		);
 		this._intervals.forEach((interval) => interval.start());
 	}
@@ -68,10 +69,6 @@ export class DRPNode {
 	async stop(): Promise<void> {
 		await this.networkNode.stop();
 		this._intervals.forEach((interval) => interval.stop());
-	}
-
-	async stop(): Promise<void> {
-		await this.networkNode.stop();
 	}
 
 	async restart(config?: DRPNodeConfig): Promise<void> {
