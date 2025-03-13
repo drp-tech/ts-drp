@@ -1,6 +1,4 @@
 import { context, type Span, SpanStatusCode, trace } from "@opentelemetry/api";
-import { AsyncHooksContextManager } from "@opentelemetry/context-async-hooks";
-import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { Resource } from "@opentelemetry/resources";
 import {
@@ -12,6 +10,8 @@ import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 import { type IMetrics } from "@ts-drp/types";
 import { isAsyncGenerator, isGenerator, isPromise } from "@ts-drp/utils";
 
+import { initContextManager } from "./context-manager.js";
+
 let enabled = false;
 let provider: WebTracerProvider | undefined;
 let exporter: OTLPTraceExporter | undefined;
@@ -22,7 +22,6 @@ const DEFAULT_EXPORTER_HEADERS = {
 	"Access-Control-Allow-Headers": "*",
 	"Access-Control-Allow-Origin": "*",
 };
-const isWeb = typeof window !== "undefined";
 
 export type EnableTracingOptions = {
 	provider?: {
@@ -44,19 +43,6 @@ export const disableTracing = (): void => {
 	enabled = false;
 	provider = undefined;
 	exporter = undefined;
-};
-
-const initContextManager = (): void => {
-	if (!isWeb) {
-		const contextManager = new AsyncHooksContextManager();
-		contextManager.enable();
-		context.setGlobalContextManager(contextManager);
-		return;
-	}
-
-	const contextManager = new ZoneContextManager();
-	contextManager.enable();
-	context.setGlobalContextManager(contextManager);
 };
 
 async function wrapPromise<T>(promise: Promise<T>, span: Span): Promise<T> {

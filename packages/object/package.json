@@ -23,7 +23,7 @@
 	},
 	"scripts": {
 		"benchmark": "tsx tests/hashgraph.bench.ts | tee benchmark-output.txt",
-		"build": "tsc -b tsconfig.build.json",
+		"build": "tsc -b tsconfig.build.json && node build.mjs",
 		"clean": "rm -rf dist/ node_modules/",
 		"prepack": "tsc -b",
 		"test": "vitest",
@@ -42,6 +42,7 @@
 	"dependencies": {
 		"@chainsafe/bls": "^8.1.0",
 		"@msgpack/msgpack": "^3.0.1",
+		"@noble/hashes": "^1.7.1",
 		"@ts-drp/logger": "^0.10.0",
 		"@ts-drp/tracer": "^0.10.0",
 		"@ts-drp/types": "^0.10.0",
