@@ -2,7 +2,7 @@ import { bls } from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
 import { Logger } from "@ts-drp/logger";
 import { DRPObject, ObjectACL } from "@ts-drp/object";
-import { ACLGroup, DrpType, type IDRP, type Vertex } from "@ts-drp/types";
+import { ACLGroup, DrpType, type Vertex } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
@@ -74,11 +74,11 @@ describe("DPRNode with verify and sign signature", () => {
 			},
 		];
 		await signGeneratedVertices(drpNode, vertices);
-		const verifiedVertices = await verifyACLIncomingVertices(vertices);
+		const verifiedVertices = verifyACLIncomingVertices(vertices);
 		expect(verifiedVertices.length).toBe(1);
 	});
 
-	test("Ignore vertex if the signature is invalid", async () => {
+	test("Ignore vertex if the signature is invalid", () => {
 		const vertices = [
 			{
 				hash: "hash",
@@ -93,18 +93,16 @@ describe("DPRNode with verify and sign signature", () => {
 				signature: new Uint8Array(),
 			},
 		];
-		const verifiedVertices = await verifyACLIncomingVertices(vertices);
+		const verifiedVertices = verifyACLIncomingVertices(vertices);
 		expect(verifiedVertices.length).toBe(0);
 	});
 });
 
 describe("DRPNode voting tests", () => {
-	let drp1: SetDRP<number>;
-	let acl1: ObjectACL;
 	let nodeA: DRPNode;
 	let nodeB: DRPNode;
-	let obj1: DRPObject;
-	let obj2: DRPObject;
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
 
 	beforeAll(async () => {
 		nodeA = new DRPNode();
@@ -133,11 +131,9 @@ describe("DRPNode voting tests", () => {
 			acl,
 			drp: new SetDRP(),
 		});
-		drp1 = obj1.drp as SetDRP<number>;
-		acl1 = obj1.acl as ObjectACL;
 		obj2 = new DRPObject({
 			peerId: nodeB.networkNode.peerId,
-			acl: acl1,
+			acl: obj1.acl,
 			drp: new SetDRP(),
 		});
 	});
@@ -147,8 +143,8 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
 
-		acl1.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
-		drp1.add(1);
+		obj1.acl.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
+		obj1.drp?.add(1);
 
 		await obj2.merge(obj1.vertices);
 		const V1 = obj2.vertices.find(
@@ -170,10 +166,10 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1) ---- A:REVOKE(B) ---- B:ADD(2)
 		*/
 
-		acl1.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
-		drp1.add(1);
-		acl1.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
-		drp1.add(2);
+		obj1.acl.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
+		obj1.drp?.add(1);
+		obj1.acl.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
+		obj1.drp?.add(2);
 
 		await obj2.merge(obj1.vertices);
 		const V2 = obj2.vertices.find(
@@ -194,8 +190,8 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
 
-		acl1.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
-		drp1.add(1);
+		obj1.acl.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
+		obj1.drp?.add(1);
 		await obj2.merge(obj1.vertices);
 		const V1 = obj2.vertices.find(
 			(v) => v.operation?.value !== null && v.operation?.value[0] === 1
@@ -217,9 +213,9 @@ describe("DRPNode voting tests", () => {
 });
 
 describe("DRPNode with rpc", () => {
-	let drp: IDRP;
+	let drp: SetDRP<number>;
 	let drpNode: DRPNode;
-	let drpObject: DRPObject;
+	let drpObject: DRPObject<SetDRP<number>>;
 	let mockLogger: Logger;
 
 	beforeAll(async () => {

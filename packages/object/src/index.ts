@@ -1,16 +1,17 @@
 import { Logger } from "@ts-drp/logger";
 import {
-	type ConnectObjectOptions,
+	type CreateObjectOptions,
 	type DRPObjectBase,
 	type DRPObjectCallback,
+	type DRPObjectOptions,
 	DRPState,
 	DRPStateEntry,
 	DrpType,
+	type FinalityConfig,
 	type Hash,
 	type IACL,
 	type IDRP,
 	type IDRPObject,
-	type IMetrics,
 	type LoggerOptions,
 	type LowestCommonAncestorResult,
 	type MergeResult,
@@ -23,7 +24,7 @@ import { deepEqual } from "fast-equals";
 import * as crypto from "node:crypto";
 
 import { ObjectACL } from "./acl/index.js";
-import { type FinalityConfig, FinalityStore } from "./finality/index.js";
+import { FinalityStore } from "./finality/index.js";
 import { HashGraph } from "./hashgraph/index.js";
 import { computeHash } from "./utils/computeHash.js";
 import { ObjectSet } from "./utils/objectSet.js";
@@ -51,29 +52,22 @@ interface OperationContext {
 	result: unknown;
 }
 
-export class DRPObject implements DRPObjectBase, IDRPObject {
+export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 	id: string;
 	vertices: Vertex[] = [];
-	acl?: ProxyHandler<IACL>;
-	drp?: ProxyHandler<IDRP>;
+	acl: IACL;
+	drp?: T;
 	// @ts-expect-error: initialized in constructor
 	hashGraph: HashGraph;
 	// mapping from vertex hash to the DRP state
 	drpStates: Map<string, DRPState>;
 	aclStates: Map<string, DRPState>;
-	originalDRP?: IDRP;
+	originalDRP?: T;
 	originalObjectACL?: IACL;
 	finalityStore: FinalityStore;
-	subscriptions: DRPObjectCallback[] = [];
+	subscriptions: DRPObjectCallback<T>[] = [];
 
-	constructor(options: {
-		peerId: string;
-		acl?: IACL;
-		drp?: IDRP;
-		id?: string;
-		config?: DRPObjectConfig;
-		metrics?: IMetrics;
-	}) {
+	constructor(options: DRPObjectOptions<T>) {
 		log = new Logger("drp::object", options.config?.log_config);
 		this.id =
 			options.id ??
@@ -113,7 +107,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			this._computeDRP;
 	}
 
-	private _initLocalDrpInstance(peerId: string, drp: IDRP, acl: IDRP): void {
+	private _initLocalDrpInstance(peerId: string, drp: T, acl: IACL): void {
 		this.drp = new Proxy(drp, this.proxyDRPHandler(DrpType.DRP));
 		this.hashGraph = new HashGraph(
 			peerId,
@@ -129,7 +123,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
-	static createObject(options: ConnectObjectOptions): DRPObject {
+	static createObject<T extends IDRP>(options: CreateObjectOptions<T>): DRPObject<T> {
 		const aclObj = new ObjectACL({
 			admins: [],
 			permissionless: true,
@@ -148,7 +142,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 	}
 
 	// This function is black magic, it allows us to intercept calls to the DRP object
-	proxyDRPHandler(vertexType: DrpType): ProxyHandler<object> {
+	proxyDRPHandler<T extends object>(vertexType: DrpType): ProxyHandler<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const obj = this;
 		return {
@@ -259,16 +253,16 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 
 		const [postDRP, postACL] = isACL
-			? [this._computeDRP(dependencies, initialLCA, operation), postOperationDRP]
+			? [this._computeDRP(dependencies, initialLCA, operation), postOperationDRP as IACL]
 			: [postOperationDRP, this._computeObjectACL(dependencies, initialLCA, operation)];
 
 		if (isPromise(postDRP) || isPromise(postACL)) {
 			return Promise.all([postDRP, postACL]).then(([drp, acl]) =>
-				this._processOperationUpdateState(context, drp as IDRP, acl as IACL)
+				this._processOperationUpdateState(context, drp, acl)
 			);
 		}
 
-		return this._processOperationUpdateState(context, postDRP as IDRP, postACL as IACL);
+		return this._processOperationUpdateState(context, postDRP, postACL);
 	}
 
 	private _processOperationUpdateState(
@@ -291,8 +285,8 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		this.vertices.push(vertex);
 		this._notify("callFn", [vertex]);
 
-		if (!isACL) Object.assign(this.drp as IDRP, postDRP);
-		else Object.assign(this.acl as ObjectACL, postACL);
+		if (!isACL) Object.assign(this.drp ?? {}, postDRP);
+		else Object.assign(this.acl, postACL);
 
 		if (isPromise(drpStateResult) || isPromise(aclStateResult)) {
 			return Promise.all([drpStateResult, aclStateResult]).then(() => result);
@@ -372,7 +366,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 					await this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
 				}
 
-				const acl = await this._computeObjectACL(
+				const acl = this._computeObjectACL(
 					vertex.dependencies,
 					preComputeLca,
 					vertex.operation.drpType === DrpType.ACL ? vertex.operation : undefined
@@ -395,7 +389,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		return [missing.length === 0, missing];
 	}
 
-	subscribe(callback: DRPObjectCallback): void {
+	subscribe(callback: DRPObjectCallback<T>): void {
 		this.subscriptions.push(callback);
 	}
 
@@ -413,7 +407,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 	// check if the given peer has write permission
 	private _checkWriterPermission(peerId: string, deps: Hash[]): boolean {
 		const acl = this._computeObjectACL(deps);
-		return (acl as IACL).query_isWriter(peerId);
+		return acl.query_isWriter(peerId);
 	}
 
 	// apply the operation to the DRP
@@ -454,7 +448,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 
 		const { lca, linearizedVertices } = preCompute ?? this.computeLCA(vertexDependencies);
 
-		const drp = cloneDeep(this.originalDRP);
+		const drp: IDRP = cloneDeep(this.originalDRP);
 
 		const fetchedState = this.drpStates.get(lca);
 		if (!fetchedState) {
@@ -483,7 +477,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		vertexDependencies: Hash[],
 		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
-	): IACL | Promise<IACL> {
+	): IACL {
 		if (!this.acl || !this.originalObjectACL) {
 			throw new Error("ObjectACL is undefined");
 		}
@@ -503,18 +497,17 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			acl[entry.key] = entry.value;
 		}
 
-		const operations: Operation[] = [];
 		for (const v of linearizedVertices) {
 			if (v.operation && v.operation.drpType === DrpType.ACL) {
-				operations.push(v.operation);
+				this._applyOperation(acl, v.operation);
 			}
 		}
 
 		if (vertexOperation && vertexOperation.drpType === DrpType.ACL) {
-			operations.push(vertexOperation);
+			this._applyOperation(acl, vertexOperation);
 		}
 
-		return processSequentially(operations, (op: Operation) => this._applyOperation(acl, op), acl);
+		return acl;
 	}
 
 	private computeLCA(vertexDependencies: string[]): LowestCommonAncestorResult {
@@ -562,9 +555,9 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		vertexDependencies: Hash[],
 		preCompute?: LowestCommonAncestorResult,
 		vertexOperation?: Operation
-	): DRPState | Promise<DRPState> {
+	): DRPState {
 		const acl = this._computeObjectACL(vertexDependencies, preCompute, vertexOperation);
-		return isPromise(acl) ? acl.then(this._getDRPState) : this._getDRPState(acl);
+		return this._getDRPState(acl);
 	}
 
 	private _setObjectACLState(
@@ -619,22 +612,20 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		if (!this.acl || !this.hashGraph) {
 			throw new Error("ObjectACL or hashgraph is undefined");
 		}
-		const currentObjectACL = this.acl as IACL;
 		const newState = this._computeObjectACLState(this.hashGraph.getFrontier());
 		return handlePromiseOrValue(newState, (state) => {
-			this._updateState(currentObjectACL, state);
+			this._updateState(this.acl, state);
 		});
 	}
 
 	private _setRootStates(): void {
-		const acl = this.acl as IACL;
 		const aclState = [];
-		for (const key of Object.keys(acl)) {
-			if (typeof acl[key] !== "function") {
+		for (const key of Object.keys(this.acl)) {
+			if (typeof this.acl[key] !== "function") {
 				aclState.push(
 					DRPStateEntry.create({
 						key,
-						value: cloneDeep(acl[key]),
+						value: cloneDeep(this.acl[key]),
 					})
 				);
 			}
