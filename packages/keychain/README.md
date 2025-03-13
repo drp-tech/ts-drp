@@ -51,7 +51,7 @@ Returns a `DRPPublicCredential` object containing the base64-encoded Secp256k1 a
 ```typescript
 const publicCredential = keychain.getPublicCredential();
 console.log(publicCredential);
-// Output: { secp256k1PublicKey: '...', blsPublicKey: '...' }
+// Output: { blsPublicKey: '...' }
 ```
 
 ### `signWithSecp256k1(data: string)`
