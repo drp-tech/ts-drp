@@ -1,6 +1,6 @@
 import {
 	ActionType,
-	type DRPRequestContext,
+	type DrpRuntimeContext,
 	type IDRP,
 	type ResolveConflictsType,
 	SemanticsType,
@@ -8,7 +8,7 @@ import {
 
 export class Chat implements IDRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
-	context: DRPRequestContext = { caller: "" };
+	context: DrpRuntimeContext = { caller: "" };
 	// store messages as strings in the format (timestamp, message, peerId)
 	messages: Set<string>;
 	constructor() {

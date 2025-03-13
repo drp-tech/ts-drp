@@ -1,6 +1,6 @@
 import {
 	ActionType,
-	type DRPRequestContext,
+	type DrpRuntimeContext,
 	type IDRP,
 	type ResolveConflictsType,
 	SemanticsType,
@@ -9,7 +9,7 @@ import {
 
 export class Grid implements IDRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
-	context: DRPRequestContext = { caller: "" };
+	context: DrpRuntimeContext = { caller: "" };
 	positions: Map<string, { x: number; y: number }>;
 
 	constructor() {

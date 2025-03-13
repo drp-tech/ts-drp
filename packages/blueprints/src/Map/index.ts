@@ -1,6 +1,6 @@
 import {
 	ActionType,
-	type DRPRequestContext,
+	type DrpRuntimeContext,
 	type IDRP,
 	type ResolveConflictsType,
 	SemanticsType,
@@ -14,7 +14,7 @@ export enum MapConflictResolution {
 
 export class MapDRP<K, V> implements IDRP {
 	semanticsType = SemanticsType.pair;
-	context: DRPRequestContext = { caller: "" };
+	context: DrpRuntimeContext = { caller: "" };
 
 	private _conflictResolution: MapConflictResolution;
 	private _map: Map<K, V>;
