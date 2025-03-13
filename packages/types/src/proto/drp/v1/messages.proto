@@ -13,6 +13,8 @@ enum MessageType {
   MESSAGE_TYPE_SYNC_REJECT = 6;
   MESSAGE_TYPE_ATTESTATION_UPDATE = 7;
   MESSAGE_TYPE_CUSTOM = 8;
+  MESSAGE_TYPE_DRP_DISCOVERY = 9;
+  MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE = 10;
 }
 
 message Message {
@@ -57,3 +59,15 @@ message SyncAccept {
 }
 
 message SyncReject {}
+
+message DRPDiscovery {
+  string object_id = 1;
+}
+
+message DRPDiscoveryResponse {
+  string object_id = 1;
+  message Subscribers {
+    repeated string multiaddrs = 1;
+  }
+  map<string, Subscribers> subscribers = 2;
+}
