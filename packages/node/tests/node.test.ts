@@ -142,7 +142,7 @@ describe("DRPNode voting tests", () => {
 		});
 	});
 
-	test("Nodes in writer set are able to sign", () => {
+	test("Nodes in writer set are able to sign", async () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
@@ -150,7 +150,7 @@ describe("DRPNode voting tests", () => {
 		acl1.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
 		drp1.add(1);
 
-		obj2.merge(obj1.vertices);
+		await obj2.merge(obj1.vertices);
 		const V1 = obj2.vertices.find(
 			(v) => v.operation?.value !== null && v.operation?.value[0] === 1
 		) as Vertex;
@@ -165,7 +165,7 @@ describe("DRPNode voting tests", () => {
 		expect(obj2.finalityStore.getNumberOfSignatures(V1.hash)).toBe(1);
 	});
 
-	test("Other nodes are not able to sign", () => {
+	test("Other nodes are not able to sign", async () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1) ---- A:REVOKE(B) ---- B:ADD(2)
 		*/
@@ -175,7 +175,7 @@ describe("DRPNode voting tests", () => {
 		acl1.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
 		drp1.add(2);
 
-		obj2.merge(obj1.vertices);
+		await obj2.merge(obj1.vertices);
 		const V2 = obj2.vertices.find(
 			(v) => v.operation?.value !== null && v.operation?.value[0] === 2
 		) as Vertex;
@@ -189,14 +189,14 @@ describe("DRPNode voting tests", () => {
 		expect(obj2.finalityStore.getNumberOfSignatures(V2.hash)).toBe(0);
 	});
 
-	test("Signatures are aggregated", () => {
+	test("Signatures are aggregated", async () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
 
 		acl1.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
 		drp1.add(1);
-		obj2.merge(obj1.vertices);
+		await obj2.merge(obj1.vertices);
 		const V1 = obj2.vertices.find(
 			(v) => v.operation?.value !== null && v.operation?.value[0] === 1
 		) as Vertex;

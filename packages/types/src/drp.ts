@@ -29,7 +29,7 @@ export interface IDRP {
 	/**
 	 * The context metadata for a request.
 	 */
-	context: DrpRuntimeContext;
+	context?: DrpRuntimeContext;
 	/**
 	 * The semantics type of the DRP.
 	 */

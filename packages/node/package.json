@@ -31,6 +31,7 @@
 		"watch": "tsc -b -w"
 	},
 	"devDependencies": {
+		"@ts-drp/test-utils": "0.10.0",
 		"race-event": "^1.3.0",
 		"tsx": "4.19.1",
 		"vitest": "^3.0.5"
@@ -47,6 +48,8 @@
 		"@libp2p/peer-id": "^5.0.14",
 		"@noble/secp256k1": "^2.2.3",
 		"@ts-drp/blueprints": "0.10.0",
+		"@ts-drp/interval-discovery": "0.10.0",
+		"@ts-drp/interval-runner": "0.10.0",
 		"@ts-drp/keychain": "0.10.0",
 		"@ts-drp/logger": "0.10.0",
 		"@ts-drp/network": "0.10.0",
