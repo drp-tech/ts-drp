@@ -444,8 +444,6 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 		if (target.context) {
 			target.context.caller = caller;
-		} else {
-			throw new Error("Target does not have a context to update.");
 		}
 
 		const methodName = typeParts[typeParts.length - 1];
