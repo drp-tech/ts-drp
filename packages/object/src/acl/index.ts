@@ -25,7 +25,7 @@ function getPeerPermissions(params?: {
 
 export class ObjectACL implements IACL {
 	semanticsType = SemanticsType.pair;
-	context: DRPRequestContext = { peerId: "" };
+	context: DRPRequestContext = { caller: "" };
 
 	// if true, any peer can write to the object
 	permissionless: boolean;

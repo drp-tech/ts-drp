@@ -22,7 +22,7 @@ export interface DRPRequestContext {
 	/**
 	 * The peer that initiated the request.
 	 */
-	peerId: string;
+	caller: string;
 }
 
 export interface IDRP {

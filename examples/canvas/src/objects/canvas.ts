@@ -11,7 +11,7 @@ import { Pixel } from "./pixel";
 
 export class Canvas implements IDRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
-	context: DRPRequestContext = { peerId: "" };
+	context: DRPRequestContext = { caller: "" };
 
 	width: number;
 	height: number;

@@ -8,7 +8,7 @@ import {
 
 export class Chat implements IDRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
-	context: DRPRequestContext = { peerId: "" };
+	context: DRPRequestContext = { caller: "" };
 	// store messages as strings in the format (timestamp, message, peerId)
 	messages: Set<string>;
 	constructor() {

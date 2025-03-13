@@ -360,7 +360,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			throw new Error("Caller is undefined");
 		}
 		if (target.context) {
-			target.context.peerId = caller;
+			target.context.caller = caller;
 		} else {
 			throw new Error("Target does not have a context to update.");
 		}

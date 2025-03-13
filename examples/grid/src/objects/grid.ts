@@ -9,7 +9,7 @@ import {
 
 export class Grid implements IDRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
-	context: DRPRequestContext = { peerId: "" };
+	context: DRPRequestContext = { caller: "" };
 	positions: Map<string, { x: number; y: number }>;
 
 	constructor() {
