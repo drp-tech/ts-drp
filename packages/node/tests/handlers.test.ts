@@ -148,16 +148,8 @@ describe("Handle message correctly", () => {
 		const acl = new ObjectACL({
 			admins: [node1.networkNode.peerId, node2.networkNode.peerId],
 		});
-		acl.setKey(
-			node1.networkNode.peerId,
-			node1.networkNode.peerId,
-			node1.keychain.getPublicCredential()
-		);
-		acl.setKey(
-			node2.networkNode.peerId,
-			node2.networkNode.peerId,
-			node2.keychain.getPublicCredential()
-		);
+		acl.setKey(node1.networkNode.peerId, node1.networkNode.peerId, node1.keychain.blsPublicKey);
+		acl.setKey(node2.networkNode.peerId, node2.networkNode.peerId, node2.keychain.blsPublicKey);
 		drpObject = await node2.createObject({
 			drp: new SetDRP<number>(),
 			acl: acl,

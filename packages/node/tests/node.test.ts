@@ -118,16 +118,8 @@ describe("DRPNode voting tests", () => {
 			admins: [nodeA.networkNode.peerId],
 		});
 
-		acl.setKey(
-			nodeA.networkNode.peerId,
-			nodeA.networkNode.peerId,
-			nodeA.keychain.getPublicCredential()
-		);
-		acl.setKey(
-			nodeB.networkNode.peerId,
-			nodeB.networkNode.peerId,
-			nodeB.keychain.getPublicCredential()
-		);
+		acl.setKey(nodeA.networkNode.peerId, nodeA.networkNode.peerId, nodeA.keychain.blsPublicKey);
+		acl.setKey(nodeB.networkNode.peerId, nodeB.networkNode.peerId, nodeB.keychain.blsPublicKey);
 		obj1 = new DRPObject({
 			peerId: nodeA.networkNode.peerId,
 			acl,
@@ -248,7 +240,7 @@ describe("DRPNode with rpc", () => {
 		acl.setKey(
 			drpNode.networkNode.peerId,
 			drpNode.networkNode.peerId,
-			drpNode.keychain.getPublicCredential()
+			drpNode.keychain.blsPublicKey
 		);
 		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
 	});
