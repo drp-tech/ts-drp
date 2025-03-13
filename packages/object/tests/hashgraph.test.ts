@@ -1115,3 +1115,82 @@ describe("HashGraph hook tests", () => {
 		}
 	});
 });
+
+describe("DRP Context tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+	let obj3: DRPObject;
+
+	beforeEach(() => {
+		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
+		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
+	});
+
+	test("caller should be empty if no operation is applied", () => {
+		const drp1 = obj1.drp as SetDRP<number>;
+		expect(drp1.context.peerId).toBe("");
+	});
+
+	test("caller should be current node's peerId if operation is applied locally", () => {
+		const drp1 = obj1.drp as SetDRP<number>;
+		for (let i = 0; i < 10; i++) {
+			drp1.add(i);
+			expect(drp1.context.peerId).toBe("peer1");
+		}
+
+		const drp2 = obj2.drp as SetDRP<number>;
+		for (let i = 0; i < 10; i++) {
+			drp2.add(i);
+			expect(drp2.context.peerId).toBe("peer2");
+		}
+	});
+
+	test("caller should be the peerId of the node that applied the operation", () => {
+		const drp1 = obj1.drp as SetDRP<number>;
+		const drp2 = obj2.drp as SetDRP<number>;
+		const drp3 = obj3.drp as SetDRP<number>;
+
+		for (let i = 1; i <= 10; ++i) {
+			drp1.add(i);
+			expect(drp1.context.peerId).toBe("peer1");
+			obj2.merge(obj1.hashGraph.getAllVertices());
+
+			drp2.add(10 + i);
+			const vertices2 = obj2.hashGraph.getAllVertices();
+			obj1.merge([vertices2[vertices2.length - 1]]);
+			expect(drp1.context.peerId).toBe("peer2");
+
+			obj3.merge(obj2.hashGraph.getAllVertices());
+			drp3.add(20 + i);
+			const vertices3 = obj3.hashGraph.getAllVertices();
+			obj2.merge([vertices3[vertices3.length - 1]]);
+			expect(drp2.context.peerId).toBe("peer3");
+			obj1.merge([vertices3[vertices3.length - 1]]);
+			expect(drp1.context.peerId).toBe("peer3");
+		}
+	});
+
+	test("should not update the caller if the state is not changed", () => {
+		const drp1 = obj1.drp as SetDRP<number>;
+		const drp2 = obj2.drp as SetDRP<number>;
+
+		for (let i = 0; i < 10; ++i) {
+			if (i % 2 === 0) {
+				drp1.add(i);
+				expect(drp1.context.peerId).toBe("peer1");
+				obj2.merge(obj1.hashGraph.getAllVertices());
+				expect(drp2.context.peerId).toBe("peer1");
+				drp2.add(i);
+				expect(drp2.context.peerId).toBe("peer1");
+			} else {
+				drp2.add(i);
+				expect(drp2.context.peerId).toBe("peer2");
+				obj1.merge(obj2.hashGraph.getAllVertices());
+				expect(drp1.context.peerId).toBe("peer2");
+				drp1.add(i);
+				expect(drp1.context.peerId).toBe("peer2");
+			}
+		}
+	});
+});
