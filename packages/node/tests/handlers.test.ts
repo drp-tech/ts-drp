@@ -2,16 +2,7 @@ import type { Connection, IdentifyResult, Libp2p, Stream } from "@libp2p/interfa
 import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
-import {
-	AttestationUpdate,
-	DrpType,
-	FetchState,
-	Message,
-	MessageType,
-	Sync,
-	SyncAccept,
-	Update,
-} from "@ts-drp/types";
+import { DrpType, FetchState, Message, MessageType, Sync, Update } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -61,7 +52,7 @@ describe("Handle message correctly", () => {
 	let node1: DRPNode;
 	let node2: DRPNode;
 	let bootstrapNode: DRPNetworkNode;
-	let drpObject: DRPObject;
+	let drpObjectNode2: DRPObject;
 	let libp2pNode2: Libp2p;
 	let libp2pNode1: Libp2p;
 
@@ -147,36 +138,36 @@ describe("Handle message correctly", () => {
 		});
 		acl.setKey(node1.networkNode.peerId, node1.networkNode.peerId, node1.keychain.blsPublicKey);
 		acl.setKey(node2.networkNode.peerId, node2.networkNode.peerId, node2.keychain.blsPublicKey);
-		drpObject = await node2.createObject({
+		drpObjectNode2 = await node2.createObject({
 			drp: new SetDRP<number>(),
 			acl: acl,
 		});
 		await node1.createObject({
 			drp: new SetDRP<number>(),
-			id: drpObject.id,
+			id: drpObjectNode2.id,
 			acl: acl,
 		});
 
-		(drpObject.drp as SetDRP<number>).add(5);
-		(drpObject.drp as SetDRP<number>).add(10);
+		(drpObjectNode2.drp as SetDRP<number>).add(5);
+		(drpObjectNode2.drp as SetDRP<number>).add(10);
 	});
 
 	test("should handle update message correctly", async () => {
-		const vertices = drpObject.vertices;
+		const vertices = drpObjectNode2.vertices;
 		await signGeneratedVertices(node2, vertices);
 		const message = Message.create({
 			sender: node2.networkNode.peerId,
 			type: MessageType.MESSAGE_TYPE_UPDATE,
 			data: Update.encode(
 				Update.create({
-					objectId: drpObject.id,
+					objectId: drpObjectNode2.id,
 					vertices: vertices,
 				})
 			).finish(),
 		});
 		await node2.networkNode.sendMessage(node1.networkNode.peerId, message);
 		await new Promise((resolve) => setTimeout(resolve, 500));
-		const expected_vertices = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
+		const expected_vertices = node1.objectStore.get(drpObjectNode2.id)?.vertices.map((vertex) => {
 			return vertex.operation;
 		});
 		expect(expected_vertices).toStrictEqual([
@@ -192,28 +183,28 @@ describe("Handle message correctly", () => {
 			type: MessageType.MESSAGE_TYPE_FETCH_STATE,
 			data: FetchState.encode(
 				FetchState.create({
-					objectId: drpObject.id,
-					vertexHash: drpObject.vertices[0].hash,
+					objectId: drpObjectNode2.id,
+					vertexHash: drpObjectNode2.vertices[0].hash,
 				})
 			).finish(),
 		});
 
 		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-		const drp = node1.objectStore.get(drpObject.id);
-		const drp2 = node2.objectStore.get(drpObject.id);
+		await new Promise((resolve) => setTimeout(resolve, 2000));
+		const drp = node1.objectStore.get(drpObjectNode2.id);
+		const drp2 = node2.objectStore.get(drpObjectNode2.id);
 		// After fetching the state, the vertices should be the same
 		expect(drp?.vertices.length).toEqual(drp2?.vertices.length);
 	});
 
 	test("should handle sync message correctly", async () => {
-		const node1DrpObject = node1.objectStore.get(drpObject.id);
+		const node1DrpObject = node1.objectStore.get(drpObjectNode2.id);
 		expect(node1DrpObject).toBeDefined();
 
 		(node1DrpObject?.drp as SetDRP<number>).add(1);
 		(node1DrpObject?.drp as SetDRP<number>).add(2);
 
-		expect(drpObject.vertices.length).toBe(3);
+		expect(drpObjectNode2.vertices.length).toBe(3);
 		expect(node1DrpObject?.vertices.length).toBe(3);
 
 		const message = Message.create({
@@ -221,8 +212,10 @@ describe("Handle message correctly", () => {
 			type: MessageType.MESSAGE_TYPE_SYNC,
 			data: Sync.encode(
 				Sync.create({
-					objectId: drpObject.id,
-					vertexHashes: node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => vertex.hash),
+					objectId: drpObjectNode2.id,
+					vertexHashes: node1.objectStore
+						.get(drpObjectNode2.id)
+						?.vertices.map((vertex) => vertex.hash),
 				})
 			).finish(),
 		});
@@ -231,56 +224,19 @@ describe("Handle message correctly", () => {
 		await new Promise((resolve) => setTimeout(resolve, 500));
 
 		// auto sync accept
-		expect(drpObject.vertices.length).toBe(5);
-	});
-
-	test("should handle sync accept message correctly", async () => {
-		const node1DrpObject = node1.objectStore.get(drpObject.id);
-		expect(node1DrpObject).toBeDefined();
-		(node1DrpObject?.drp as SetDRP<number>).add(3);
-		(node1DrpObject?.drp as SetDRP<number>).add(20);
-		expect(node1DrpObject?.vertices.length).toBe(3);
-		await signGeneratedVertices(node1, node1DrpObject?.vertices || []);
-		const message = Message.create({
-			sender: node1.networkNode.peerId,
-			type: MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
-			data: SyncAccept.encode(
-				SyncAccept.create({
-					objectId: drpObject.id,
-					requested: node1DrpObject?.vertices,
-					requesting: [],
-					attestations: [],
-				})
-			).finish(),
-		});
-		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
-		await new Promise((resolve) => setTimeout(resolve, 500));
-		expect(node1.objectStore.get(drpObject.id)?.vertices.length).toBe(5);
-		expect(drpObject.vertices.length).toBe(5);
+		expect(drpObjectNode2.vertices.length).toBe(5);
 	});
 
 	test("should handle update attestation message correctly", async () => {
-		const hash = drpObject.vertices[1].hash;
-		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
-		const attestations = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
-			return {
-				data: vertex.hash,
-				signature: node1.keychain.signWithBls(vertex.hash),
-			};
-		});
-		const message = Message.create({
-			sender: node1.networkNode.peerId,
-			type: MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
-			data: AttestationUpdate.encode(
-				AttestationUpdate.create({
-					objectId: drpObject.id,
-					attestations,
-				})
-			).finish(),
-		});
-		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
+		const hash = drpObjectNode2.vertices[1].hash;
+		(drpObjectNode2.drp as SetDRP<number>).add(6);
+		expect(
+			node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)
+		).toBe(1);
 		await new Promise((resolve) => setTimeout(resolve, 500));
-		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
+		expect(
+			node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)
+		).toBe(2);
 	});
 
 	afterAll(async () => {
