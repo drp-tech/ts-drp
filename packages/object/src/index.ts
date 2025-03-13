@@ -345,7 +345,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 	 * @param vertices - The vertices to merge
 	 * @returns A tuple with a boolean indicating if there were missing vertices and an array with the missing vertices
 	 */
-	async merge(vertices: Vertex[]): Promise<[merged: boolean, missing: string[]]> {
+	async merge(vertices: Vertex[]): Promise<MergeResult> {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
