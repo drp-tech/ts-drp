@@ -53,19 +53,37 @@ const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
 	[MessageType.UNRECOGNIZED]: undefined,
 };
 
+/**
+ * Handler for direct DRP messages
+ */
 export async function protocolHandler(node: DRPNode, stream: Stream): Promise<void> {
-	const byteArray = await streamToUint8Array(stream);
-	const message = Message.decode(byteArray);
-	node.messageQueueManager.enqueue(message.objectId, message);
-	console.log("enqueued from protocol handler");
+	try {
+		const byteArray = await streamToUint8Array(stream);
+		const message = Message.decode(byteArray);
+		node.messageQueueManager.enqueue(message.objectId, message);
+		console.log("enqueued from protocol handler");
+	} catch (err) {
+		log.error("::protocolHandler: Error decoding message", err);
+		return;
+	}
 }
 
+/**
+ * Handler for gossipsub DRP messages
+ */
 export function gossipSubHandler(node: DRPNode, data: Uint8Array): void {
-	const message = Message.decode(data);
-	node.messageQueueManager.enqueue(message.objectId, message);
-	console.log("enqueued from gossipsub handler");
+	try {
+		const message = Message.decode(data);
+		node.messageQueueManager.enqueue(message.objectId, message);
+		console.log("enqueued from gossipsub handler");
+	} catch (err) {
+		log.error("::gossipSubHandler: Error decoding message", err);
+	}
 }
 
+/**
+ * Listen for messages from the message queue
+ */
 export async function listenForMessages(node: DRPNode, objectId: string): Promise<void> {
 	await node.messageQueueManager.subscribe(objectId, async (message: Message) => {
 		const handler = messageHandlers[message.type];

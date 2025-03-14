@@ -1,6 +1,6 @@
 import type { IMessageQueueManager, IMessageQueueManagerOptions } from "@ts-drp/types";
 
-import type { MessageQueue } from "./message-queue.js";
+import { MessageQueue } from "./message-queue.js";
 
 export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 	private readonly options: IMessageQueueManagerOptions;
@@ -16,16 +16,16 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 	async enqueue(queueId: string, message: T): Promise<void> {
 		const queue = this.queues.get(queueId);
 		if (!queue) {
-			throw new Error(`Queue ${queueId} not found`);
+			this.queues.set(queueId, new MessageQueue<T>());
 		}
-		await queue.enqueue(message);
+		await this.queues.get(queueId)?.enqueue(message);
 	}
 
 	async subscribe(queueId: string, handler: (message: T) => Promise<void>): Promise<void> {
 		const queue = this.queues.get(queueId);
 		if (!queue) {
-			throw new Error(`Queue ${queueId} not found`);
+			this.queues.set(queueId, new MessageQueue<T>());
 		}
-		await queue.subscribe(handler);
+		await this.queues.get(queueId)?.subscribe(handler);
 	}
 }

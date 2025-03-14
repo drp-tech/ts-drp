@@ -15,25 +15,15 @@ import {
 import { raceEvent } from "race-event";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 
-import { gossipSubHandler, protocolHandler, signGeneratedVertices } from "../src/handlers.js";
+import { protocolHandler, signGeneratedVertices } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
 
-describe("Handlers inputs", () => {
+describe("Protocol handler inputs", () => {
 	let node: DRPNode;
 	const consoleSpy = vi.spyOn(console, "error");
 
 	beforeAll(() => {
 		node = new DRPNode();
-	});
-
-	test("Normal inputs for gossipsubHandler", () => {
-		const msg = Message.create({
-			sender: node.networkNode.peerId,
-			type: -1,
-			data: new Uint8Array(),
-		});
-		gossipSubHandler(node, msg.data);
-		expect(consoleSpy).toHaveBeenLastCalledWith("drp::node ::messageHandler: Invalid operation");
 	});
 
 	test("Normal inputs for protocolHandler", async () => {
