@@ -1,14 +1,7 @@
-import {
-	ActionType,
-	type DrpRuntimeContext,
-	type IDRP,
-	type ResolveConflictsType,
-	SemanticsType,
-} from "@ts-drp/types";
+import { ActionType, type IDRP, type ResolveConflictsType, SemanticsType } from "@ts-drp/types";
 
 export class Chat implements IDRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
-	context: DrpRuntimeContext = { caller: "" };
 	// store messages as strings in the format (timestamp, message, peerId)
 	messages: Set<string>;
 	constructor() {

@@ -1,8 +1,7 @@
-import { type DrpRuntimeContext, type IDRP, SemanticsType } from "@ts-drp/types";
+import { type IDRP, SemanticsType } from "@ts-drp/types";
 
 export class SetDRP<T> implements IDRP {
 	semanticsType = SemanticsType.pair;
-	context: DrpRuntimeContext = { caller: "" };
 
 	private _set: Set<T>;
 

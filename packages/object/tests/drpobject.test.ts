@@ -70,8 +70,6 @@ describe("Test for duplicate call issue", () => {
 
 	class CounterDRP implements IDRP {
 		semanticsType = SemanticsType.pair;
-		context: DrpRuntimeContext = { caller: "" };
-
 		private _counter: number;
 
 		constructor() {

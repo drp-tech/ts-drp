@@ -2,6 +2,7 @@ import { MapConflictResolution, MapDRP, SetDRP } from "@ts-drp/blueprints";
 import {
 	ACLGroup,
 	ActionType,
+	DrpRuntimeContext,
 	DrpType,
 	type Hash,
 	type IDRP,
@@ -1116,30 +1117,56 @@ describe("HashGraph hook tests", () => {
 	});
 });
 
+class SetDRPWithContext<T> implements IDRP {
+	semanticsType = SemanticsType.pair;
+	context: DrpRuntimeContext = { caller: "" };
+	private _set: Set<T>;
+
+	constructor() {
+		this._set = new Set();
+	}
+
+	add(value: T): void {
+		this._set.add(value);
+	}
+
+	delete(value: T): void {
+		this._set.delete(value);
+	}
+
+	query_has(value: T): boolean {
+		return this._set.has(value);
+	}
+
+	query_getValues(): T[] {
+		return Array.from(this._set.values());
+	}
+}
+
 describe("DRP Context tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 	let obj3: DRPObject;
 
 	beforeEach(() => {
-		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
-		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
-		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
+		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRPWithContext<number>() });
+		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRPWithContext<number>() });
+		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRPWithContext<number>() });
 	});
 
 	test("caller should be empty if no operation is applied", () => {
-		const drp1 = obj1.drp as SetDRP<number>;
+		const drp1 = obj1.drp as SetDRPWithContext<number>;
 		expect(drp1.context.caller).toBe("");
 	});
 
 	test("caller should be current node's peerId if operation is applied locally", () => {
-		const drp1 = obj1.drp as SetDRP<number>;
+		const drp1 = obj1.drp as SetDRPWithContext<number>;
 		for (let i = 0; i < 10; i++) {
 			drp1.add(i);
 			expect(drp1.context.caller).toBe("peer1");
 		}
 
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp2 = obj2.drp as SetDRPWithContext<number>;
 		for (let i = 0; i < 10; i++) {
 			drp2.add(i);
 			expect(drp2.context.caller).toBe("peer2");
@@ -1147,9 +1174,9 @@ describe("DRP Context tests", () => {
 	});
 
 	test("caller should be the peerId of the node that applied the operation", async () => {
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
-		const drp3 = obj3.drp as SetDRP<number>;
+		const drp1 = obj1.drp as SetDRPWithContext<number>;
+		const drp2 = obj2.drp as SetDRPWithContext<number>;
+		const drp3 = obj3.drp as SetDRPWithContext<number>;
 
 		for (let i = 1; i <= 10; ++i) {
 			drp1.add(i);
@@ -1172,8 +1199,8 @@ describe("DRP Context tests", () => {
 	});
 
 	test("should not update the caller if the state is not changed", async () => {
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
+		const drp1 = obj1.drp as SetDRPWithContext<number>;
+		const drp2 = obj2.drp as SetDRPWithContext<number>;
 
 		for (let i = 0; i < 10; ++i) {
 			if (i % 2 === 0) {
