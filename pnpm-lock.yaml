@@ -416,8 +416,8 @@ importers:
         specifier: 0.10.0
         version: link:../logger
       '@ts-drp/message-queue':
-        specifier: file:../message-queue/dist
-        version: dist@file:packages/message-queue/dist
+        specifier: 0.10.0
+        version: link:../message-queue
       '@ts-drp/network':
         specifier: 0.10.0
         version: link:../network
@@ -3281,9 +3281,6 @@ packages:
   dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
     engines: {node: '>=8'}
-
-  dist@file:packages/message-queue/dist:
-    resolution: {directory: packages/message-queue/dist, type: directory}
 
   dns-packet@5.6.1:
     resolution: {integrity: sha512-l4gcSouhcgIKRvyy99RNVOgxXiicE+2jZoNmaNmZ6JXiGajBOJAesk1OBlJuM5k2c+eudGdLxDqXuPCKIj6kpw==}
@@ -9726,8 +9723,6 @@ snapshots:
   dir-glob@3.0.1:
     dependencies:
       path-type: 4.0.0
-
-  dist@file:packages/message-queue/dist: {}
 
   dns-packet@5.6.1:
     dependencies:

@@ -53,6 +53,33 @@ const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
 	[MessageType.UNRECOGNIZED]: undefined,
 };
 
+export async function protocolHandler(node: DRPNode, stream: Stream): Promise<void> {
+	const byteArray = await streamToUint8Array(stream);
+	const message = Message.decode(byteArray);
+	node.messageQueueManager.enqueue(message.objectId, message);
+	console.log("enqueued from protocol handler");
+}
+
+export function gossipSubHandler(node: DRPNode, data: Uint8Array): void {
+	const message = Message.decode(data);
+	node.messageQueueManager.enqueue(message.objectId, message);
+	console.log("enqueued from gossipsub handler");
+}
+
+export async function listenForMessages(node: DRPNode, objectId: string): Promise<void> {
+	await node.messageQueueManager.subscribe(objectId, async (message: Message) => {
+		const handler = messageHandlers[message.type];
+		if (!handler) {
+			log.error("::messageHandler: Invalid operation");
+			return;
+		}
+		const result = handler({ node, message });
+		if (isPromise(result)) {
+			await result;
+		}
+	});
+}
+
 /**
  * Handler for all DRP messages, including pubsub messages and direct messages
  * You need to setup stream xor data
@@ -226,11 +253,7 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-async function syncHandler({ node, message, stream }: HandleParams): Promise<void> {
-	if (!stream) {
-		log.error("::syncHandler: Stream is undefined");
-		return;
-	}
+async function syncHandler({ node, message }: HandleParams): Promise<void> {
 	const { sender, data } = message;
 	// (might send reject) <- TODO: when should we reject?
 	const syncMessage = Sync.decode(data);
@@ -280,11 +303,7 @@ async function syncHandler({ node, message, stream }: HandleParams): Promise<voi
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-async function syncAcceptHandler({ node, message, stream }: HandleParams): Promise<void> {
-	if (!stream) {
-		log.error("::syncAcceptHandler: Stream is undefined");
-		return;
-	}
+async function syncAcceptHandler({ node, message }: HandleParams): Promise<void> {
 	const { data, sender } = message;
 	const syncAcceptMessage = SyncAccept.decode(data);
 	const object = node.objectStore.get(syncAcceptMessage.objectId);

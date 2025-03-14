@@ -1,5 +1,5 @@
 {
-	"name": "@ts-drp/utils",
+	"name": "@ts-drp/message-queue",
 	"version": "0.10.0",
 	"license": "MIT",
 	"repository": {

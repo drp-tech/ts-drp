@@ -3,6 +3,7 @@ import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/i
 import { createDRPDiscovery } from "@ts-drp/interval-discovery";
 import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
+import { MessageQueueManager } from "@ts-drp/message-queue";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
 import {
@@ -19,7 +20,7 @@ import {
 } from "@ts-drp/types";
 
 import { loadConfig } from "./config.js";
-import { drpMessagesHandler } from "./handlers.js";
+import { gossipSubHandler, listenForMessages, protocolHandler } from "./handlers.js";
 import { log } from "./logger.js";
 import * as operations from "./operations.js";
 import { DRPObjectStore } from "./store/index.js";
@@ -31,6 +32,7 @@ export class DRPNode {
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
 	keychain: Keychain;
+	messageQueueManager: MessageQueueManager<Message>;
 
 	private _intervals: Map<string, IntervalRunnerMap[keyof IntervalRunnerMap]> = new Map();
 
@@ -50,19 +52,21 @@ export class DRPNode {
 				...config?.interval_discovery_options,
 			},
 		};
+		this.messageQueueManager = new MessageQueueManager<Message>();
 	}
 
 	async start(): Promise<void> {
 		await this.keychain.start();
 		await this.networkNode.start(this.keychain.secp256k1PrivateKey);
 		await this.networkNode.addMessageHandler(
-			({ stream }: IncomingStreamData) => void drpMessagesHandler(this, stream)
+			({ stream }: IncomingStreamData) => void protocolHandler(this, stream)
 		);
 		this.networkNode.addGroupMessageHandler(
 			DRP_DISCOVERY_TOPIC,
-			(e: CustomEvent<GossipsubMessage>) =>
-				void drpMessagesHandler(this, undefined, e.detail.msg.data)
+			(e: CustomEvent<GossipsubMessage>) => void gossipSubHandler(this, e.detail.msg.data)
 		);
+		await listenForMessages(this, this.networkNode.peerId);
+
 		this._intervals.forEach((interval) => interval.start());
 	}
 
