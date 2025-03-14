@@ -21,11 +21,11 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 		await queue.enqueue(message);
 	}
 
-	async subscribe(queueId: string, callback: (message: T) => Promise<void>): Promise<void> {
+	async subscribe(queueId: string, handler: (message: T) => Promise<void>): Promise<void> {
 		const queue = this.queues.get(queueId);
 		if (!queue) {
 			throw new Error(`Queue ${queueId} not found`);
 		}
-		await queue.subscribe(callback);
+		await queue.subscribe(handler);
 	}
 }

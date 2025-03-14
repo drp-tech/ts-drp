@@ -19,10 +19,10 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 		console.log("enqueued message", message);
 	}
 
-	async subscribe(callback: (message: T) => Promise<void>): Promise<void> {
+	async subscribe(handler: (message: T) => Promise<void>): Promise<void> {
 		while (true) {
 			const message = await this.queue.receive();
-			await callback(message);
+			await handler(message);
 			console.log("processed message", message);
 		}
 	}
