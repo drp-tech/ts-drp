@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>DRP - Grid</title>
+	</head>
+	<body>
+		<div>
+			<h1>GRID</h1>
+			<p id="loadingMessage" style="color: #666;">Connecting to network...</p>
+			<p>Your Peer ID: <span id="peerId"></span></p>
+			<p>Your Peers: <span id="peers"></span></p>
+			<p>Your Discovery Peers: <span id="discoveryPeers"></span></p>
+
+			<p>
+				<button id="joinGrid" style="width: 80px" disabled>JOIN</button>
+				<span style="margin: 0 5px"></span>
+				<input id="gridInput" type="text" placeholder="GRID ID" disabled />
+				<span style="margin: 0 5px"></span>
+				<span id="objectPeers"></span>
+			</p>
+
+			<p>
+				<button id="createGrid" style="width: 80px" disabled>CREATE</button>
+				<span style="margin: 0 5px"></span>
+				<span id="gridIdText"></span>
+				<span id="gridId" style="text-decoration: underline"></span>
+				<button id="copyGridId" style="margin-left: 10px; display: none" disabled>Copy</button>
+			</p>
+		</div>
+
+		<div
+			id="grid"
+			style="
+				position: relative;
+				width: 100%;
+				height: 60vh;
+				border: 1px solid black;
+				overflow: hidden;
+			"
+		>
+			<!-- Users will appear here -->
+		</div>
+
+		<script type="module" src="/src/index.ts"></script>
+	</body>
+</html>
