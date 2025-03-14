@@ -425,7 +425,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 	private _applyOperation(
 		drp: IDRP,
 		operation: Operation,
-		caller?: string
+		caller: string
 	): unknown | Promise<unknown> {
 		const { opType, value } = operation;
 
@@ -439,9 +439,6 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			}
 		}
 
-		if (!caller) {
-			throw new Error("Caller is undefined");
-		}
 		if (target.context) {
 			target.context.caller = caller;
 		}
@@ -483,19 +480,22 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		for (const entry of state.state) {
 			drp[entry.key] = entry.value;
 		}
-		const operations: [Operation, string | undefined][] = [];
+		const operations: [Operation, string][] = [];
 		for (const vertex of linearizedVertices) {
 			if (vertex.operation && vertex.operation.drpType === DrpType.DRP) {
 				operations.push([vertex.operation, vertex.peerId]);
 			}
 		}
 		if (vertexOperation && vertexOperation.drpType === DrpType.DRP) {
+			if (!caller) {
+				throw new Error("Caller is undefined");
+			}
 			operations.push([vertexOperation, caller]);
 		}
 
 		return processSequentially(
 			operations,
-			([op, caller]: [Operation, string | undefined]) => this._applyOperation(drp, op, caller),
+			([op, caller]: [Operation, string]) => this._applyOperation(drp, op, caller),
 			drp
 		);
 	}
@@ -525,7 +525,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			acl[entry.key] = entry.value;
 		}
 
-		const operations: [Operation, string | undefined][] = [];
+		const operations: [Operation, string][] = [];
 		for (const v of linearizedVertices) {
 			if (v.operation && v.operation.drpType === DrpType.ACL) {
 				operations.push([v.operation, v.peerId]);
@@ -533,12 +533,15 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		}
 
 		if (vertexOperation && vertexOperation.drpType === DrpType.ACL) {
+			if (!caller) {
+				throw new Error("Caller is undefined");
+			}
 			operations.push([vertexOperation, caller]);
 		}
 
 		return processSequentially(
 			operations,
-			([op, caller]: [Operation, string | undefined]) => this._applyOperation(acl, op, caller),
+			([op, caller]: [Operation, string]) => this._applyOperation(acl, op, caller),
 			acl
 		);
 	}
