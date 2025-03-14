@@ -14,18 +14,18 @@ const createWithStrategy = (
 	peerId: number,
 	verticesPerDRP: number,
 	strategy: DRPManipulationStrategy
-): DRPObject => {
+): DRPObject<SetDRP<number>> => {
 	const obj = new DRPObject({
 		peerId: `peer1_${peerId}`,
 		acl,
 		drp: new SetDRP<number>(),
 	});
 
-	const drp = obj.drp as SetDRP<number>;
+	if (!obj.drp) throw new Error("DRP is undefined");
 
-	Array.from({ length: verticesPerDRP }).forEach((_, vertex) => {
-		strategy(drp, vertex);
-	});
+	for (let i = 0; i < verticesPerDRP; i++) {
+		strategy(obj.drp, i);
+	}
 
 	return obj;
 };
@@ -41,13 +41,13 @@ const manipulationStrategies: DRPManipulationStrategy[] = [
 	},
 ];
 
-function createDRPObjects(numDRPs: number, verticesPerDRP: number): DRPObject[] {
+function createDRPObjects(numDRPs: number, verticesPerDRP: number): DRPObject<SetDRP<number>>[] {
 	return Array.from({ length: numDRPs }, (_, peerId) =>
 		createWithStrategy(peerId, verticesPerDRP, manipulationStrategies[peerId % 3])
 	);
 }
 
-async function mergeObjects(objects: DRPObject[]): Promise<void> {
+async function mergeObjects(objects: DRPObject<SetDRP<number>>[]): Promise<void> {
 	for (const [sourceIndex, sourceObject] of objects.entries()) {
 		for (const [targetIndex, targetObject] of objects.entries()) {
 			if (sourceIndex !== targetIndex) {

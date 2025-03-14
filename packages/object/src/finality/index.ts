@@ -4,6 +4,7 @@ import {
 	type AggregatedAttestation,
 	type Attestation,
 	type DRPPublicCredential,
+	type FinalityConfig,
 	type Hash,
 	type LoggerOptions,
 } from "@ts-drp/types";
@@ -12,10 +13,6 @@ import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { BitSet } from "../hashgraph/bitset.js";
 
 const DEFAULT_FINALITY_THRESHOLD = 0.51;
-
-export interface FinalityConfig {
-	finality_threshold?: number;
-}
 
 export class FinalityState {
 	data: string;
@@ -30,7 +27,9 @@ export class FinalityState {
 
 		// deterministic order
 		const peerIds = Array.from(signers.keys()).sort();
-		this.signerCredentials = peerIds.map((peerId) => signers.get(peerId)) as DRPPublicCredential[];
+		this.signerCredentials = peerIds
+			.map((peerId) => signers.get(peerId))
+			.filter((c) => c !== undefined);
 
 		this.signerIndices = new Map();
 		for (let i = 0; i < peerIds.length; i++) {
