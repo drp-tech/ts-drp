@@ -66,7 +66,7 @@ export class Keychain {
 
 	get secp256k1PublicKey(): string {
 		if (!this._secp256k1PrivateKey) {
-			throw new Error("Private key not found");
+			throw new Error("Secp256k1 private key not found");
 		}
 		return uint8ArrayToString(this._secp256k1PrivateKey.publicKey.raw, "base64");
 	}
