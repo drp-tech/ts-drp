@@ -4,7 +4,7 @@ import { bench, describe } from "vitest";
 
 import { DRPObject } from "../src/index.js";
 
-describe("AreCausallyDependent benchmark", () => {
+describe("AreCausallyDependent benchmark", async () => {
 	const samples = 100000;
 	const tests: Hash[][] = [];
 
@@ -26,23 +26,23 @@ describe("AreCausallyDependent benchmark", () => {
 	const drp3 = obj3.drp as SetDRP<number>;
 
 	drp1.add(1);
-	obj2.merge(obj1.hashGraph.getAllVertices());
+	await obj2.merge(obj1.hashGraph.getAllVertices());
 
 	drp1.add(1);
 	drp1.delete(2);
 	drp2.delete(2);
 	drp2.add(2);
 
-	obj3.merge(obj1.hashGraph.getAllVertices());
+	await obj3.merge(obj1.hashGraph.getAllVertices());
 	drp3.add(3);
 	drp1.delete(1);
 
-	obj1.merge(obj2.hashGraph.getAllVertices());
+	await obj1.merge(obj2.hashGraph.getAllVertices());
 	drp1.delete(3);
 	drp2.delete(1);
 
-	obj1.merge(obj2.hashGraph.getAllVertices());
-	obj1.merge(obj3.hashGraph.getAllVertices());
+	await obj1.merge(obj2.hashGraph.getAllVertices());
+	await obj1.merge(obj3.hashGraph.getAllVertices());
 
 	const vertices = obj1.hashGraph.getAllVertices();
 	for (let i = 0; i < samples; i++) {
