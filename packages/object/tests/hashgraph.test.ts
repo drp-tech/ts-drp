@@ -838,8 +838,8 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		acl3.setKey("peer3", "peer3", "blsPublicKey3");
 		acl2.setKey("peer2", "peer2", "blsPublicKey2");
 
-		obj1.merge(obj2.hashGraph.getAllVertices());
-		obj1.merge(obj3.hashGraph.getAllVertices());
+		await obj1.merge(obj2.hashGraph.getAllVertices());
+		await obj1.merge(obj3.hashGraph.getAllVertices());
 		expect(acl1.query_getPeerKey("peer2")).toStrictEqual("blsPublicKey2");
 		expect(acl1.query_getPeerKey("peer3")).toStrictEqual("blsPublicKey3");
 	});
