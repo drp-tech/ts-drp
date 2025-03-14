@@ -73,7 +73,7 @@ export class Keychain {
 
 	get blsPublicKey(): string {
 		if (!this._blsPrivateKey) {
-			throw new Error("Private key not found");
+			throw new Error("BLS private key not found");
 		}
 		return uint8ArrayToString(this._blsPrivateKey?.toPublicKey().toBytes(), "base64");
 	}
