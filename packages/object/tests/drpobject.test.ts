@@ -2,6 +2,7 @@ import { SetDRP } from "@ts-drp/blueprints";
 import { AsyncCounterDRP } from "@ts-drp/test-utils";
 import {
 	ActionType,
+	type DrpRuntimeContext,
 	type IDRP,
 	type ResolveConflictsType,
 	SemanticsType,
@@ -69,7 +70,6 @@ describe("Test for duplicate call issue", () => {
 
 	class CounterDRP implements IDRP {
 		semanticsType = SemanticsType.pair;
-
 		private _counter: number;
 
 		constructor() {
@@ -89,7 +89,7 @@ describe("Test for duplicate call issue", () => {
 
 	test("Detect duplicate call", () => {
 		const obj = new DRPObject({
-			peerId: "",
+			peerId: "peer1",
 			drp: new CounterDRP(),
 		});
 
@@ -135,6 +135,7 @@ describe("Merging vertices tests", () => {
 
 class AsyncPushToArrayDRP implements IDRP {
 	semanticsType = SemanticsType.pair;
+	context: DrpRuntimeContext = { caller: "" };
 
 	private _array: number[];
 
@@ -225,12 +226,16 @@ describe("Async push to array DRP", () => {
 		expect(drp2.query_array()).toEqual([1, 2, 3]);
 
 		await drp1.pushAsync(4);
+		expect(drp1.context.caller).toEqual("peer1");
 		vi.advanceTimersByTime(1000);
 		drp1.push(5);
+		expect(drp1.context.caller).toEqual("peer1");
 		vi.advanceTimersByTime(1000);
-		await drp1.pushAsync(6);
+		await drp2.pushAsync(6);
+		expect(drp2.context.caller).toEqual("peer2");
 		vi.advanceTimersByTime(1000);
 		await drpObject2.merge(drpObject1.hashGraph.getAllVertices());
+		await drpObject1.merge(drpObject2.hashGraph.getAllVertices());
 		expect(drp1.query_array()).toEqual([1, 2, 3, 4, 5, 6]);
 		expect(drp2.query_array()).toEqual([1, 2, 3, 4, 5, 6]);
 	});
