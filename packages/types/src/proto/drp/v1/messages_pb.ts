@@ -99,6 +99,7 @@ export interface Message {
   sender: string;
   type: MessageType;
   data: Uint8Array;
+  objectId: string;
 }
 
 export interface FetchState {
@@ -158,7 +159,7 @@ export interface DRPDiscoveryResponse_SubscribersEntry {
 }
 
 function createBaseMessage(): Message {
-  return { sender: "", type: 0, data: new Uint8Array(0) };
+  return { sender: "", type: 0, data: new Uint8Array(0), objectId: "" };
 }
 
 export const Message: MessageFns<Message> = {
@@ -171,6 +172,9 @@ export const Message: MessageFns<Message> = {
     }
     if (message.data.length !== 0) {
       writer.uint32(26).bytes(message.data);
+    }
+    if (message.objectId !== "") {
+      writer.uint32(34).string(message.objectId);
     }
     return writer;
   },
@@ -206,6 +210,14 @@ export const Message: MessageFns<Message> = {
           message.data = reader.bytes();
           continue;
         }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.objectId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -220,6 +232,7 @@ export const Message: MessageFns<Message> = {
       sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
       type: isSet(object.type) ? messageTypeFromJSON(object.type) : 0,
       data: isSet(object.data) ? bytesFromBase64(object.data) : new Uint8Array(0),
+      objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
     };
   },
 
@@ -234,6 +247,9 @@ export const Message: MessageFns<Message> = {
     if (message.data.length !== 0) {
       obj.data = base64FromBytes(message.data);
     }
+    if (message.objectId !== "") {
+      obj.objectId = message.objectId;
+    }
     return obj;
   },
 
@@ -245,6 +261,7 @@ export const Message: MessageFns<Message> = {
     message.sender = object.sender ?? "";
     message.type = object.type ?? 0;
     message.data = object.data ?? new Uint8Array(0);
+    message.objectId = object.objectId ?? "";
     return message;
   },
 };
