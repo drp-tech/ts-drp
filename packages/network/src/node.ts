@@ -120,7 +120,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 			identify: identify(),
 			identifyPush: identifyPush(),
 			pubsub: gossipsub({
-				doPX: true,
+				doPX: false, // Only enable doPX on trusted bootstrap nodes
 				allowPublishToZeroTopicPeers: true,
 				scoreParams: createPeerScoreParams({
 					IPColocationFactorWeight: 0,
@@ -137,6 +137,9 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 					},
 				}),
 				fallbackToFloodsub: false,
+				scoreThresholds: {
+					acceptPXThreshold: 1000,
+				},
 			}),
 		};
 
