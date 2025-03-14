@@ -10,7 +10,7 @@ import {
 	Sync,
 } from "@ts-drp/types";
 
-import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
+import { drpObjectChangesHandler, gossipSubHandler } from "./handlers.js";
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
 
@@ -62,8 +62,7 @@ export function subscribeObject(node: DRPNode, objectId: string): void {
 	node.networkNode.subscribe(objectId);
 	node.networkNode.addGroupMessageHandler(
 		objectId,
-		(e: CustomEvent<GossipsubMessage>) =>
-			void drpMessagesHandler(node, undefined, e.detail.msg.data)
+		(e: CustomEvent<GossipsubMessage>) => void gossipSubHandler(node, e.detail.msg.data)
 	);
 }
 

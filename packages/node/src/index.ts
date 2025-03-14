@@ -65,7 +65,6 @@ export class DRPNode {
 			DRP_DISCOVERY_TOPIC,
 			(e: CustomEvent<GossipsubMessage>) => void gossipSubHandler(this, e.detail.msg.data)
 		);
-		await listenForMessages(this, this.networkNode.peerId);
 
 		this._intervals.forEach((interval) => interval.start());
 	}
@@ -146,6 +145,7 @@ export class DRPNode {
 			await operations.syncObject(this, object.id, options.sync.peerId);
 		}
 		this._createIntervalDiscovery(object.id);
+		await listenForMessages(this, object.id);
 		return object;
 	}
 
@@ -170,6 +170,7 @@ export class DRPNode {
 			metrics: options.metrics,
 		});
 		this._createIntervalDiscovery(options.id);
+		await listenForMessages(this, options.id);
 		return object;
 	}
 

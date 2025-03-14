@@ -80,42 +80,6 @@ export async function listenForMessages(node: DRPNode, objectId: string): Promis
 	});
 }
 
-/**
- * Handler for all DRP messages, including pubsub messages and direct messages
- * You need to setup stream xor data
- */
-export async function drpMessagesHandler(
-	node: DRPNode,
-	stream?: Stream,
-	data?: Uint8Array
-): Promise<void> {
-	let message: Message;
-	try {
-		if (stream) {
-			const byteArray = await streamToUint8Array(stream);
-			message = Message.decode(byteArray);
-		} else if (data) {
-			message = Message.decode(data);
-		} else {
-			log.error("::messageHandler: Stream and data are undefined");
-			return;
-		}
-	} catch (err) {
-		log.error("::messageHandler: Error decoding message", err);
-		return;
-	}
-
-	const handler = messageHandlers[message.type];
-	if (!handler) {
-		log.error("::messageHandler: Invalid operation");
-		return;
-	}
-	const result = handler({ node, message, stream });
-	if (isPromise(result)) {
-		await result;
-	}
-}
-
 function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
 	const { data, sender } = message;
 	const fetchState = FetchState.decode(data);

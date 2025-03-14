@@ -15,10 +15,10 @@ import {
 import { raceEvent } from "race-event";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 
-import { drpMessagesHandler, signGeneratedVertices } from "../src/handlers.js";
+import { gossipSubHandler, protocolHandler, signGeneratedVertices } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
 
-describe("drpMessagesHandler inputs", () => {
+describe("Handlers inputs", () => {
 	let node: DRPNode;
 	const consoleSpy = vi.spyOn(console, "error");
 
@@ -26,29 +26,22 @@ describe("drpMessagesHandler inputs", () => {
 		node = new DRPNode();
 	});
 
-	test("normal inputs", async () => {
-		await drpMessagesHandler(node);
-		expect(consoleSpy).toHaveBeenLastCalledWith(
-			"drp::node ::messageHandler: Stream and data are undefined"
-		);
-
+	test("Normal inputs for gossipsubHandler", () => {
 		const msg = Message.create({
 			sender: node.networkNode.peerId,
 			type: -1,
 			data: new Uint8Array(),
 		});
-		await drpMessagesHandler(node, undefined, msg.data);
+		gossipSubHandler(node, msg.data);
 		expect(consoleSpy).toHaveBeenLastCalledWith("drp::node ::messageHandler: Invalid operation");
+	});
 
-		await drpMessagesHandler(
-			node,
-			{
-				close: async () => {},
-				closeRead: async () => {},
-				closeWrite: async () => {},
-			} as Stream,
-			undefined
-		);
+	test("Normal inputs for protocolHandler", async () => {
+		await protocolHandler(node, {
+			close: async () => {},
+			closeRead: async () => {},
+			closeWrite: async () => {},
+		} as Stream);
 		expect(consoleSpy).toHaveBeenLastCalledWith(
 			"drp::node ::messageHandler: Error decoding message",
 			new Error("Empty pipeline")
