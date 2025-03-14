@@ -21,6 +21,7 @@ message Message {
   string sender = 1;
   MessageType type = 2;
   bytes data = 3;
+  string object_id = 4;
 }
 
 message FetchState {
