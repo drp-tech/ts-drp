@@ -1,5 +1,6 @@
+import { sha256 } from "@noble/hashes/sha2";
+import { bytesToHex } from "@noble/hashes/utils";
 import type { Hash, Operation } from "@ts-drp/types";
-import * as crypto from "node:crypto";
 
 export function computeHash(
 	peerId: string,
@@ -8,6 +9,6 @@ export function computeHash(
 	timestamp: number
 ): Hash {
 	const serialized = JSON.stringify({ operation, deps, peerId, timestamp });
-	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
-	return hash;
+	const hash = sha256.create().update(serialized).digest();
+	return bytesToHex(hash);
 }
