@@ -33,7 +33,7 @@ describe("Protocol handler inputs", () => {
 			closeWrite: async () => {},
 		} as Stream);
 		expect(consoleSpy).toHaveBeenLastCalledWith(
-			"drp::node ::messageHandler: Error decoding message",
+			"drp::node ::protocolHandler: Error decoding message",
 			new Error("Empty pipeline")
 		);
 	});

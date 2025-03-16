@@ -20,7 +20,7 @@ export interface IMessageQueue<T> {
 	 * Subscribe to the queue
 	 * @param callback The callback to call when a message is enqueued
 	 */
-	subscribe(handler: (message: T) => Promise<void>): void;
+	subscribe(handler: (message: T) => Promise<void>): Promise<void>;
 }
 
 export interface IMessageQueueManagerOptions {
@@ -29,5 +29,5 @@ export interface IMessageQueueManagerOptions {
 
 export interface IMessageQueueManager<T> {
 	enqueue(queueId: string, message: T): Promise<void>;
-	subscribe(queueId: string, handler: (message: T) => Promise<void>): void;
+	subscribe(queueId: string, handler: (message: T) => Promise<void>): Promise<void>;
 }

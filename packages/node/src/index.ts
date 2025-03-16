@@ -3,7 +3,7 @@ import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/i
 import { createDRPDiscovery } from "@ts-drp/interval-discovery";
 import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
-import { MessageQueueManager } from "@ts-drp/message-queue";
+import { GENERAL_QUEUE_ID, MessageQueueManager } from "@ts-drp/message-queue";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
 import {
@@ -20,7 +20,12 @@ import {
 } from "@ts-drp/types";
 
 import { loadConfig } from "./config.js";
-import { gossipSubHandler, listenForMessages, protocolHandler } from "./handlers.js";
+import {
+	gossipSubHandler,
+	listenForMessages,
+	protocolHandler,
+	stopListeningForMessages,
+} from "./handlers.js";
 import { log } from "./logger.js";
 import * as operations from "./operations.js";
 import { DRPObjectStore } from "./store/index.js";
@@ -66,6 +71,7 @@ export class DRPNode {
 			(e: CustomEvent<GossipsubMessage>) => void gossipSubHandler(this, e.detail.msg.data)
 		);
 
+		await listenForMessages(this, GENERAL_QUEUE_ID);
 		this._intervals.forEach((interval) => interval.start());
 	}
 
@@ -174,13 +180,15 @@ export class DRPNode {
 		return object;
 	}
 
-	subscribeObject(id: string): void {
+	async subscribeObject(id: string): Promise<void> {
 		operations.subscribeObject(this, id);
+		await listenForMessages(this, id);
 	}
 
-	unsubscribeObject(id: string, purge?: boolean): void {
+	async unsubscribeObject(id: string, purge?: boolean): Promise<void> {
 		operations.unsubscribeObject(this, id, purge);
 		this.networkNode.removeTopicScoreParams(id);
+		await stopListeningForMessages(this, id);
 	}
 
 	async syncObject(id: string, peerId?: string): Promise<void> {

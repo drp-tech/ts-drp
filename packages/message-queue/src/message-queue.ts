@@ -5,6 +5,7 @@ import { Channel } from "./channel.js";
 export class MessageQueue<T> implements IMessageQueue<T> {
 	private readonly options: Required<IMessageQueueOptions>;
 	private queue: Channel<T>;
+	private isActive: boolean = true;
 
 	constructor(options: IMessageQueueOptions = {}) {
 		this.options = {
@@ -15,15 +16,23 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 	}
 
 	async enqueue(message: T): Promise<void> {
+		if (!this.isActive) {
+			throw new Error("Message queue is closed");
+		}
 		await this.queue.send(message);
 		console.log("enqueued message", message);
 	}
 
 	async subscribe(handler: (message: T) => Promise<void>): Promise<void> {
-		while (true) {
+		while (this.isActive) {
 			const message = await this.queue.receive();
 			await handler(message);
-			console.log("processed message", message);
 		}
+	}
+
+	async close(): Promise<void> {
+		this.isActive = false;
+		// Allow any in-progress message processing to complete
+		await Promise.resolve();
 	}
 }

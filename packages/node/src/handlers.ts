@@ -60,7 +60,7 @@ export async function protocolHandler(node: DRPNode, stream: Stream): Promise<vo
 	try {
 		const byteArray = await streamToUint8Array(stream);
 		const message = Message.decode(byteArray);
-		node.messageQueueManager.enqueue(message.objectId, message);
+		await node.messageQueueManager.enqueue(message.objectId, message);
 		console.log("enqueued from protocol handler");
 	} catch (err) {
 		log.error("::protocolHandler: Error decoding message", err);
@@ -71,10 +71,10 @@ export async function protocolHandler(node: DRPNode, stream: Stream): Promise<vo
 /**
  * Handler for gossipsub DRP messages
  */
-export function gossipSubHandler(node: DRPNode, data: Uint8Array): void {
+export async function gossipSubHandler(node: DRPNode, data: Uint8Array): Promise<void> {
 	try {
 		const message = Message.decode(data);
-		node.messageQueueManager.enqueue(message.objectId, message);
+		await node.messageQueueManager.enqueue(message.objectId, message);
 		console.log("enqueued from gossipsub handler");
 	} catch (err) {
 		log.error("::gossipSubHandler: Error decoding message", err);
@@ -86,6 +86,7 @@ export function gossipSubHandler(node: DRPNode, data: Uint8Array): void {
  */
 export async function listenForMessages(node: DRPNode, objectId: string): Promise<void> {
 	await node.messageQueueManager.subscribe(objectId, async (message: Message) => {
+		console.log("received message from queue", message);
 		const handler = messageHandlers[message.type];
 		if (!handler) {
 			log.error("::messageHandler: Invalid operation");
@@ -96,6 +97,13 @@ export async function listenForMessages(node: DRPNode, objectId: string): Promis
 			await result;
 		}
 	});
+}
+
+/**
+ * Stops listening for messages from the message queue
+ */
+export async function stopListeningForMessages(node: DRPNode, objectId: string): Promise<void> {
+	await node.messageQueueManager.close(objectId);
 }
 
 function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
