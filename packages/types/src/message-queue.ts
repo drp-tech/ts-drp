@@ -21,6 +21,11 @@ export interface IMessageQueue<T> {
 	 * @param callback The callback to call when a message is enqueued
 	 */
 	subscribe(handler: (message: T) => Promise<void>): Promise<void>;
+
+	/**
+	 * Close the queue
+	 */
+	close(): Promise<void>;
 }
 
 export interface IMessageQueueManagerOptions {
@@ -30,4 +35,6 @@ export interface IMessageQueueManagerOptions {
 export interface IMessageQueueManager<T> {
 	enqueue(queueId: string, message: T): Promise<void>;
 	subscribe(queueId: string, handler: (message: T) => Promise<void>): Promise<void>;
+	close(queueId: string): Promise<void>;
+	closeAll(): Promise<void>;
 }

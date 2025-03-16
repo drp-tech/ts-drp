@@ -121,6 +121,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			sender: "",
 			type: 0,
 			data: new Uint8Array(Buffer.from(data)),
+			objectId: "",
 		});
 
 		await messageProcessed;
@@ -161,6 +162,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			sender: "",
 			type: 0,
 			data: new Uint8Array(Buffer.from(data)),
+			objectId: "",
 		});
 		await messageProcessed;
 
