@@ -349,7 +349,7 @@ async function syncAcceptHandler({ node, message }: HandleParams): Promise<void>
 }
 
 async function drpDiscoveryHandler({ node, message }: HandleParams): Promise<void> {
-	await DRPIntervalDiscovery.handleDiscoveryRequest(message.sender, message.data, node.networkNode);
+	await DRPIntervalDiscovery.handleDiscoveryRequest(message.sender, message, node.networkNode);
 }
 
 /* data: { id: string } */

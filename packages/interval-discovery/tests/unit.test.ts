@@ -1,4 +1,10 @@
-import { DRPDiscovery, type DRPIntervalDiscoveryOptions, type DRPNetworkNode } from "@ts-drp/types";
+import {
+	DRPDiscovery,
+	type DRPIntervalDiscoveryOptions,
+	type DRPNetworkNode,
+	Message,
+	MessageType,
+} from "@ts-drp/types";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { createDRPDiscovery, DRPIntervalDiscovery } from "../src/index.js";
@@ -147,7 +153,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 
 	describe("Static Handlers", () => {
 		test("should handle discovery request correctly", async () => {
-			const mockData = DRPDiscovery.encode(DRPDiscovery.create({ objectId: "test-id" })).finish();
+			const mockData = DRPDiscovery.encode(DRPDiscovery.create({})).finish();
 
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue(["peer1"]);
 			(mockNetworkNode.getPeerMultiaddrs as ReturnType<typeof vi.fn>).mockResolvedValue([
@@ -156,7 +162,12 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 
 			await DRPIntervalDiscovery.handleDiscoveryRequest(
 				"sender",
-				mockData,
+				Message.create({
+					sender: "sender",
+					type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
+					data: mockData,
+					objectId: "test-id",
+				}),
 				mockNetworkNode as unknown as DRPNetworkNode
 			);
 
@@ -164,13 +175,18 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 		});
 
 		test("should not send response if no peers found", async () => {
-			const mockData = DRPDiscovery.encode(DRPDiscovery.create({ objectId: "test-id" })).finish();
+			const mockData = DRPDiscovery.encode(DRPDiscovery.create({})).finish();
 
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue([]);
 
 			await DRPIntervalDiscovery.handleDiscoveryRequest(
 				"sender",
-				mockData,
+				Message.create({
+					sender: "sender",
+					type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
+					data: mockData,
+					objectId: "test-id",
+				}),
 				mockNetworkNode as unknown as DRPNetworkNode
 			);
 
@@ -178,7 +194,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 		});
 
 		test("should handle error in getPeerMultiaddrs gracefully", async () => {
-			const mockData = DRPDiscovery.encode(DRPDiscovery.create({ objectId: "test-id" })).finish();
+			const mockData = DRPDiscovery.encode(DRPDiscovery.create({})).finish();
 
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue(["peer1"]);
 			(mockNetworkNode.getPeerMultiaddrs as ReturnType<typeof vi.fn>).mockRejectedValue(
@@ -187,7 +203,12 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 
 			await DRPIntervalDiscovery.handleDiscoveryRequest(
 				"sender",
-				mockData,
+				Message.create({
+					sender: "sender",
+					type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
+					data: mockData,
+					objectId: "test-id",
+				}),
 				mockNetworkNode as unknown as DRPNetworkNode
 			);
 
@@ -195,7 +216,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 		});
 
 		test("should handle error in sendMessage gracefully", async () => {
-			const mockData = DRPDiscovery.encode(DRPDiscovery.create({ objectId: "test-id" })).finish();
+			const mockData = DRPDiscovery.encode(DRPDiscovery.create({})).finish();
 
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue(["peer1"]);
 			(mockNetworkNode.getPeerMultiaddrs as ReturnType<typeof vi.fn>).mockResolvedValue([
@@ -207,7 +228,12 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 
 			await DRPIntervalDiscovery.handleDiscoveryRequest(
 				"sender",
-				mockData,
+				Message.create({
+					sender: "sender",
+					type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
+					data: mockData,
+					objectId: "test-id",
+				}),
 				mockNetworkNode as unknown as DRPNetworkNode
 			);
 
@@ -219,7 +245,12 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 
 			await DRPIntervalDiscovery.handleDiscoveryRequest(
 				"sender",
-				invalidData,
+				Message.create({
+					sender: "sender",
+					type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
+					data: invalidData,
+					objectId: "test-id",
+				}),
 				mockNetworkNode as unknown as DRPNetworkNode
 			);
 
