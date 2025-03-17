@@ -9,13 +9,12 @@ import {
 	DRP_DISCOVERY_TOPIC,
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
-	type IACL,
-	type IDRP,
 	type IDRPObject,
-	type IMetrics,
 	type IntervalRunnerMap,
 	Message,
 	MessageType,
+	type NodeConnectObjectOptions,
+	type NodeCreateObjectOptions,
 } from "@ts-drp/types";
 
 import { loadConfig } from "./config.js";
@@ -119,22 +118,16 @@ export class DRPNode {
 		await this.networkNode.sendMessage(peerId, message);
 	}
 
-	async createObject(options: {
-		drp?: IDRP;
-		acl?: IACL;
-		id?: string;
-		sync?: {
-			enabled: boolean;
-			peerId?: string;
-		};
-		metrics?: IMetrics;
-	}): Promise<DRPObject> {
+	async createObject(options: NodeCreateObjectOptions): Promise<DRPObject> {
 		const object = new DRPObject({
 			peerId: this.networkNode.peerId,
 			acl: options.acl,
 			drp: options.drp,
 			id: options.id,
 			metrics: options.metrics,
+			config: {
+				log_config: options.log_config,
+			},
 		});
 		operations.createObject(this, object);
 		operations.subscribeObject(this, object.id);
@@ -145,26 +138,14 @@ export class DRPNode {
 		return object;
 	}
 
-	/*
-		Connect to an existing object
-		@param options.id - The object ID
-		@param options.drp - The DRP instance. It can be undefined
-			where we just want the HG state
-		@param options.sync.peerId - The peer ID to sync with
-	*/
-	async connectObject(options: {
-		id: string;
-		drp?: IDRP;
-		sync?: {
-			peerId?: string;
-		};
-		metrics?: IMetrics;
-	}): Promise<IDRPObject> {
-		const object = await operations.connectObject(this, options.id, {
-			peerId: options.sync?.peerId,
-			drp: options.drp,
-			metrics: options.metrics,
-		});
+	/**
+	 * Connect to an existing object
+	 * @param options.id - The object ID
+	 * @param options.drp - The DRP instance. It can be undefined where we just want the HG state
+	 * @param options.sync.peerId - The peer ID to sync with
+	 */
+	async connectObject(options: NodeConnectObjectOptions): Promise<IDRPObject> {
+		const object = await operations.connectObject(this, options.id, options);
 		this._createIntervalDiscovery(options.id);
 		return object;
 	}

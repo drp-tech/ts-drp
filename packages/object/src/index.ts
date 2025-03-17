@@ -100,7 +100,10 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 		this.drpStates = new Map([[HashGraph.rootHash, DRPState.create()]]);
 		this._setRootStates();
 
-		this.finalityStore = new FinalityStore(options.config?.finality_config);
+		this.finalityStore = new FinalityStore(
+			options.config?.finality_config,
+			options.config?.log_config
+		);
 		this.originalObjectACL = cloneDeep(objAcl);
 		this.originalDRP = cloneDeep(options.drp);
 		this.callFn =
@@ -134,6 +137,7 @@ export class DRPObject implements DRPObjectBase, IDRPObject {
 			admins: [],
 			permissionless: true,
 		});
+
 		const object = new DRPObject({
 			peerId: options.peerId,
 			id: options.id,
