@@ -22,6 +22,7 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 import { isPromise } from "@ts-drp/utils";
+import { type Deferred } from "@ts-drp/utils/dist/src/promise/deferred/index.js";
 import * as crypto from "crypto";
 
 import { type DRPNode } from "./index.js";
@@ -36,6 +37,10 @@ interface HandleParams {
 interface IHandlerStrategy {
 	(handleParams: HandleParams): Promise<void> | void;
 }
+
+// Map of object id to deferred promise of fetch state
+// This is used to be able to wait for the fetch state to be resolved before subscribing to the object
+export const fetchStateDeferredMap = new Map<string, Deferred<void>>();
 
 const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
 	[MessageType.MESSAGE_TYPE_UNSPECIFIED]: undefined,
@@ -143,6 +148,10 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 			(object.acl as IACL)[e.key] = e.value;
 		}
 		node.objectStore.put(object.id, object);
+		if (fetchStateDeferredMap.has(object.id)) {
+			fetchStateDeferredMap.get(object.id)?.resolve();
+			fetchStateDeferredMap.delete(object.id);
+		}
 		return;
 	}
 
@@ -151,6 +160,11 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 	}
 	if (fetchStateResponse.drpState) {
 		object.drpStates.set(fetchStateResponse.vertexHash, drpState as DRPState);
+	}
+
+	if (fetchStateDeferredMap.has(object.id)) {
+		fetchStateDeferredMap.get(object.id)?.resolve();
+		fetchStateDeferredMap.delete(object.id);
 	}
 }
 
@@ -222,10 +236,23 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 	node.objectStore.put(object.id, object);
 }
 
-/*
-  data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
-  operations array contain the full remote operations array
-*/
+/**
+ * Handles incoming sync requests from other nodes in the DRP network.
+ * This handler is responsible for:
+ * 1. Verifying the sync request and checking if the object exists
+ * 2. Comparing vertex hashes between local and remote states
+ * 3. Preparing and sending a sync accept response with:
+ *    - Vertices that the remote node is missing
+ *    - Vertices that the local node is requesting
+ *    - Relevant attestations for the vertices being sent
+ *
+ * @param {HandleParams} params - The handler parameters containing:
+ * @param {DRPNode} params.node - The DRP node instance handling the request
+ * @param {Message} params.message - The incoming sync message containing vertex hashes
+ * @param {Stream} params.stream - The network stream for direct communication
+ * @returns {Promise<void>} A promise that resolves when the sync response is sent
+ * @throws {Error} If the stream is undefined or if the object is not found
+ */
 async function syncHandler({ node, message, stream }: HandleParams): Promise<void> {
 	if (!stream) {
 		log.error("::syncHandler: Stream is undefined");

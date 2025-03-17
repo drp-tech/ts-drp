@@ -9,8 +9,9 @@ import {
 	MessageType,
 	Sync,
 } from "@ts-drp/types";
+import { Deferred } from "@ts-drp/utils/promise/deferred";
 
-import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
+import { drpMessagesHandler, drpObjectChangesHandler, fetchStateDeferredMap } from "./handlers.js";
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
 
@@ -40,7 +41,11 @@ export async function connectObject(
 	});
 	node.objectStore.put(id, object);
 
-	await fetchState(node, id, options.peerId);
+	const deferred = await fetchState(node, id, options.peerId);
+
+	// fetch state needs to finish before subscribing
+	await deferred.promise;
+
 	// sync process needs to finish before subscribing
 	// TODO: since when the interval can run this twice do we really want it to be runned while the other one might still be running?
 	const intervalFn = (interval: NodeJS.Timeout) => async (): Promise<void> => {
@@ -72,7 +77,11 @@ export function unsubscribeObject(node: DRPNode, objectId: string, purge?: boole
 	if (purge) node.objectStore.remove(objectId);
 }
 
-export async function fetchState(node: DRPNode, objectId: string, peerId?: string): Promise<void> {
+export async function fetchState(
+	node: DRPNode,
+	objectId: string,
+	peerId?: string
+): Promise<Deferred<void>> {
 	const data = FetchState.create({
 		objectId,
 		vertexHash: HashGraph.rootHash,
@@ -88,6 +97,10 @@ export async function fetchState(node: DRPNode, objectId: string, peerId?: strin
 	} else {
 		await node.networkNode.sendMessage(peerId, message);
 	}
+
+	const deferred = new Deferred<void>();
+	fetchStateDeferredMap.set(objectId, deferred);
+	return deferred;
 }
 
 /*
