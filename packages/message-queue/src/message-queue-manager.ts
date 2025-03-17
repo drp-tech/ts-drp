@@ -5,7 +5,7 @@ import { MessageQueue } from "./message-queue.js";
 export const GENERAL_QUEUE_ID = "general";
 
 export class MessageQueueManager<T> implements IMessageQueueManager<T> {
-	private readonly options: IMessageQueueManagerOptions;
+	private readonly options: Required<IMessageQueueManagerOptions>;
 	private queues: Map<string, MessageQueue<T>>;
 
 	constructor(options: IMessageQueueManagerOptions = {}) {
@@ -22,7 +22,11 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 		}
 		const queue = this.queues.get(queueId);
 		if (!queue) {
-			this.queues.set(queueId, new MessageQueue<T>({ maxSize: this.options.maxQueues }));
+			if (this.queues.size < this.options.maxQueues) {
+				this.queues.set(queueId, new MessageQueue<T>({ maxSize: this.options.maxQueues }));
+			} else {
+				throw new Error("Max number of queues reached");
+			}
 		}
 		await this.queues.get(queueId)?.enqueue(message);
 	}
@@ -30,7 +34,11 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 	async subscribe(queueId: string, handler: (message: T) => Promise<void>): Promise<void> {
 		const queue = this.queues.get(queueId);
 		if (!queue) {
-			this.queues.set(queueId, new MessageQueue<T>({ maxSize: this.options.maxQueues }));
+			if (this.queues.size < this.options.maxQueues) {
+				this.queues.set(queueId, new MessageQueue<T>({ maxSize: this.options.maxQueues }));
+			} else {
+				throw new Error("Max number of queues reached");
+			}
 		}
 		await this.queues.get(queueId)?.subscribe(handler);
 	}

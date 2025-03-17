@@ -12,7 +12,7 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 			maxSize: options.maxSize ?? 1000,
 			dropOnFull: options.dropOnFull ?? false,
 		};
-		this.queue = new Channel<T>(this.options.maxSize);
+		this.queue = new Channel<T>({ capacity: this.options.maxSize });
 	}
 
 	async enqueue(message: T): Promise<void> {

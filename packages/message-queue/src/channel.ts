@@ -1,23 +1,20 @@
-export class Deferred<T> {
-	promise: Promise<T>;
-	resolve!: (value: T | PromiseLike<T>) => void;
-	reject!: (reason?: unknown) => void;
+import { Deferred } from "./deffered.js";
 
-	constructor() {
-		this.promise = new Promise((resolve, reject) => {
-			this.resolve = resolve;
-			this.reject = reject;
-		});
-	}
+export interface ChannelOptions {
+	capacity?: number;
 }
 
 export class Channel<T> {
-	public constructor(
-		public readonly capacity = 0,
-		private readonly values: Array<T> = [],
-		private readonly sends: Array<{ value: T; signal: Deferred<void> }> = [],
-		private readonly receives: Array<Deferred<T>> = []
-	) {}
+	private readonly values: Array<T> = [];
+	private readonly sends: Array<{ value: T; signal: Deferred<void> }> = [];
+	private readonly receives: Array<Deferred<T>> = [];
+	private readonly options: Required<ChannelOptions>;
+
+	constructor(options: ChannelOptions = {}) {
+		this.options = {
+			capacity: options.capacity ?? 1000,
+		};
+	}
 
 	async send(value: T): Promise<void> {
 		if (this.receives.length > 0) {
@@ -28,7 +25,7 @@ export class Channel<T> {
 			return;
 		}
 
-		if (this.values.length < this.capacity) {
+		if (this.values.length < this.options.capacity) {
 			this.values.push(value);
 			return;
 		}
