@@ -5,15 +5,19 @@ declare global {
 	}
 }
 
-if (typeof process.uptime !== "function") {
+export const uptimePolyfill = (): (() => number) => {
 	const startTime = performance.now();
 
-	process.uptime = (): number => {
+	const uptime = (): number => {
 		return (performance.now() - startTime) / 1000;
 	};
-}
 
-if (typeof process.hrtime !== "function") {
+	return uptime;
+};
+
+export const hrtimePolyfill = (): ((time?: [number, number]) => [number, number]) & {
+	bigint(): bigint;
+} => {
 	const baseTime = performance.now();
 
 	const hrtimeFunction = (time?: [number, number]): [number, number] => {
@@ -42,5 +46,13 @@ if (typeof process.hrtime !== "function") {
 		return BigInt(Math.floor(elapsedMs * 1e6));
 	};
 
-	process.hrtime = hrtimeFunction;
+	return hrtimeFunction;
+};
+
+if (typeof process.uptime !== "function") {
+	process.uptime = uptimePolyfill();
+}
+
+if (typeof process.hrtime !== "function") {
+	process.hrtime = hrtimePolyfill();
 }
