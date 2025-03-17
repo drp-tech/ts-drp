@@ -3,9 +3,19 @@ import { defineConfig } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 export default defineConfig({
+	server: {
+		proxy: {
+			"/metrics": {
+				target: "http://localhost:9091",
+				changeOrigin: true,
+			},
+		},
+	},
 	define: {
 		"import.meta.env.VITE_RENDER_INFO_INTERVAL": process.env.VITE_RENDER_INFO_INTERVAL || 1000,
 		"import.meta.env.VITE_ENABLE_TRACING": process.env.VITE_ENABLE_TRACING || false,
+		"import.meta.env.VITE_ENABLE_PROMETHEUS_METRICS":
+			process.env.VITE_ENABLE_PROMETHEUS_METRICS || false,
 	},
 	build: {
 		target: "esnext",

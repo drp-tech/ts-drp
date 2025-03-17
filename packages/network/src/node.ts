@@ -1,7 +1,13 @@
-import { gossipsub, type GossipSub, type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
+import {
+	type GossipSub,
+	gossipsub,
+	type GossipsubMessage,
+	type GossipsubOpts,
+} from "@chainsafe/libp2p-gossipsub";
 import {
 	createPeerScoreParams,
 	createTopicScoreParams,
+	type PeerScoreParams,
 	type TopicScoreParams,
 } from "@chainsafe/libp2p-gossipsub/score";
 import { noise } from "@chainsafe/libp2p-noise";
@@ -13,13 +19,13 @@ import { privateKeyFromRaw } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
-import type {
-	Address,
-	EventCallback,
-	PeerDiscovery,
-	PeerId,
-	Stream,
-	StreamHandler,
+import {
+	type Address,
+	type EventCallback,
+	type PeerDiscovery,
+	type PeerId,
+	type Stream,
+	type StreamHandler,
 } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { ping } from "@libp2p/ping";
@@ -35,12 +41,13 @@ import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger } from "@ts-drp/logger";
 import {
 	DRP_DISCOVERY_TOPIC,
+	type DRPNetworkNodeConfig,
 	type DRPNetworkNode as DRPNetworkNodeInterface,
-	type LoggerOptions,
 	Message,
 } from "@ts-drp/types";
 import { createLibp2p, type Libp2p, type ServiceFactoryMap } from "libp2p";
 
+import { PrometheusMetricsRegister } from "./metrics/prometheus.js";
 import { uint8ArrayToStream } from "./stream.js";
 
 export * from "./stream.js";
@@ -52,19 +59,6 @@ export const BOOTSTRAP_NODES = [
 ];
 let log: Logger;
 
-// snake_casing to match the JSON config
-export interface DRPNetworkNodeConfig {
-	announce_addresses?: string[];
-	bootstrap?: boolean;
-	bootstrap_peers?: string[];
-	browser_metrics?: boolean;
-	listen_addresses?: string[];
-	log_config?: LoggerOptions;
-	pubsub?: {
-		peer_discovery_interval?: number;
-	};
-}
-
 type PeerDiscoveryFunction =
 	| ((components: PubSubPeerDiscoveryComponents) => PeerDiscovery)
 	| ((components: BootstrapComponents) => PeerDiscovery);
@@ -73,6 +67,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: GossipSub;
+	private _metrics?: PrometheusMetricsRegister;
 
 	peerId = "";
 
@@ -119,47 +114,11 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 			dcutr: dcutr(),
 			identify: identify(),
 			identifyPush: identifyPush(),
-			pubsub: gossipsub({
-				doPX: true,
-				allowPublishToZeroTopicPeers: true,
-				scoreParams: createPeerScoreParams({
-					IPColocationFactorWeight: 0,
-					appSpecificScore: (peerId: string) => {
-						if (_bootstrapNodesList.some((node) => node.includes(peerId))) {
-							return 1000;
-						}
-						return 0;
-					},
-					topics: {
-						[DRP_DISCOVERY_TOPIC]: createTopicScoreParams({
-							topicWeight: 1,
-						}),
-					},
-				}),
-				fallbackToFloodsub: false,
-			}),
+			pubsub: gossipsub(this.getGossipSubConfig(_bootstrapPeerID)),
 		};
 
 		if (this._config?.bootstrap) {
-			_node_services = {
-				..._node_services,
-				autonat: autoNAT(),
-				pubsub: gossipsub({
-					// cf: https://github.com/libp2p/specs/blob/master/pubsub/gossipsub/gossipsub-v1.1.md#recommendations-for-network-operators
-					D: 0,
-					Dlo: 0,
-					Dhi: 0,
-					Dout: 0,
-					doPX: true,
-					ignoreDuplicatePublishError: true,
-					allowPublishToZeroTopicPeers: true,
-					scoreParams: createPeerScoreParams({
-						topicScoreCap: 50,
-						IPColocationFactorWeight: 0,
-					}),
-					fallbackToFloodsub: false,
-				}),
-			};
+			_node_services = { ..._node_services, autonat: autoNAT() };
 		}
 
 		const _bootstrap_services = {
@@ -239,17 +198,21 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 
 		// needded as I've disabled the pubsubPeerDiscovery
 		this._pubsub?.subscribe(DRP_DISCOVERY_TOPIC);
+		this._metrics?.start(`drp-network-${this.peerId}`, 10_000);
 	}
 
 	async stop(): Promise<void> {
 		if (this._node?.status === "stopped") throw new Error("Node not started");
 		await this._node?.stop();
+		this._metrics?.stop();
 	}
 
 	async restart(config?: DRPNetworkNodeConfig, rawPrivateKey?: Uint8Array): Promise<void> {
 		await this.stop();
+		this._metrics?.stop();
 		if (config) this._config = config;
 		await this.start(rawPrivateKey);
+		this._metrics?.start(`drp-network-${this.peerId}`, 10_000);
 	}
 
 	async isDialable(callback?: () => void | Promise<void>): Promise<boolean> {
@@ -283,6 +246,47 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		if (aWebrtc && !bWebrtc) return -1;
 		if (!aWebrtc && bWebrtc) return 1;
 		return 0;
+	}
+
+	private getGossipSubConfig(bootstapNodeList: string[]): Partial<GossipsubOpts> {
+		const baseConfig: Partial<GossipsubOpts> = {
+			doPX: true,
+			fallbackToFloodsub: false,
+			allowPublishToZeroTopicPeers: true,
+			scoreParams: this.getGossipSubPeerScoreParams(bootstapNodeList),
+		};
+
+		if (this._config?.bootstrap) {
+			baseConfig.D = 0;
+			baseConfig.Dlo = 0;
+			baseConfig.Dhi = 0;
+			baseConfig.Dout = 0;
+		}
+
+		if (this._config?.pubsub?.prometheus_metrics) {
+			const pushgatewayUrl = this._config?.pubsub?.pushgateway_url ?? "http://localhost:9091";
+			this._metrics = new PrometheusMetricsRegister(pushgatewayUrl);
+			baseConfig.metricsRegister = this._metrics;
+			baseConfig.metricsTopicStrToLabel = new Map();
+		}
+
+		return baseConfig;
+	}
+
+	private getGossipSubPeerScoreParams(bootstapNodeList: string[]): PeerScoreParams {
+		if (this._config?.bootstrap) {
+			return createPeerScoreParams({ topicScoreCap: 50, IPColocationFactorWeight: 0 });
+		}
+
+		return createPeerScoreParams({
+			IPColocationFactorWeight: 0,
+			appSpecificScore: (peerId: string) => {
+				if (bootstapNodeList.some((node) => node.includes(peerId))) return 1000;
+
+				return 0;
+			},
+			topics: { [DRP_DISCOVERY_TOPIC]: createTopicScoreParams({ topicWeight: 1 }) },
+		});
 	}
 
 	changeTopicScoreParams(topic: string, params: TopicScoreParams): void {
