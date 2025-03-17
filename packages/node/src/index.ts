@@ -211,9 +211,9 @@ export class DRPNode {
 		interval.start();
 	}
 
-	async handleDiscoveryResponse(sender: string, data: Uint8Array): Promise<void> {
-		const response = DRPDiscoveryResponse.decode(data);
-		const objectId = response.objectId;
+	async handleDiscoveryResponse(sender: string, message: Message): Promise<void> {
+		const response = DRPDiscoveryResponse.decode(message.data);
+		const objectId = message.objectId;
 		const interval = this._intervals.get(objectId);
 		if (!interval) {
 			log.error("::handleDiscoveryResponse: Object not found");

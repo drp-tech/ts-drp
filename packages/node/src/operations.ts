@@ -73,13 +73,13 @@ export function unsubscribeObject(node: DRPNode, objectId: string, purge?: boole
 
 export async function fetchState(node: DRPNode, objectId: string, peerId?: string): Promise<void> {
 	const data = FetchState.create({
-		objectId,
 		vertexHash: HashGraph.rootHash,
 	});
 	const message = Message.create({
 		sender: node.networkNode.peerId,
 		type: MessageType.MESSAGE_TYPE_FETCH_STATE,
 		data: FetchState.encode(data).finish(),
+		objectId: objectId,
 	});
 
 	if (!peerId) {
@@ -99,13 +99,13 @@ export async function syncObject(node: DRPNode, objectId: string, peerId?: strin
 		return;
 	}
 	const data = Sync.create({
-		objectId,
 		vertexHashes: object.vertices.map((v) => v.hash),
 	});
 	const message = Message.create({
 		sender: node.networkNode.peerId,
 		type: MessageType.MESSAGE_TYPE_SYNC,
 		data: Sync.encode(data).finish(),
+		objectId: objectId,
 	});
 
 	if (!peerId) {

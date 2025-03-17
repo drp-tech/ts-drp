@@ -153,10 +153,10 @@ describe("Handle message correctly", () => {
 			type: MessageType.MESSAGE_TYPE_UPDATE,
 			data: Update.encode(
 				Update.create({
-					objectId: drpObject.id,
 					vertices: vertices,
 				})
 			).finish(),
+			objectId: drpObject.id,
 		});
 		await node2.networkNode.sendMessage(node1.networkNode.peerId, message);
 		await new Promise((resolve) => setTimeout(resolve, 500));
@@ -176,10 +176,10 @@ describe("Handle message correctly", () => {
 			type: MessageType.MESSAGE_TYPE_FETCH_STATE,
 			data: FetchState.encode(
 				FetchState.create({
-					objectId: drpObject.id,
 					vertexHash: drpObject.vertices[0].hash,
 				})
 			).finish(),
+			objectId: drpObject.id,
 		});
 
 		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
@@ -205,10 +205,10 @@ describe("Handle message correctly", () => {
 			type: MessageType.MESSAGE_TYPE_SYNC,
 			data: Sync.encode(
 				Sync.create({
-					objectId: drpObject.id,
 					vertexHashes: node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => vertex.hash),
 				})
 			).finish(),
+			objectId: drpObject.id,
 		});
 
 		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
@@ -230,12 +230,12 @@ describe("Handle message correctly", () => {
 			type: MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
 			data: SyncAccept.encode(
 				SyncAccept.create({
-					objectId: drpObject.id,
 					requested: node1DrpObject?.vertices,
 					requesting: [],
 					attestations: [],
 				})
 			).finish(),
+			objectId: drpObject.id,
 		});
 		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
 		await new Promise((resolve) => setTimeout(resolve, 500));
@@ -257,10 +257,10 @@ describe("Handle message correctly", () => {
 			type: MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
 			data: AttestationUpdate.encode(
 				AttestationUpdate.create({
-					objectId: drpObject.id,
 					attestations,
 				})
 			).finish(),
+			objectId: drpObject.id,
 		});
 		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
 		await new Promise((resolve) => setTimeout(resolve, 500));

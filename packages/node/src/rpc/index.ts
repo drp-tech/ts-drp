@@ -40,13 +40,13 @@ export function init(node: DRPNode, port: number = 6969): void {
 		callback(null, response);
 	}
 
-	function unsubscribeDRP(
+	async function unsubscribeDRP(
 		call: ServerUnaryCall<UnsubscribeDRPRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>
-	): void {
+	): Promise<void> {
 		let returnCode = 0;
 		try {
-			node.unsubscribeObject(call.request.drpId);
+			await node.unsubscribeObject(call.request.drpId);
 		} catch (e) {
 			log.error("::rpc::unsubscribeDRP: Error", e);
 			returnCode = 1;
@@ -165,6 +165,7 @@ export function init(node: DRPNode, port: number = 6969): void {
 	server.addService(DrpRpcService, {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		subscribeDRP,
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		unsubscribeDRP,
 		getDRPHashGraph,
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises

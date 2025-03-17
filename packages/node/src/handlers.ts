@@ -48,7 +48,7 @@ const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
 	[MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE]: attestationUpdateHandler,
 	[MessageType.MESSAGE_TYPE_DRP_DISCOVERY]: drpDiscoveryHandler,
 	[MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE]: ({ node, message }) =>
-		node.handleDiscoveryResponse(message.sender, message.data),
+		node.handleDiscoveryResponse(message.sender, message),
 	[MessageType.MESSAGE_TYPE_CUSTOM]: undefined,
 	[MessageType.UNRECOGNIZED]: undefined,
 };
@@ -109,7 +109,7 @@ export async function stopListeningForMessages(node: DRPNode, objectId: string):
 function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
 	const { data, sender } = message;
 	const fetchState = FetchState.decode(data);
-	const drpObject = node.objectStore.get(fetchState.objectId);
+	const drpObject = node.objectStore.get(message.objectId);
 	if (!drpObject) {
 		log.error("::fetchStateHandler: Object not found");
 		return;
@@ -118,7 +118,6 @@ function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandler
 	const aclState = drpObject.aclStates.get(fetchState.vertexHash);
 	const drpState = drpObject.drpStates.get(fetchState.vertexHash);
 	const response = FetchStateResponse.create({
-		objectId: fetchState.objectId,
 		vertexHash: fetchState.vertexHash,
 		aclState: serializeDRPState(aclState),
 		drpState: serializeDRPState(drpState),
@@ -128,6 +127,7 @@ function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandler
 		sender: node.networkNode.peerId,
 		type: MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE,
 		data: FetchStateResponse.encode(response).finish(),
+		objectId: drpObject.id,
 	});
 	node.networkNode.sendMessage(sender, messageFetchStateResponse).catch((e) => {
 		log.error("::fetchStateHandler: Error sending message", e);
@@ -140,7 +140,7 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 	if (!fetchStateResponse.drpState && !fetchStateResponse.aclState) {
 		log.error("::fetchStateResponseHandler: No state found");
 	}
-	const object = node.objectStore.get(fetchStateResponse.objectId);
+	const object = node.objectStore.get(message.objectId);
 	if (!object) {
 		log.error("::fetchStateResponseHandler: Object not found");
 		return;
@@ -174,7 +174,7 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 function attestationUpdateHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
 	const { data, sender } = message;
 	const attestationUpdate = AttestationUpdate.decode(data);
-	const object = node.objectStore.get(attestationUpdate.objectId);
+	const object = node.objectStore.get(message.objectId);
 	if (!object) {
 		log.error("::attestationUpdateHandler: Object not found");
 		return;
@@ -193,7 +193,7 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 	const { sender, data } = message;
 
 	const updateMessage = Update.decode(data);
-	const object = node.objectStore.get(updateMessage.objectId);
+	const object = node.objectStore.get(message.objectId);
 	if (!object) {
 		log.error("::updateHandler: Object not found");
 		return;
@@ -209,7 +209,7 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 	const [merged, _] = await object.merge(verifiedVertices);
 
 	if (!merged) {
-		await node.syncObject(updateMessage.objectId, sender);
+		await node.syncObject(message.objectId, sender);
 	} else {
 		// add their signatures
 		object.finalityStore.addSignatures(sender, updateMessage.attestations);
@@ -224,10 +224,10 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 				type: MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
 				data: AttestationUpdate.encode(
 					AttestationUpdate.create({
-						objectId: object.id,
 						attestations: attestations,
 					})
 				).finish(),
+				objectId: object.id,
 			});
 
 			node.networkNode.broadcastMessage(object.id, message).catch((e) => {
@@ -247,7 +247,7 @@ async function syncHandler({ node, message }: HandleParams): Promise<void> {
 	const { sender, data } = message;
 	// (might send reject) <- TODO: when should we reject?
 	const syncMessage = Sync.decode(data);
-	const object = node.objectStore.get(syncMessage.objectId);
+	const object = node.objectStore.get(message.objectId);
 	if (!object) {
 		log.error("::syncHandler: Object not found");
 		return;
@@ -276,12 +276,12 @@ async function syncHandler({ node, message }: HandleParams): Promise<void> {
 		// add data here
 		data: SyncAccept.encode(
 			SyncAccept.create({
-				objectId: object.id,
 				requested: [...requested],
 				attestations,
 				requesting,
 			})
 		).finish(),
+		objectId: object.id,
 	});
 
 	node.networkNode.sendMessage(sender, messageSyncAccept).catch((e) => {
@@ -296,7 +296,7 @@ async function syncHandler({ node, message }: HandleParams): Promise<void> {
 async function syncAcceptHandler({ node, message }: HandleParams): Promise<void> {
 	const { data, sender } = message;
 	const syncAcceptMessage = SyncAccept.decode(data);
-	const object = node.objectStore.get(syncAcceptMessage.objectId);
+	const object = node.objectStore.get(message.objectId);
 	if (!object) {
 		log.error("::syncAcceptHandler: Object not found");
 		return;
@@ -336,12 +336,12 @@ async function syncAcceptHandler({ node, message }: HandleParams): Promise<void>
 		type: MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
 		data: SyncAccept.encode(
 			SyncAccept.create({
-				objectId: object.id,
 				requested,
 				attestations,
 				requesting: [],
 			})
 		).finish(),
+		objectId: object.id,
 	});
 	node.networkNode.sendMessage(sender, messageSyncAccept).catch((e) => {
 		log.error("::syncAcceptHandler: Error sending message", e);
@@ -382,11 +382,11 @@ export function drpObjectChangesHandler(
 						type: MessageType.MESSAGE_TYPE_UPDATE,
 						data: Update.encode(
 							Update.create({
-								objectId: obj.id,
 								vertices: vertices,
 								attestations: attestations,
 							})
 						).finish(),
+						objectId: obj.id,
 					});
 					node.networkNode.broadcastMessage(obj.id, message).catch((e) => {
 						log.error("::drpObjectChangesHandler: Error broadcasting message", e);
