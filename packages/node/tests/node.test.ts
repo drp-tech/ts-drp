@@ -119,7 +119,6 @@ describe("DRPNode voting tests", () => {
 		});
 
 		acl.setKey(nodeA.networkNode.peerId, nodeA.networkNode.peerId, nodeA.keychain.blsPublicKey);
-		acl.setKey(nodeB.networkNode.peerId, nodeB.networkNode.peerId, nodeB.keychain.blsPublicKey);
 		obj1 = new DRPObject({
 			peerId: nodeA.networkNode.peerId,
 			acl,
@@ -134,12 +133,13 @@ describe("DRPNode voting tests", () => {
 		});
 	});
 
-	test("Nodes in writer set are able to sign", async () => {
+	test("Nodes in finality set are able to sign", async () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
 
 		acl1.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
+		acl1.setKey(nodeB.networkNode.peerId, nodeB.networkNode.peerId, nodeB.keychain.blsPublicKey);
 		drp1.add(1);
 
 		await obj2.merge(obj1.vertices);
