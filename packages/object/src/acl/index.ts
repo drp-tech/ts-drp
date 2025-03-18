@@ -2,6 +2,7 @@ import {
 	ACLConflictResolution,
 	ACLGroup,
 	ActionType,
+	type DrpRuntimeContext,
 	type IACL,
 	type PeerPermissions,
 	type ResolveConflictsType,
@@ -23,6 +24,7 @@ function getPeerPermissions(params?: {
 
 export class ObjectACL implements IACL {
 	semanticsType = SemanticsType.pair;
+	context: DrpRuntimeContext = { caller: "" };
 
 	// if true, any peer can write to the object
 	permissionless: boolean;

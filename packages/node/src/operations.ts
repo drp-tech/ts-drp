@@ -2,11 +2,10 @@ import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import { DRPObject as DRPObjectImpl, HashGraph } from "@ts-drp/object";
 import {
 	FetchState,
-	type IDRP,
 	type IDRPObject,
-	type IMetrics,
 	Message,
 	MessageType,
+	type NodeConnectObjectOptions,
 	Sync,
 } from "@ts-drp/types";
 import { Deferred } from "@ts-drp/utils/promise/deferred";
@@ -23,26 +22,21 @@ export function createObject(node: DRPNode, object: IDRPObject): void {
 	});
 }
 
-export type ConnectObjectOptions = {
-	drp?: IDRP;
-	peerId?: string;
-	metrics?: IMetrics;
-};
-
 export async function connectObject(
 	node: DRPNode,
 	id: string,
-	options: ConnectObjectOptions
+	options: NodeConnectObjectOptions
 ): Promise<IDRPObject> {
 	const object = DRPObjectImpl.createObject({
 		peerId: node.networkNode.peerId,
 		id,
 		drp: options.drp,
 		metrics: options.metrics,
+		log_config: options.log_config,
 	});
 	node.objectStore.put(id, object);
 
-	const deferred = await fetchState(node, id, options.peerId);
+	const deferred = await fetchState(node, id, options.sync?.peerId);
 
 	// fetch state needs to finish before subscribing
 	try {
@@ -57,7 +51,7 @@ export async function connectObject(
 	// TODO: since when the interval can run this twice do we really want it to be runned while the other one might still be running?
 	const intervalFn = (interval: NodeJS.Timeout) => async (): Promise<void> => {
 		if (object.acl) {
-			await syncObject(node, id, options.peerId);
+			await syncObject(node, id, options.sync?.peerId);
 			subscribeObject(node, id);
 			object.subscribe((obj, originFn, vertices) => {
 				drpObjectChangesHandler(node, obj as IDRPObject, originFn, vertices);
