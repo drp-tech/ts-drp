@@ -147,12 +147,11 @@ describe("Handle message correctly", () => {
 			id: drpObjectNode2.id,
 			acl: acl,
 		});
-
-		(drpObjectNode2.drp as SetDRP<number>).add(5);
-		(drpObjectNode2.drp as SetDRP<number>).add(10);
 	});
 
 	test("should handle update message correctly", async () => {
+		(drpObjectNode2.drp as SetDRP<number>).add(5);
+		(drpObjectNode2.drp as SetDRP<number>).add(10);
 		const vertices = drpObjectNode2.vertices;
 		await signGeneratedVertices(node2, vertices);
 		const message = Message.create({
@@ -178,6 +177,8 @@ describe("Handle message correctly", () => {
 	});
 
 	test("should handle fetch state", async () => {
+		(drpObjectNode2.drp as SetDRP<number>).add(5);
+		(drpObjectNode2.drp as SetDRP<number>).add(10);
 		const message = Message.create({
 			sender: node1.networkNode.peerId,
 			type: MessageType.MESSAGE_TYPE_FETCH_STATE,
@@ -198,6 +199,8 @@ describe("Handle message correctly", () => {
 	});
 
 	test("should handle sync message correctly", async () => {
+		(drpObjectNode2.drp as SetDRP<number>).add(5);
+		(drpObjectNode2.drp as SetDRP<number>).add(10);
 		const node1DrpObject = node1.objectStore.get(drpObjectNode2.id);
 		expect(node1DrpObject).toBeDefined();
 
@@ -228,6 +231,8 @@ describe("Handle message correctly", () => {
 	});
 
 	test("should handle update attestation message correctly", async () => {
+		(drpObjectNode2.drp as SetDRP<number>).add(5);
+		(drpObjectNode2.drp as SetDRP<number>).add(10);
 		const hash = drpObjectNode2.vertices[1].hash;
 		(drpObjectNode2.drp as SetDRP<number>).add(6);
 		expect(
