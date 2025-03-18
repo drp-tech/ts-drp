@@ -3,7 +3,6 @@
  */
 export interface IMessageQueueOptions {
 	maxSize?: number; // Maximum number of messages in the queue
-	dropOnFull?: boolean; // Whether to drop new messages when queue is full
 }
 
 /**
@@ -14,11 +13,11 @@ export interface IMessageQueue<T> {
 	 * Enqueue a new message and process it if queue is active
 	 * @param message The message to enqueue
 	 */
-	enqueue(message: unknown): Promise<void>;
+	enqueue(message: T): Promise<void>;
 
 	/**
 	 * Subscribe to the queue
-	 * @param callback The callback to call when a message is enqueued
+	 * @param handler The handler to apply to each message received
 	 */
 	subscribe(handler: (message: T) => Promise<void>): Promise<void>;
 
@@ -29,12 +28,33 @@ export interface IMessageQueue<T> {
 }
 
 export interface IMessageQueueManagerOptions {
-	maxQueues?: number;
+	maxQueues?: number; // Maximum number of queues
+	maxQueueSize?: number; // Maximum number of messages in each queue
 }
 
 export interface IMessageQueueManager<T> {
+	/**
+	 * Enqueue a new message and process it if queue is active
+	 * @param queueId The queue to enqueue the message to
+	 * @param message The message to enqueue
+	 */
 	enqueue(queueId: string, message: T): Promise<void>;
+
+	/**
+	 * Subscribe to the queue
+	 * @param queueId The queue to subscribe to
+	 * @param handler The handler to apply to each message received
+	 */
 	subscribe(queueId: string, handler: (message: T) => Promise<void>): Promise<void>;
+
+	/**
+	 * Close the queue
+	 * @param queueId The queue to close
+	 */
 	close(queueId: string): Promise<void>;
+
+	/**
+	 * Close all queues
+	 */
 	closeAll(): Promise<void>;
 }

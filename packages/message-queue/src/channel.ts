@@ -7,8 +7,9 @@ export interface ChannelOptions {
 export class Channel<T> {
 	private readonly values: Array<T> = [];
 	private readonly sends: Array<{ value: T; signal: Deferred<void> }> = [];
+	private readonly receives: Array<Deferred<T>> = [];
 	private readonly options: Required<ChannelOptions>;
-	private receives: Array<Deferred<T>> = [];
+	private isClosed: boolean = false;
 
 	constructor(options: ChannelOptions = {}) {
 		this.options = {
@@ -17,6 +18,10 @@ export class Channel<T> {
 	}
 
 	async send(value: T): Promise<void> {
+		if (this.isClosed) {
+			throw new Error("Channel is closed");
+		}
+
 		if (value === undefined) {
 			throw new Error("Unexpected undefined value in channel");
 		}
@@ -45,6 +50,11 @@ export class Channel<T> {
 	}
 
 	async receive(): Promise<T> {
+		// if channel is closed and no more messages, throw
+		if (this.isClosed && this.values.length === 0 && this.sends.length === 0) {
+			throw new Error("Channel is closed");
+		}
+
 		// if there are values in the buffer, return the first one
 		if (this.values.length > 0) {
 			const value = this.values.shift();
@@ -60,14 +70,29 @@ export class Channel<T> {
 			if (send) {
 				const value = send.value;
 				send.signal.resolve();
-				await send.signal.promise;
 				return value;
 			}
+		}
+
+		// if channel is closed and we got here, it means no more messages
+		if (this.isClosed) {
+			throw new Error("Channel is closed");
 		}
 
 		// if there are no values or pending sends, wait for a send
 		const signal = new Deferred<T>();
 		this.receives.push(signal);
 		return signal.promise;
+	}
+
+	close(): void {
+		this.isClosed = true;
+		// Reject all pending receives
+		while (this.receives.length > 0) {
+			const recv = this.receives.shift();
+			if (recv) {
+				recv.reject(new Error("Channel is closed"));
+			}
+		}
 	}
 }
