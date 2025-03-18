@@ -133,7 +133,7 @@ describe("DRPNode voting tests", () => {
 		});
 	});
 
-	test("Nodes in finality set are able to sign", async () => {
+	test("Nodes in writer set are able to sign", async () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
