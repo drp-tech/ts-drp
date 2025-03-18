@@ -10,6 +10,7 @@ import {
 	Sync,
 } from "@ts-drp/types";
 import { Deferred } from "@ts-drp/utils/promise/deferred";
+import { AbortError, raceSignal } from "race-signal";
 
 import { drpMessagesHandler, drpObjectChangesHandler, fetchStateDeferredMap } from "./handlers.js";
 import { type DRPNode } from "./index.js";
@@ -44,7 +45,13 @@ export async function connectObject(
 	const deferred = await fetchState(node, id, options.peerId);
 
 	// fetch state needs to finish before subscribing
-	await deferred.promise;
+	try {
+		await raceSignal(deferred.promise, AbortSignal.timeout(5_000));
+	} catch (error) {
+		if (error instanceof AbortError) {
+			log.error("::connectObject: Fetch state timed out");
+		}
+	}
 
 	// sync process needs to finish before subscribing
 	// TODO: since when the interval can run this twice do we really want it to be runned while the other one might still be running?
