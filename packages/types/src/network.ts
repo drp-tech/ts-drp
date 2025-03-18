@@ -103,6 +103,12 @@ export interface DRPNetworkNode {
 	unsubscribe(topic: string): void;
 
 	/**
+	 * Connects to the bootstrap nodes
+	 * @returns {Promise<void>} Resolves when connection is established
+	 */
+	connectBootstrap(): Promise<void>;
+
+	/**
 	 * Connects to one or more peer addresses
 	 * @param {MultiaddrInput | MultiaddrInput[]} addr - The address(es) to connect to
 	 * @returns {Promise<void>} Resolves when connection is established

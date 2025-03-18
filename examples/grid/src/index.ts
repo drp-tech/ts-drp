@@ -173,6 +173,19 @@ async function main(): Promise<void> {
 	});
 
 	if (!hasRun) setInterval(renderInfo, import.meta.env.VITE_RENDER_INFO_INTERVAL);
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	setInterval(async () => {
+		await gridState.node.networkNode.connectBootstrap();
+		return;
+	}, 10000);
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	// setInterval(async () => {
+	// 	const nodes = gridState.node.networkNode.getBootstrapNodes();
+	// 	for (const node of nodes) {
+	// 		await gridState.node.networkNode.disconnect(node);
+	// 		console.log(node);
+	// 	}
+	// }, 5000);
 }
 
 void main();

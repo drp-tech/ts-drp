@@ -1,6 +1,7 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
 import { createDRPDiscovery } from "@ts-drp/interval-discovery";
+import { createDRPReconnectBootstrap } from "@ts-drp/interval-reconnect";
 import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
 import { DRPNetworkNode } from "@ts-drp/network";
@@ -11,6 +12,7 @@ import {
 	type DRPNodeConfig,
 	type IACL,
 	type IDRP,
+	type IDRPIntervalReconnectBootstrap,
 	type IDRPObject,
 	type IMetrics,
 	type IntervalRunnerMap,
@@ -33,6 +35,7 @@ export class DRPNode {
 	keychain: Keychain;
 
 	private _intervals: Map<string, IntervalRunnerMap[keyof IntervalRunnerMap]> = new Map();
+	private _intervalReconnectBootstrap: IDRPIntervalReconnectBootstrap;
 
 	constructor(config?: DRPNodeConfig) {
 		const newLogger = new Logger("drp::node", config?.log_config);
@@ -50,6 +53,11 @@ export class DRPNode {
 				...config?.interval_discovery_options,
 			},
 		};
+
+		this._intervalReconnectBootstrap = createDRPReconnectBootstrap({
+			...this.config.interval_reconnect_options,
+			networkNode: this.networkNode,
+		});
 	}
 
 	async start(): Promise<void> {
@@ -64,6 +72,7 @@ export class DRPNode {
 				void drpMessagesHandler(this, undefined, e.detail.msg.data)
 		);
 		this._intervals.forEach((interval) => interval.start());
+		this._intervalReconnectBootstrap.start();
 	}
 
 	async stop(): Promise<void> {

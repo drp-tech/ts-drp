@@ -73,12 +73,16 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: GossipSub;
+	private _bootstrapNodesList: string[];
 
 	peerId = "";
 
 	constructor(config?: DRPNetworkNodeConfig) {
 		this._config = config;
 		log = new Logger("drp::network", config?.log_config);
+		this._bootstrapNodesList = this._config?.bootstrap_peers
+			? this._config.bootstrap_peers
+			: BOOTSTRAP_NODES;
 	}
 
 	async start(rawPrivateKey?: Uint8Array): Promise<void> {
@@ -89,10 +93,6 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 			privateKey = privateKeyFromRaw(rawPrivateKey);
 		}
 
-		const _bootstrapNodesList = this._config?.bootstrap_peers
-			? this._config.bootstrap_peers
-			: BOOTSTRAP_NODES;
-
 		const _peerDiscovery: Array<PeerDiscoveryFunction> = [
 			pubsubPeerDiscovery({
 				topics: [DRP_DISCOVERY_TOPIC],
@@ -101,13 +101,13 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		];
 
 		const _bootstrapPeerID: string[] = [];
-		if (_bootstrapNodesList.length) {
+		if (this._bootstrapNodesList.length) {
 			_peerDiscovery.push(
 				bootstrap({
-					list: _bootstrapNodesList,
+					list: this._bootstrapNodesList,
 				})
 			);
-			for (const addr of _bootstrapNodesList) {
+			for (const addr of this._bootstrapNodesList) {
 				const peerId = multiaddr(addr).getPeerId();
 				if (!peerId) continue;
 				_bootstrapPeerID.push(peerId);
@@ -125,7 +125,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 				scoreParams: createPeerScoreParams({
 					IPColocationFactorWeight: 0,
 					appSpecificScore: (peerId: string) => {
-						if (_bootstrapNodesList.some((node) => node.includes(peerId))) {
+						if (this._bootstrapNodesList.some((node) => node.includes(peerId))) {
 							return 1000;
 						}
 						return 0;
@@ -324,20 +324,31 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		}
 	}
 
+	async connectBootstrap(): Promise<void> {
+		try {
+			await this._node?.dial(this._bootstrapNodesList.map(multiaddr));
+			log.info("::connectBootstrap: Successfully connected to bootstrap nodes");
+		} catch (e) {
+			log.console.error("::connectBootstrap:", e);
+		}
+	}
+
 	async connect(addr: MultiaddrInput | MultiaddrInput[]): Promise<void> {
 		try {
 			const multiaddrs = Array.isArray(addr) ? addr.map(multiaddr) : [multiaddr(addr)];
 			await this._node?.dial(multiaddrs);
-			log.info("::connect: Successfuly dialed", addr);
+			log.info("::connect: Successfully dialed", addr);
 		} catch (e) {
 			log.error("::connect:", e);
 		}
 	}
 
-	async disconnect(peerId: string): Promise<void> {
+	async disconnect(peerIdAddress: string): Promise<void> {
 		try {
+			const peerId = multiaddr(peerIdAddress).getPeerId();
+			log.info("Thisis", multiaddr(`/p2p/${peerId}`));
 			await this._node?.hangUp(multiaddr(`/p2p/${peerId}`));
-			log.info("::disconnect: Successfuly disconnected", peerId);
+			log.info("::disconnect: Successfully disconnected", peerId);
 		} catch (e) {
 			log.error("::disconnect:", e);
 		}
@@ -352,7 +363,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	}
 
 	getBootstrapNodes(): string[] {
-		return this._config?.bootstrap_peers ?? BOOTSTRAP_NODES;
+		return this._bootstrapNodesList;
 	}
 
 	getMultiaddrs(): string[] {

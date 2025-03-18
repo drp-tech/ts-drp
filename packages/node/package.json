@@ -49,6 +49,7 @@
 		"@noble/secp256k1": "^2.2.3",
 		"@ts-drp/blueprints": "0.10.0",
 		"@ts-drp/interval-discovery": "0.10.0",
+		"@ts-drp/interval-reconnect": "0.10.0",
 		"@ts-drp/interval-runner": "0.10.0",
 		"@ts-drp/keychain": "0.10.0",
 		"@ts-drp/logger": "0.10.0",
