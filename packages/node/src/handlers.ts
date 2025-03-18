@@ -138,33 +138,31 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 		return;
 	}
 
-	const aclState = deserializeDRPState(fetchStateResponse.aclState);
-	const drpState = deserializeDRPState(fetchStateResponse.drpState);
-	if (fetchStateResponse.vertexHash === HashGraph.rootHash) {
-		const state = aclState;
-		object.aclStates.set(fetchStateResponse.vertexHash, state);
-		for (const e of state.state) {
-			if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value;
-			(object.acl as IACL)[e.key] = e.value;
+	try {
+		const aclState = deserializeDRPState(fetchStateResponse.aclState);
+		const drpState = deserializeDRPState(fetchStateResponse.drpState);
+		if (fetchStateResponse.vertexHash === HashGraph.rootHash) {
+			const state = aclState;
+			object.aclStates.set(fetchStateResponse.vertexHash, state);
+			for (const e of state.state) {
+				if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value;
+				(object.acl as IACL)[e.key] = e.value;
+			}
+			node.objectStore.put(object.id, object);
+			return;
 		}
-		node.objectStore.put(object.id, object);
+
+		if (fetchStateResponse.aclState) {
+			object.aclStates.set(fetchStateResponse.vertexHash, aclState as DRPState);
+		}
+		if (fetchStateResponse.drpState) {
+			object.drpStates.set(fetchStateResponse.vertexHash, drpState as DRPState);
+		}
+	} finally {
 		if (fetchStateDeferredMap.has(object.id)) {
 			fetchStateDeferredMap.get(object.id)?.resolve();
 			fetchStateDeferredMap.delete(object.id);
 		}
-		return;
-	}
-
-	if (fetchStateResponse.aclState) {
-		object.aclStates.set(fetchStateResponse.vertexHash, aclState as DRPState);
-	}
-	if (fetchStateResponse.drpState) {
-		object.drpStates.set(fetchStateResponse.vertexHash, drpState as DRPState);
-	}
-
-	if (fetchStateDeferredMap.has(object.id)) {
-		fetchStateDeferredMap.get(object.id)?.resolve();
-		fetchStateDeferredMap.delete(object.id);
 	}
 }
 
