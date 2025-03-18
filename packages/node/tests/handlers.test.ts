@@ -154,17 +154,6 @@ describe("Handle message correctly", () => {
 		(drpObjectNode2.drp as SetDRP<number>).add(10);
 		const vertices = drpObjectNode2.vertices;
 		await signGeneratedVertices(node2, vertices);
-		const message = Message.create({
-			sender: node2.networkNode.peerId,
-			type: MessageType.MESSAGE_TYPE_UPDATE,
-			data: Update.encode(
-				Update.create({
-					objectId: drpObjectNode2.id,
-					vertices: vertices,
-				})
-			).finish(),
-		});
-		await node2.networkNode.sendMessage(node1.networkNode.peerId, message);
 		await new Promise((resolve) => setTimeout(resolve, 500));
 		const expected_vertices = node1.objectStore.get(drpObjectNode2.id)?.vertices.map((vertex) => {
 			return vertex.operation;
