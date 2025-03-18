@@ -2,8 +2,10 @@ import { MapConflictResolution, MapDRP, SetDRP } from "@ts-drp/blueprints";
 import {
 	ACLGroup,
 	ActionType,
+	type DrpRuntimeContext,
 	DrpType,
 	type Hash,
+	type IDRP,
 	type Operation,
 	SemanticsType,
 	type Vertex,
@@ -827,20 +829,20 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 
 	test("Should update key in the ACL", async () => {
 		const acl1 = obj1.acl as ObjectACL;
-		acl1.setKey("peer1", "peer1", { blsPublicKey: "blsPublicKey1" });
+		acl1.setKey("peer1", "peer1", "blsPublicKey1");
 
 		await obj2.merge(obj1.hashGraph.getAllVertices());
 		const acl2 = obj2.acl as ObjectACL;
-		expect(acl2.query_getPeerKey("peer1")).toStrictEqual({ blsPublicKey: "blsPublicKey1" });
+		expect(acl2.query_getPeerKey("peer1")).toStrictEqual("blsPublicKey1");
 
 		const acl3 = obj3.acl as ObjectACL;
-		acl3.setKey("peer3", "peer3", { blsPublicKey: "blsPublicKey3" });
-		acl2.setKey("peer2", "peer2", { blsPublicKey: "blsPublicKey2" });
+		acl3.setKey("peer3", "peer3", "blsPublicKey3");
+		acl2.setKey("peer2", "peer2", "blsPublicKey2");
 
 		await obj1.merge(obj2.hashGraph.getAllVertices());
 		await obj1.merge(obj3.hashGraph.getAllVertices());
-		expect(acl1.query_getPeerKey("peer2")).toStrictEqual({ blsPublicKey: "blsPublicKey2" });
-		expect(acl1.query_getPeerKey("peer3")).toStrictEqual({ blsPublicKey: "blsPublicKey3" });
+		expect(acl1.query_getPeerKey("peer2")).toStrictEqual("blsPublicKey2");
+		expect(acl1.query_getPeerKey("peer3")).toStrictEqual("blsPublicKey3");
 	});
 });
 
@@ -1100,6 +1102,102 @@ describe("HashGraph hook tests", () => {
 			expect(newVertices.length).toBe(i);
 			expect(newVertices[i - 1].operation?.opType).toBe("add");
 			expect(newVertices[i - 1].operation?.value[0]).toBe(i);
+		}
+	});
+});
+
+class SetDRPWithContext<T> implements IDRP {
+	semanticsType = SemanticsType.pair;
+	context: DrpRuntimeContext = { caller: "" };
+	private _set: Set<T>;
+
+	constructor() {
+		this._set = new Set();
+	}
+
+	add(value: T): void {
+		this._set.add(value);
+	}
+
+	delete(value: T): void {
+		this._set.delete(value);
+	}
+
+	query_has(value: T): boolean {
+		return this._set.has(value);
+	}
+
+	query_getValues(): T[] {
+		return Array.from(this._set.values());
+	}
+}
+
+describe("DRP Context tests", () => {
+	let obj1: DRPObject<SetDRPWithContext<number>>;
+	let obj2: DRPObject<SetDRPWithContext<number>>;
+	let obj3: DRPObject<SetDRPWithContext<number>>;
+
+	beforeEach(() => {
+		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRPWithContext<number>() });
+		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRPWithContext<number>() });
+		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRPWithContext<number>() });
+	});
+
+	test("caller should be empty if no operation is applied", () => {
+		const drp1 = obj1.drp as SetDRPWithContext<number>;
+		expect(drp1.context.caller).toBe("");
+	});
+
+	test("caller should be current node's peerId if operation is applied locally", () => {
+		for (let i = 0; i < 10; i++) {
+			obj1.drp?.add(i);
+			expect(obj1.drp?.context.caller).toBe("peer1");
+		}
+
+		for (let i = 0; i < 10; i++) {
+			obj2.drp?.add(i);
+			expect(obj2.drp?.context.caller).toBe("peer2");
+		}
+	});
+
+	test("caller should be the peerId of the node that applied the operation", async () => {
+		for (let i = 1; i <= 10; ++i) {
+			obj1.drp?.add(i);
+			expect(obj1.drp?.context.caller).toBe("peer1");
+			await obj2.merge(obj1.hashGraph.getAllVertices());
+
+			obj2.drp?.add(10 + i);
+			const vertices2 = obj2.hashGraph.getAllVertices();
+			await obj1.merge([vertices2[vertices2.length - 1]]);
+			expect(obj1.drp?.context.caller).toBe("peer2");
+
+			await obj3.merge(obj2.hashGraph.getAllVertices());
+			obj3.drp?.add(20 + i);
+			const vertices3 = obj3.hashGraph.getAllVertices();
+			await obj2.merge([vertices3[vertices3.length - 1]]);
+			expect(obj2.drp?.context.caller).toBe("peer3");
+			await obj1.merge([vertices3[vertices3.length - 1]]);
+			expect(obj1.drp?.context.caller).toBe("peer3");
+		}
+	});
+
+	test("should not update the caller if the state is not changed", async () => {
+		for (let i = 0; i < 10; ++i) {
+			if (i % 2 === 0) {
+				obj1.drp?.add(i);
+				expect(obj1.drp?.context.caller).toBe("peer1");
+				await obj2.merge(obj1.hashGraph.getAllVertices());
+				expect(obj2.drp?.context.caller).toBe("peer1");
+				obj2.drp?.add(i);
+				expect(obj2.drp?.context.caller).toBe("peer1");
+			} else {
+				obj2.drp?.add(i);
+				expect(obj2.drp?.context.caller).toBe("peer2");
+				await obj1.merge(obj2.hashGraph.getAllVertices());
+				expect(obj1.drp?.context.caller).toBe("peer2");
+				obj1.drp?.add(i);
+				expect(obj1.drp?.context.caller).toBe("peer2");
+			}
 		}
 	});
 });

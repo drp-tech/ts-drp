@@ -1,13 +1,15 @@
-import { context, type Span, SpanStatusCode, trace } from "@opentelemetry/api";
+import {
+	context,
+	type Tracer as OtTracer,
+	type Span,
+	SpanStatusCode,
+	trace,
+} from "@opentelemetry/api";
 import { AsyncHooksContextManager } from "@opentelemetry/context-async-hooks";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { Resource } from "@opentelemetry/resources";
-import {
-	BatchSpanProcessor,
-	type Tracer as OtTracer,
-	WebTracerProvider,
-} from "@opentelemetry/sdk-trace-web";
+import { resourceFromAttributes } from "@opentelemetry/resources";
+import { BatchSpanProcessor, WebTracerProvider } from "@opentelemetry/sdk-trace-web";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 import { type IMetrics } from "@ts-drp/types";
 import { isAsyncGenerator, isGenerator, isPromise } from "@ts-drp/utils";
@@ -223,7 +225,7 @@ const initExporter = (opts: EnableTracingOptions["provider"]): OTLPTraceExporter
 const initProvider = (opts: EnableTracingOptions["provider"]): void => {
 	if (provider) return;
 
-	const resource = new Resource({
+	const resource = resourceFromAttributes({
 		[ATTR_SERVICE_NAME]: opts?.serviceName ?? "unknown_service",
 	});
 	const exporter = initExporter(opts);

@@ -31,6 +31,7 @@ export async function connectObject<T extends IDRP>(
 		id,
 		drp: options.drp,
 		metrics: options.metrics,
+		log_config: options.log_config,
 	});
 	node.objectStore.put(id, object);
 

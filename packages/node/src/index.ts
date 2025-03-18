@@ -126,6 +126,9 @@ export class DRPNode {
 			drp: options.drp,
 			id: options.id,
 			metrics: options.metrics,
+			config: {
+				log_config: options.log_config,
+			},
 		});
 		operations.createObject(this, object);
 		operations.subscribeObject(this, object.id);
@@ -136,13 +139,12 @@ export class DRPNode {
 		return object;
 	}
 
-	/*
-		Connect to an existing object
-		@param options.id - The object ID
-		@param options.drp - The DRP instance. It can be undefined
-			where we just want the HG state
-		@param options.sync.peerId - The peer ID to sync with
-	*/
+	/**
+	 * Connect to an existing object
+	 * @param options.id - The object ID
+	 * @param options.drp - The DRP instance. It can be undefined where we just want the HG state
+	 * @param options.sync.peerId - The peer ID to sync with
+	 */
 	async connectObject<T extends IDRP>(
 		options: NodeConnectObjectOptions<T>
 	): Promise<IDRPObject<T>> {

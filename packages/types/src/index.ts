@@ -28,7 +28,6 @@ export {
 
 export * from "./acl.js";
 export type * from "./bitset.js";
-export type * from "./credentials.js";
 export * from "./drp.js";
 export type * from "./finality.js";
 export * from "./hashgraph.js";

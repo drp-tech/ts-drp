@@ -18,6 +18,7 @@ interface NodeObjectOptionsBase<T> {
 	acl?: IACL;
 	drp?: T;
 	metrics?: IMetrics;
+	log_config?: LoggerOptions;
 }
 
 export interface NodeCreateObjectOptions<T extends IDRP> extends NodeObjectOptionsBase<T> {

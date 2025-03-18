@@ -3,7 +3,6 @@ import { Logger } from "@ts-drp/logger";
 import {
 	type AggregatedAttestation,
 	type Attestation,
-	type DRPPublicCredential,
 	type FinalityConfig,
 	type Hash,
 	type LoggerOptions,
@@ -16,13 +15,13 @@ const DEFAULT_FINALITY_THRESHOLD = 0.51;
 
 export class FinalityState {
 	data: string;
-	signerCredentials: DRPPublicCredential[];
+	signerCredentials: string[];
 	signerIndices: Map<string, number>;
 	aggregation_bits: BitSet;
 	signature?: Uint8Array;
 	numberOfSignatures: number;
 
-	constructor(hash: Hash, signers: Map<string, DRPPublicCredential>) {
+	constructor(hash: Hash, signers: Map<string, string>) {
 		this.data = hash;
 
 		// deterministic order
@@ -53,7 +52,7 @@ export class FinalityState {
 
 		if (verify) {
 			// verify signature validity
-			const publicKey = uint8ArrayFromString(this.signerCredentials[index].blsPublicKey, "base64");
+			const publicKey = uint8ArrayFromString(this.signerCredentials[index], "base64");
 			const data = uint8ArrayFromString(this.data);
 			if (!bls.verify(publicKey, data, signature)) {
 				throw new Error("Invalid signature");
@@ -83,7 +82,7 @@ export class FinalityState {
 		// public keys of signers who signed
 		const publicKeys = this.signerCredentials
 			.filter((_, i) => aggregation_bits.get(i))
-			.map((signer) => uint8ArrayFromString(signer.blsPublicKey, "base64"));
+			.map((signer) => uint8ArrayFromString(signer, "base64"));
 		const data = uint8ArrayFromString(this.data);
 
 		// verify signature validity
@@ -110,7 +109,7 @@ export class FinalityStore {
 		this.log = new Logger("drp::finality", logConfig);
 	}
 
-	initializeState(hash: Hash, signers: Map<string, DRPPublicCredential>): void {
+	initializeState(hash: Hash, signers: Map<string, string>): void {
 		if (!this.states.has(hash)) {
 			this.states.set(hash, new FinalityState(hash, signers));
 		}

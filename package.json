@@ -51,7 +51,7 @@
 		"assemblyscript": "^0.27.29",
 		"eslint": "^9.19.0",
 		"eslint-config-prettier": "^10.0.1",
-		"eslint-import-resolver-typescript": "^3.8.3",
+		"eslint-import-resolver-typescript": "^4.2.0",
 		"eslint-plugin-import": "^2.31.0",
 		"eslint-plugin-prettier": "^5.2.3",
 		"eslint-plugin-unused-imports": "^4.1.4",
