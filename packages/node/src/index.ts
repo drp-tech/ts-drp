@@ -180,6 +180,7 @@ export class DRPNode {
 				...this.config.interval_discovery_options,
 				id,
 				networkNode: this.networkNode,
+				logConfig: this.config.log_config,
 			});
 
 		this._intervals.set(id, interval);
