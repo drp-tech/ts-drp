@@ -190,19 +190,22 @@ describe("Handle message correctly", () => {
 	test("should handle sync message correctly", async () => {
 		(drpObjectNode2.drp as SetDRP<number>).add(5);
 		(drpObjectNode2.drp as SetDRP<number>).add(10);
+		await new Promise((resolve) => setTimeout(resolve, 500));
 		const node1DrpObject = node1.objectStore.get(drpObjectNode2.id);
 		expect(node1DrpObject).toBeDefined();
 
 		(node1DrpObject?.drp as SetDRP<number>).add(1);
 		(node1DrpObject?.drp as SetDRP<number>).add(2);
 
-		expect(drpObjectNode2.vertices.length).toBe(3);
-		expect(node1DrpObject?.vertices.length).toBe(3);
+		await new Promise((resolve) => setTimeout(resolve, 500));
+
+		expect(drpObjectNode2.vertices.length).toBe(5);
+		expect(node1DrpObject?.vertices.length).toBe(5);
 
 		const node3 = createNewNode("node3");
 
 		await node3.start();
-		await new Promise((resolve) => setTimeout(resolve, 2000));
+		await new Promise((resolve) => setTimeout(resolve, 500));
 		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(undefined);
 		await node3.connectObject({
 			id: drpObjectNode2.id,
@@ -210,8 +213,8 @@ describe("Handle message correctly", () => {
 				peerId: node2.networkNode.peerId,
 			},
 		});
-		await new Promise((resolve) => setTimeout(resolve, 4000));
-		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(3);
+		await new Promise((resolve) => setTimeout(resolve, 2000));
+		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(5);
 	}, 20000);
 
 	test("should handle update attestation message correctly", async () => {
