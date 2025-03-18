@@ -52,8 +52,8 @@ export class ObjectACL implements IACL {
 		this._conflictResolution = options.conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
 
-	grant(senderId: string, peerId: string, group: ACLGroup): void {
-		if (!this.query_isAdmin(senderId)) {
+	grant(peerId: string, group: ACLGroup): void {
+		if (!this.query_isAdmin(this.context.caller)) {
 			throw new Error("Only admin peers can grant permissions.");
 		}
 		let peerPermissions = this._authorizedPeers.get(peerId);
@@ -80,8 +80,8 @@ export class ObjectACL implements IACL {
 		}
 	}
 
-	revoke(senderId: string, peerId: string, group: ACLGroup): void {
-		if (!this.query_isAdmin(senderId)) {
+	revoke(peerId: string, group: ACLGroup): void {
+		if (!this.query_isAdmin(this.context.caller)) {
 			throw new Error("Only admin peers can revoke permissions.");
 		}
 		if (this.query_isAdmin(peerId)) {
@@ -103,8 +103,8 @@ export class ObjectACL implements IACL {
 		}
 	}
 
-	setKey(senderId: string, peerId: string, blsPublicKey: string): void {
-		if (senderId !== peerId) {
+	setKey(peerId: string, blsPublicKey: string): void {
+		if (this.context.caller !== peerId) {
 			throw new Error("Cannot set key for another peer.");
 		}
 		let peerPermissions = this._authorizedPeers.get(peerId);
