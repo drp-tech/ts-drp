@@ -398,7 +398,6 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	async sendGroupMessageRandomPeer(group: string, message: Message): Promise<void> {
 		try {
 			const peers = this._pubsub?.getSubscribers(group);
-			console.log("sendGroupMessageRandomPeer", peers);
 			if (!peers || peers.length === 0) throw Error("Topic wo/ peers");
 			const peerId = peers[Math.floor(Math.random() * peers.length)];
 
