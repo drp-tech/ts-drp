@@ -698,11 +698,17 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 	let obj2: DRPObject<SetDRP<number>>;
 	let obj3: DRPObject<SetDRP<number>>;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		const acl = new ObjectACL({ admins: ["peer1"] });
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
+
+		const acl1 = obj1.acl as ObjectACL;
+		acl1.grant("peer1", "peer2", ACLGroup.Finality);
+		acl1.grant("peer1", "peer3", ACLGroup.Finality);
+		await obj2.merge(obj1.hashGraph.getAllVertices());
+		await obj3.merge(obj1.hashGraph.getAllVertices());
 	});
 
 	test("Node without writer permission can generate vertex locally", () => {

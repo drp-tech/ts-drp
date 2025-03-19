@@ -1,7 +1,7 @@
 import { IntervalRunner } from "@ts-drp/interval-runner";
 import { Logger } from "@ts-drp/logger";
 import {
-	DRP_DISCOVERY_TOPIC,
+	DRP_INTERVAL_DISCOVERY_TOPIC,
 	DRPDiscovery as DRPDiscoveryRequest,
 	DRPDiscoveryResponse,
 	type DRPIntervalDiscoveryOptions,
@@ -106,7 +106,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 			});
 
 			this._logger.info("Broadcasting discovery request");
-			await this.networkNode.broadcastMessage(DRP_DISCOVERY_TOPIC, message);
+			await this.networkNode.broadcastMessage(DRP_INTERVAL_DISCOVERY_TOPIC, message);
 		} catch (error) {
 			this._logger.error("Error broadcasting discovery request:", error);
 		}

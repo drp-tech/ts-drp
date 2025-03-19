@@ -6,7 +6,7 @@ import { Logger } from "@ts-drp/logger";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
 import {
-	DRP_DISCOVERY_TOPIC,
+	DRP_INTERVAL_DISCOVERY_TOPIC,
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
 	type IDRP,
@@ -59,7 +59,7 @@ export class DRPNode {
 			({ stream }: IncomingStreamData) => void drpMessagesHandler(this, stream)
 		);
 		this.networkNode.addGroupMessageHandler(
-			DRP_DISCOVERY_TOPIC,
+			DRP_INTERVAL_DISCOVERY_TOPIC,
 			(e: CustomEvent<GossipsubMessage>) =>
 				void drpMessagesHandler(this, undefined, e.detail.msg.data)
 		);
@@ -180,6 +180,7 @@ export class DRPNode {
 				...this.config.interval_discovery_options,
 				id,
 				networkNode: this.networkNode,
+				logConfig: this.config.log_config,
 			});
 
 		this._intervals.set(id, interval);

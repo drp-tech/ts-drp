@@ -128,7 +128,6 @@ describe("DRPNode voting tests", () => {
 			acl: obj1.acl,
 			drp: new SetDRP(),
 		});
-		obj2.acl.setKey(nodeB.keychain.blsPublicKey);
 	});
 
 	test("Nodes in writer set are able to sign", async () => {
@@ -140,6 +139,8 @@ describe("DRPNode voting tests", () => {
 		obj1.drp?.add(1);
 
 		await obj2.merge(obj1.vertices);
+		obj2.acl.setKey(nodeB.keychain.blsPublicKey);
+		
 		const V1 = obj2.vertices.find(
 			(v) => v.operation?.value !== null && v.operation?.value[0] === 1
 		) as Vertex;

@@ -104,6 +104,9 @@ export class ObjectACL implements IACL {
 	}
 
 	setKey(blsPublicKey: string): void {
+		if (!this.query_isFinalitySigner(this.context.caller)) {
+			throw new Error("Only finality signers can set their BLS public key.");
+		}
 		let peerPermissions = this._authorizedPeers.get(this.context.caller);
 		if (!peerPermissions) {
 			peerPermissions = getPeerPermissions({ blsPublicKey });
