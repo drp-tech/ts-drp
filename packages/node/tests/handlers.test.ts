@@ -145,9 +145,7 @@ describe("Handle message correctly", () => {
 		});
 	});
 
-	test("should handle acl message correctly", async () => {
-		console.log("PEER1", node1.networkNode.peerId);
-		console.log("PEER2", node2.networkNode.peerId);
+	test("should handle acl messages correctly", async () => {
 		drpObjectNode2.acl.setKey(node2.networkNode.peerId, node2.keychain.blsPublicKey);
 		drpObjectNode1.acl.setKey(node1.networkNode.peerId, node1.keychain.blsPublicKey);
 		await new Promise((resolve) => setTimeout(resolve, 6000));
