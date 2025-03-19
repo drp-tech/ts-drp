@@ -7,16 +7,16 @@ import { Logger } from "@ts-drp/logger";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
 import {
-	DRP_DISCOVERY_TOPIC,
+	DRP_INTERVAL_DISCOVERY_TOPIC,
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
-	type IACL,
 	type IDRP,
 	type IDRPObject,
-	type IMetrics,
 	type IntervalRunnerMap,
 	Message,
 	MessageType,
+	type NodeConnectObjectOptions,
+	type NodeCreateObjectOptions,
 } from "@ts-drp/types";
 
 import { loadConfig } from "./config.js";
@@ -68,7 +68,7 @@ export class DRPNode {
 			({ stream }: IncomingStreamData) => void drpMessagesHandler(this, stream)
 		);
 		this.networkNode.addGroupMessageHandler(
-			DRP_DISCOVERY_TOPIC,
+			DRP_INTERVAL_DISCOVERY_TOPIC,
 			(e: CustomEvent<GossipsubMessage>) =>
 				void drpMessagesHandler(this, undefined, e.detail.msg.data)
 		);
@@ -128,22 +128,16 @@ export class DRPNode {
 		await this.networkNode.sendMessage(peerId, message);
 	}
 
-	async createObject(options: {
-		drp?: IDRP;
-		acl?: IACL;
-		id?: string;
-		sync?: {
-			enabled: boolean;
-			peerId?: string;
-		};
-		metrics?: IMetrics;
-	}): Promise<DRPObject> {
-		const object = new DRPObject({
+	async createObject<T extends IDRP>(options: NodeCreateObjectOptions<T>): Promise<DRPObject<T>> {
+		const object = new DRPObject<T>({
 			peerId: this.networkNode.peerId,
 			acl: options.acl,
 			drp: options.drp,
 			id: options.id,
 			metrics: options.metrics,
+			config: {
+				log_config: options.log_config,
+			},
 		});
 		operations.createObject(this, object);
 		operations.subscribeObject(this, object.id);
@@ -154,21 +148,15 @@ export class DRPNode {
 		return object;
 	}
 
-	/*
-		Connect to an existing object
-		@param options.id - The object ID
-		@param options.drp - The DRP instance. It can be undefined
-			where we just want the HG state
-		@param options.sync.peerId - The peer ID to sync with
-	*/
-	async connectObject(options: {
-		id: string;
-		drp?: IDRP;
-		sync?: {
-			peerId?: string;
-		};
-		metrics?: IMetrics;
-	}): Promise<IDRPObject> {
+	/**
+	 * Connect to an existing object
+	 * @param options.id - The object ID
+	 * @param options.drp - The DRP instance. It can be undefined where we just want the HG state
+	 * @param options.sync.peerId - The peer ID to sync with
+	 */
+	async connectObject<T extends IDRP>(
+		options: NodeConnectObjectOptions<T>
+	): Promise<IDRPObject<T>> {
 		const object = await operations.connectObject(this, options.id, {
 			peerId: options.sync?.peerId,
 			drp: options.drp,
@@ -201,6 +189,7 @@ export class DRPNode {
 				...this.config.interval_discovery_options,
 				id,
 				networkNode: this.networkNode,
+				logConfig: this.config.log_config,
 			});
 
 		this._intervals.set(id, interval);

@@ -2,6 +2,7 @@ import {
 	ACLConflictResolution,
 	ACLGroup,
 	ActionType,
+	type DrpRuntimeContext,
 	type IACL,
 	type PeerPermissions,
 	type ResolveConflictsType,
@@ -23,6 +24,7 @@ function getPeerPermissions(params?: {
 
 export class ObjectACL implements IACL {
 	semanticsType = SemanticsType.pair;
+	context: DrpRuntimeContext = { caller: "" };
 
 	// if true, any peer can write to the object
 	permissionless: boolean;
@@ -104,6 +106,9 @@ export class ObjectACL implements IACL {
 	setKey(senderId: string, peerId: string, blsPublicKey: string): void {
 		if (senderId !== peerId) {
 			throw new Error("Cannot set key for another peer.");
+		}
+		if (!this.query_isFinalitySigner(peerId)) {
+			throw new Error("Only finality signers can set their BLS public key.");
 		}
 		let peerPermissions = this._authorizedPeers.get(peerId);
 		if (!peerPermissions) {

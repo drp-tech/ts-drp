@@ -1,7 +1,7 @@
 import { type GossipSub, type MeshPeer } from "@chainsafe/libp2p-gossipsub";
 import { MapDRP } from "@ts-drp/blueprints";
 import { DRPNode } from "@ts-drp/node";
-import { DRP_DISCOVERY_TOPIC, type DRPNodeConfig } from "@ts-drp/types";
+import { DRP_INTERVAL_DISCOVERY_TOPIC, type DRPNodeConfig } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -94,10 +94,10 @@ describe("Heartbeat integration test", () => {
 			node1.networkNode.connect(node2MA),
 			node3.networkNode.connect(node2MA),
 			raceEvent(node2GossipSub, "gossipsub:graft", undefined, {
-				filter: filterGraft(DRP_DISCOVERY_TOPIC, node1.networkNode.peerId),
+				filter: filterGraft(DRP_INTERVAL_DISCOVERY_TOPIC, node1.networkNode.peerId),
 			}),
 			raceEvent(node2GossipSub, "gossipsub:graft", undefined, {
-				filter: filterGraft(DRP_DISCOVERY_TOPIC, node3.networkNode.peerId),
+				filter: filterGraft(DRP_INTERVAL_DISCOVERY_TOPIC, node3.networkNode.peerId),
 			}),
 		]);
 		const drp = new MapDRP();

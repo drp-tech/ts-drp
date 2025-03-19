@@ -35,6 +35,7 @@ import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger } from "@ts-drp/logger";
 import {
 	DRP_DISCOVERY_TOPIC,
+	DRP_INTERVAL_DISCOVERY_TOPIC,
 	type DRPNetworkNode as DRPNetworkNodeInterface,
 	type LoggerOptions,
 	Message,
@@ -239,6 +240,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 
 		// needded as I've disabled the pubsubPeerDiscovery
 		this._pubsub?.subscribe(DRP_DISCOVERY_TOPIC);
+		this._pubsub?.subscribe(DRP_INTERVAL_DISCOVERY_TOPIC);
 	}
 
 	async stop(): Promise<void> {

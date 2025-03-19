@@ -38,12 +38,19 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 		}).toThrowError("Cannot set key for another peer.");
 	});
 
+	test("Nodes without finality permissions should not be able to setKey", () => {
+		expect(() => {
+			acl.setKey("peer2", "peer2", "blsPublicKey2");
+		}).toThrowError("Only finality signers can set their BLS public key.");
+	});
+
 	test("Nodes should be able to setKey for themselves", () => {
 		acl.setKey("peer1", "peer1", "blsPublicKey1");
 		expect(acl.query_getPeerKey("peer1")).toStrictEqual("blsPublicKey1");
 	});
 
 	test("Should be able to setKey after grant", () => {
+		acl.grant("peer1", "peer2", ACLGroup.Finality);
 		acl.grant("peer1", "peer2", ACLGroup.Writer);
 		expect(acl.query_isWriter("peer2")).toBe(true);
 		expect(acl.query_getPeerKey("peer2")).toStrictEqual("");
@@ -54,6 +61,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 
 	test("Should be able to setKey before grant", () => {
+		acl.grant("peer1", "peer2", ACLGroup.Finality);
 		acl.setKey("peer2", "peer2", "blsPublicKey2");
 		expect(acl.query_isWriter("peer2")).toBe(false);
 		expect(acl.query_getPeerKey("peer2")).toStrictEqual("blsPublicKey2");
