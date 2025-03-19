@@ -156,11 +156,10 @@ describe("Handle message correctly", () => {
 			type: MessageType.MESSAGE_TYPE_FETCH_STATE,
 			data: FetchState.encode(
 				FetchState.create({
-					objectId: drpObjectNode2.id,
 					vertexHash: drpObjectNode2.vertices[0].hash,
 				})
 			).finish(),
-			objectId: drpObject.id,
+			objectId: drpObjectNode2.id,
 		});
 
 		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);

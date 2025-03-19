@@ -10,37 +10,8 @@ A lightweight, in-memory channel-based message queue implementation for efficien
 - In-memory message storage
 - Async/await support
 
-## Installation
-
-```bash
-npm install @ts-drp/message-queue
-```
-
-## Usage
-
-```typescript
-import { MessageQueue } from '@ts-drp/message-queue';
-
-// Create a new message queue
-const queue = new MessageQueue<string>();
-
-// Publish messages
-await queue.publish('Hello, World!');
-
-// Subscribe to messages
-queue.subscribe(async (message) => {
-  console.log('Received:', message);
-});
-```
-
-## API
-
 ### `MessageQueue<T>`
 
-- `publish(message: T): Promise<void>` - Publishes a message to the queue
+- `enqueue(message: T): Promise<void>` - Enqueues a message to the queue
 - `subscribe(handler: (message: T) => Promise<void>): void` - Subscribes to messages
-- `unsubscribe(handler: (message: T) => Promise<void>): void` - Unsubscribes from messages
-
-## License
-
-MIT
+- `close(): Promise<void>` - Closes the queue
