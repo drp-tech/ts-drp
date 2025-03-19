@@ -22,7 +22,7 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 import { isPromise } from "@ts-drp/utils";
-import { type Deferred } from "@ts-drp/utils/dist/src/promise/deferred/index.js";
+import { type Deferred } from "@ts-drp/utils";
 import * as crypto from "crypto";
 
 import { type DRPNode } from "./index.js";
