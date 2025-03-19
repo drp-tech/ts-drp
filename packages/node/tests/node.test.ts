@@ -163,9 +163,11 @@ describe("DRPNode voting tests", () => {
 		*/
 
 		obj1.acl.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
-		obj1.drp?.add(1);
+		await obj2.merge(obj1.vertices);
+		obj2.drp?.add(1);
 		obj1.acl.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
-		obj1.drp?.add(2);
+		await obj2.merge(obj1.vertices);
+		obj2.drp?.add(2);
 
 		await obj2.merge(obj1.vertices);
 		const V2 = obj2.vertices.find(
@@ -187,7 +189,8 @@ describe("DRPNode voting tests", () => {
 		*/
 
 		obj1.acl.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
-		obj1.drp?.add(1);
+		await obj2.merge(obj1.vertices);
+		obj2.drp?.add(1);
 		await obj2.merge(obj1.vertices);
 		const V1 = obj2.vertices.find(
 			(v) => v.operation?.value !== null && v.operation?.value[0] === 1
