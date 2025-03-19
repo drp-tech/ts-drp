@@ -131,7 +131,7 @@ export const render = (): void => {
 	}
 
 	if (!gridState.drpObject) return;
-	const users = gridState.gridDRP?.query_users();
+	const users = gridState.drpObject.drp?.query_users();
 	const element_grid = <HTMLDivElement>document.getElementById("grid");
 	element_grid.innerHTML = "";
 
@@ -169,7 +169,7 @@ export const render = (): void => {
 	if (!users) return;
 	for (const userColorString of users) {
 		const [id, color] = userColorString.split(":");
-		const position = gridState.gridDRP?.query_userPosition(userColorString);
+		const position = gridState.drpObject.drp?.query_userPosition(userColorString);
 
 		if (position) {
 			const div = document.createElement("div");

@@ -52,13 +52,13 @@ export function getNetworkConfigFromEnv(): DRPNodeConfig {
 }
 
 function addUser(): void {
-	if (!gridState.gridDRP) {
+	if (!gridState.drpObject?.drp) {
 		console.error("Grid DRP not initialized");
 		alert("Please create or join a grid first");
 		return;
 	}
 
-	gridState.gridDRP.addUser(
+	gridState.drpObject.drp.addUser(
 		gridState.node.networkNode.peerId,
 		getColorForPeerId(gridState.node.networkNode.peerId)
 	);
@@ -66,13 +66,13 @@ function addUser(): void {
 }
 
 function moveUser(direction: string): void {
-	if (!gridState.gridDRP) {
+	if (!gridState.drpObject?.drp) {
 		console.error("Grid DRP not initialized");
 		alert("Please create or join a grid first");
 		return;
 	}
 
-	gridState.gridDRP?.moveUser(gridState.node.networkNode.peerId, direction);
+	gridState.drpObject.drp.moveUser(gridState.node.networkNode.peerId, direction);
 	render();
 }
 
@@ -103,7 +103,6 @@ function run(metrics?: IMetrics): void {
 			drp: new Grid(),
 			metrics,
 		});
-		gridState.gridDRP = gridState.drpObject.drp as Grid;
 		createConnectHandlers();
 		addUser();
 		render();
@@ -127,7 +126,6 @@ function run(metrics?: IMetrics): void {
 				drp: new Grid(),
 				metrics,
 			});
-			gridState.gridDRP = gridState.drpObject.drp as Grid;
 			createConnectHandlers();
 			addUser();
 			render();
