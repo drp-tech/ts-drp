@@ -52,7 +52,7 @@ describe("Handle message correctly", () => {
 	let node1: DRPNode;
 	let node2: DRPNode;
 	let bootstrapNode: DRPNetworkNode;
-	let drpObjectNode2: DRPObject;
+	let drpObjectNode2: DRPObject<SetDRP<number>>;
 	let libp2pNode2: Libp2p;
 	let libp2pNode1: Libp2p;
 	let acl: IACL;
@@ -150,8 +150,8 @@ describe("Handle message correctly", () => {
 	});
 
 	test("should handle update message correctly", async () => {
-		(drpObjectNode2.drp as SetDRP<number>).add(5);
-		(drpObjectNode2.drp as SetDRP<number>).add(10);
+		drpObjectNode2.drp?.add(5);
+		drpObjectNode2.drp?.add(10);
 		const vertices = drpObjectNode2.vertices;
 		await signGeneratedVertices(node2, vertices);
 		await new Promise((resolve) => setTimeout(resolve, 500));
@@ -194,8 +194,8 @@ describe("Handle message correctly", () => {
 		const node1DrpObject = node1.objectStore.get(drpObjectNode2.id);
 		expect(node1DrpObject).toBeDefined();
 
-		(node1DrpObject?.drp as SetDRP<number>).add(1);
-		(node1DrpObject?.drp as SetDRP<number>).add(2);
+		node1DrpObject?.drp?.add(1);
+		node1DrpObject?.drp?.add(2);
 
 		await new Promise((resolve) => setTimeout(resolve, 500));
 

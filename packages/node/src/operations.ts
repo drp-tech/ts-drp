@@ -1,11 +1,12 @@
 import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import { DRPObject as DRPObjectImpl, HashGraph } from "@ts-drp/object";
 import {
+	type ConnectObjectOptions,
 	FetchState,
+	type IDRP,
 	type IDRPObject,
 	Message,
 	MessageType,
-	type NodeConnectObjectOptions,
 	Sync,
 } from "@ts-drp/types";
 import { Deferred } from "@ts-drp/utils/promise/deferred";
@@ -15,18 +16,18 @@ import { drpMessagesHandler, drpObjectChangesHandler, fetchStateDeferredMap } fr
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
 
-export function createObject(node: DRPNode, object: IDRPObject): void {
+export function createObject<T extends IDRP>(node: DRPNode, object: IDRPObject<T>): void {
 	node.objectStore.put(object.id, object);
 	object.subscribe((obj, originFn, vertices) => {
 		drpObjectChangesHandler(node, obj, originFn, vertices);
 	});
 }
 
-export async function connectObject(
+export async function connectObject<T extends IDRP>(
 	node: DRPNode,
 	id: string,
-	options: NodeConnectObjectOptions
-): Promise<IDRPObject> {
+	options: ConnectObjectOptions<T>
+): Promise<IDRPObject<T>> {
 	const object = DRPObjectImpl.createObject({
 		peerId: node.networkNode.peerId,
 		id,
@@ -36,7 +37,7 @@ export async function connectObject(
 	});
 	node.objectStore.put(id, object);
 
-	const deferred = await fetchState(node, id, options.sync?.peerId);
+	const deferred = await fetchState(node, id, options.peerId);
 
 	// fetch state needs to finish before subscribing
 	try {
@@ -51,10 +52,10 @@ export async function connectObject(
 	// TODO: since when the interval can run this twice do we really want it to be runned while the other one might still be running?
 	const intervalFn = (interval: NodeJS.Timeout) => async (): Promise<void> => {
 		if (object.acl) {
-			await syncObject(node, id, options.sync?.peerId);
+			await syncObject(node, id, options.peerId);
 			subscribeObject(node, id);
 			object.subscribe((obj, originFn, vertices) => {
-				drpObjectChangesHandler(node, obj as IDRPObject, originFn, vertices);
+				drpObjectChangesHandler(node, obj, originFn, vertices);
 			});
 			clearInterval(interval);
 		}
@@ -104,11 +105,15 @@ export async function fetchState(
 	return deferred;
 }
 
-/*
-  data: { vertex_hashes: string[] }
-*/
-export async function syncObject(node: DRPNode, objectId: string, peerId?: string): Promise<void> {
-	const object: IDRPObject | undefined = node.objectStore.get(objectId);
+/**
+ *  data: { vertex_hashes: string[] }
+ */
+export async function syncObject<T extends IDRP>(
+	node: DRPNode,
+	objectId: string,
+	peerId?: string
+): Promise<void> {
+	const object: IDRPObject<T> | undefined = node.objectStore.get(objectId);
 	if (!object) {
 		log.error("::syncObject: Object not found");
 		return;

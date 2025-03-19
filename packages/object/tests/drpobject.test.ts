@@ -31,22 +31,19 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 });
 
 describe("Drp Object should be able to change state value", () => {
-	let drpObject: DRPObject;
+	let drpObject: DRPObject<SetDRP<number>>;
 
 	beforeEach(() => {
 		drpObject = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 	});
 
 	it("should update ACL state keys when DRP state changes", () => {
-		const drpSet = drpObject.drp as SetDRP<number>;
-		const aclInstance = drpObject.acl as ObjectACL;
-
 		// Add a value to the DRP set
-		drpSet.add(1);
+		drpObject.drp?.add(1);
 
 		// Get the ACL states and expected variable names
 		const aclStates = drpObject.aclStates.values();
-		const expectedKeys = Object.keys(aclInstance);
+		const expectedKeys = Object.keys(drpObject.acl);
 
 		// Check that each state contains the expected keys
 		for (const state of aclStates) {
@@ -55,7 +52,7 @@ describe("Drp Object should be able to change state value", () => {
 		}
 
 		const drpStates = drpObject.drpStates.values();
-		const expectedDrpKeys = Object.keys(drpSet);
+		const expectedDrpKeys = Object.keys(drpObject.drp ?? {});
 
 		// Check that each state contains the expected keys
 		for (const state of drpStates) {
@@ -101,8 +98,8 @@ describe("Test for duplicate call issue", () => {
 });
 
 describe("Merging vertices tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
 
 	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
@@ -112,13 +109,11 @@ describe("Merging vertices tests", () => {
 	test("Test: merge should skip unknown dependencies", async () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
 
-		drp1.add(1);
-		drp2.add(2);
+		obj1.drp?.add(1);
+		obj2.drp?.add(2);
 		await obj1.merge(obj2.hashGraph.getAllVertices());
-		drp1.add(3);
+		obj1.drp?.add(3);
 
 		const vertex = obj1.vertices.find(
 			(v) => v.operation?.opType === "add" && v.operation.value[0] === 3
@@ -167,8 +162,8 @@ class AsyncPushToArrayDRP implements IDRP {
 }
 
 describe("Async counter DRP", () => {
-	let drpObject1: DRPObject;
-	let drpObject2: DRPObject;
+	let drpObject1: DRPObject<AsyncCounterDRP>;
+	let drpObject2: DRPObject<AsyncCounterDRP>;
 
 	beforeEach(() => {
 		drpObject1 = new DRPObject({ peerId: "peer1", acl, drp: new AsyncCounterDRP() });
@@ -176,31 +171,28 @@ describe("Async counter DRP", () => {
 	});
 
 	test("async drp", async () => {
-		const drp1 = drpObject1.drp as AsyncCounterDRP;
-		const drp2 = drpObject2.drp as AsyncCounterDRP;
-
-		const value1 = await drp1.increment();
-		const value2 = await drp2.increment();
+		const value1 = await drpObject1.drp?.increment();
+		const value2 = await drpObject2.drp?.increment();
 
 		expect(value1).toEqual(1);
 		expect(value2).toEqual(1);
 		const obj2Vertices = drpObject2.hashGraph.getAllVertices();
 		const obj1Vertices = drpObject1.hashGraph.getAllVertices();
 		await drpObject1.merge(obj2Vertices);
-		expect(drp1.query_value()).toEqual(2);
+		expect(drpObject1.drp?.query_value()).toEqual(2);
 		await drpObject2.merge(obj1Vertices);
-		expect(drp2.query_value()).toEqual(2);
-		await drp2.increment();
-		await drp2.increment();
-		await drp2.increment();
+		expect(drpObject2.drp?.query_value()).toEqual(2);
+		await drpObject2.drp?.increment();
+		await drpObject2.drp?.increment();
+		await drpObject2.drp?.increment();
 		await drpObject1.merge(drpObject2.hashGraph.getAllVertices());
-		expect(drp1.query_value()).toEqual(5);
+		expect(drpObject1.drp?.query_value()).toEqual(5);
 	});
 });
 
 describe("Async push to array DRP", () => {
-	let drpObject1: DRPObject;
-	let drpObject2: DRPObject;
+	let drpObject1: DRPObject<AsyncPushToArrayDRP>;
+	let drpObject2: DRPObject<AsyncPushToArrayDRP>;
 
 	beforeEach(() => {
 		vi.useFakeTimers();
@@ -209,34 +201,31 @@ describe("Async push to array DRP", () => {
 	});
 
 	test("async drp", async () => {
-		const drp1 = drpObject1.drp as AsyncPushToArrayDRP;
-		const drp2 = drpObject2.drp as AsyncPushToArrayDRP;
-
-		drp1.push(1);
+		drpObject1.drp?.push(1);
 		vi.advanceTimersByTime(1000);
-		drp2.push(2);
+		drpObject2.drp?.push(2);
 		vi.advanceTimersByTime(1000);
-		drp1.push(3);
+		drpObject1.drp?.push(3);
 		vi.advanceTimersByTime(1000);
 		const obj1Vertices = drpObject1.hashGraph.getAllVertices();
 		const obj2Vertices = drpObject2.hashGraph.getAllVertices();
 		await drpObject1.merge(obj2Vertices);
 		await drpObject2.merge(obj1Vertices);
-		expect(drp1.query_array()).toEqual([1, 2, 3]);
-		expect(drp2.query_array()).toEqual([1, 2, 3]);
+		expect(drpObject1.drp?.query_array()).toEqual([1, 2, 3]);
+		expect(drpObject2.drp?.query_array()).toEqual([1, 2, 3]);
 
-		await drp1.pushAsync(4);
-		expect(drp1.context.caller).toEqual("peer1");
+		await drpObject1.drp?.pushAsync(4);
+		expect(drpObject1.drp?.context.caller).toEqual("peer1");
 		vi.advanceTimersByTime(1000);
-		drp1.push(5);
-		expect(drp1.context.caller).toEqual("peer1");
+		drpObject1.drp?.push(5);
+		expect(drpObject1.drp?.context.caller).toEqual("peer1");
 		vi.advanceTimersByTime(1000);
-		await drp2.pushAsync(6);
-		expect(drp2.context.caller).toEqual("peer2");
+		await drpObject2.drp?.pushAsync(6);
+		expect(drpObject2.drp?.context.caller).toEqual("peer2");
 		vi.advanceTimersByTime(1000);
 		await drpObject2.merge(drpObject1.hashGraph.getAllVertices());
 		await drpObject1.merge(drpObject2.hashGraph.getAllVertices());
-		expect(drp1.query_array()).toEqual([1, 2, 3, 4, 5, 6]);
-		expect(drp2.query_array()).toEqual([1, 2, 3, 4, 5, 6]);
+		expect(drpObject1.drp?.query_array()).toEqual([1, 2, 3, 4, 5, 6]);
+		expect(drpObject2.drp?.query_array()).toEqual([1, 2, 3, 4, 5, 6]);
 	});
 });

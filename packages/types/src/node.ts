@@ -13,22 +13,22 @@ export interface DRPNodeConfig {
 	interval_discovery_options?: Omit<DRPIntervalDiscoveryOptions, "id" | "networkNode">;
 }
 
-interface NodeObjectOptionsBase {
+interface NodeObjectOptionsBase<T> {
 	id?: string;
 	acl?: IACL;
-	drp?: IDRP;
+	drp?: T;
 	metrics?: IMetrics;
 	log_config?: LoggerOptions;
 }
 
-export interface NodeCreateObjectOptions extends NodeObjectOptionsBase {
+export interface NodeCreateObjectOptions<T extends IDRP> extends NodeObjectOptionsBase<T> {
 	sync?: {
 		enabled: boolean;
 		peerId?: string;
 	};
 }
 
-export interface NodeConnectObjectOptions extends NodeObjectOptionsBase {
+export interface NodeConnectObjectOptions<T extends IDRP> extends NodeObjectOptionsBase<T> {
 	id: string;
 	sync?: {
 		peerId?: string;

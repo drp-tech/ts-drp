@@ -39,7 +39,7 @@ sequenceDiagram
         
         alt No peers found for objectId
             Note over Node_A_DRPIntervalDiscovery: Start search timer
-            Node_A_DRPIntervalDiscovery->>Node_A_NetworkNode: broadcastMessage(DRP_DISCOVERY_TOPIC)
+            Node_A_DRPIntervalDiscovery->>Node_A_NetworkNode: broadcastMessage(DRP_INTERVAL_DISCOVERY_TOPIC)
             Node_A_NetworkNode-->>Node_B_NetworkNode: DRPDiscoveryRequest message
             
             alt Node B has matching objectId
@@ -88,7 +88,7 @@ interface DRPIntervalDiscoveryOptions {
 
 2. **Peer Discovery**
    - Broadcasts discovery messages when no peers are found
-   - Uses `DRP_DISCOVERY_TOPIC` for discovery messages
+   - Uses `DRP_INTERVAL_DISCOVERY_TOPIC` for discovery messages
    - Includes object ID for targeted peer matching
 
 3. **Connection Management**

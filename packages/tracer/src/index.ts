@@ -160,7 +160,7 @@ export class OpentelemetryMetrics implements IMetrics {
 
 	constructor(tracerName: string) {
 		if (!provider) return;
-		this.tracer = provider.getTracer(tracerName) as OtTracer;
+		this.tracer = provider.getTracer(tracerName);
 	}
 
 	public traceFunc<Args extends unknown[], Return>(
