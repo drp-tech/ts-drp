@@ -36,7 +36,7 @@ describe("Tests for FinalityState", () => {
 
 		const signers = new Map();
 		for (let i = 0; i < N; i++) {
-			signers.set(peers[i], stores[i].getPublicCredential());
+			signers.set(peers[i], stores[i].blsPublicKey);
 		}
 		finalityState = new FinalityState("vertex1", signers);
 	});
@@ -109,7 +109,7 @@ describe("Tests for FinalityStore", () => {
 
 		const signers = new Map();
 		for (let i = 0; i < N; i++) {
-			signers.set(peers[i], stores[i].getPublicCredential());
+			signers.set(peers[i], stores[i].blsPublicKey);
 		}
 		finalityStore.initializeState("vertex1", signers);
 		finalityStore.initializeState("vertex2", signers);

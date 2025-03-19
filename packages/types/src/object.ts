@@ -1,6 +1,6 @@
 import { type IACL } from "./acl.js";
 import { type IDRP } from "./drp.js";
-import { type IFinalityStore } from "./finality.js";
+import { type FinalityConfig, type IFinalityStore } from "./finality.js";
 import { type IHashGraph } from "./hashgraph.js";
 import { type LoggerOptions } from "./logger.js";
 import { type IMetrics } from "./metrics.js";
@@ -11,9 +11,24 @@ export interface LowestCommonAncestorResult {
 	linearizedVertices: Vertex[];
 }
 
+// snake_casing to match the JSON config
+export interface DRPObjectConfig {
+	log_config?: LoggerOptions;
+	finality_config?: FinalityConfig;
+}
+
+export interface DRPObjectOptions<T extends IDRP> {
+	peerId: string;
+	acl?: IACL;
+	drp?: T;
+	id?: string;
+	config?: DRPObjectConfig;
+	metrics?: IMetrics;
+}
+
 export type MergeResult = [merged: boolean, missing: string[]];
 
-export interface IDRPObject extends DRPObjectBase {
+export interface IDRPObject<T extends IDRP> extends DRPObjectBase {
 	/**
 	 * The id of the DRP object.
 	 */
@@ -21,16 +36,16 @@ export interface IDRPObject extends DRPObjectBase {
 	/**
 	 * The ACL of the DRP object.
 	 */
-	acl?: ProxyHandler<IACL>;
+	acl: IACL;
 	/**
 	 * The DRP of the DRP object.
 	 */
-	drp?: ProxyHandler<IDRP>;
+	drp?: T;
 
 	/**
 	 * The original DRP of the DRP object.
 	 */
-	originalDRP?: IDRP;
+	originalDRP?: T;
 	/**
 	 * The original ACL of the DRP object.
 	 */
@@ -42,7 +57,7 @@ export interface IDRPObject extends DRPObjectBase {
 	/**
 	 * The subscriptions of the DRP object.
 	 */
-	subscriptions: DRPObjectCallback[];
+	subscriptions: DRPObjectCallback<T>[];
 
 	/**
 	 * The DRP states of the DRP object.
@@ -61,7 +76,7 @@ export interface IDRPObject extends DRPObjectBase {
 	/**
 	 * Subscribe to the DRP object.
 	 */
-	subscribe(callback: DRPObjectCallback): void;
+	subscribe(callback: DRPObjectCallback<T>): void;
 
 	/**
 	 * Merge the vertices into the DRP object.
@@ -69,12 +84,20 @@ export interface IDRPObject extends DRPObjectBase {
 	merge(vertices: Vertex[]): Promise<MergeResult>;
 }
 
-export type DRPObjectCallback = (object: IDRPObject, origin: string, vertices: Vertex[]) => void;
+export type DRPObjectCallback<T extends IDRP> = (
+	object: IDRPObject<T>,
+	origin: string,
+	vertices: Vertex[]
+) => void;
 
-export type ConnectObjectOptions = {
-	peerId: string;
+export interface ConnectObjectOptions<T extends IDRP> {
+	peerId?: string;
 	id?: string;
-	drp?: IDRP;
+	drp?: T;
 	metrics?: IMetrics;
 	log_config?: LoggerOptions;
-};
+}
+
+export interface CreateObjectOptions<T extends IDRP> extends ConnectObjectOptions<T> {
+	peerId: string;
+}

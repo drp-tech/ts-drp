@@ -1,11 +1,13 @@
-import { context, type Span, SpanStatusCode, trace } from "@opentelemetry/api";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { Resource } from "@opentelemetry/resources";
 import {
-	BatchSpanProcessor,
+	context,
 	type Tracer as OtTracer,
-	WebTracerProvider,
-} from "@opentelemetry/sdk-trace-web";
+	type Span,
+	SpanStatusCode,
+	trace,
+} from "@opentelemetry/api";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { resourceFromAttributes } from "@opentelemetry/resources";
+import { BatchSpanProcessor, WebTracerProvider } from "@opentelemetry/sdk-trace-web";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 import { type IMetrics } from "@ts-drp/types";
 import { isAsyncGenerator, isGenerator, isPromise } from "@ts-drp/utils";
@@ -144,7 +146,7 @@ export class OpentelemetryMetrics implements IMetrics {
 
 	constructor(tracerName: string) {
 		if (!provider) return;
-		this.tracer = provider.getTracer(tracerName) as OtTracer;
+		this.tracer = provider.getTracer(tracerName);
 	}
 
 	public traceFunc<Args extends unknown[], Return>(
@@ -209,7 +211,7 @@ const initExporter = (opts: EnableTracingOptions["provider"]): OTLPTraceExporter
 const initProvider = (opts: EnableTracingOptions["provider"]): void => {
 	if (provider) return;
 
-	const resource = new Resource({
+	const resource = resourceFromAttributes({
 		[ATTR_SERVICE_NAME]: opts?.serviceName ?? "unknown_service",
 	});
 	const exporter = initExporter(opts);

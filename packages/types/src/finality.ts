@@ -1,7 +1,13 @@
 import { type IBitSet } from "./bitset.js";
-import { type DRPPublicCredential } from "./credentials.js";
 import { type Hash } from "./hashgraph.js";
 import { type AggregatedAttestation, type Attestation } from "./proto/drp/v1/object_pb.js";
+
+export interface FinalityConfig {
+	/**
+	 * The threshold for finality.
+	 */
+	finality_threshold?: number;
+}
 
 export interface IFinalityState {
 	/**
@@ -11,7 +17,7 @@ export interface IFinalityState {
 	/**
 	 * The signer credentials of the finality state.
 	 */
-	readonly signerCredentials: DRPPublicCredential[];
+	readonly signerCredentials: string[];
 	/**
 	 * The signer indices of the finality state.
 	 */
@@ -61,7 +67,7 @@ export interface IFinalityStore {
 	 * @param hash - The hash of the finality state.
 	 * @param signers - The signers of the finality state.
 	 */
-	initializeState(hash: Hash, signers: Map<string, DRPPublicCredential>): void;
+	initializeState(hash: Hash, signers: Map<string, string>): void;
 	/**
 	 * Returns the number of signatures required for the given hash to be finalized.
 	 *
