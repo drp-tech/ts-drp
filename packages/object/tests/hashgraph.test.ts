@@ -1270,11 +1270,10 @@ describe("Nodes admin permission tests", () => {
 		await obj2.merge(obj3.vertices);
 		expect(obj2.drp?.query_has(1)).toBe(true);
 		obj2.acl.revoke("peer3", ACLGroup.Writer);
+		obj2.acl.grant("peer3", ACLGroup.Finality);
 
 		await obj1.merge(obj2.vertices);
 		expect(obj1.acl.query_isWriter("peer3")).toBe(false);
-
-		obj3.drp?.add(2);
-		await obj1.merge(obj3.vertices);
+		expect(obj1.acl.query_isFinalitySigner("peer3")).toBe(true);
 	});
 });
