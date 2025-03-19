@@ -1,11 +1,7 @@
-import {
-	DRPDiscovery,
-	type DRPIntervalDiscoveryOptions,
-	type DRPIntervalReconnectOptions,
-	type DRPNetworkNode,
-} from "@ts-drp/types";
+import { type DRPIntervalReconnectOptions, type DRPNetworkNode } from "@ts-drp/types";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { DRPIntervalReconnectBootstrap, createDRPReconnectBootstrap } from "../src/index.js";
+
+import { createDRPReconnectBootstrap, type DRPIntervalReconnectBootstrap } from "../src/index.js";
 
 type MockedDRPNetworkNode = {
 	[K in keyof DRPNetworkNode]: DRPNetworkNode[K] extends (...args: unknown[]) => unknown
