@@ -47,7 +47,7 @@ describe("DRPIntervalReconnect Unit Tests", () => {
 				networkNode: mockNetworkNode,
 				logConfig: { level: "silent" },
 			});
-			expect(instance.interval).toBe(10_000); // 5 minutes
+			expect(instance.interval).toBe(10_000); // 10 seconds
 		});
 
 		test("should expose id", () => {

@@ -1,4 +1,4 @@
-import { IntervalRunner } from "@ts-drp/interval-runner/dist/src/index.js";
+import { IntervalRunner } from "@ts-drp/interval-runner";
 import { Logger } from "@ts-drp/logger";
 import {
 	type DRPIntervalReconnectOptions,

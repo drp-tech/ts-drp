@@ -7,6 +7,4 @@ export interface DRPIntervalReconnectOptions extends Omit<IntervalRunnerOptions,
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IDRPIntervalReconnectBootstrap extends IIntervalRunner<"interval:reconnect"> {
-	//
-}
+export interface IDRPIntervalReconnectBootstrap extends IIntervalRunner<"interval:reconnect"> {}
