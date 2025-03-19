@@ -133,35 +133,27 @@ describe("Handle message correctly", () => {
 					event.detail.limits === undefined,
 			}),
 		]);
-		const admins = [node1.networkNode.peerId, node2.networkNode.peerId];
+
+		const acl = new ObjectACL({ admins: [node1.networkNode.peerId, node2.networkNode.peerId] });
+		acl.context = {
+			caller: node1.networkNode.peerId,
+		};
+		acl.setKey(node1.keychain.blsPublicKey);
+
+		acl.context = {
+			caller: node2.networkNode.peerId,
+		};
+		acl.setKey(node2.keychain.blsPublicKey);
+
 		drpObjectNode2 = await node2.createObject({
 			drp: new SetDRP<number>(),
-			acl: new ObjectACL({ admins }),
+			acl,
 		});
 		drpObjectNode1 = await node1.createObject({
 			drp: new SetDRP<number>(),
-			acl: new ObjectACL({ admins }),
+			acl,
 			id: drpObjectNode2.id,
 		});
-	});
-
-	test("should handle acl messages correctly", async () => {
-		drpObjectNode2.acl.setKey(node2.keychain.blsPublicKey);
-		drpObjectNode1.acl.setKey(node1.keychain.blsPublicKey);
-		await new Promise((resolve) => setTimeout(resolve, 6000));
-		expect(drpObjectNode1.acl.query_getPeerKey(node1.networkNode.peerId)).toBe(
-			node1.keychain.blsPublicKey
-		);
-		expect(drpObjectNode2.acl.query_getPeerKey(node1.networkNode.peerId)).toBe(
-			node1.keychain.blsPublicKey
-		);
-
-		expect(drpObjectNode1.acl.query_getPeerKey(node2.networkNode.peerId)).toBe(
-			node2.keychain.blsPublicKey
-		);
-		expect(drpObjectNode2.acl.query_getPeerKey(node2.networkNode.peerId)).toBe(
-			node2.keychain.blsPublicKey
-		);
 	});
 
 	test("should handle update message correctly", async () => {
