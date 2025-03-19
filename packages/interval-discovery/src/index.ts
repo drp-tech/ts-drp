@@ -186,7 +186,6 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 
 		try {
 			const objectId = message.objectId;
-
 			// Get all peers for this object ID
 			const peers = networkNode.getGroupPeers(objectId);
 			if (peers.length === 0) return; // No peers to report

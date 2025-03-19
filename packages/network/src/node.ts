@@ -238,7 +238,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 			log.info("::start::gossipsub::graft", e.detail)
 		);
 
-		// needded as I've disabled the pubsubPeerDiscovery
+		// needed as I've disabled the pubsubPeerDiscovery
 		this._pubsub?.subscribe(DRP_DISCOVERY_TOPIC);
 		this._pubsub?.subscribe(DRP_INTERVAL_DISCOVERY_TOPIC);
 	}

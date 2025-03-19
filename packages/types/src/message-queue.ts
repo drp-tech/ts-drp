@@ -19,12 +19,12 @@ export interface IMessageQueue<T> {
 	 * Subscribe to the queue
 	 * @param handler The handler to apply to each message received
 	 */
-	subscribe(handler: (message: T) => Promise<void>): Promise<void>;
+	subscribe(handler: (message: T) => Promise<void>): void;
 
 	/**
 	 * Close the queue
 	 */
-	close(): Promise<void>;
+	close(): void;
 }
 
 export interface IMessageQueueManagerOptions {
@@ -45,16 +45,16 @@ export interface IMessageQueueManager<T> {
 	 * @param queueId The queue to subscribe to
 	 * @param handler The handler to apply to each message received
 	 */
-	subscribe(queueId: string, handler: (message: T) => Promise<void>): Promise<void>;
+	subscribe(queueId: string, handler: (message: T) => Promise<void>): void;
 
 	/**
 	 * Close the queue
 	 * @param queueId The queue to close
 	 */
-	close(queueId: string): Promise<void>;
+	close(queueId: string): void;
 
 	/**
 	 * Close all queues
 	 */
-	closeAll(): Promise<void>;
+	closeAll(): void;
 }

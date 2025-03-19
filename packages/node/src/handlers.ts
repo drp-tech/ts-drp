@@ -29,7 +29,6 @@ import { log } from "./logger.js";
 interface HandleParams {
 	node: DRPNode;
 	message: Message;
-	stream?: Stream;
 }
 
 interface IHandlerStrategy {
@@ -56,36 +55,36 @@ const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
  * Handler for direct DRP messages
  */
 export async function protocolHandler(node: DRPNode, stream: Stream): Promise<void> {
+	let message: Message;
 	try {
 		const byteArray = await streamToUint8Array(stream);
-		const message = Message.decode(byteArray);
-		await node.messageQueueManager.enqueue(message.objectId, message);
-		console.log("enqueued from protocol handler");
+		message = Message.decode(byteArray);
 	} catch (err) {
 		log.error("::protocolHandler: Error decoding message", err);
 		return;
 	}
+	await node.messageQueueManager.enqueue(message.objectId, message);
 }
 
 /**
  * Handler for gossipsub DRP messages
  */
 export async function gossipSubHandler(node: DRPNode, data: Uint8Array): Promise<void> {
+	let message: Message;
 	try {
-		const message = Message.decode(data);
-		await node.messageQueueManager.enqueue(message.objectId, message);
-		console.log("enqueued from gossipsub handler");
+		message = Message.decode(data);
 	} catch (err) {
 		log.error("::gossipSubHandler: Error decoding message", err);
+		return;
 	}
+	await node.messageQueueManager.enqueue(message.objectId, message);
 }
 
 /**
  * Listen for messages from the message queue
  */
-export async function listenForMessages(node: DRPNode, objectId: string): Promise<void> {
-	await node.messageQueueManager.subscribe(objectId, async (message: Message) => {
-		console.log("received message from queue", message);
+export function subscribeToMessageQueue(node: DRPNode, objectId: string): void {
+	void node.messageQueueManager.subscribe(objectId, async (message: Message) => {
 		const handler = messageHandlers[message.type];
 		if (!handler) {
 			log.error("::messageHandler: Invalid operation");
@@ -101,8 +100,8 @@ export async function listenForMessages(node: DRPNode, objectId: string): Promis
 /**
  * Stops listening for messages from the message queue
  */
-export async function stopListeningForMessages(node: DRPNode, objectId: string): Promise<void> {
-	await node.messageQueueManager.close(objectId);
+export function unsubscribeFromMessageQueue(node: DRPNode, objectId: string): void {
+	void node.messageQueueManager.close(objectId);
 }
 
 function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
@@ -348,6 +347,10 @@ async function syncAcceptHandler({ node, message }: HandleParams): Promise<void>
 }
 
 async function drpDiscoveryHandler({ node, message }: HandleParams): Promise<void> {
+	console.log(`node::drpDiscoveryHandler: received message ${message}`);
+	console.dir(message, { depth: null });
+	console.log("drpDiscoveryHandler - my peerId", node.networkNode.peerId);
+	console.log("drpDiscoveryHandler - all peers", node.networkNode.getAllPeers());
 	await DRPIntervalDiscovery.handleDiscoveryRequest(message.sender, message, node.networkNode);
 }
 

@@ -22,25 +22,31 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 		console.log("enqueued message", message);
 	}
 
-	async subscribe(handler: (message: T) => Promise<void>): Promise<void> {
-		while (this.isActive) {
-			try {
-				const message = await this.queue.receive();
-				await handler(message);
-			} catch (error) {
-				if (error instanceof Error && error.message === "Channel is closed") {
-					break;
+	subscribe(handler: (message: T) => Promise<void>): void {
+		const startProcessingMessages = async (): Promise<void> => {
+			while (this.isActive) {
+				try {
+					const message = await this.queue.receive();
+					await handler(message);
+					console.log(`queue::processed message ${message}`);
+				} catch (error) {
+					if (error instanceof Error && error.message === "Channel is closed") {
+						break;
+					}
+					throw new Error(`Error in subscription: ${error}`);
 				}
-				console.error("Error in subscription:", error);
 			}
-		}
+		};
+
+		void startProcessingMessages();
 	}
 
-	async close(): Promise<void> {
+	close(): void {
+		if (!this.isActive) {
+			throw new Error("Message queue is already closed");
+		}
 		this.isActive = false;
 		// Close the channel to unblock any waiting receives
 		this.queue.close();
-		// Wait for any in-progress message processing to complete
-		await Promise.resolve();
 	}
 }

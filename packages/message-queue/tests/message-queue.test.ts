@@ -7,7 +7,6 @@ describe("MessageQueue", () => {
 	let messages: string[] = [];
 	const handler = vi.fn(async (msg: string) => {
 		await new Promise((resolve) => setTimeout(resolve, 100));
-		console.log("handler", msg);
 		messages.push(msg);
 	});
 
@@ -16,14 +15,12 @@ describe("MessageQueue", () => {
 		messages = [];
 	});
 
-	afterEach(async () => {
-		await queue.close();
-	});
+	afterEach(async () => {});
 
 	describe("basic functionality", () => {
 		it("should process messages in order", async () => {
 			// Start subscription before enqueueing
-			const subscriptionPromise = queue.subscribe(handler);
+			queue.subscribe(handler);
 
 			// Enqueue messages
 			await queue.enqueue("first");
@@ -31,12 +28,9 @@ describe("MessageQueue", () => {
 			await queue.enqueue("third");
 
 			// Wait for messages to be processed
-			await new Promise((resolve) => setTimeout(resolve, 100 * 3));
+			await new Promise((resolve) => setTimeout(resolve, 100 * 4));
 			// Close queue to stop subscription
-			await queue.close();
-
-			// Wait for subscription to complete
-			await subscriptionPromise;
+			queue.close();
 
 			expect(messages).toEqual(["first", "second", "third"]);
 			expect(handler).toHaveBeenCalledTimes(3);
@@ -45,7 +39,7 @@ describe("MessageQueue", () => {
 
 	describe("error handling", () => {
 		it("should throw error when enqueueing to closed queue", async () => {
-			await queue.close();
+			queue.close();
 			await expect(queue.enqueue("test")).rejects.toThrow("Message queue is closed");
 		});
 	});
@@ -58,19 +52,19 @@ describe("MessageQueue", () => {
 				messages.push(msg);
 			});
 
-			const subscriptionPromise = queue.subscribe(handler);
+			queue.subscribe(handler);
 
 			// Enqueue a message
 			await queue.enqueue("test");
 
+			// Wait for message to be processed
+			await new Promise((resolve) => setTimeout(resolve, 100 * 2));
+
 			// Close queue
-			await queue.close();
+			queue.close();
 
 			// Try to enqueue after closing
 			await expect(queue.enqueue("after-close")).rejects.toThrow("Message queue is closed");
-
-			// Wait for subscription to complete
-			await subscriptionPromise;
 
 			expect(messages).toEqual(["test"]);
 			expect(handler).toHaveBeenCalledTimes(1);

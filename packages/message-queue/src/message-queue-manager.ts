@@ -30,9 +30,10 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 			}
 		}
 		await this.queues.get(queueId)?.enqueue(message);
+		console.log(`queue manager::enqueued message ${message} to ${queueId}`);
 	}
 
-	async subscribe(queueId: string, handler: (message: T) => Promise<void>): Promise<void> {
+	subscribe(queueId: string, handler: (message: T) => Promise<void>): void {
 		if (queueId === "") {
 			queueId = GENERAL_QUEUE_ID;
 		}
@@ -44,10 +45,11 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 				throw new Error("Max number of queues reached");
 			}
 		}
-		await this.queues.get(queueId)?.subscribe(handler);
+		this.queues.get(queueId)?.subscribe(handler);
+		console.log(`queue manager::subscribed to ${queueId}`);
 	}
 
-	async close(queueId: string): Promise<void> {
+	close(queueId: string): void {
 		if (queueId === "") {
 			queueId = GENERAL_QUEUE_ID;
 		}
@@ -55,12 +57,12 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 		if (!queue) {
 			return;
 		}
-		await queue.close();
+		queue.close();
 	}
 
-	async closeAll(): Promise<void> {
+	closeAll(): void {
 		for (const queue of this.queues.values()) {
-			await queue.close();
+			queue.close();
 		}
 	}
 }

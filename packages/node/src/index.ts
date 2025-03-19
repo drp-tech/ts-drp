@@ -3,7 +3,7 @@ import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/i
 import { createDRPDiscovery } from "@ts-drp/interval-discovery";
 import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
-import { GENERAL_QUEUE_ID, MessageQueueManager } from "@ts-drp/message-queue";
+import { MessageQueueManager } from "@ts-drp/message-queue";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
 import {
@@ -22,9 +22,9 @@ import {
 import { loadConfig } from "./config.js";
 import {
 	gossipSubHandler,
-	listenForMessages,
 	protocolHandler,
-	stopListeningForMessages,
+	subscribeToMessageQueue,
+	unsubscribeFromMessageQueue,
 } from "./handlers.js";
 import { log } from "./logger.js";
 import * as operations from "./operations.js";
@@ -63,6 +63,7 @@ export class DRPNode {
 	async start(): Promise<void> {
 		await this.keychain.start();
 		await this.networkNode.start(this.keychain.secp256k1PrivateKey);
+		void subscribeToMessageQueue(this, DRP_INTERVAL_DISCOVERY_TOPIC);
 		await this.networkNode.addMessageHandler(
 			({ stream }: IncomingStreamData) => void protocolHandler(this, stream)
 		);
@@ -70,13 +71,12 @@ export class DRPNode {
 			DRP_INTERVAL_DISCOVERY_TOPIC,
 			(e: CustomEvent<GossipsubMessage>) => void gossipSubHandler(this, e.detail.msg.data)
 		);
-
-		await listenForMessages(this, GENERAL_QUEUE_ID);
 		this._intervals.forEach((interval) => interval.start());
 	}
 
 	async stop(): Promise<void> {
 		await this.networkNode.stop();
+		void this.messageQueueManager.closeAll();
 		this._intervals.forEach((interval) => interval.stop());
 	}
 
@@ -144,8 +144,8 @@ export class DRPNode {
 		if (options.sync?.enabled) {
 			await operations.syncObject(this, object.id, options.sync.peerId);
 		}
+		subscribeToMessageQueue(this, object.id);
 		this._createIntervalDiscovery(object.id);
-		await listenForMessages(this, object.id);
 		return object;
 	}
 
@@ -163,20 +163,20 @@ export class DRPNode {
 			drp: options.drp,
 			metrics: options.metrics,
 		});
+		subscribeToMessageQueue(this, options.id);
 		this._createIntervalDiscovery(options.id);
-		await listenForMessages(this, options.id);
 		return object;
 	}
 
-	async subscribeObject(id: string): Promise<void> {
+	subscribeObject(id: string): void {
 		operations.subscribeObject(this, id);
-		await listenForMessages(this, id);
+		subscribeToMessageQueue(this, id);
 	}
 
-	async unsubscribeObject(id: string, purge?: boolean): Promise<void> {
+	unsubscribeObject(id: string, purge?: boolean): void {
 		operations.unsubscribeObject(this, id, purge);
 		this.networkNode.removeTopicScoreParams(id);
-		await stopListeningForMessages(this, id);
+		unsubscribeFromMessageQueue(this, id);
 	}
 
 	async syncObject(id: string, peerId?: string): Promise<void> {

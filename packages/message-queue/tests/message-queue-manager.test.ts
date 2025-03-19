@@ -9,9 +9,7 @@ describe("MessageQueueManager", () => {
 		manager = new MessageQueueManager<string>();
 	});
 
-	afterEach(async () => {
-		await manager.closeAll();
-	});
+	afterEach(async () => {});
 
 	describe("basic functionality", () => {
 		it("should create and use queues", async () => {
@@ -23,16 +21,16 @@ describe("MessageQueueManager", () => {
 			});
 
 			// Start subscription
-			const subscriptionPromise = manager.subscribe(queueId, handler);
+			manager.subscribe(queueId, handler);
 
 			// Send message
 			await manager.enqueue(queueId, "test");
 
-			// Close queue
-			await manager.close(queueId);
+			// Wait for message to be processed
+			await new Promise((resolve) => setTimeout(resolve, 100));
 
-			// Wait for subscription to complete
-			await subscriptionPromise;
+			// Close queue
+			manager.close(queueId);
 
 			expect(messages).toEqual(["test"]);
 			expect(handler).toHaveBeenCalledTimes(1);
@@ -53,8 +51,8 @@ describe("MessageQueueManager", () => {
 			});
 
 			// Start subscriptions
-			const subscriptionPromise1 = manager.subscribe(queue1Id, handler1);
-			const subscriptionPromise2 = manager.subscribe(queue2Id, handler2);
+			manager.subscribe(queue1Id, handler1);
+			manager.subscribe(queue2Id, handler2);
 
 			// Send messages to different queues
 			await manager.enqueue(queue1Id, "queue1-message");
@@ -64,10 +62,8 @@ describe("MessageQueueManager", () => {
 			await new Promise((resolve) => setTimeout(resolve, 100));
 
 			// Close queues
-			await Promise.all([manager.close(queue1Id), manager.close(queue2Id)]);
-
-			// Wait for subscriptions to complete
-			await Promise.all([subscriptionPromise1, subscriptionPromise2]);
+			manager.close(queue1Id);
+			manager.close(queue2Id);
 
 			expect(messages1).toEqual(["queue1-message"]);
 			expect(messages2).toEqual(["queue2-message"]);
@@ -85,7 +81,7 @@ describe("MessageQueueManager", () => {
 			});
 
 			// Start subscription
-			const subscriptionPromise = manager.subscribe("", handler);
+			manager.subscribe("", handler);
 
 			// Send message to empty queue ID
 			await manager.enqueue("", "test");
@@ -93,10 +89,7 @@ describe("MessageQueueManager", () => {
 			// Wait for message to be processed
 			await new Promise((resolve) => setTimeout(resolve, 100));
 			// Close queue
-			await manager.close("");
-
-			// Wait for subscription to complete
-			await subscriptionPromise;
+			manager.close("");
 
 			expect(messages).toEqual(["test"]);
 			expect(handler).toHaveBeenCalledTimes(1);
@@ -119,7 +112,7 @@ describe("MessageQueueManager", () => {
 				"Max number of queues reached"
 			);
 
-			await smallManager.closeAll();
+			smallManager.closeAll();
 		});
 	});
 
@@ -133,7 +126,7 @@ describe("MessageQueueManager", () => {
 			});
 
 			// Start subscription
-			const subscriptionPromise = manager.subscribe(queueId, handler);
+			manager.subscribe(queueId, handler);
 
 			// Send message
 			await manager.enqueue(queueId, "test");
@@ -141,10 +134,7 @@ describe("MessageQueueManager", () => {
 			// Wait for message to be processed
 			await new Promise((resolve) => setTimeout(resolve, 100));
 			// Close specific queue
-			await manager.close(queueId);
-
-			// Wait for subscription to complete
-			await subscriptionPromise;
+			manager.close(queueId);
 
 			expect(messages).toEqual(["test"]);
 			expect(handler).toHaveBeenCalledTimes(1);
@@ -158,9 +148,8 @@ describe("MessageQueueManager", () => {
 				messages.push(msg);
 			});
 
-			const subscriptionPromises: Promise<void>[] = [];
 			for (let i = 0; i < numberOfQueues; i++) {
-				subscriptionPromises.push(manager.subscribe(`queue${i}`, handler));
+				manager.subscribe(`queue${i}`, handler);
 			}
 
 			// Send messages
@@ -172,10 +161,7 @@ describe("MessageQueueManager", () => {
 			await new Promise((resolve) => setTimeout(resolve, 100 * numberOfQueues));
 
 			// Close all queues
-			await manager.closeAll();
-
-			// Wait for subscriptions to complete
-			await Promise.all(subscriptionPromises);
+			manager.closeAll();
 
 			expect(messages).toEqual(Array.from({ length: numberOfQueues }, (_, i) => `test${i}`));
 			expect(handler).toHaveBeenCalledTimes(numberOfQueues);
