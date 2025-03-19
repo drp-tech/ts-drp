@@ -17,6 +17,13 @@ export interface IntervalRunnerOptions {
 	interval?: number;
 	logConfig?: LoggerOptions;
 	id?: string;
+	/**
+	 * If true, the interval runner will throw an error if it is stopped
+	 * while running.
+	 *
+	 * @default true
+	 */
+	throwOnStop?: boolean;
 }
 
 export interface IIntervalRunner<Type extends string, Args extends unknown[] = []> {

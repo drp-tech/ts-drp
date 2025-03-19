@@ -12,7 +12,6 @@ import {
 	type DRPNodeConfig,
 	type IACL,
 	type IDRP,
-	type IDRPIntervalReconnectBootstrap,
 	type IDRPObject,
 	type IMetrics,
 	type IntervalRunnerMap,
@@ -35,7 +34,6 @@ export class DRPNode {
 	keychain: Keychain;
 
 	private _intervals: Map<string, IntervalRunnerMap[keyof IntervalRunnerMap]> = new Map();
-	private _intervalReconnectBootstrap: IDRPIntervalReconnectBootstrap;
 
 	constructor(config?: DRPNodeConfig) {
 		const newLogger = new Logger("drp::node", config?.log_config);
@@ -53,16 +51,19 @@ export class DRPNode {
 				...config?.interval_discovery_options,
 			},
 		};
-
-		this._intervalReconnectBootstrap = createDRPReconnectBootstrap({
-			...this.config.interval_reconnect_options,
-			networkNode: this.networkNode,
-		});
 	}
 
 	async start(): Promise<void> {
 		await this.keychain.start();
 		await this.networkNode.start(this.keychain.secp256k1PrivateKey);
+		this._intervals.set(
+			"interval::reconnect",
+			createDRPReconnectBootstrap({
+				...this.config.interval_reconnect_options,
+				id: this.networkNode.peerId.toString(),
+				networkNode: this.networkNode,
+			})
+		);
 		await this.networkNode.addMessageHandler(
 			({ stream }: IncomingStreamData) => void drpMessagesHandler(this, stream)
 		);
@@ -72,12 +73,11 @@ export class DRPNode {
 				void drpMessagesHandler(this, undefined, e.detail.msg.data)
 		);
 		this._intervals.forEach((interval) => interval.start());
-		this._intervalReconnectBootstrap.start();
 	}
 
 	async stop(): Promise<void> {
-		await this.networkNode.stop();
 		this._intervals.forEach((interval) => interval.stop());
+		await this.networkNode.stop();
 	}
 
 	async restart(config?: DRPNodeConfig): Promise<void> {

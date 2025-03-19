@@ -10,6 +10,7 @@ export class IntervalRunner<Args extends unknown[] = []>
 	readonly interval: number;
 	readonly fn: AnyBooleanCallback<Args>;
 	readonly id: string;
+	readonly throwOnStop: boolean;
 
 	private _intervalId: NodeJS.Timeout | null = null;
 	private _state: 0 | 1;
@@ -29,6 +30,7 @@ export class IntervalRunner<Args extends unknown[] = []>
 		}
 
 		this.fn = config.fn;
+		this.throwOnStop = config.throwOnStop ?? true;
 		this._logger = new Logger("drp:interval-runner", config.logConfig);
 		this.id =
 			config.id ??
@@ -109,7 +111,10 @@ export class IntervalRunner<Args extends unknown[] = []>
 	 */
 	stop(): void {
 		if (this._state === 0) {
-			throw new Error("Interval runner is not running");
+			if (this.throwOnStop) {
+				throw new Error("Interval runner is not running");
+			}
+			return;
 		}
 
 		this._state = 0;

@@ -37,6 +37,7 @@ export class DRPIntervalReconnectBootstrap implements IDRPIntervalReconnectBoots
 		this._intervalRunner = new IntervalRunner({
 			...opts,
 			fn: this._runDRPReconnect.bind(this),
+			throwOnStop: false,
 		});
 		this.networkNode = opts.networkNode;
 	}
@@ -44,6 +45,7 @@ export class DRPIntervalReconnectBootstrap implements IDRPIntervalReconnectBoots
 	start(_args?: [] | undefined): void {
 		this._intervalRunner.start();
 	}
+
 	stop(): void {
 		this._intervalRunner.stop();
 	}
@@ -51,7 +53,7 @@ export class DRPIntervalReconnectBootstrap implements IDRPIntervalReconnectBoots
 	private async _runDRPReconnect(): Promise<boolean> {
 		const multiaddrs = this.networkNode.getMultiaddrs();
 		if (multiaddrs !== undefined && multiaddrs.length > 0) {
-			this._logger.info("Still have peers, skipping reconnect");
+			this._logger.info("Still have an address, skipping reconnect");
 			return true;
 		}
 		await this.networkNode.connectBootstrap();

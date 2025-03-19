@@ -1,4 +1,5 @@
 import { type IDRPIntervalDiscovery } from "./drp-interval-discovery.js";
+import { type IDRPIntervalReconnectBootstrap } from "./drp-interval-reconnect.js";
 import { type IIntervalRunner } from "./interval-runner.js";
 
 export {
@@ -50,6 +51,11 @@ export interface IntervalRunnerMap {
 	 * The interval runner for the interval runner
 	 */
 	"interval:runner": IIntervalRunner<"interval:runner">;
+
+	/**
+	 * The interval runner for the interval reconnect
+	 */
+	"interval:reconnect": IDRPIntervalReconnectBootstrap;
 
 	/**
 	 * The interval runner for the interval discovery
