@@ -51,7 +51,6 @@ export class DRPIntervalReconnectBootstrap implements IDRPIntervalReconnectBoots
 	private async _runDRPReconnect(): Promise<boolean> {
 		const multiaddrs = this.networkNode.getMultiaddrs();
 		if (multiaddrs !== undefined && multiaddrs.length > 0) {
-			console.log("asd", multiaddrs);
 			this._logger.info("Still have peers, skipping reconnect");
 			return true;
 		}

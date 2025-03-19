@@ -343,10 +343,8 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		}
 	}
 
-	async disconnect(peerIdAddress: string): Promise<void> {
+	async disconnect(peerId: string): Promise<void> {
 		try {
-			const peerId = multiaddr(peerIdAddress).getPeerId();
-			log.info("Thisis", multiaddr(`/p2p/${peerId}`));
 			await this._node?.hangUp(multiaddr(`/p2p/${peerId}`));
 			log.info("::disconnect: Successfully disconnected", peerId);
 		} catch (e) {

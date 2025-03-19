@@ -413,6 +413,9 @@ importers:
       '@libp2p/peer-id':
         specifier: ^5.0.14
         version: 5.1.0
+      '@multiformats/multiaddr':
+        specifier: ^12.3.1
+        version: 12.4.0
       '@noble/secp256k1':
         specifier: ^2.2.3
         version: 2.2.3
