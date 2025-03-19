@@ -34,16 +34,9 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 		expect(acl.query_isAdmin(newAdmin)).toBe(true);
 	});
 
-	test("Nodes should not able to setKey for another node", () => {
-		expect(() => {
-			acl.context = { caller: "peer1" };
-			acl.setKey("peer2", "blsPublicKey1");
-		}).toThrowError("Cannot set key for another peer.");
-	});
-
 	test("Nodes should be able to setKey for themselves", () => {
 		acl.context = { caller: "peer1" };
-		acl.setKey("peer1", "blsPublicKey1");
+		acl.setKey("blsPublicKey1");
 		expect(acl.query_getPeerKey("peer1")).toStrictEqual("blsPublicKey1");
 	});
 
@@ -54,14 +47,14 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 		expect(acl.query_getPeerKey("peer2")).toStrictEqual("");
 
 		acl.context = { caller: "peer2" };
-		acl.setKey("peer2", "blsPublicKey2");
+		acl.setKey("blsPublicKey2");
 		expect(acl.query_isWriter("peer2")).toBe(true);
 		expect(acl.query_getPeerKey("peer2")).toStrictEqual("blsPublicKey2");
 	});
 
 	test("Should be able to setKey before grant", () => {
 		acl.context = { caller: "peer2" };
-		acl.setKey("peer2", "blsPublicKey2");
+		acl.setKey("blsPublicKey2");
 		expect(acl.query_isWriter("peer2")).toBe(false);
 		expect(acl.query_getPeerKey("peer2")).toStrictEqual("blsPublicKey2");
 

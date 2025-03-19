@@ -829,15 +829,15 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 
 	test("Should update key in the ACL", async () => {
 		const acl1 = obj1.acl as ObjectACL;
-		acl1.setKey("peer1", "blsPublicKey1");
+		acl1.setKey("blsPublicKey1");
 
 		await obj2.merge(obj1.hashGraph.getAllVertices());
 		const acl2 = obj2.acl as ObjectACL;
 		expect(acl2.query_getPeerKey("peer1")).toStrictEqual("blsPublicKey1");
 
 		const acl3 = obj3.acl as ObjectACL;
-		acl3.setKey("peer3", "blsPublicKey3");
-		acl2.setKey("peer2", "blsPublicKey2");
+		acl3.setKey("blsPublicKey3");
+		acl2.setKey("blsPublicKey2");
 
 		await obj1.merge(obj2.hashGraph.getAllVertices());
 		await obj1.merge(obj3.hashGraph.getAllVertices());

@@ -103,17 +103,14 @@ export class ObjectACL implements IACL {
 		}
 	}
 
-	setKey(peerId: string, blsPublicKey: string): void {
-		if (this.context.caller !== peerId) {
-			throw new Error("Cannot set key for another peer.");
-		}
-		let peerPermissions = this._authorizedPeers.get(peerId);
+	setKey(blsPublicKey: string): void {
+		let peerPermissions = this._authorizedPeers.get(this.context.caller);
 		if (!peerPermissions) {
 			peerPermissions = getPeerPermissions({ blsPublicKey });
 		} else {
 			peerPermissions.blsPublicKey = blsPublicKey;
 		}
-		this._authorizedPeers.set(peerId, peerPermissions);
+		this._authorizedPeers.set(this.context.caller, peerPermissions);
 	}
 
 	query_getFinalitySigners(): Map<string, string> {

@@ -60,10 +60,9 @@ export interface IACL extends IDRP {
 	/**
 	 * Set the public key of a peer.
 	 *
-	 * @param peerId - The id of the peer.
 	 * @param key - The public key of the peer.
 	 */
-	setKey(peerId: string, blsPublicKey: string): void;
+	setKey(blsPublicKey: string): void;
 	/**
 	 * Gets the finality signers.
 	 */

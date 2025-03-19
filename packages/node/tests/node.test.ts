@@ -121,14 +121,14 @@ describe("DRPNode voting tests", () => {
 			acl,
 			drp: new SetDRP(),
 		});
-		obj1.acl.setKey(nodeA.networkNode.peerId, nodeA.keychain.blsPublicKey);
+		obj1.acl.setKey(nodeA.keychain.blsPublicKey);
 
 		obj2 = new DRPObject({
 			peerId: nodeB.networkNode.peerId,
 			acl: obj1.acl,
 			drp: new SetDRP(),
 		});
-		obj2.acl.setKey(nodeB.networkNode.peerId, nodeB.keychain.blsPublicKey);
+		obj2.acl.setKey(nodeB.keychain.blsPublicKey);
 	});
 
 	test("Nodes in writer set are able to sign", async () => {
@@ -235,7 +235,7 @@ describe("DRPNode with rpc", () => {
 			admins: [drpNode.networkNode.peerId],
 		});
 		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
-		drpObject.acl.setKey(drpNode.networkNode.peerId, drpNode.keychain.blsPublicKey);
+		drpObject.acl.setKey(drpNode.keychain.blsPublicKey);
 	});
 
 	test("should run connectObject", async () => {
