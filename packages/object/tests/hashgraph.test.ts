@@ -705,8 +705,8 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
 
 		const acl1 = obj1.acl as ObjectACL;
-		acl1.grant("peer1", "peer2", ACLGroup.Finality);
-		acl1.grant("peer1", "peer3", ACLGroup.Finality);
+		acl1.grant("peer2", ACLGroup.Finality);
+		acl1.grant("peer3", ACLGroup.Finality);
 		await obj2.merge(obj1.hashGraph.getAllVertices());
 		await obj3.merge(obj1.hashGraph.getAllVertices());
 	});
