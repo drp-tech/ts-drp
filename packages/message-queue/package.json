@@ -34,10 +34,6 @@
 		".": {
 			"types": "./dist/src/index.d.ts",
 			"import": "./dist/src/index.js"
-		},
-		"./debug": {
-			"types": "./dist/src/debug/index.d.ts",
-			"import": "./dist/src/debug/index.js"
 		}
 	},
 	"scripts": {
@@ -51,6 +47,7 @@
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
-		"@ts-drp/types": "^0.10.0"
+		"@ts-drp/types": "^0.10.0",
+		"@ts-drp/utils": "^0.10.0"
 	}
 }

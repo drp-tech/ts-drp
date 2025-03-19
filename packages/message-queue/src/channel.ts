@@ -1,4 +1,4 @@
-import { Deferred } from "./deferred.js";
+import { Deferred } from "@ts-drp/utils/promise/deferred";
 
 export interface ChannelOptions {
 	capacity?: number;

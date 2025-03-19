@@ -276,6 +276,9 @@ importers:
       '@ts-drp/types':
         specifier: ^0.10.0
         version: link:../types
+      '@ts-drp/utils':
+        specifier: ^0.10.0
+        version: link:../utils
 
   packages/network:
     dependencies:
