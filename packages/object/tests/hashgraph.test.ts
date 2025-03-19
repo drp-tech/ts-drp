@@ -1207,3 +1207,74 @@ describe("DRP Context tests", () => {
 		}
 	});
 });
+
+describe("Nodes admin permission tests", () => {
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
+	let obj3: DRPObject<SetDRP<number>>;
+
+	beforeEach(() => {
+		obj1 = new DRPObject({
+			peerId: "peer1",
+			acl: new ObjectACL({ admins: ["peer1"] }),
+			drp: new SetDRP<number>(),
+		});
+		obj2 = new DRPObject({
+			peerId: "peer2",
+			acl: new ObjectACL({ admins: ["peer1", "peer2"] }),
+			drp: new SetDRP<number>(),
+		});
+		obj3 = new DRPObject({
+			peerId: "peer3",
+			acl: new ObjectACL({ admins: ["peer1"] }),
+			drp: new SetDRP<number>(),
+		});
+	});
+
+	test("Should not able to grant if node an admin", async () => {
+		obj2.acl.grant("peer3", ACLGroup.Writer);
+		expect(obj2.acl.query_isWriter("peer3")).toBe(true);
+
+		await obj1.merge(obj2.vertices);
+		expect(obj1.acl.query_isWriter("peer3")).toBe(false);
+		await obj3.merge(obj2.vertices);
+		expect(obj3.acl.query_isWriter("peer3")).toBe(false);
+	});
+
+	test("Should not able to revoke if node an admin", async () => {
+		obj1.acl.grant("peer3", ACLGroup.Writer);
+		expect(obj1.acl.query_isWriter("peer3")).toBe(true);
+
+		await obj3.merge(obj1.vertices);
+		expect(obj3.acl.query_isWriter("peer3")).toBe(true);
+		obj3.drp?.add(1);
+		expect(obj3.drp?.query_has(1)).toBe(true);
+
+		await obj2.merge(obj3.vertices);
+		expect(obj2.drp?.query_has(1)).toBe(true);
+		obj2.acl.revoke("peer3", ACLGroup.Writer);
+		expect(obj2.acl.query_isWriter("peer3")).toBe(false);
+
+		await obj3.merge(obj2.vertices);
+		expect(obj3.acl.query_isWriter("peer3")).toBe(true);
+	});
+
+	test("Should able to grant/revoke if node an admin", async () => {
+		obj1.acl.grant("peer3", ACLGroup.Writer);
+		expect(obj1.acl.query_isWriter("peer3")).toBe(true);
+		await obj3.merge(obj1.vertices);
+		obj1.acl.grant("peer2", ACLGroup.Admin);
+		await obj2.merge(obj1.vertices);
+
+		obj3.drp?.add(1);
+		await obj2.merge(obj3.vertices);
+		expect(obj2.drp?.query_has(1)).toBe(true);
+		obj2.acl.revoke("peer3", ACLGroup.Writer);
+
+		await obj1.merge(obj2.vertices);
+		expect(obj1.acl.query_isWriter("peer3")).toBe(false);
+
+		obj3.drp?.add(2);
+		await obj1.merge(obj3.vertices);
+	});
+});
