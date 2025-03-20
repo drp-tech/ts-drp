@@ -5,7 +5,7 @@ import { type Grid } from "./objects/grid";
 
 interface GridState {
 	node: DRPNode | undefined;
-	drpObject: IDRPObject | undefined;
+	drpObject: IDRPObject<Grid> | undefined;
 	gridDRP: Grid | undefined;
 	peers: string[];
 	discoveryPeers: string[];
@@ -20,7 +20,7 @@ interface GridState {
 
 class GridStateManager implements GridState {
 	node: DRPNode | undefined = undefined;
-	drpObject: IDRPObject | undefined = undefined;
+	drpObject: IDRPObject<Grid> | undefined = undefined;
 	gridDRP: Grid | undefined = undefined;
 	peers: string[] = [];
 	discoveryPeers: string[] = [];

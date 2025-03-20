@@ -1,11 +1,6 @@
 import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import { type TopicScoreParams } from "@chainsafe/libp2p-gossipsub/score";
-import {
-	type Address,
-	type EventCallback,
-	type PeerId,
-	type StreamHandler,
-} from "@libp2p/interface";
+import { type Address, type EventCallback, type PeerId, type StreamHandler } from "@libp2p/interface";
 import { type MultiaddrInput } from "@multiformats/multiaddr";
 
 import { type LoggerOptions } from "./logger.js";
@@ -107,6 +102,12 @@ export interface DRPNetworkNode {
 	unsubscribe(topic: string): void;
 
 	/**
+	 * Connects to the bootstrap nodes
+	 * @returns {Promise<void>} Resolves when connection is established
+	 */
+	connectToBootstraps(): Promise<void>;
+
+	/**
 	 * Connects to one or more peer addresses
 	 * @param {MultiaddrInput | MultiaddrInput[]} addr - The address(es) to connect to
 	 * @returns {Promise<void>} Resolves when connection is established
@@ -132,6 +133,12 @@ export interface DRPNetworkNode {
 	 * @returns {string[]} Array of bootstrap node addresses
 	 */
 	getBootstrapNodes(): string[];
+
+	/**
+	 * Get all topics this node is subscribed to
+	 * @returns {string[]} Array of topics
+	 */
+	getSubscribedTopics(): string[];
 
 	/**
 	 * Gets the multiaddresses this node is listening on
@@ -182,10 +189,7 @@ export interface DRPNetworkNode {
 	 * @param {string} group - The group to handle messages for
 	 * @param {EventCallback<CustomEvent<GossipsubMessage>>} handler - The message handler function
 	 */
-	addGroupMessageHandler(
-		group: string,
-		handler: EventCallback<CustomEvent<GossipsubMessage>>
-	): void;
+	addGroupMessageHandler(group: string, handler: EventCallback<CustomEvent<GossipsubMessage>>): void;
 
 	/**
 	 * Adds a general message handler for all messages

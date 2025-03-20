@@ -60,7 +60,7 @@ const config = tsLintConfig(
 			},
 		},
 		rules: {
-			"prettier/prettier": "error",
+			"prettier/prettier": ["error", { printWidth: 120 }],
 			"@typescript-eslint/no-unused-vars": [
 				"error",
 				{

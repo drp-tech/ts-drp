@@ -2,6 +2,7 @@ import {
 	ACLConflictResolution,
 	ACLGroup,
 	ActionType,
+	type DrpRuntimeContext,
 	type IACL,
 	type PeerPermissions,
 	type ResolveConflictsType,
@@ -9,10 +10,7 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 
-function getPeerPermissions(params?: {
-	blsPublicKey?: string;
-	permissions?: Set<ACLGroup>;
-}): PeerPermissions {
+function getPeerPermissions(params?: { blsPublicKey?: string; permissions?: Set<ACLGroup> }): PeerPermissions {
 	const { blsPublicKey, permissions } = params ?? {};
 
 	return {
@@ -23,17 +21,14 @@ function getPeerPermissions(params?: {
 
 export class ObjectACL implements IACL {
 	semanticsType = SemanticsType.pair;
+	context: DrpRuntimeContext = { caller: "" };
 
 	// if true, any peer can write to the object
 	permissionless: boolean;
 	private _conflictResolution: ACLConflictResolution;
 	private _authorizedPeers: Map<string, PeerPermissions>;
 
-	constructor(options: {
-		admins: string[];
-		permissionless?: boolean;
-		conflictResolution?: ACLConflictResolution;
-	}) {
+	constructor(options: { admins: string[]; permissionless?: boolean; conflictResolution?: ACLConflictResolution }) {
 		this.permissionless = options.permissionless ?? false;
 
 		const adminPermissions = new Set<ACLGroup>([ACLGroup.Admin, ACLGroup.Finality]);
@@ -42,10 +37,7 @@ export class ObjectACL implements IACL {
 		}
 
 		this._authorizedPeers = new Map(
-			[...options.admins].map((adminId) => [
-				adminId,
-				getPeerPermissions({ permissions: new Set(adminPermissions) }),
-			])
+			[...options.admins].map((adminId) => [adminId, getPeerPermissions({ permissions: new Set(adminPermissions) })])
 		);
 		this._conflictResolution = options.conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
@@ -105,6 +97,9 @@ export class ObjectACL implements IACL {
 		if (senderId !== peerId) {
 			throw new Error("Cannot set key for another peer.");
 		}
+		if (!this.query_isFinalitySigner(peerId)) {
+			throw new Error("Only finality signers can set their BLS public key.");
+		}
 		let peerPermissions = this._authorizedPeers.get(peerId);
 		if (!peerPermissions) {
 			peerPermissions = getPeerPermissions({ blsPublicKey });
@@ -131,10 +126,7 @@ export class ObjectACL implements IACL {
 	}
 
 	query_isWriter(peerId: string): boolean {
-		return (
-			this.permissionless ||
-			(this._authorizedPeers.get(peerId)?.permissions.has(ACLGroup.Writer) ?? false)
-		);
+		return this.permissionless || (this._authorizedPeers.get(peerId)?.permissions.has(ACLGroup.Writer) ?? false);
 	}
 
 	query_getPeerKey(peerId: string): string | undefined {
@@ -154,12 +146,10 @@ export class ObjectACL implements IACL {
 
 		return this._conflictResolution === ACLConflictResolution.GrantWins
 			? {
-					action:
-						vertices[0].operation.opType === "grant" ? ActionType.DropRight : ActionType.DropLeft,
+					action: vertices[0].operation.opType === "grant" ? ActionType.DropRight : ActionType.DropLeft,
 				}
 			: {
-					action:
-						vertices[0].operation.opType === "grant" ? ActionType.DropLeft : ActionType.DropRight,
+					action: vertices[0].operation.opType === "grant" ? ActionType.DropLeft : ActionType.DropRight,
 				};
 	}
 }

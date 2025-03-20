@@ -1,10 +1,10 @@
 import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import { DRPObject as DRPObjectImpl, HashGraph } from "@ts-drp/object";
 import {
+	type ConnectObjectOptions,
 	FetchState,
 	type IDRP,
 	type IDRPObject,
-	type IMetrics,
 	Message,
 	MessageType,
 	Sync,
@@ -14,29 +14,24 @@ import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
 
-export function createObject(node: DRPNode, object: IDRPObject): void {
+export function createObject<T extends IDRP>(node: DRPNode, object: IDRPObject<T>): void {
 	node.objectStore.put(object.id, object);
 	object.subscribe((obj, originFn, vertices) => {
 		drpObjectChangesHandler(node, obj, originFn, vertices);
 	});
 }
 
-export type ConnectObjectOptions = {
-	drp?: IDRP;
-	peerId?: string;
-	metrics?: IMetrics;
-};
-
-export async function connectObject(
+export async function connectObject<T extends IDRP>(
 	node: DRPNode,
 	id: string,
-	options: ConnectObjectOptions
-): Promise<IDRPObject> {
+	options: ConnectObjectOptions<T>
+): Promise<IDRPObject<T>> {
 	const object = DRPObjectImpl.createObject({
 		peerId: node.networkNode.peerId,
 		id,
 		drp: options.drp,
 		metrics: options.metrics,
+		log_config: options.log_config,
 	});
 	node.objectStore.put(id, object);
 
@@ -48,7 +43,7 @@ export async function connectObject(
 			await syncObject(node, id, options.peerId);
 			subscribeObject(node, id);
 			object.subscribe((obj, originFn, vertices) => {
-				drpObjectChangesHandler(node, obj as IDRPObject, originFn, vertices);
+				drpObjectChangesHandler(node, obj, originFn, vertices);
 			});
 			clearInterval(interval);
 		}
@@ -62,8 +57,7 @@ export function subscribeObject(node: DRPNode, objectId: string): void {
 	node.networkNode.subscribe(objectId);
 	node.networkNode.addGroupMessageHandler(
 		objectId,
-		(e: CustomEvent<GossipsubMessage>) =>
-			void drpMessagesHandler(node, undefined, e.detail.msg.data)
+		(e: CustomEvent<GossipsubMessage>) => void drpMessagesHandler(node, undefined, e.detail.msg.data)
 	);
 }
 
@@ -90,11 +84,11 @@ export async function fetchState(node: DRPNode, objectId: string, peerId?: strin
 	}
 }
 
-/*
-  data: { vertex_hashes: string[] }
-*/
-export async function syncObject(node: DRPNode, objectId: string, peerId?: string): Promise<void> {
-	const object: IDRPObject | undefined = node.objectStore.get(objectId);
+/**
+ *  data: { vertex_hashes: string[] }
+ */
+export async function syncObject<T extends IDRP>(node: DRPNode, objectId: string, peerId?: string): Promise<void> {
+	const object: IDRPObject<T> | undefined = node.objectStore.get(objectId);
 	if (!object) {
 		log.error("::syncObject: Object not found");
 		return;

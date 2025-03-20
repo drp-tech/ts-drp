@@ -139,8 +139,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		const subscriptionChange = new Promise((resolve) => {
 			raceEvent(pubsubNode1, "subscription-change", controller.signal, {
 				filter: (event: CustomEvent<SubscriptionChangeData>) =>
-					event.detail.subscriptions.some((s) => s.topic === group) &&
-					event.detail.peerId.toString() === node2.peerId,
+					event.detail.subscriptions.some((s) => s.topic === group) && event.detail.peerId.toString() === node2.peerId,
 			})
 				.then(() => resolve(true))
 				.catch(() => resolve(false));

@@ -136,7 +136,7 @@ export const render = (): void => {
 	}
 
 	if (!gridState.drpObject) return;
-	const users = gridState.gridDRP?.query_users();
+	const users = gridState.drpObject.drp?.query_users();
 	const element_grid = <HTMLDivElement>document.getElementById("grid");
 	element_grid.innerHTML = "";
 

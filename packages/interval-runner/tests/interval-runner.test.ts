@@ -1,3 +1,4 @@
+import { IntervalRunnerState } from "@ts-drp/types/src/enum.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { IntervalRunner } from "../src/index.js";
@@ -21,7 +22,7 @@ describe("IntervalRunner", () => {
 		it("should create instance with valid interval", () => {
 			const runner = new IntervalRunner({ interval: 1000, fn: (): boolean => true });
 			expect(runner.interval).toBe(1000);
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 	});
 
@@ -49,7 +50,7 @@ describe("IntervalRunner", () => {
 
 			await vi.advanceTimersByTimeAsync(100); // Wait for first execution
 			expect(callback).toHaveBeenCalledWith("test", 41);
-			expect(runner.state).toBe("running");
+			expect(runner.state).toBe(IntervalRunnerState.Running);
 
 			await vi.advanceTimersByTimeAsync(1000); // Wait for interval
 			await vi.advanceTimersByTimeAsync(100); // Wait for second execution
@@ -66,7 +67,7 @@ describe("IntervalRunner", () => {
 			runner.start(["test", 42]);
 
 			expect(callback).toHaveBeenCalledWith("test", 42);
-			expect(runner.state).toBe("running");
+			expect(runner.state).toBe(IntervalRunnerState.Running);
 
 			await vi.advanceTimersByTimeAsync(1000);
 			expect(callback).toHaveBeenCalledTimes(2);
@@ -87,7 +88,7 @@ describe("IntervalRunner", () => {
 			await new Promise(process.nextTick);
 
 			expect(callback).toHaveBeenCalledTimes(1);
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 
 		it("should stop when async callback rejects", async () => {
@@ -102,7 +103,7 @@ describe("IntervalRunner", () => {
 
 			await vi.advanceTimersByTimeAsync(100);
 			expect(callback).toHaveBeenCalledTimes(1);
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 
 		it("should stop when generator callback throws", async () => {
@@ -121,11 +122,11 @@ describe("IntervalRunner", () => {
 			runner.start();
 
 			expect(callback).toHaveBeenCalledTimes(1);
-			expect(runner.state).toBe("running");
+			expect(runner.state).toBe(IntervalRunnerState.Running);
 
 			await vi.advanceTimersByTimeAsync(1000);
 			expect(callback).toHaveBeenCalledTimes(2);
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 
 		it("should stop when async generator callback throws", async () => {
@@ -146,12 +147,12 @@ describe("IntervalRunner", () => {
 
 			await vi.advanceTimersByTimeAsync(100);
 			expect(callback).toHaveBeenCalledTimes(1);
-			expect(runner.state).toBe("running");
+			expect(runner.state).toBe(IntervalRunnerState.Running);
 
 			await vi.advanceTimersByTimeAsync(1000);
 			await vi.advanceTimersByTimeAsync(100);
 			expect(callback).toHaveBeenCalledTimes(2);
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 	});
 
@@ -181,7 +182,7 @@ describe("IntervalRunner", () => {
 			// Advance timer past when the next callback would have happened
 			await vi.advanceTimersByTimeAsync(1000);
 			expect(callback).toHaveBeenCalledTimes(1); // Should not have been called again
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 
 		it("should stop when callback returns false", async () => {
@@ -194,11 +195,11 @@ describe("IntervalRunner", () => {
 			const runner = new IntervalRunner({ interval: 1000, fn: callback });
 			runner.start();
 			expect(callback).toHaveBeenCalledTimes(1); // Should be called immediately
-			expect(runner.state).toBe("running");
+			expect(runner.state).toBe(IntervalRunnerState.Running);
 
 			await vi.advanceTimersByTimeAsync(1000);
 			expect(callback).toHaveBeenCalledTimes(2);
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 
 		it("should handle error in callback function", async () => {
@@ -212,7 +213,7 @@ describe("IntervalRunner", () => {
 
 			expect(callback).toHaveBeenCalledTimes(1);
 			await new Promise(process.nextTick);
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 
 		it("should handle async callback rejection", async () => {
@@ -227,7 +228,7 @@ describe("IntervalRunner", () => {
 
 			await vi.advanceTimersByTimeAsync(100);
 			expect(callback).toHaveBeenCalledTimes(1);
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 
 		it("should handle generator callback throw", async () => {
@@ -246,11 +247,11 @@ describe("IntervalRunner", () => {
 			runner.start();
 
 			expect(callback).toHaveBeenCalledTimes(1);
-			expect(runner.state).toBe("running");
+			expect(runner.state).toBe(IntervalRunnerState.Running);
 
 			await vi.advanceTimersByTimeAsync(1000);
 			expect(callback).toHaveBeenCalledTimes(2);
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 
 		it("should handle async generator callback throw", async () => {
@@ -271,12 +272,12 @@ describe("IntervalRunner", () => {
 
 			await vi.advanceTimersByTimeAsync(100);
 			expect(callback).toHaveBeenCalledTimes(1);
-			expect(runner.state).toBe("running");
+			expect(runner.state).toBe(IntervalRunnerState.Running);
 
 			await vi.advanceTimersByTimeAsync(1000);
 			await vi.advanceTimersByTimeAsync(100);
 			expect(callback).toHaveBeenCalledTimes(2);
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 	});
 
@@ -315,13 +316,13 @@ describe("IntervalRunner", () => {
 			// First execution
 			await vi.advanceTimersByTimeAsync(100); // Wait for the setTimeout in the callback
 			expect(callback).toHaveBeenCalledTimes(1);
-			expect(runner.state).toBe("running");
+			expect(runner.state).toBe(IntervalRunnerState.Running);
 
 			// Second execution
 			await vi.advanceTimersByTimeAsync(1000); // Wait for the interval
 			await vi.advanceTimersByTimeAsync(100); // Wait for the setTimeout in the callback
 			expect(callback).toHaveBeenCalledTimes(2);
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 	});
 
@@ -340,11 +341,11 @@ describe("IntervalRunner", () => {
 			const runner = new IntervalRunner({ interval: 1000, fn: callback });
 			runner.start();
 			expect(callback).toHaveBeenCalledTimes(1);
-			expect(runner.state).toBe("running");
+			expect(runner.state).toBe(IntervalRunnerState.Running);
 
 			await vi.advanceTimersByTimeAsync(1000);
 			expect(callback).toHaveBeenCalledTimes(2);
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 	});
 
@@ -366,12 +367,12 @@ describe("IntervalRunner", () => {
 			expect(callback).toHaveBeenCalledTimes(1);
 
 			await vi.advanceTimersByTimeAsync(100); // Wait for the first yield
-			expect(runner.state).toBe("running");
+			expect(runner.state).toBe(IntervalRunnerState.Running);
 
 			await vi.advanceTimersByTimeAsync(1000); // Wait for the interval
 			expect(callback).toHaveBeenCalledTimes(2);
 			await vi.advanceTimersByTimeAsync(100); // Wait for the second yield
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 	});
 
@@ -398,7 +399,7 @@ describe("IntervalRunner", () => {
 			runner.stop();
 			vi.advanceTimersByTime(2000);
 			expect(callback).toHaveBeenCalledTimes(1);
-			expect(runner.state).toBe("stopped");
+			expect(runner.state).toBe(IntervalRunnerState.Stopped);
 		});
 	});
 });

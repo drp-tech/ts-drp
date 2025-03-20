@@ -41,9 +41,7 @@ export function loadConfig(configPath?: string | undefined): DRPNodeConfig | und
 		announce_addresses: parseCommaSeparatedValue(process.env.ANNOUNCE_ADDRESSES),
 		bootstrap: process.env.BOOTSTRAP ? process.env.BOOTSTRAP === "true" : undefined,
 		bootstrap_peers: parseCommaSeparatedValue(process.env.BOOTSTRAP_PEERS),
-		browser_metrics: process.env.BROWSER_METRICS
-			? process.env.BROWSER_METRICS === "true"
-			: undefined,
+		browser_metrics: process.env.BROWSER_METRICS ? process.env.BROWSER_METRICS === "true" : undefined,
 	};
 	config.keychain_config = {
 		private_key_seed: process.env.PRIVATE_KEY_SEED ? process.env.PRIVATE_KEY_SEED : undefined,

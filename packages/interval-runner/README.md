@@ -28,11 +28,11 @@ import { IntervalRunner } from "@ts-drp/interval-runner";
 
 // Create an interval runner that executes every 5 seconds
 const runner = new IntervalRunner({
-  interval: 5000,
-  fn: () => {
-    console.log("Executing task...");
-    return true; // Return true to continue the interval
-  }
+	interval: 5000,
+	fn: () => {
+		console.log("Executing task...");
+		return true; // Return true to continue the interval
+	},
 });
 
 // Start the runner
@@ -49,13 +49,13 @@ import { IntervalRunner } from "@ts-drp/interval-runner";
 
 let count = 0;
 const runner = new IntervalRunner({
-  interval: 1000,
-  fn: () => {
-    console.log(`Execution #${++count}`);
-    
-    // Automatically stop after 5 executions
-    return count < 5;
-  }
+	interval: 1000,
+	fn: () => {
+		console.log(`Execution #${++count}`);
+
+		// Automatically stop after 5 executions
+		return count < 5;
+	},
 });
 
 runner.start();
@@ -67,16 +67,16 @@ runner.start();
 import { IntervalRunner } from "@ts-drp/interval-runner";
 
 const runner = new IntervalRunner({
-  interval: 10000,
-  fn: async () => {
-    console.log("Starting async operation...");
-    
-    // Simulate an API call
-    const result = await fetchSomeData();
-    console.log("Data fetched:", result);
-    
-    return true;
-  }
+	interval: 10000,
+	fn: async () => {
+		console.log("Starting async operation...");
+
+		// Simulate an API call
+		const result = await fetchSomeData();
+		console.log("Data fetched:", result);
+
+		return true;
+	},
 });
 
 runner.start();
@@ -88,16 +88,16 @@ runner.start();
 import { IntervalRunner } from "@ts-drp/interval-runner";
 
 const runner = new IntervalRunner({
-  interval: 3000,
-  fn: function* () {
-    console.log("Starting generator execution");
-    
-    // You can yield multiple values
-    yield true; // Continue the interval
-    
-    // The last yielded value determines whether the interval continues
-    return false; // Stop the interval
-  }
+	interval: 3000,
+	fn: function* () {
+		console.log("Starting generator execution");
+
+		// You can yield multiple values
+		yield true; // Continue the interval
+
+		// The last yielded value determines whether the interval continues
+		return false; // Stop the interval
+	},
 });
 
 runner.start();
@@ -109,11 +109,11 @@ runner.start();
 import { IntervalRunner } from "@ts-drp/interval-runner";
 
 const runner = new IntervalRunner<[string, number]>({
-  interval: 2000,
-  fn: (name, count) => {
-    console.log(`Hello ${name}, count: ${count}`);
-    return true;
-  }
+	interval: 2000,
+	fn: (name, count) => {
+		console.log(`Hello ${name}, count: ${count}`);
+		return true;
+	},
 });
 
 // Pass arguments when starting
@@ -150,7 +150,7 @@ Stops the interval runner.
 
 The interval in milliseconds.
 
-#### `state: "running" | "stopped"`
+#### `state: IntervalRunnerState`
 
 The current state of the interval runner.
 
