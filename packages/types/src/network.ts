@@ -136,6 +136,12 @@ export interface DRPNetworkNode {
 	getBootstrapNodes(): string[];
 
 	/**
+	 * Get all topics this node is subscribed to
+	 * @returns {string[]} Array of topics
+	 */
+	getSubscribedTopics(): string[];
+
+	/**
 	 * Gets the multiaddresses this node is listening on
 	 * @returns {string[] | undefined} Array of multiaddresses or undefined if not started
 	 */
