@@ -14,7 +14,6 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			"@ts-drp": path.resolve(__dirname, "../../packages"),
 			"vite-plugin-node-polyfills/shims/process": path.resolve(
 				__dirname,
 				"node_modules/vite-plugin-node-polyfills/shims/process"

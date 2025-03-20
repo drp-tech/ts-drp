@@ -1,4 +1,4 @@
-import path from "node:path";
+import path from "path";
 import { defineConfig } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
@@ -14,8 +14,7 @@ export default defineConfig({
 	define: {
 		"import.meta.env.VITE_RENDER_INFO_INTERVAL": process.env.VITE_RENDER_INFO_INTERVAL || 1000,
 		"import.meta.env.VITE_ENABLE_TRACING": process.env.VITE_ENABLE_TRACING || false,
-		"import.meta.env.VITE_ENABLE_PROMETHEUS_METRICS":
-			process.env.VITE_ENABLE_PROMETHEUS_METRICS || false,
+		"import.meta.env.VITE_ENABLE_PROMETHEUS_METRICS": process.env.VITE_ENABLE_PROMETHEUS_METRICS || false,
 	},
 	build: {
 		target: "esnext",
@@ -28,7 +27,6 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			"@ts-drp": path.resolve(__dirname, "../../packages"),
 			"vite-plugin-node-polyfills/shims/process": path.resolve(
 				__dirname,
 				"node_modules/vite-plugin-node-polyfills/shims/process"

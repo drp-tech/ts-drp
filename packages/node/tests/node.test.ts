@@ -225,7 +225,7 @@ describe("DRPNode with rpc", () => {
 	test("should run connectObject", async () => {
 		const drpObjectConnected = await drpNode.connectObject({ id: drpObject.id, drp });
 		expect(drpObjectConnected.id).toEqual(drpObject.id);
-		vi.advanceTimersByTime(3000);
+		vi.advanceTimersByTime(5000);
 		const object = drpNode.objectStore.get(drpObject.id);
 		expect(object).toBeDefined();
 	});

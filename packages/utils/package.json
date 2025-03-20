@@ -38,6 +38,10 @@
 		"./debug": {
 			"types": "./dist/src/debug/index.d.ts",
 			"import": "./dist/src/debug/index.js"
+		},
+		"./promise/deferred": {
+			"types": "./dist/src/promise/deferred/index.d.ts",
+			"import": "./dist/src/promise/deferred/index.js"
 		}
 	},
 	"scripts": {
