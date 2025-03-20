@@ -47,9 +47,7 @@ describe("Tests for FinalityState", () => {
 
 		const signature = keychain.signWithBls(finalityState.data);
 
-		expect(() => finalityState.addSignature("badNode", signature)).toThrowError(
-			"Peer not found in signer list"
-		);
+		expect(() => finalityState.addSignature("badNode", signature)).toThrowError("Peer not found in signer list");
 	});
 
 	test("addSignature: Bad signatures are rejected", async () => {

@@ -129,7 +129,7 @@ describe("Heartbeat integration test", () => {
 		expect(node1.networkNode.getGroupPeers(drpObject.id)[0]).toBe(node3.networkNode.peerId);
 	});
 
-	test("peer 1 can't hearbeat stop searching after 1 seconds", async () => {
+	test("peer 1 can't heartbeat stop searching after 1 seconds", async () => {
 		// Add mock logger
 		vi.useFakeTimers();
 		vi.mock("@ts-drp/logger", () => {
@@ -161,9 +161,7 @@ describe("Heartbeat integration test", () => {
 		type LoggerType = { error(message: string): void };
 
 		// First cast to unknown, then to the specific type
-		const loggerInstance = interval
-			? (interval as unknown as { _logger: LoggerType })["_logger"]
-			: undefined;
+		const loggerInstance = interval ? (interval as unknown as { _logger: LoggerType })["_logger"] : undefined;
 
 		if (loggerInstance) {
 			expect(loggerInstance.error).toHaveBeenCalledWith("No peers found after 1000ms of searching");

@@ -7,10 +7,7 @@ import { beforeAll, describe, expect, test } from "vitest";
 import { type GenericRespone, type SubscribeDRPRequest } from "../src/proto/drp/node/v1/rpc_pb.js";
 import * as run from "../src/run.js";
 
-const protoPath = path.resolve(
-	dirname(fileURLToPath(import.meta.url)),
-	"../src/proto/drp/node/v1/rpc.proto"
-);
+const protoPath = path.resolve(dirname(fileURLToPath(import.meta.url)), "../src/proto/drp/node/v1/rpc.proto");
 const packageDefinition = protoLoader.loadSync(protoPath);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any;

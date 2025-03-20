@@ -1,4 +1,5 @@
 import { createDRPDiscovery } from "@ts-drp/interval-discovery";
+import { createDRPReconnectBootstrap } from "@ts-drp/interval-reconnect";
 import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
 import { MessageQueueManager } from "@ts-drp/message-queue";
@@ -62,6 +63,14 @@ export class DRPNode {
 	async start(): Promise<void> {
 		await this.keychain.start();
 		await this.networkNode.start(this.keychain.secp256k1PrivateKey);
+		this._intervals.set(
+			"interval::reconnect",
+			createDRPReconnectBootstrap({
+				...this.config.interval_reconnect_options,
+				id: this.networkNode.peerId.toString(),
+				networkNode: this.networkNode,
+			})
+		);
 		this.networkNode.subscribeToMessageQueue(this.dispatchMessage.bind(this));
 		this.messageQueueManager.subscribe(DISCOVERY_QUEUE_ID, (msg) => handleMessage(this, msg));
 		this._intervals.forEach((interval) => interval.start());
@@ -71,6 +80,7 @@ export class DRPNode {
 		await this.networkNode.stop();
 		void this.messageQueueManager.closeAll();
 		this._intervals.forEach((interval) => interval.stop());
+		await this.networkNode.stop();
 	}
 
 	async restart(config?: DRPNodeConfig): Promise<void> {

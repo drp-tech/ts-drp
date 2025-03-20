@@ -7,6 +7,7 @@ import {
 	type DRPIntervalDiscoveryOptions,
 	type DRPNetworkNode,
 	type IDRPIntervalDiscovery,
+	type IntervalRunnerState,
 	Message,
 	MessageType,
 	type SubscriberInfo,
@@ -130,7 +131,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	/**
 	 * Returns the current state of the discovery process
 	 */
-	get state(): "running" | "stopped" {
+	get state(): IntervalRunnerState {
 		return this._intervalRunner.state;
 	}
 
@@ -172,7 +173,17 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	 * @param data - The data of the discovery request
 	 * @param networkNode - The network node instance
 	 */
+<<<<<<< HEAD
 	static async handleDiscoveryRequest(sender: string, message: Message, networkNode: DRPNetworkNode): Promise<void> {
+||||||| cc3b63b
+	static async handleDiscoveryRequest(
+		sender: string,
+		data: Uint8Array,
+		networkNode: DRPNetworkNode
+	): Promise<void> {
+=======
+	static async handleDiscoveryRequest(sender: string, data: Uint8Array, networkNode: DRPNetworkNode): Promise<void> {
+>>>>>>> main
 		const logger = new Logger("drp::discovery::static");
 
 		try {

@@ -119,10 +119,7 @@ describe("Serialize & deserialize", () => {
 		map.set("e", [1, 2, 3]);
 		// Map<String, Map<String, Map<String, Set<Number>>>>
 		const nestedMap = new Map<string, any>();
-		nestedMap.set(
-			"a",
-			new Map<string, any>([["a", new Map<string, any>([["a", new Set([1, 2])]])]])
-		);
+		nestedMap.set("a", new Map<string, any>([["a", new Map<string, any>([["a", new Set([1, 2])]])]]));
 		map.set("f", nestedMap);
 
 		const serialized = serializeValue(map);

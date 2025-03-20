@@ -152,10 +152,7 @@ export function init(node: DRPNode, port: number = 6969): void {
 		callback(null, response);
 	}
 
-	const protoPath = path.resolve(
-		dirname(fileURLToPath(import.meta.url)),
-		"../proto/drp/node/v1/rpc.proto"
-	);
+	const protoPath = path.resolve(dirname(fileURLToPath(import.meta.url)), "../proto/drp/node/v1/rpc.proto");
 	const packageDefinition = protoLoader.loadSync(protoPath);
 	const reflectionService = new reflection.ReflectionService(packageDefinition);
 

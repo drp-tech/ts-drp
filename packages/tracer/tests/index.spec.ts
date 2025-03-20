@@ -262,9 +262,7 @@ describe("tracing lifecycle", () => {
 		});
 
 		test("should handle errors in returned promises", async () => {
-			const tracedPromise = metrics.traceFunc("error-promise-test", () =>
-				Promise.reject(new Error("promise error"))
-			);
+			const tracedPromise = metrics.traceFunc("error-promise-test", () => Promise.reject(new Error("promise error")));
 			await expect(tracedPromise()).rejects.toThrow("promise error");
 		});
 
@@ -279,14 +277,11 @@ describe("tracing lifecycle", () => {
 		});
 
 		test("should handle errors in returned async generators", async () => {
-			const tracedAsyncGenerator = metrics.traceFunc(
-				"error-async-generator-test",
-				async function* () {
-					await Promise.resolve();
-					yield 1;
-					throw new Error("async generator error");
-				}
-			);
+			const tracedAsyncGenerator = metrics.traceFunc("error-async-generator-test", async function* () {
+				await Promise.resolve();
+				yield 1;
+				throw new Error("async generator error");
+			});
 			const gen = tracedAsyncGenerator();
 			expect((await gen.next()).value).toBe(1);
 			await expect(gen.next()).rejects.toThrow("async generator error");
