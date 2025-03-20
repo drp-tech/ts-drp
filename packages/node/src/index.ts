@@ -80,7 +80,6 @@ export class DRPNode {
 		await this.networkNode.stop();
 		void this.messageQueueManager.closeAll();
 		this._intervals.forEach((interval) => interval.stop());
-		await this.networkNode.stop();
 	}
 
 	async restart(config?: DRPNodeConfig): Promise<void> {
