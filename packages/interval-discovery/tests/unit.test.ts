@@ -1,8 +1,8 @@
 import {
 	DRPDiscovery,
-	IntervalRunnerState,
 	type DRPIntervalDiscoveryOptions,
 	type DRPNetworkNode,
+	IntervalRunnerState,
 } from "@ts-drp/types";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
