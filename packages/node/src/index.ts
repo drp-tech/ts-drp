@@ -159,6 +159,8 @@ export class DRPNode {
 		// put the object in the object store
 		this.objectStore.put(object.id, object);
 
+		this.subscribeObject(object);
+
 		// start the interval discovery
 		this._createIntervalDiscovery(options.id);
 
@@ -170,7 +172,6 @@ export class DRPNode {
 			if (object.acl) {
 				await operations.syncObject(this, object.id, options.sync?.peerId);
 				log.info("::connectObject: Synced object", object.id);
-				this.subscribeObject(object);
 				log.info("::connectObject: Subscribed to object", object.id);
 				clearInterval(interval);
 			}

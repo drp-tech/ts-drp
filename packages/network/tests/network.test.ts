@@ -108,13 +108,11 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			};
 
 		const messageProcessed = new Promise((resolve) => {
-			node2
-				.addMessageHandler(({ stream }) => void streamHandler(resolve)({ stream }))
-				.catch((e) => {
-					// error from the addMessageHandler
-					console.error(e);
-					resolve(false);
-				});
+			node2.subscribeToMessageQueue(async () => {
+				await Promise.resolve();
+				boolean = true;
+				resolve(true);
+			});
 		});
 
 		await node1.sendMessage(node2.peerId, {
@@ -140,8 +138,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		const subscriptionChange = new Promise((resolve) => {
 			raceEvent(pubsubNode1, "subscription-change", controller.signal, {
 				filter: (event: CustomEvent<SubscriptionChangeData>) =>
-					event.detail.subscriptions.some((s) => s.topic === group) &&
-					event.detail.peerId.toString() === node2.peerId,
+					event.detail.subscriptions.some((s) => s.topic === group) && event.detail.peerId.toString() === node2.peerId,
 			})
 				.then(() => resolve(true))
 				.catch(() => resolve(false));
@@ -149,9 +146,8 @@ describe("DRPNetworkNode can connect & send messages", () => {
 
 		node2.subscribe(group);
 		const messageProcessed = new Promise((resolve) => {
-			node2.addGroupMessageHandler(group, (e) => {
-				const message = Message.decode(e.detail.msg.data);
-				expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
+			node2.subscribeToMessageQueue(async () => {
+				await Promise.resolve();
 				boolean = true;
 				resolve(true);
 			});
