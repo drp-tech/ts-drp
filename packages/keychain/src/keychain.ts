@@ -4,7 +4,6 @@ import { deriveKeyFromEntropy } from "@chainsafe/bls-keygen";
 import { generateKeyPair, privateKeyFromRaw } from "@libp2p/crypto/keys";
 import type { Secp256k1PrivateKey } from "@libp2p/interface";
 import { etc, signAsync } from "@noble/secp256k1";
-import { type DRPPublicCredential } from "@ts-drp/types";
 import * as crypto from "crypto";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
@@ -38,15 +37,6 @@ export class Keychain {
 		}
 	}
 
-	getPublicCredential(): DRPPublicCredential {
-		if (!this._secp256k1PrivateKey || !this._blsPrivateKey) {
-			throw new Error("Private key not found");
-		}
-		return {
-			blsPublicKey: uint8ArrayToString(this._blsPrivateKey?.toPublicKey().toBytes(), "base64"),
-		};
-	}
-
 	signWithBls(data: string): Uint8Array {
 		if (!this._blsPrivateKey) {
 			throw new Error("Private key not found");
@@ -72,6 +62,20 @@ export class Keychain {
 		fullSignature.set(compactSignature, 1);
 
 		return fullSignature;
+	}
+
+	get secp256k1PublicKey(): string {
+		if (!this._secp256k1PrivateKey) {
+			throw new Error("Secp256k1 private key not found");
+		}
+		return uint8ArrayToString(this._secp256k1PrivateKey.publicKey.raw, "base64");
+	}
+
+	get blsPublicKey(): string {
+		if (!this._blsPrivateKey) {
+			throw new Error("BLS private key not found");
+		}
+		return uint8ArrayToString(this._blsPrivateKey?.toPublicKey().toBytes(), "base64");
 	}
 
 	get secp256k1PrivateKey(): Uint8Array {

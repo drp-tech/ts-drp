@@ -6,7 +6,7 @@ describe("Keychain tests", () => {
 	test("Should be able to start without a seed", async () => {
 		const keychain = new Keychain();
 		await keychain.start();
-		expect(keychain.getPublicCredential()).toBeTruthy();
+		expect(keychain.blsPublicKey).toBeTruthy();
 		expect(keychain.signWithBls("data")).toBeTruthy();
 		await expect(keychain.signWithSecp256k1("data")).resolves.toBeTruthy();
 	});
@@ -14,7 +14,7 @@ describe("Keychain tests", () => {
 	test("Should be able to start with a seed", async () => {
 		const keychain = new Keychain({ private_key_seed: "seed" });
 		await keychain.start();
-		expect(keychain.getPublicCredential()).toBeTruthy();
+		expect(keychain.blsPublicKey).toBeTruthy();
 		expect(keychain.signWithBls("data")).toBeTruthy();
 		await expect(keychain.signWithSecp256k1("data")).resolves.toBeTruthy();
 	});

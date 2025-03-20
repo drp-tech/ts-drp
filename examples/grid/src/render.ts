@@ -1,3 +1,5 @@
+import { DRP_DISCOVERY_TOPIC } from "@ts-drp/types";
+
 import { gridState } from "./state";
 import { getColorForPeerId, hexToRgba } from "./util/color";
 
@@ -52,7 +54,7 @@ function renderClickablePeerList(
 let isDiscoveryPeersOpen = false;
 
 const renderDiscoveryPeers = (): void => {
-	gridState.discoveryPeers = gridState.node.networkNode.getGroupPeers("drp::discovery");
+	gridState.discoveryPeers = gridState.node.networkNode.getGroupPeers(DRP_DISCOVERY_TOPIC);
 
 	renderClickablePeerList(gridState.discoveryPeers, isDiscoveryPeersOpen, "discoveryPeers", () => {
 		isDiscoveryPeersOpen = !isDiscoveryPeersOpen;
@@ -129,7 +131,7 @@ export const render = (): void => {
 	}
 
 	if (!gridState.drpObject) return;
-	const users = gridState.gridDRP?.query_users();
+	const users = gridState.drpObject.drp?.query_users();
 	const element_grid = <HTMLDivElement>document.getElementById("grid");
 	element_grid.innerHTML = "";
 
@@ -167,7 +169,7 @@ export const render = (): void => {
 	if (!users) return;
 	for (const userColorString of users) {
 		const [id, color] = userColorString.split(":");
-		const position = gridState.gridDRP?.query_userPosition(userColorString);
+		const position = gridState.drpObject.drp?.query_userPosition(userColorString);
 
 		if (position) {
 			const div = document.createElement("div");

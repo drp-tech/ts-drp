@@ -63,4 +63,8 @@ describe("isDialable", () => {
 		await node.start(keychain2.secp256k1PrivateKey);
 		expect(await isDialable(node, true)).toBe(false);
 	});
+
+	test("should return true if the node is dialable with a callback", async () => {
+		expect(await btNode.isDialable()).toBe(true);
+	});
 });

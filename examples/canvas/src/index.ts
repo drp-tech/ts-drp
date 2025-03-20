@@ -1,11 +1,11 @@
 import { DRPNode } from "@ts-drp/node";
 import type { DRPObject } from "@ts-drp/object";
+import { DRP_DISCOVERY_TOPIC } from "@ts-drp/types";
 
 import { Canvas } from "./objects/canvas";
 
 const node = new DRPNode();
-let drpObject: DRPObject;
-let canvasDRP: Canvas;
+let drpObject: DRPObject<Canvas>;
 let peers: string[] = [];
 let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
@@ -21,8 +21,8 @@ const render = (): void => {
 	object_element.innerHTML = `[${objectPeers.join(", ")}]`;
 	(<HTMLSpanElement>document.getElementById("canvasId")).innerText = drpObject?.id;
 
-	if (!canvasDRP) return;
-	const canvas = canvasDRP.canvas;
+	if (!drpObject.drp) return;
+	const canvas = drpObject.drp.canvas;
 	for (let x = 0; x < canvas.length; x++) {
 		for (let y = 0; y < canvas[x].length; y++) {
 			const pixel = document.getElementById(`${x}-${y}`);
@@ -37,8 +37,8 @@ const random_int = (max: number): number => Math.floor(Math.random() * max);
 function paint_pixel(pixel: HTMLDivElement): void {
 	const [x, y] = pixel.id.split("-").map((v) => Number.parseInt(v, 10));
 	const painting: [number, number, number] = [random_int(256), random_int(256), random_int(256)];
-	canvasDRP.paint([x, y], painting);
-	const [r, g, b] = canvasDRP.query_pixel(x, y).color();
+	drpObject.drp?.paint([x, y], painting);
+	const [r, g, b] = drpObject.drp?.query_pixel(x, y).color() ?? [0, 0, 0];
 	pixel.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
 }
 
@@ -77,14 +77,13 @@ async function init(): Promise<void> {
 
 	node.addCustomGroupMessageHandler("", () => {
 		peers = node.networkNode.getAllPeers();
-		discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
+		discoveryPeers = node.networkNode.getGroupPeers(DRP_DISCOVERY_TOPIC);
 		render();
 	});
 
 	const create_button = <HTMLButtonElement>document.getElementById("create");
 	const create = async (): Promise<void> => {
 		drpObject = await node.createObject({ drp: new Canvas(5, 10) });
-		canvasDRP = drpObject.drp as Canvas;
 
 		createConnectHandlers();
 		render();
@@ -100,7 +99,6 @@ async function init(): Promise<void> {
 				id: drpId,
 				drp: new Canvas(5, 10),
 			});
-			canvasDRP = drpObject.drp as Canvas;
 
 			createConnectHandlers();
 			render();

@@ -1,11 +1,11 @@
 import { DRPNode } from "@ts-drp/node";
 import type { DRPObject } from "@ts-drp/object";
+import { DRP_DISCOVERY_TOPIC } from "@ts-drp/types";
 
 import { Chat } from "./objects/chat";
 
 const node = new DRPNode();
-let drpObject: DRPObject;
-let chatDRP: Chat;
+let drpObject: DRPObject<Chat>;
 let peers: string[] = [];
 let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
@@ -24,8 +24,8 @@ const render = (): void => {
 	const element_objectPeers = <HTMLDivElement>document.getElementById("objectPeers");
 	element_objectPeers.innerHTML = `[${objectPeers.join(", ")}]`;
 
-	if (!chatDRP) return;
-	const chat = chatDRP.query_messages();
+	if (!drpObject.drp) return;
+	const chat = drpObject.drp.query_messages();
 	const element_chat = <HTMLDivElement>document.getElementById("chat");
 	element_chat.innerHTML = "";
 
@@ -46,13 +46,13 @@ const render = (): void => {
 
 function sendMessage(message: string): void {
 	const timestamp: string = Date.now().toString();
-	if (!chatDRP) {
+	if (!drpObject.drp) {
 		console.error("Chat DRP not initialized");
 		alert("Please create or join a chat room first");
 		return;
 	}
 
-	chatDRP.addMessage(timestamp, message, node.networkNode.peerId);
+	drpObject.drp.addMessage(timestamp, message, node.networkNode.peerId);
 	render();
 }
 
@@ -75,7 +75,7 @@ async function main(): Promise<void> {
 	// generic message handler
 	node.addCustomGroupMessageHandler("", () => {
 		peers = node.networkNode.getAllPeers();
-		discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
+		discoveryPeers = node.networkNode.getGroupPeers(DRP_DISCOVERY_TOPIC);
 		render();
 	});
 
@@ -85,7 +85,6 @@ async function main(): Promise<void> {
 
 	const create = async (): Promise<void> => {
 		drpObject = await node.createObject({ drp: new Chat() });
-		chatDRP = drpObject.drp as Chat;
 		createConnectHandlers();
 		render();
 	};
@@ -100,7 +99,6 @@ async function main(): Promise<void> {
 		}
 
 		drpObject = await node.createObject({ id: objectId, drp: new Chat() });
-		chatDRP = drpObject.drp as Chat;
 		createConnectHandlers();
 		render();
 	};

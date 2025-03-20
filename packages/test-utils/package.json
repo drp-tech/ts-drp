@@ -1,0 +1,35 @@
+{
+	"name": "@ts-drp/test-utils",
+	"version": "0.10.0",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/drp-tech/ts-drp.git"
+	},
+	"private": true,
+	"type": "module",
+	"types": "./dist/src/index.d.ts",
+	"files": [
+		"src",
+		"dist",
+		"!dist/test",
+		"!**/*.tsbuildinfo"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/src/index.d.ts",
+			"import": "./dist/src/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc -b tsconfig.build.json",
+		"clean": "rm -rf dist/ node_modules/",
+		"prepack": "tsc -b",
+		"test": "vitest",
+		"typecheck": "tsc --noEmit",
+		"watch": "tsc -b -w"
+	},
+	"dependencies": {
+		"@ts-drp/types": "0.10.0"
+	}
+}

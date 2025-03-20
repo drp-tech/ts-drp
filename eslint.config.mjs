@@ -115,12 +115,7 @@ const config = tsLintConfig(
 					allowSeparatedGroups: true,
 				},
 			],
-			"import/no-unresolved": [
-				"error",
-				{
-					ignore: ["@libp2p/bootstrap", "@libp2p/pubsub-peer-discovery"],
-				},
-			],
+			"import/no-unresolved": ["error", { ignore: ["@libp2p/pubsub-peer-discovery"] }],
 			"import/no-cycle": "error",
 			"import/no-self-import": "error",
 			"import/no-duplicates": "error",

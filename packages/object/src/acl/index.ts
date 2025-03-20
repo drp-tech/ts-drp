@@ -2,7 +2,7 @@ import {
 	ACLConflictResolution,
 	ACLGroup,
 	ActionType,
-	type DRPPublicCredential,
+	type DrpRuntimeContext,
 	type IACL,
 	type PeerPermissions,
 	type ResolveConflictsType,
@@ -11,19 +11,20 @@ import {
 } from "@ts-drp/types";
 
 function getPeerPermissions(params?: {
-	publicKey?: DRPPublicCredential;
+	blsPublicKey?: string;
 	permissions?: Set<ACLGroup>;
 }): PeerPermissions {
-	const { publicKey, permissions } = params ?? {};
+	const { blsPublicKey, permissions } = params ?? {};
 
 	return {
-		publicKey: publicKey ?? { blsPublicKey: "" },
+		blsPublicKey: blsPublicKey ?? "",
 		permissions: permissions ?? new Set(),
 	};
 }
 
 export class ObjectACL implements IACL {
 	semanticsType = SemanticsType.pair;
+	context: DrpRuntimeContext = { caller: "" };
 
 	// if true, any peer can write to the object
 	permissionless: boolean;
@@ -102,24 +103,24 @@ export class ObjectACL implements IACL {
 		}
 	}
 
-	setKey(senderId: string, peerId: string, key: DRPPublicCredential): void {
+	setKey(senderId: string, peerId: string, blsPublicKey: string): void {
 		if (senderId !== peerId) {
 			throw new Error("Cannot set key for another peer.");
 		}
 		let peerPermissions = this._authorizedPeers.get(peerId);
 		if (!peerPermissions) {
-			peerPermissions = getPeerPermissions({ publicKey: key });
+			peerPermissions = getPeerPermissions({ blsPublicKey });
 		} else {
-			peerPermissions.publicKey = key;
+			peerPermissions.blsPublicKey = blsPublicKey;
 		}
 		this._authorizedPeers.set(peerId, peerPermissions);
 	}
 
-	query_getFinalitySigners(): Map<string, DRPPublicCredential> {
+	query_getFinalitySigners(): Map<string, string> {
 		return new Map(
 			[...this._authorizedPeers.entries()]
 				.filter(([_, user]) => user.permissions.has(ACLGroup.Finality))
-				.map(([peerId, user]) => [peerId, user.publicKey])
+				.map(([peerId, user]) => [peerId, user.blsPublicKey])
 		);
 	}
 
@@ -138,8 +139,8 @@ export class ObjectACL implements IACL {
 		);
 	}
 
-	query_getPeerKey(peerId: string): DRPPublicCredential | undefined {
-		return this._authorizedPeers.get(peerId)?.publicKey;
+	query_getPeerKey(peerId: string): string | undefined {
+		return this._authorizedPeers.get(peerId)?.blsPublicKey;
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {

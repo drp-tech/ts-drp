@@ -3,7 +3,7 @@ import { deserializeDRPState, DRPObject, serializeDRPState } from "@ts-drp/objec
 import { beforeAll, describe, expect, test } from "vitest";
 
 describe("State message utils", () => {
-	let object: DRPObject;
+	let object: DRPObject<SetDRP<number>>;
 
 	beforeAll(() => {
 		object = DRPObject.createObject({
@@ -11,9 +11,9 @@ describe("State message utils", () => {
 			id: "test",
 			drp: new SetDRP<number>(),
 		});
-		(object.drp as SetDRP<number>).add(1);
-		(object.drp as SetDRP<number>).add(2);
-		(object.drp as SetDRP<number>).add(3);
+		object.drp?.add(1);
+		object.drp?.add(2);
+		object.drp?.add(3);
 	});
 
 	test("Should serialize/deserialize state message", () => {

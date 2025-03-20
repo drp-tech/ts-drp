@@ -5,8 +5,7 @@ import { type Grid } from "./objects/grid";
 
 interface GridState {
 	node: DRPNode;
-	drpObject: IDRPObject | undefined;
-	gridDRP: Grid | undefined;
+	drpObject: IDRPObject<Grid> | undefined;
 	peers: string[];
 	discoveryPeers: string[];
 	objectPeers: string[];
@@ -15,7 +14,6 @@ interface GridState {
 export const gridState: GridState = {
 	node: new DRPNode(),
 	drpObject: undefined,
-	gridDRP: undefined,
 	peers: [],
 	discoveryPeers: [],
 	objectPeers: [],

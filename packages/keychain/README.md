@@ -44,16 +44,6 @@ await keychain.start();
 
 The `Keychain` class provides the following methods:
 
-### `getPublicCredential()`
-
-Returns a `DRPPublicCredential` object containing the base64-encoded Secp256k1 and BLS public keys.
-
-```typescript
-const publicCredential = keychain.getPublicCredential();
-console.log(publicCredential);
-// Output: { blsPublicKey: '...' }
-```
-
 ### `signWithSecp256k1(data: string)`
 
 Signs the provided data using the Secp256k1 private key and returns the signature as a `Uint8Array`.
@@ -74,6 +64,26 @@ const data = "Hello, World!";
 const signature = keychain.signWithBls(data);
 console.log(signature);
 // Output: Uint8Array(48) [...]
+```
+
+### `secp256k1PublicKey`
+
+A getter property that returns the Secp256k1 public key as a base64-encoded string.
+
+```typescript
+const secpPublicKey = keychain.secp256k1PublicKey;
+console.log("Secp256k1 Public Key:", secpPublicKey);
+// Output: Base64 encoded string representing the Secp256k1 public key.
+```
+
+### `blsPublicKey`
+
+A getter property that returns the Bls public key as a base64-encoded string.
+
+```typescript
+const blsPublicKey = keychain.blsPublicKey;
+console.log("Bls Public Key:", blsPublicKey);
+// Output: Base64 encoded string representing the Bls public key.
 ```
 
 ### `secp256k1PrivateKey`

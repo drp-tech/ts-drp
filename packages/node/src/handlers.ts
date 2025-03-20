@@ -2,16 +2,16 @@ import { publicKeyFromRaw } from "@libp2p/crypto/keys";
 import type { Stream } from "@libp2p/interface";
 import { peerIdFromPublicKey } from "@libp2p/peer-id";
 import { Signature } from "@noble/secp256k1";
+import { DRPIntervalDiscovery } from "@ts-drp/interval-discovery";
 import { streamToUint8Array } from "@ts-drp/network";
 import { deserializeDRPState, HashGraph, serializeDRPState } from "@ts-drp/object";
 import {
 	type AggregatedAttestation,
 	type Attestation,
 	AttestationUpdate,
-	type DRPState,
 	FetchState,
 	FetchStateResponse,
-	type IACL,
+	type IDRP,
 	type IDRPObject,
 	Message,
 	MessageType,
@@ -45,6 +45,9 @@ const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
 	[MessageType.MESSAGE_TYPE_SYNC_ACCEPT]: syncAcceptHandler,
 	[MessageType.MESSAGE_TYPE_SYNC_REJECT]: syncRejectHandler,
 	[MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE]: attestationUpdateHandler,
+	[MessageType.MESSAGE_TYPE_DRP_DISCOVERY]: drpDiscoveryHandler,
+	[MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE]: ({ node, message }) =>
+		node.handleDiscoveryResponse(message.sender, message.data),
 	[MessageType.MESSAGE_TYPE_CUSTOM]: undefined,
 	[MessageType.UNRECOGNIZED]: undefined,
 };
@@ -136,17 +139,17 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 		object.aclStates.set(fetchStateResponse.vertexHash, state);
 		for (const e of state.state) {
 			if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value;
-			(object.acl as IACL)[e.key] = e.value;
+			object.acl[e.key] = e.value;
 		}
 		node.objectStore.put(object.id, object);
 		return;
 	}
 
 	if (fetchStateResponse.aclState) {
-		object.aclStates.set(fetchStateResponse.vertexHash, aclState as DRPState);
+		object.aclStates.set(fetchStateResponse.vertexHash, aclState);
 	}
 	if (fetchStateResponse.drpState) {
-		object.drpStates.set(fetchStateResponse.vertexHash, drpState as DRPState);
+		object.drpStates.set(fetchStateResponse.vertexHash, drpState);
 	}
 }
 
@@ -159,7 +162,7 @@ function attestationUpdateHandler({ node, message }: HandleParams): ReturnType<I
 		return;
 	}
 
-	if ((object.acl as IACL).query_isFinalitySigner(sender)) {
+	if (object.acl.query_isFinalitySigner(sender)) {
 		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
 	}
 }
@@ -179,13 +182,13 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 	}
 
 	let verifiedVertices: Vertex[] = [];
-	if ((object.acl as IACL).permissionless) {
+	if (object.acl.permissionless) {
 		verifiedVertices = updateMessage.vertices;
 	} else {
-		verifiedVertices = await verifyACLIncomingVertices(updateMessage.vertices);
+		verifiedVertices = verifyACLIncomingVertices(updateMessage.vertices);
 	}
 
-	const [merged, _] = object.merge(verifiedVertices);
+	const [merged, _] = await object.merge(verifiedVertices);
 
 	if (!merged) {
 		await node.syncObject(updateMessage.objectId, sender);
@@ -290,14 +293,14 @@ async function syncAcceptHandler({ node, message, stream }: HandleParams): Promi
 	}
 
 	let verifiedVertices: Vertex[] = [];
-	if ((object.acl as IACL).permissionless) {
+	if (object.acl.permissionless) {
 		verifiedVertices = syncAcceptMessage.requested;
 	} else {
-		verifiedVertices = await verifyACLIncomingVertices(syncAcceptMessage.requested);
+		verifiedVertices = verifyACLIncomingVertices(syncAcceptMessage.requested);
 	}
 
 	if (verifiedVertices.length !== 0) {
-		object.merge(verifiedVertices);
+		await object.merge(verifiedVertices);
 		object.finalityStore.mergeSignatures(syncAcceptMessage.attestations);
 		node.objectStore.put(object.id, object);
 	}
@@ -335,6 +338,10 @@ async function syncAcceptHandler({ node, message, stream }: HandleParams): Promi
 	});
 }
 
+async function drpDiscoveryHandler({ node, message }: HandleParams): Promise<void> {
+	await DRPIntervalDiscovery.handleDiscoveryRequest(message.sender, message.data, node.networkNode);
+}
+
 /* data: { id: string } */
 function syncRejectHandler(_handleParams: HandleParams): ReturnType<IHandlerStrategy> {
 	// TODO: handle reject. Possible actions:
@@ -343,9 +350,9 @@ function syncRejectHandler(_handleParams: HandleParams): ReturnType<IHandlerStra
 	// - Do nothing
 }
 
-export function drpObjectChangesHandler(
+export function drpObjectChangesHandler<T extends IDRP>(
 	node: DRPNode,
-	obj: IDRPObject,
+	obj: IDRPObject<T>,
 	originFn: string,
 	vertices: Vertex[]
 ): void {
@@ -403,12 +410,12 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]): 
 }
 
 // Signs the vertices. Returns the attestations
-export function signFinalityVertices(
+export function signFinalityVertices<T extends IDRP>(
 	node: DRPNode,
-	obj: IDRPObject,
+	obj: IDRPObject<T>,
 	vertices: Vertex[]
 ): Attestation[] {
-	if (!(obj.acl as IACL).query_isFinalitySigner(node.networkNode.peerId)) {
+	if (!obj.acl.query_isFinalitySigner(node.networkNode.peerId)) {
 		return [];
 	}
 	const attestations = generateAttestations(node, obj, vertices);
@@ -416,9 +423,9 @@ export function signFinalityVertices(
 	return attestations;
 }
 
-function generateAttestations(
+function generateAttestations<T extends IDRP>(
 	node: DRPNode,
-	object: IDRPObject,
+	object: IDRPObject<T>,
 	vertices: Vertex[]
 ): Attestation[] {
 	// Two condition:
@@ -435,7 +442,10 @@ function generateAttestations(
 	}));
 }
 
-function getAttestations(object: IDRPObject, vertices: Vertex[]): AggregatedAttestation[] {
+function getAttestations<T extends IDRP>(
+	object: IDRPObject<T>,
+	vertices: Vertex[]
+): AggregatedAttestation[] {
 	return (
 		vertices
 			.map((v) => object.finalityStore.getAttestation(v.hash))
@@ -443,7 +453,7 @@ function getAttestations(object: IDRPObject, vertices: Vertex[]): AggregatedAtte
 	);
 }
 
-export async function verifyACLIncomingVertices(incomingVertices: Vertex[]): Promise<Vertex[]> {
+export function verifyACLIncomingVertices(incomingVertices: Vertex[]): Vertex[] {
 	const vertices: Vertex[] = incomingVertices.map((vertex) => {
 		return {
 			hash: vertex.hash,
@@ -459,34 +469,32 @@ export async function verifyACLIncomingVertices(incomingVertices: Vertex[]): Pro
 		};
 	});
 
-	const verificationPromises: (Vertex | null)[] = vertices.map((vertex) => {
-		if (vertex.signature.length === 0) {
-			return null;
-		}
+	const verifiedVertices = vertices
+		.map((vertex) => {
+			if (vertex.signature.length === 0) {
+				return null;
+			}
 
-		try {
-			const hashData = crypto.createHash("sha256").update(vertex.hash).digest("hex");
-			const recovery = vertex.signature[0];
-			const compactSignature = vertex.signature.slice(1);
-			const signatureWithRecovery =
-				Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
+			try {
+				const hashData = crypto.createHash("sha256").update(vertex.hash).digest("hex");
+				const recovery = vertex.signature[0];
+				const compactSignature = vertex.signature.slice(1);
+				const signatureWithRecovery =
+					Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
 
-			const rawSecp256k1PublicKey = signatureWithRecovery
-				.recoverPublicKey(hashData)
-				.toRawBytes(true);
-			const secp256k1PublicKey = publicKeyFromRaw(rawSecp256k1PublicKey);
-			const expectedPeerId = peerIdFromPublicKey(secp256k1PublicKey).toString();
-			const isValid = expectedPeerId === vertex.peerId;
-			return isValid ? vertex : null;
-		} catch (error) {
-			console.error("Error verifying signature:", error);
-			return null;
-		}
-	});
-
-	const verifiedVertices: Vertex[] = (await Promise.all(verificationPromises)).filter(
-		(vertex: Vertex | null): vertex is Vertex => vertex !== null
-	);
+				const rawSecp256k1PublicKey = signatureWithRecovery
+					.recoverPublicKey(hashData)
+					.toRawBytes(true);
+				const secp256k1PublicKey = publicKeyFromRaw(rawSecp256k1PublicKey);
+				const expectedPeerId = peerIdFromPublicKey(secp256k1PublicKey).toString();
+				const isValid = expectedPeerId === vertex.peerId;
+				return isValid ? vertex : null;
+			} catch (error) {
+				console.error("Error verifying signature:", error);
+				return null;
+			}
+		})
+		.filter((vertex: Vertex | null): vertex is Vertex => vertex !== null);
 
 	return verifiedVertices;
 }

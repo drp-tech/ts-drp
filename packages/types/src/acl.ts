@@ -1,4 +1,3 @@
-import { type DRPPublicCredential } from "./credentials.js";
 import { type IDRP } from "./drp.js";
 
 export enum ACLConflictResolution {
@@ -29,9 +28,9 @@ export enum ACLGroup {
 
 export interface PeerPermissions {
 	/**
-	 * The public credential of the peer.
+	 * The bls public key of the peer.
 	 */
-	publicKey: DRPPublicCredential;
+	blsPublicKey: string;
 	/**
 	 * The permissions of the peer.
 	 */
@@ -67,11 +66,11 @@ export interface IACL extends IDRP {
 	 * @param peerId - The id of the peer.
 	 * @param key - The public key of the peer.
 	 */
-	setKey(senderId: string, peerId: string, key: DRPPublicCredential): void;
+	setKey(senderId: string, peerId: string, blsPublicKey: string): void;
 	/**
 	 * Gets the finality signers.
 	 */
-	query_getFinalitySigners(): Map<string, DRPPublicCredential>;
+	query_getFinalitySigners(): Map<string, string>;
 	/**
 	 * Checks if a peer is an admin.
 	 *
@@ -95,5 +94,5 @@ export interface IACL extends IDRP {
 	 *
 	 * @param peerId - The id of the peer.
 	 */
-	query_getPeerKey(peerId: string): DRPPublicCredential | undefined;
+	query_getPeerKey(peerId: string): string | undefined;
 }

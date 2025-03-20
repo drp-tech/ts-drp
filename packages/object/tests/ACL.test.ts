@@ -34,33 +34,33 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 
 	test("Nodes should not able to setKey for another node", () => {
 		expect(() => {
-			acl.setKey("peer1", "peer2", { blsPublicKey: "blsPublicKey1" });
+			acl.setKey("peer1", "peer2", "blsPublicKey1");
 		}).toThrowError("Cannot set key for another peer.");
 	});
 
 	test("Nodes should be able to setKey for themselves", () => {
-		acl.setKey("peer1", "peer1", { blsPublicKey: "blsPublicKey1" });
-		expect(acl.query_getPeerKey("peer1")).toStrictEqual({ blsPublicKey: "blsPublicKey1" });
+		acl.setKey("peer1", "peer1", "blsPublicKey1");
+		expect(acl.query_getPeerKey("peer1")).toStrictEqual("blsPublicKey1");
 	});
 
 	test("Should be able to setKey after grant", () => {
 		acl.grant("peer1", "peer2", ACLGroup.Writer);
 		expect(acl.query_isWriter("peer2")).toBe(true);
-		expect(acl.query_getPeerKey("peer2")).toStrictEqual({ blsPublicKey: "" });
+		expect(acl.query_getPeerKey("peer2")).toStrictEqual("");
 
-		acl.setKey("peer2", "peer2", { blsPublicKey: "blsPublicKey2" });
+		acl.setKey("peer2", "peer2", "blsPublicKey2");
 		expect(acl.query_isWriter("peer2")).toBe(true);
-		expect(acl.query_getPeerKey("peer2")).toStrictEqual({ blsPublicKey: "blsPublicKey2" });
+		expect(acl.query_getPeerKey("peer2")).toStrictEqual("blsPublicKey2");
 	});
 
 	test("Should be able to setKey before grant", () => {
-		acl.setKey("peer2", "peer2", { blsPublicKey: "blsPublicKey2" });
+		acl.setKey("peer2", "peer2", "blsPublicKey2");
 		expect(acl.query_isWriter("peer2")).toBe(false);
-		expect(acl.query_getPeerKey("peer2")).toStrictEqual({ blsPublicKey: "blsPublicKey2" });
+		expect(acl.query_getPeerKey("peer2")).toStrictEqual("blsPublicKey2");
 
 		acl.grant("peer1", "peer2", ACLGroup.Writer);
 		expect(acl.query_isWriter("peer2")).toBe(true);
-		expect(acl.query_getPeerKey("peer2")).toStrictEqual({ blsPublicKey: "blsPublicKey2" });
+		expect(acl.query_getPeerKey("peer2")).toStrictEqual("blsPublicKey2");
 	});
 
 	test("Resolve conflicts with setKey operation should always return ActionType.Nop", () => {
