@@ -33,6 +33,7 @@ import * as filters from "@libp2p/websockets/filters";
 import { multiaddr, type MultiaddrInput } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger } from "@ts-drp/logger";
+import { MessageQueue } from "@ts-drp/message-queue";
 import {
 	DRP_DISCOVERY_TOPIC,
 	DRP_INTERVAL_DISCOVERY_TOPIC,
@@ -74,12 +75,14 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: GossipSub;
+	private _messageQueue: MessageQueue<Message>;
 
 	peerId = "";
 
 	constructor(config?: DRPNetworkNodeConfig) {
 		this._config = config;
 		log = new Logger("drp::network", config?.log_config);
+		this._messageQueue = new MessageQueue<Message>();
 	}
 
 	async start(rawPrivateKey?: Uint8Array): Promise<void> {
