@@ -1,5 +1,10 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
+import type {
+	EventCallback,
+	EventHandler,
+	IncomingStreamData,
+	StreamHandler,
+} from "@libp2p/interface";
 import { createDRPDiscovery } from "@ts-drp/interval-discovery";
 import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
@@ -10,12 +15,14 @@ import {
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
 	type IDRP,
+	type IDRPNode,
 	type IDRPObject,
 	type IntervalRunnerMap,
 	Message,
 	MessageType,
 	type NodeConnectObjectOptions,
 	type NodeCreateObjectOptions,
+	type NodeEvents,
 } from "@ts-drp/types";
 
 import { loadConfig } from "./config.js";
@@ -26,7 +33,7 @@ import { DRPObjectStore } from "./store/index.js";
 
 export { loadConfig };
 
-export class DRPNode extends EventTarget {
+export class DRPNode implements IDRPNode {
 	config: DRPNodeConfig;
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
@@ -35,7 +42,6 @@ export class DRPNode extends EventTarget {
 	private _intervals: Map<string, IntervalRunnerMap[keyof IntervalRunnerMap]> = new Map();
 
 	constructor(config?: DRPNodeConfig) {
-		super();
 		const newLogger = new Logger("drp::node", config?.log_config);
 		log.trace = newLogger.trace;
 		log.debug = newLogger.debug;
@@ -51,6 +57,26 @@ export class DRPNode extends EventTarget {
 				...config?.interval_discovery_options,
 			},
 		};
+	}
+
+	addEventListener<K extends keyof NodeEvents>(
+		_type: K,
+		_listener: EventHandler<NodeEvents[K]> | null,
+		_options?: boolean | AddEventListenerOptions
+	): void {
+		throw new Error("Method not implemented.");
+	}
+	listenerCount(_type: string): number {
+		throw new Error("Method not implemented.");
+	}
+	removeEventListener(_type: unknown, _listener?: unknown, _options?: unknown): void {
+		throw new Error("Method not implemented.");
+	}
+	safeDispatchEvent<Detail>(_type: keyof NodeEvents, _detail: CustomEventInit<Detail>): boolean {
+		throw new Error("Method not implemented.");
+	}
+	dispatchEvent(_event: unknown): boolean {
+		throw new Error("Method not implemented.");
 	}
 
 	async start(): Promise<void> {
