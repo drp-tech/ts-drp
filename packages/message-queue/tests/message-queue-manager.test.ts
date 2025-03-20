@@ -143,28 +143,80 @@ describe("MessageQueueManager", () => {
 		it("should close all queues", async () => {
 			const numberOfQueues = 10;
 			const messages: string[] = [];
-			const handler = vi.fn(async (msg: string) => {
-				await new Promise((resolve) => setTimeout(resolve, 100));
+			const handlerPromises: Promise<void>[] = [];
+
+			const handler = vi.fn(async (msg: string): Promise<void> => {
+				await Promise.resolve();
 				messages.push(msg);
 			});
 
+			// Create a wrapper that tracks the promise from each handler call.
+			const handlerWrapper = (msg: string): Promise<void> => {
+				const p = handler(msg);
+				handlerPromises.push(p);
+				return p;
+			};
+
+			// Subscribe to each queue using the wrapper.
 			for (let i = 0; i < numberOfQueues; i++) {
-				manager.subscribe(`queue${i}`, handler);
+				manager.subscribe(`queue${i}`, handlerWrapper);
 			}
 
-			// Send messages
+			// Enqueue a message to each queue.
 			for (let i = 0; i < numberOfQueues; i++) {
 				await manager.enqueue(`queue${i}`, `test${i}`);
 			}
 
-			// Wait for messages to be processed
-			await new Promise((resolve) => setTimeout(resolve, 100 * numberOfQueues));
+			// Wait until all handler promises have resolved.
+			await Promise.all(handlerPromises);
 
-			// Close all queues
+			// Close all queues.
 			manager.closeAll();
 
 			expect(messages).toEqual(Array.from({ length: numberOfQueues }, (_, i) => `test${i}`));
 			expect(handler).toHaveBeenCalledTimes(numberOfQueues);
+		});
+	});
+
+	describe("one queue multiple handlers", () => {
+		it("should handle multiple handlers", async () => {
+			const queueId = "test-queue";
+			const messages: string[] = [];
+
+			// Create promises that resolve when each handler is called.
+			let resolveHandler1: () => void;
+			let resolveHandler2: () => void;
+			const handler1Called = new Promise<void>((resolve) => {
+				resolveHandler1 = resolve;
+			});
+			const handler2Called = new Promise<void>((resolve) => {
+				resolveHandler2 = resolve;
+			});
+
+			// Remove the artificial delay and simply resolve the corresponding promise.
+			const handler1 = vi.fn(async (msg: string) => {
+				await Promise.resolve();
+				messages.push(msg);
+				resolveHandler1();
+			});
+			const handler2 = vi.fn(async (msg: string) => {
+				await Promise.resolve();
+				messages.push(msg);
+				resolveHandler2();
+			});
+
+			manager.subscribe(queueId, handler1);
+			manager.subscribe(queueId, handler2);
+
+			await manager.enqueue(queueId, "test");
+
+			// Wait until both handlers have been called.
+			await Promise.all([handler1Called, handler2Called]);
+			manager.close(queueId);
+
+			expect(messages).toEqual(["test", "test"]);
+			expect(handler1).toHaveBeenCalledTimes(1);
+			expect(handler2).toHaveBeenCalledTimes(1);
 		});
 	});
 });

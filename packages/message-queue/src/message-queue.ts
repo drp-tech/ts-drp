@@ -4,41 +4,67 @@ import { Channel } from "./channel.js";
 
 export class MessageQueue<T> implements IMessageQueue<T> {
 	private readonly options: Required<IMessageQueueOptions>;
-	private queue: Channel<T>;
+	private channel: Channel<T>;
 	private isActive: boolean = true;
+	// List of subscriber handlers
+	private subscribers: Array<(message: T) => Promise<void>> = [];
+	// A flag to ensure the fanout loop starts only once
+	private fanoutLoopStarted: boolean = false;
 
 	constructor(options: IMessageQueueOptions = {}) {
 		this.options = {
 			maxSize: options.maxSize ?? 1000,
 		};
-		this.queue = new Channel<T>({ capacity: this.options.maxSize });
+		this.channel = new Channel<T>({ capacity: this.options.maxSize });
 	}
 
 	async enqueue(message: T): Promise<void> {
 		if (!this.isActive) {
 			throw new Error("Message queue is closed");
 		}
-		await this.queue.send(message);
-		console.log("enqueued message", message);
+		await this.channel.send(message);
 	}
 
+	/**
+	 * Register a subscriber's handler.
+	 * The handler will be called for every message enqueued.
+	 */
 	subscribe(handler: (message: T) => Promise<void>): void {
-		const startProcessingMessages = async (): Promise<void> => {
-			while (this.isActive) {
-				try {
-					const message = await this.queue.receive();
-					await handler(message);
-					console.log(`queue::processed message ${message}`);
-				} catch (error) {
-					if (error instanceof Error && error.message === "Channel is closed") {
-						break;
+		this.subscribers.push(handler);
+
+		// Start the fanout loop if not already running
+		if (!this.fanoutLoopStarted) {
+			this.fanoutLoopStarted = true;
+			void this.startFanoutLoop();
+		}
+	}
+
+	/**
+	 * A continuous loop that receives messages from the central channel
+	 * and fans them out to all registered subscriber handlers.
+	 */
+	private async startFanoutLoop(): Promise<void> {
+		while (this.isActive) {
+			try {
+				const message = await this.channel.receive();
+
+				for (const handler of this.subscribers) {
+					try {
+						await handler(message);
+						console.log(`queue::processed message ${message}`);
+					} catch (error) {
+						console.error(`Error in handler processing message ${message}:`, error);
 					}
-					throw new Error(`Error in subscription: ${error}`);
+				}
+			} catch (error) {
+				// When the channel is closed, exit the loop.
+				if (error instanceof Error && error.message === "Channel is closed") {
+					break;
+				} else {
+					console.error("Error in fanout loop:", error);
 				}
 			}
-		};
-
-		void startProcessingMessages();
+		}
 	}
 
 	close(): void {
@@ -46,7 +72,6 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 			throw new Error("Message queue is already closed");
 		}
 		this.isActive = false;
-		// Close the channel to unblock any waiting receives
-		this.queue.close();
+		this.channel.close();
 	}
 }

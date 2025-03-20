@@ -70,4 +70,42 @@ describe("MessageQueue", () => {
 			expect(handler).toHaveBeenCalledTimes(1);
 		});
 	});
+
+	describe("queue multiple handlers", () => {
+		it("should process messages in order", async () => {
+			const messages: string[] = [];
+			let resolveHandler1: () => void;
+			let resolveHandler2: () => void;
+			const handler1Promise = new Promise<void>((resolve) => {
+				resolveHandler1 = resolve;
+			});
+			const handler2Promise = new Promise<void>((resolve) => {
+				resolveHandler2 = resolve;
+			});
+
+			const handler1 = vi.fn(async (msg: string) => {
+				await Promise.resolve();
+				messages.push(msg);
+				resolveHandler1();
+			});
+
+			const handler2 = vi.fn(async (msg: string) => {
+				await Promise.resolve();
+				messages.push(msg);
+				resolveHandler2();
+			});
+
+			queue.subscribe(handler1);
+			queue.subscribe(handler2);
+
+			await queue.enqueue("test");
+
+			await Promise.all([handler1Promise, handler2Promise]);
+			queue.close();
+
+			expect(messages).toEqual(["test", "test"]);
+			expect(handler1).toHaveBeenCalledTimes(1);
+			expect(handler2).toHaveBeenCalledTimes(1);
+		});
+	});
 });
