@@ -1,9 +1,5 @@
 import { Logger } from "@ts-drp/logger";
-import type {
-	IMessageQueueHandler,
-	IMessageQueueManager,
-	IMessageQueueManagerOptions,
-} from "@ts-drp/types";
+import type { IMessageQueueHandler, IMessageQueueManager, IMessageQueueManagerOptions } from "@ts-drp/types";
 
 import { MessageQueue } from "./message-queue.js";
 

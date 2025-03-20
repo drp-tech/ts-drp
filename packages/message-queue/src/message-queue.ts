@@ -13,7 +13,7 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 	private fanoutLoopStarted: boolean = false;
 	private logger: Logger;
 
-	constructor(options: IMessageQueueOptions) {
+	constructor(options: IMessageQueueOptions = { id: "default" }) {
 		this.options = this.getOptions(options);
 		this.channel = new Channel<T>({ capacity: this.options.maxSize });
 		this.logger = new Logger(`drp::message-queue::${this.options.id}`, this.options.logConfig);
@@ -21,7 +21,7 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 
 	private getOptions(options: IMessageQueueOptions): Required<IMessageQueueOptions> {
 		return {
-			id: options.id ?? "default",
+			id: options.id,
 			maxSize: options.maxSize ?? 1000,
 			logConfig: options.logConfig ?? {
 				level: "info",
@@ -62,9 +62,9 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 				for (const handler of this.subscribers) {
 					try {
 						await handler(message);
-						console.log(`queue::processed message ${message}`);
+						this.logger.info(`queue::processed message ${message}`);
 					} catch (error) {
-						console.error(`Error in handler processing message ${message}:`, error);
+						this.logger.error(`queue::error processing message ${message}:`, error);
 					}
 				}
 			} catch (error) {
@@ -72,7 +72,7 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 				if (error instanceof Error && error.message === "Channel is closed") {
 					break;
 				} else {
-					console.error("Error in fanout loop:", error);
+					this.logger.error("Error in fanout loop:", error);
 				}
 			}
 		}

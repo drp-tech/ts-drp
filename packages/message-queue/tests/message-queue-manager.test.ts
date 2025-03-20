@@ -97,20 +97,41 @@ describe("MessageQueueManager", () => {
 	});
 
 	describe("queue limits", () => {
-		it("should respect maxQueues limit", async () => {
+		it("should respect maxQueues limit", () => {
+			const smallManager = new MessageQueueManager<string>({ maxQueues: 2 });
+			const queue1Id = "queue1";
+			const queue2Id = "queue2";
+			const queue3Id = "queue3";
+			const handler = vi.fn();
+
+			// Create first two queues
+			smallManager.subscribe(queue1Id, handler);
+			smallManager.subscribe(queue2Id, handler);
+
+			// Try to create third queue
+			expect(() => smallManager.subscribe(queue3Id, handler)).toThrow("Max number of queues reached");
+
+			smallManager.closeAll();
+		});
+
+		it("should log error when enqueueing to non-existent queue", async () => {
 			const smallManager = new MessageQueueManager<string>({ maxQueues: 2 });
 			const queue1Id = "queue1";
 			const queue2Id = "queue2";
 			const queue3Id = "queue3";
 
-			// Create first two queues
-			await smallManager.enqueue(queue1Id, "test1");
-			await smallManager.enqueue(queue2Id, "test2");
+			// Spy on the logger's error method
+			const loggerSpy = vi.spyOn(smallManager["logger"], "error");
 
-			// Try to create third queue
-			await expect(smallManager.enqueue(queue3Id, "test3")).rejects.toThrow(
-				"Max number of queues reached"
-			);
+			// Create first two queues via subscription
+			smallManager.subscribe(queue1Id, vi.fn());
+			smallManager.subscribe(queue2Id, vi.fn());
+
+			// Try to enqueue to a third queue that doesn't exist
+			await smallManager.enqueue(queue3Id, "test3");
+
+			// Verify logger was called with appropriate message
+			expect(loggerSpy).toHaveBeenCalledWith(`queue manager::enqueue: queue ${queue3Id} not found`);
 
 			smallManager.closeAll();
 		});

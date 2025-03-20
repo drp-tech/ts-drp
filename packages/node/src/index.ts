@@ -1,5 +1,3 @@
-import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import type { EventCallback } from "@libp2p/interface";
 import { createDRPDiscovery } from "@ts-drp/interval-discovery";
 import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
@@ -19,19 +17,19 @@ import {
 } from "@ts-drp/types";
 
 import { loadConfig } from "./config.js";
-import { subscribeToMessageQueue, unsubscribeFromMessageQueue } from "./handlers.js";
+import { drpObjectChangesHandler, handleMessage } from "./handlers.js";
 import { log } from "./logger.js";
 import * as operations from "./operations.js";
 import { DRPObjectStore } from "./store/index.js";
 
 export { loadConfig };
 
-const discoveryMessageTypes = [
+const DISCOVERY_MESSAGE_TYPES = [
 	MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
 	MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE,
 ];
 
-const discoveryQueueId = "discovery";
+const DISCOVERY_QUEUE_ID = "discovery";
 
 export class DRPNode {
 	config: DRPNodeConfig;
@@ -64,7 +62,8 @@ export class DRPNode {
 	async start(): Promise<void> {
 		await this.keychain.start();
 		await this.networkNode.start(this.keychain.secp256k1PrivateKey);
-		this.networkNode.subscribeToMessageQueue(this.dispatchMessage);
+		this.networkNode.subscribeToMessageQueue(this.dispatchMessage.bind(this));
+		this.messageQueueManager.subscribe(DISCOVERY_QUEUE_ID, (msg) => handleMessage(this, msg));
 		this._intervals.forEach((interval) => interval.start());
 	}
 
@@ -78,17 +77,15 @@ export class DRPNode {
 		await this.stop();
 
 		// reassign the network node ? I think we might not need to do this
-		this.networkNode = new DRPNetworkNode(
-			config ? config.network_config : this.config?.network_config
-		);
+		this.networkNode = new DRPNetworkNode(config ? config.network_config : this.config?.network_config);
 
 		await this.start();
 		log.info("::restart: Node restarted");
 	}
 
 	async dispatchMessage(msg: Message): Promise<void> {
-		if (discoveryMessageTypes.includes(msg.type)) {
-			await this.messageQueueManager.enqueue(discoveryQueueId, msg);
+		if (DISCOVERY_MESSAGE_TYPES.includes(msg.type)) {
+			await this.messageQueueManager.enqueue(DISCOVERY_QUEUE_ID, msg);
 			return;
 		}
 
@@ -97,13 +94,6 @@ export class DRPNode {
 
 	addCustomGroup(group: string): void {
 		this.networkNode.subscribe(group);
-	}
-
-	addCustomGroupMessageHandler(
-		group: string,
-		handler: EventCallback<CustomEvent<GossipsubMessage>>
-	): void {
-		this.networkNode.addGroupMessageHandler(group, handler);
 	}
 
 	async sendGroupMessage(group: string, data: Uint8Array): Promise<void> {
@@ -135,12 +125,18 @@ export class DRPNode {
 				log_config: options.log_config,
 			},
 		});
-		operations.createObject(this, object);
-		operations.subscribeObject(this, object.id);
+
+		// put the object in the object store
+		this.objectStore.put(object.id, object);
+
+		// subscribe to the object
+		this.subscribeObject(object);
+
+		// sync the object
 		if (options.sync?.enabled) {
 			await operations.syncObject(this, object.id, options.sync.peerId);
 		}
-		subscribeToMessageQueue(this, object.id);
+		// create the interval discovery
 		this._createIntervalDiscovery(object.id);
 		return object;
 	}
@@ -151,28 +147,53 @@ export class DRPNode {
 	 * @param options.drp - The DRP instance. It can be undefined where we just want the HG state
 	 * @param options.sync.peerId - The peer ID to sync with
 	 */
-	async connectObject<T extends IDRP>(
-		options: NodeConnectObjectOptions<T>
-	): Promise<IDRPObject<T>> {
-		const object = await operations.connectObject(this, options.id, {
-			peerId: options.sync?.peerId,
+	async connectObject<T extends IDRP>(options: NodeConnectObjectOptions<T>): Promise<IDRPObject<T>> {
+		const object = DRPObject.createObject({
+			peerId: this.networkNode.peerId,
+			id: options.id,
 			drp: options.drp,
 			metrics: options.metrics,
+			log_config: options.log_config,
 		});
-		subscribeToMessageQueue(this, options.id);
+
+		// put the object in the object store
+		this.objectStore.put(object.id, object);
+
+		// start the interval discovery
 		this._createIntervalDiscovery(options.id);
+
+		await operations.fetchState(this, options.id, options.sync?.peerId);
+
+		// TODO: since when the interval can run this twice do we really want it to be
+		// runned while the other one might still be running?
+		const intervalFn = (interval: NodeJS.Timeout) => async (): Promise<void> => {
+			if (object.acl) {
+				await operations.syncObject(this, object.id, options.sync?.peerId);
+				log.info("::connectObject: Synced object", object.id);
+				this.subscribeObject(object);
+				log.info("::connectObject: Subscribed to object", object.id);
+				clearInterval(interval);
+			}
+		};
+		const retry = setInterval(() => void intervalFn(retry)(), 1000);
+
 		return object;
 	}
 
-	subscribeObject(id: string): void {
-		operations.subscribeObject(this, id);
-		subscribeToMessageQueue(this, id);
+	subscribeObject<T extends IDRP>(object: DRPObject<T>): void {
+		// subscribe to the object
+		object.subscribe((obj, originFn, vertices) => drpObjectChangesHandler(this, obj, originFn, vertices));
+		// subscribe to the topic in gossipsub
+		this.networkNode.subscribe(object.id);
+		// subscribe the the message Queue
+		this.messageQueueManager.subscribe(object.id, (msg) => handleMessage(this, msg));
 	}
 
 	unsubscribeObject(id: string, purge?: boolean): void {
-		operations.unsubscribeObject(this, id, purge);
+		this.networkNode.unsubscribe(id);
+		if (purge) this.objectStore.remove(id);
 		this.networkNode.removeTopicScoreParams(id);
-		unsubscribeFromMessageQueue(this, id);
+		this.messageQueueManager.close(id);
 	}
 
 	async syncObject(id: string, peerId?: string): Promise<void> {

@@ -1,9 +1,7 @@
 import { publicKeyFromRaw } from "@libp2p/crypto/keys";
-import type { Stream } from "@libp2p/interface";
 import { peerIdFromPublicKey } from "@libp2p/peer-id";
 import { Signature } from "@noble/secp256k1";
 import { DRPIntervalDiscovery } from "@ts-drp/interval-discovery";
-import { streamToUint8Array } from "@ts-drp/network";
 import { deserializeDRPState, HashGraph, serializeDRPState } from "@ts-drp/object";
 import {
 	type AggregatedAttestation,
@@ -52,56 +50,20 @@ const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
 };
 
 /**
- * Handler for direct DRP messages
+ * Handle message and run the handler
+ * @param node
+ * @param message
  */
-export async function protocolHandler(node: DRPNode, stream: Stream): Promise<void> {
-	let message: Message;
-	try {
-		const byteArray = await streamToUint8Array(stream);
-		message = Message.decode(byteArray);
-	} catch (err) {
-		log.error("::protocolHandler: Error decoding message", err);
+export async function handleMessage(node: DRPNode, message: Message): Promise<void> {
+	const handler = messageHandlers[message.type];
+	if (!handler) {
+		log.error("::messageHandler: Invalid operation");
 		return;
 	}
-	await node.messageQueueManager.enqueue(message.objectId, message);
-}
-
-/**
- * Handler for gossipsub DRP messages
- */
-export async function gossipSubHandler(node: DRPNode, data: Uint8Array): Promise<void> {
-	let message: Message;
-	try {
-		message = Message.decode(data);
-	} catch (err) {
-		log.error("::gossipSubHandler: Error decoding message", err);
-		return;
+	const result = handler({ node, message });
+	if (isPromise(result)) {
+		await result;
 	}
-	await node.messageQueueManager.enqueue(message.objectId, message);
-}
-
-/**
- * Listen for messages from the message queue
- */
-export function subscribeToMessageQueue(node: DRPNode, objectId: string): void {
-	void node.messageQueueManager.subscribe(objectId, async (message: Message) => {
-		const handler = messageHandlers[message.type];
-		if (!handler) {
-			log.error("::messageHandler: Invalid operation");
-			return;
-		}
-		const result = handler({ node, message });
-		if (isPromise(result)) {
-			await result;
-		}
-	});
-}
-
-/**
- * Stops listening for messages from the message queue
- */
-export function unsubscribeFromMessageQueue(node: DRPNode, objectId: string): void {
-	void node.messageQueueManager.close(objectId);
 }
 
 function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
@@ -433,11 +395,7 @@ export function signFinalityVertices<T extends IDRP>(
 	return attestations;
 }
 
-function generateAttestations<T extends IDRP>(
-	node: DRPNode,
-	object: IDRPObject<T>,
-	vertices: Vertex[]
-): Attestation[] {
+function generateAttestations<T extends IDRP>(node: DRPNode, object: IDRPObject<T>, vertices: Vertex[]): Attestation[] {
 	// Two condition:
 	// - The node can sign the vertex
 	// - The node hasn't signed for the vertex
@@ -452,10 +410,7 @@ function generateAttestations<T extends IDRP>(
 	}));
 }
 
-function getAttestations<T extends IDRP>(
-	object: IDRPObject<T>,
-	vertices: Vertex[]
-): AggregatedAttestation[] {
+function getAttestations<T extends IDRP>(object: IDRPObject<T>, vertices: Vertex[]): AggregatedAttestation[] {
 	return (
 		vertices
 			.map((v) => object.finalityStore.getAttestation(v.hash))
@@ -489,12 +444,8 @@ export function verifyACLIncomingVertices(incomingVertices: Vertex[]): Vertex[] 
 				const hashData = crypto.createHash("sha256").update(vertex.hash).digest("hex");
 				const recovery = vertex.signature[0];
 				const compactSignature = vertex.signature.slice(1);
-				const signatureWithRecovery =
-					Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
-
-				const rawSecp256k1PublicKey = signatureWithRecovery
-					.recoverPublicKey(hashData)
-					.toRawBytes(true);
+				const signatureWithRecovery = Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
+				const rawSecp256k1PublicKey = signatureWithRecovery.recoverPublicKey(hashData).toRawBytes(true);
 				const secp256k1PublicKey = publicKeyFromRaw(rawSecp256k1PublicKey);
 				const expectedPeerId = peerIdFromPublicKey(secp256k1PublicKey).toString();
 				const isValid = expectedPeerId === vertex.peerId;

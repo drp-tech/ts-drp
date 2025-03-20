@@ -106,18 +106,14 @@ describe("Heartbeat integration test", () => {
 			id: "test_topic_discovery",
 		});
 
+		const node3GossipSub = node3.networkNode["_pubsub"] as GossipSub;
+		const node1GossipSub = node1.networkNode["_pubsub"] as GossipSub;
+		console.log("disco shall start", node3);
+		console.log("-".repeat(100));
 		await node3.connectObject({
 			id: drpObject.id,
 		});
-		console.log("peer1 id", node1.networkNode.peerId);
-		console.log("peer1 peers", node1.networkNode.getAllPeers());
-		console.log("peer2 id", node2.networkNode.peerId);
-		console.log("peer2 peers", node2.networkNode.getAllPeers());
-		console.log("peer3 id", node3.networkNode.peerId);
-		console.log("peer3 peers", node3.networkNode.getAllPeers());
-
-		const node3GossipSub = node3.networkNode["_pubsub"] as GossipSub;
-		const node1GossipSub = node1.networkNode["_pubsub"] as GossipSub;
+		console.log("shall have really be called here");
 		await Promise.all([
 			raceEvent(node3GossipSub, "gossipsub:graft", undefined, {
 				filter: (e: CustomEvent<MeshPeer>) => e.detail.topic === drpObject.id,

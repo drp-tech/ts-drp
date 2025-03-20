@@ -1,34 +1,13 @@
-import type { Connection, IdentifyResult, Libp2p, Stream } from "@libp2p/interface";
+import type { Connection, IdentifyResult, Libp2p } from "@libp2p/interface";
 import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
 import { DrpType, FetchState, type IACL, Message, MessageType } from "@ts-drp/types";
 import { raceEvent } from "race-event";
-import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, test } from "vitest";
 
-import { protocolHandler, signGeneratedVertices } from "../src/handlers.js";
+import { signGeneratedVertices } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
-
-describe("Protocol handler inputs", () => {
-	let node: DRPNode;
-	const consoleSpy = vi.spyOn(console, "error");
-
-	beforeAll(() => {
-		node = new DRPNode();
-	});
-
-	test("Normal inputs for protocolHandler", async () => {
-		await protocolHandler(node, {
-			close: async () => {},
-			closeRead: async () => {},
-			closeWrite: async () => {},
-		} as Stream);
-		expect(consoleSpy).toHaveBeenLastCalledWith(
-			"drp::node ::protocolHandler: Error decoding message",
-			new Error("Empty pipeline")
-		);
-	});
-});
 
 describe("Handle message correctly", () => {
 	const controller = new AbortController();
@@ -107,13 +86,11 @@ describe("Handle message correctly", () => {
 		await Promise.all([
 			raceEvent(libp2pNode2, "connection:open", controller.signal, {
 				filter: (event: CustomEvent<Connection>) =>
-					event.detail.remotePeer.toString() === node1.networkNode.peerId &&
-					event.detail.limits === undefined,
+					event.detail.remotePeer.toString() === node1.networkNode.peerId && event.detail.limits === undefined,
 			}),
 			raceEvent(libp2pNode1, "connection:open", controller.signal, {
 				filter: (event: CustomEvent<Connection>) =>
-					event.detail.remotePeer.toString() === node2.networkNode.peerId &&
-					event.detail.limits === undefined,
+					event.detail.remotePeer.toString() === node2.networkNode.peerId && event.detail.limits === undefined,
 			}),
 		]);
 		acl = new ObjectACL({
@@ -205,13 +182,9 @@ describe("Handle message correctly", () => {
 		(drpObjectNode2.drp as SetDRP<number>).add(10);
 		const hash = drpObjectNode2.vertices[1].hash;
 		(drpObjectNode2.drp as SetDRP<number>).add(6);
-		expect(
-			node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)
-		).toBe(1);
+		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
 		await new Promise((resolve) => setTimeout(resolve, 500));
-		expect(
-			node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)
-		).toBe(2);
+		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
 	});
 
 	afterAll(async () => {
