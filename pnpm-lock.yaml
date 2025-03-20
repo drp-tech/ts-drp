@@ -36,9 +36,6 @@ importers:
       assemblyscript:
         specifier: ^0.27.29
         version: 0.27.35
-      chalk:
-        specifier: ^5.4.1
-        version: 5.4.1
       eslint:
         specifier: ^9.19.0
         version: 9.22.0

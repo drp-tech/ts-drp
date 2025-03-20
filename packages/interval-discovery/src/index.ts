@@ -173,17 +173,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	 * @param data - The data of the discovery request
 	 * @param networkNode - The network node instance
 	 */
-<<<<<<< HEAD
 	static async handleDiscoveryRequest(sender: string, message: Message, networkNode: DRPNetworkNode): Promise<void> {
-||||||| cc3b63b
-	static async handleDiscoveryRequest(
-		sender: string,
-		data: Uint8Array,
-		networkNode: DRPNetworkNode
-	): Promise<void> {
-=======
-	static async handleDiscoveryRequest(sender: string, data: Uint8Array, networkNode: DRPNetworkNode): Promise<void> {
->>>>>>> main
 		const logger = new Logger("drp::discovery::static");
 
 		try {
