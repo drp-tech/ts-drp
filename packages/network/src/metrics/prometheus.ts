@@ -11,19 +11,12 @@ import {
 	type HistogramConfig,
 	type MetricsRegister,
 } from "@chainsafe/libp2p-gossipsub/metrics";
-import {
-	Gauge as PromGauge,
-	Histogram as PromHistogram,
-	Pushgateway as Pushgateway,
-	register,
-} from "prom-client";
+import { Gauge as PromGauge, Histogram as PromHistogram, Pushgateway as Pushgateway, register } from "prom-client";
 
 /**
  * PrometheusGauge wraps prom-client's Gauge to implement our Gauge interface.
  */
-class PrometheusGauge<Labels extends Record<string, string | number> = Record<string, never>>
-	implements Gauge<Labels>
-{
+class PrometheusGauge<Labels extends Record<string, string | number> = Record<string, never>> implements Gauge<Labels> {
 	private gauge: PromGauge<string>;
 	private collects: Array<(metric: Gauge<Labels>) => void> = [];
 

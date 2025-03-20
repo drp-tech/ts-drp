@@ -168,10 +168,7 @@ describe("PrometheusMetricsRegister", () => {
 			});
 
 			histogram.observe({ method: "GET" }, 5);
-			expect(MockPromHistogram.mock.results[0].value.observe).toHaveBeenCalledWith(
-				{ method: "GET" },
-				5
-			);
+			expect(MockPromHistogram.mock.results[0].value.observe).toHaveBeenCalledWith({ method: "GET" }, 5);
 		});
 
 		it("should handle histogram.startTimer()", () => {
