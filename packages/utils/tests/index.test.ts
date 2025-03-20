@@ -1,12 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import {
-	handlePromiseOrValue,
-	isAsyncGenerator,
-	isGenerator,
-	isPromise,
-	processSequentially,
-} from "../src/index.js";
+import { handlePromiseOrValue, isAsyncGenerator, isGenerator, isPromise, processSequentially } from "../src/index.js";
 
 describe("utils", () => {
 	describe("isPromise", () => {
@@ -236,8 +230,7 @@ describe("utils", () => {
 			const executionOrder: string[] = [];
 			const context = { sum: 0 };
 
-			const delay = (ms: number): Promise<void> =>
-				new Promise((resolve) => setTimeout(resolve, ms));
+			const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 			const result = processSequentially<number, typeof context>(
 				items,

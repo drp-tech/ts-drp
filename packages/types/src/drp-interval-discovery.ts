@@ -35,8 +35,5 @@ export interface IDRPIntervalDiscovery extends IIntervalRunner<"interval:discove
 	 * @param sender - The sender of the discovery response
 	 * @param data - The data of the discovery response
 	 */
-	handleDiscoveryResponse(
-		sender: string,
-		subscribers: Record<string, SubscriberInfo>
-	): Promise<void>;
+	handleDiscoveryResponse(sender: string, subscribers: Record<string, SubscriberInfo>): Promise<void>;
 }

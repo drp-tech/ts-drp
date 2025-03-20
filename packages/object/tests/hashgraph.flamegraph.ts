@@ -57,11 +57,7 @@ async function mergeObjects(objects: DRPObject<SetDRP<number>>[]): Promise<void>
 	}
 }
 
-async function flamegraphForSetDRP(
-	numDRPs: number,
-	verticesPerDRP: number,
-	mergeFn: boolean
-): Promise<void> {
+async function flamegraphForSetDRP(numDRPs: number, verticesPerDRP: number, mergeFn: boolean): Promise<void> {
 	const objects = createDRPObjects(numDRPs, verticesPerDRP);
 
 	if (mergeFn) {
