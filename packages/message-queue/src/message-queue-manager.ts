@@ -60,7 +60,7 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 			this.createQueue(queueId);
 		}
 		this.queues.get(queueId)?.subscribe(handler);
-		console.log(`queue manager::subscribed to ${queueId}`);
+		this.logger.info(`queue manager::subscribed to ${queueId}`);
 	}
 
 	close(queueId: string): void {

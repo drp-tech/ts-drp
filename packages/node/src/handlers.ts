@@ -309,10 +309,6 @@ async function syncAcceptHandler({ node, message }: HandleParams): Promise<void>
 }
 
 async function drpDiscoveryHandler({ node, message }: HandleParams): Promise<void> {
-	console.log(`node::drpDiscoveryHandler: received message ${message}`);
-	console.dir(message, { depth: null });
-	console.log("drpDiscoveryHandler - my peerId", node.networkNode.peerId);
-	console.log("drpDiscoveryHandler - all peers", node.networkNode.getAllPeers());
 	await DRPIntervalDiscovery.handleDiscoveryRequest(message.sender, message, node.networkNode);
 }
 

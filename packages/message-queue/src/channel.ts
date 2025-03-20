@@ -32,14 +32,12 @@ export class Channel<T> {
 			if (recv) {
 				recv.resolve(value);
 			}
-			console.log("delivered to receiver");
 			return;
 		}
 
 		// if there is space in the buffer, add the value
 		if (this.values.length < this.options.capacity) {
 			this.values.push(value);
-			console.log("delivered to buffer");
 			return;
 		}
 

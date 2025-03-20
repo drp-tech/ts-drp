@@ -108,12 +108,9 @@ describe("Heartbeat integration test", () => {
 
 		const node3GossipSub = node3.networkNode["_pubsub"] as GossipSub;
 		const node1GossipSub = node1.networkNode["_pubsub"] as GossipSub;
-		console.log("disco shall start", node3);
-		console.log("-".repeat(100));
 		await node3.connectObject({
 			id: drpObject.id,
 		});
-		console.log("shall have really be called here");
 		await Promise.all([
 			raceEvent(node3GossipSub, "gossipsub:graft", undefined, {
 				filter: (e: CustomEvent<MeshPeer>) => e.detail.topic === drpObject.id,
