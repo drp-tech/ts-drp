@@ -292,6 +292,9 @@ importers:
 
   packages/message-queue:
     dependencies:
+      '@ts-drp/logger':
+        specifier: ^0.10.0
+        version: link:../logger
       '@ts-drp/types':
         specifier: ^0.10.0
         version: link:../types

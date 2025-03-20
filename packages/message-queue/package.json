@@ -48,6 +48,7 @@
 	},
 	"dependencies": {
 		"@ts-drp/types": "^0.10.0",
-		"@ts-drp/utils": "^0.10.0"
+		"@ts-drp/utils": "^0.10.0",
+		"@ts-drp/logger": "^0.10.0"
 	}
 }
