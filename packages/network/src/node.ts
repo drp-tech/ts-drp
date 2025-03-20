@@ -327,12 +327,12 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		}
 	}
 
-	async connectBootstrap(): Promise<void> {
+	async connectToBootstraps(): Promise<void> {
 		try {
 			await this._node?.dial(this._bootstrapNodesList.map(multiaddr));
-			log.info("::connectBootstrap: Successfully connected to bootstrap nodes");
+			log.info("::connectToBootstraps: Successfully connected to bootstrap nodes");
 		} catch (e) {
-			log.console.error("::connectBootstrap:", e);
+			log.console.error("::connectToBootstraps:", e);
 		}
 	}
 

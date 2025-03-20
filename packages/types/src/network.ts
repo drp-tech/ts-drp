@@ -106,7 +106,7 @@ export interface DRPNetworkNode {
 	 * Connects to the bootstrap nodes
 	 * @returns {Promise<void>} Resolves when connection is established
 	 */
-	connectBootstrap(): Promise<void>;
+	connectToBootstraps(): Promise<void>;
 
 	/**
 	 * Connects to one or more peer addresses

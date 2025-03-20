@@ -57,7 +57,7 @@ export class DRPIntervalReconnectBootstrap implements IDRPIntervalReconnectBoots
 			this._logger.info("Still have an address, skipping reconnect");
 			return true;
 		}
-		await this.networkNode.connectBootstrap();
+		await this.networkNode.connectToBootstraps();
 		return true;
 	}
 }

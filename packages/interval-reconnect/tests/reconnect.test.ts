@@ -23,7 +23,7 @@ describe("DRPIntervalReconnect Unit Tests", () => {
 			disconnect: vi.fn(),
 			sendMessage: vi.fn(),
 			getPeerMultiaddrs: vi.fn(),
-			connectBootstrap: vi.fn(),
+			connectToBootstraps: vi.fn(),
 			getMultiaddrs: vi.fn(),
 		} as unknown as MockedDRPNetworkNode;
 
@@ -59,13 +59,13 @@ describe("DRPIntervalReconnect Unit Tests", () => {
 		test("Should not process if still have peers", async () => {
 			mockNetworkNode.getMultiaddrs.mockReturnValue(["peer1"]);
 			await reconnectInstance["_runDRPReconnect"]();
-			expect(mockNetworkNode.connectBootstrap).not.toHaveBeenCalled();
+			expect(mockNetworkNode.connectToBootstraps).not.toHaveBeenCalled();
 		});
 
 		test("Should process if no peers", async () => {
 			mockNetworkNode.getMultiaddrs.mockReturnValue([]);
 			await reconnectInstance["_runDRPReconnect"]();
-			expect(mockNetworkNode.connectBootstrap).toHaveBeenCalled();
+			expect(mockNetworkNode.connectToBootstraps).toHaveBeenCalled();
 		});
 	});
 });
