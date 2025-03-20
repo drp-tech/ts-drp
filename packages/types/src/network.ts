@@ -1,11 +1,6 @@
 import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import { type TopicScoreParams } from "@chainsafe/libp2p-gossipsub/score";
-import {
-	type Address,
-	type EventCallback,
-	type PeerId,
-	type StreamHandler,
-} from "@libp2p/interface";
+import { type Address, type EventCallback, type PeerId, type StreamHandler } from "@libp2p/interface";
 import { type MultiaddrInput } from "@multiformats/multiaddr";
 
 import { type LoggerOptions } from "./logger.js";
@@ -190,10 +185,7 @@ export interface DRPNetworkNode {
 	 * @param {string} group - The group to handle messages for
 	 * @param {EventCallback<CustomEvent<GossipsubMessage>>} handler - The message handler function
 	 */
-	addGroupMessageHandler(
-		group: string,
-		handler: EventCallback<CustomEvent<GossipsubMessage>>
-	): void;
+	addGroupMessageHandler(group: string, handler: EventCallback<CustomEvent<GossipsubMessage>>): void;
 
 	/**
 	 * Adds a general message handler for all messages

@@ -1,10 +1,4 @@
-import {
-	ActionType,
-	type IDRP,
-	type ResolveConflictsType,
-	SemanticsType,
-	type Vertex,
-} from "@ts-drp/types";
+import { ActionType, type IDRP, type ResolveConflictsType, SemanticsType, type Vertex } from "@ts-drp/types";
 
 import { Pixel } from "./pixel";
 
@@ -18,9 +12,7 @@ export class Canvas implements IDRP {
 	constructor(width: number, height: number) {
 		this.width = width;
 		this.height = height;
-		this.canvas = Array.from(new Array(width), () =>
-			Array.from(new Array(height), () => new Pixel())
-		);
+		this.canvas = Array.from(new Array(width), () => Array.from(new Array(height), () => new Pixel()));
 	}
 
 	splash(offset: [number, number], size: [number, number], rgb: [number, number, number]): void {

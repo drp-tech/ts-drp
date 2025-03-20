@@ -140,10 +140,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	 * @param sender - The sender of the discovery response
 	 * @param data - The data of the discovery response
 	 */
-	async handleDiscoveryResponse(
-		sender: string,
-		subscribers: Record<string, SubscriberInfo>
-	): Promise<void> {
+	async handleDiscoveryResponse(sender: string, subscribers: Record<string, SubscriberInfo>): Promise<void> {
 		this._logger.info("Received discovery response from", sender);
 
 		await this._connectToDiscoveredPeers(subscribers);
@@ -152,9 +149,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	/**
 	 * Connects to peers from a discovery response
 	 */
-	private async _connectToDiscoveredPeers(
-		subscribers: Record<string, SubscriberInfo>
-	): Promise<void> {
+	private async _connectToDiscoveredPeers(subscribers: Record<string, SubscriberInfo>): Promise<void> {
 		const selfId = this.networkNode.peerId.toString();
 
 		for (const [peerId, info] of Object.entries(subscribers)) {
@@ -177,11 +172,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	 * @param data - The data of the discovery request
 	 * @param networkNode - The network node instance
 	 */
-	static async handleDiscoveryRequest(
-		sender: string,
-		data: Uint8Array,
-		networkNode: DRPNetworkNode
-	): Promise<void> {
+	static async handleDiscoveryRequest(sender: string, data: Uint8Array, networkNode: DRPNetworkNode): Promise<void> {
 		const logger = new Logger("drp::discovery::static");
 
 		try {

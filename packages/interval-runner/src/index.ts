@@ -8,9 +8,7 @@ import {
 import { isAsyncGenerator, isGenerator, isPromise } from "@ts-drp/utils";
 import * as crypto from "node:crypto";
 
-export class IntervalRunner<Args extends unknown[] = []>
-	implements IIntervalRunner<"interval:runner", Args>
-{
+export class IntervalRunner<Args extends unknown[] = []> implements IIntervalRunner<"interval:runner", Args> {
 	readonly type = "interval:runner";
 	readonly interval: number;
 	readonly fn: AnyBooleanCallback<Args>;

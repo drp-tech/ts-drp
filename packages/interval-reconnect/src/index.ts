@@ -62,8 +62,6 @@ export class DRPIntervalReconnectBootstrap implements IDRPIntervalReconnectBoots
 	}
 }
 
-export function createDRPReconnectBootstrap(
-	opts: DRPIntervalReconnectOptions
-): DRPIntervalReconnectBootstrap {
+export function createDRPReconnectBootstrap(opts: DRPIntervalReconnectOptions): DRPIntervalReconnectBootstrap {
 	return new DRPIntervalReconnectBootstrap(opts);
 }

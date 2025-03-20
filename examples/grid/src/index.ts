@@ -70,8 +70,7 @@ function moveUser(direction: string): void {
 }
 
 function createConnectHandlers(): void {
-	if (gridState.drpObject)
-		gridState.objectPeers = gridState.node.networkNode.getGroupPeers(gridState.drpObject.id);
+	if (gridState.drpObject) gridState.objectPeers = gridState.node.networkNode.getGroupPeers(gridState.drpObject.id);
 
 	if (!gridState.drpObject?.id) return;
 

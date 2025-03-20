@@ -145,9 +145,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 		});
 
 		test("should handle broadcast error gracefully", async () => {
-			(mockNetworkNode.broadcastMessage as ReturnType<typeof vi.fn>).mockRejectedValue(
-				new Error("Broadcast failed")
-			);
+			(mockNetworkNode.broadcastMessage as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("Broadcast failed"));
 			await discoveryInstance["_runDRPDiscovery"]();
 			expect(mockNetworkNode.broadcastMessage).toHaveBeenCalled();
 		});
@@ -209,9 +207,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 			(mockNetworkNode.getPeerMultiaddrs as ReturnType<typeof vi.fn>).mockResolvedValue([
 				{ multiaddr: { toString: (): string => "/ip4/127.0.0.1/tcp/1234" } },
 			]);
-			(mockNetworkNode.sendMessage as ReturnType<typeof vi.fn>).mockRejectedValue(
-				new Error("Failed to send message")
-			);
+			(mockNetworkNode.sendMessage as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("Failed to send message"));
 
 			await DRPIntervalDiscovery.handleDiscoveryRequest(
 				"sender",
@@ -239,9 +235,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 			const mockSubscribedTopics = ["test-id"];
 
 			// Mock getSubscribedTopics to return our test topic
-			(mockNetworkNode.getSubscribedTopics as ReturnType<typeof vi.fn>).mockReturnValue(
-				mockSubscribedTopics
-			);
+			(mockNetworkNode.getSubscribedTopics as ReturnType<typeof vi.fn>).mockReturnValue(mockSubscribedTopics);
 			// Mock getGroupPeers to return empty list initially
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue([]);
 			// Mock getPeerMultiaddrs to return valid multiaddr
@@ -269,9 +263,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 			const mockSubscribedTopics = ["different-topic"];
 
 			// Mock getSubscribedTopics to return a different topic
-			(mockNetworkNode.getSubscribedTopics as ReturnType<typeof vi.fn>).mockReturnValue(
-				mockSubscribedTopics
-			);
+			(mockNetworkNode.getSubscribedTopics as ReturnType<typeof vi.fn>).mockReturnValue(mockSubscribedTopics);
 			// Mock getGroupPeers to return empty list
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue([]);
 			// Mock getPeerMultiaddrs to return valid multiaddr

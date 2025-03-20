@@ -78,9 +78,7 @@ describe("Reconnect test", () => {
 			promisify(waitForLibp2pEvent)(
 				btLibp2p,
 				"peer:identify",
-				(event) =>
-					event.detail.peerId.toString() === node.networkNode.peerId &&
-					event.detail.listenAddrs.length > 0
+				(event) => event.detail.peerId.toString() === node.networkNode.peerId && event.detail.listenAddrs.length > 0
 			),
 		]);
 	});
@@ -96,8 +94,7 @@ describe("Reconnect test", () => {
 		await nodeLibp2p.peerStore.save(peerIdFromString(btLibp2p.peerId.toString()), { tags: {} });
 		await btLibp2p.peerStore.save(peerIdFromString(nodeLibp2p.peerId.toString()), { tags: {} });
 		const p = promisify(waitForLibp2pEvent);
-		const pIDMatcher = (peerIdStr: string, peerId: PeerId): boolean =>
-			peerId.toString() === peerIdStr;
+		const pIDMatcher = (peerIdStr: string, peerId: PeerId): boolean => peerId.toString() === peerIdStr;
 
 		await Promise.all([
 			node.networkNode.disconnect(bootstrapNode.peerId),
@@ -110,15 +107,12 @@ describe("Reconnect test", () => {
 			p(
 				btLibp2p,
 				"connection:open",
-				(event) =>
-					pIDMatcher(node.networkNode.peerId, event.detail.remotePeer) &&
-					event.detail.limits == null
+				(event) => pIDMatcher(node.networkNode.peerId, event.detail.remotePeer) && event.detail.limits == null
 			),
 			p(
 				nodeLibp2p,
 				"connection:open",
-				(event) =>
-					pIDMatcher(bootstrapNode.peerId, event.detail.remotePeer) && event.detail.limits == null
+				(event) => pIDMatcher(bootstrapNode.peerId, event.detail.remotePeer) && event.detail.limits == null
 			),
 		]);
 

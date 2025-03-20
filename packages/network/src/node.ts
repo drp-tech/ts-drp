@@ -13,20 +13,10 @@ import { privateKeyFromRaw } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
-import type {
-	Address,
-	EventCallback,
-	PeerDiscovery,
-	PeerId,
-	Stream,
-	StreamHandler,
-} from "@libp2p/interface";
+import type { Address, EventCallback, PeerDiscovery, PeerId, Stream, StreamHandler } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { ping } from "@libp2p/ping";
-import {
-	pubsubPeerDiscovery,
-	type PubSubPeerDiscoveryComponents,
-} from "@libp2p/pubsub-peer-discovery";
+import { pubsubPeerDiscovery, type PubSubPeerDiscoveryComponents } from "@libp2p/pubsub-peer-discovery";
 import { webRTC } from "@libp2p/webrtc";
 import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
@@ -82,9 +72,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	constructor(config?: DRPNetworkNodeConfig) {
 		this._config = config;
 		log = new Logger("drp::network", config?.log_config);
-		this._bootstrapNodesList = this._config?.bootstrap_peers
-			? this._config.bootstrap_peers
-			: BOOTSTRAP_NODES;
+		this._bootstrapNodesList = this._config?.bootstrap_peers ? this._config.bootstrap_peers : BOOTSTRAP_NODES;
 	}
 
 	async start(rawPrivateKey?: Uint8Array): Promise<void> {
@@ -176,9 +164,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		this._node = await createLibp2p({
 			privateKey,
 			addresses: {
-				listen: this._config?.listen_addresses
-					? this._config.listen_addresses
-					: ["/p2p-circuit", "/webrtc"],
+				listen: this._config?.listen_addresses ? this._config.listen_addresses : ["/p2p-circuit", "/webrtc"],
 				...(this._config?.announce_addresses ? { announce: this._config.announce_addresses } : {}),
 			},
 			connectionManager: {
@@ -223,21 +209,13 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 
 		log.info("::start: Successfuly started DRP network w/ peer_id", this.peerId);
 
-		this._node.addEventListener("peer:connect", (e) =>
-			log.info("::start::peer::connect", e.detail)
-		);
+		this._node.addEventListener("peer:connect", (e) => log.info("::start::peer::connect", e.detail));
 
-		this._node.addEventListener("peer:discovery", (e) =>
-			log.info("::start::peer::discovery", e.detail)
-		);
+		this._node.addEventListener("peer:discovery", (e) => log.info("::start::peer::discovery", e.detail));
 
-		this._node.addEventListener("peer:identify", (e) =>
-			log.info("::start::peer::identify", e.detail)
-		);
+		this._node.addEventListener("peer:identify", (e) => log.info("::start::peer::identify", e.detail));
 
-		this._pubsub.addEventListener("gossipsub:graft", (e) =>
-			log.info("::start::gossipsub::graft", e.detail)
-		);
+		this._pubsub.addEventListener("gossipsub:graft", (e) => log.info("::start::gossipsub::graft", e.detail));
 
 		// needded as I've disabled the pubsubPeerDiscovery
 		this._pubsub?.subscribe(DRP_DISCOVERY_TOPIC);
@@ -424,10 +402,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		}
 	}
 
-	addGroupMessageHandler(
-		group: string,
-		handler: EventCallback<CustomEvent<GossipsubMessage>>
-	): void {
+	addGroupMessageHandler(group: string, handler: EventCallback<CustomEvent<GossipsubMessage>>): void {
 		this._pubsub?.addEventListener("gossipsub:message", (e) => {
 			if (group && e.detail.msg.topic !== group) return;
 			handler(e);
@@ -438,10 +413,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		await this._node?.handle(DRP_MESSAGE_PROTOCOL, handler);
 	}
 
-	async addCustomMessageHandler(
-		protocol: string | string[],
-		handler: StreamHandler
-	): Promise<void> {
+	async addCustomMessageHandler(protocol: string | string[], handler: StreamHandler): Promise<void> {
 		await this._node?.handle(protocol, handler);
 	}
 }

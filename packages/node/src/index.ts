@@ -64,13 +64,10 @@ export class DRPNode {
 				networkNode: this.networkNode,
 			})
 		);
-		await this.networkNode.addMessageHandler(
-			({ stream }: IncomingStreamData) => void drpMessagesHandler(this, stream)
-		);
+		await this.networkNode.addMessageHandler(({ stream }: IncomingStreamData) => void drpMessagesHandler(this, stream));
 		this.networkNode.addGroupMessageHandler(
 			DRP_INTERVAL_DISCOVERY_TOPIC,
-			(e: CustomEvent<GossipsubMessage>) =>
-				void drpMessagesHandler(this, undefined, e.detail.msg.data)
+			(e: CustomEvent<GossipsubMessage>) => void drpMessagesHandler(this, undefined, e.detail.msg.data)
 		);
 		this._intervals.forEach((interval) => interval.start());
 	}
@@ -84,9 +81,7 @@ export class DRPNode {
 		await this.stop();
 
 		// reassign the network node ? I think we might not need to do this
-		this.networkNode = new DRPNetworkNode(
-			config ? config.network_config : this.config?.network_config
-		);
+		this.networkNode = new DRPNetworkNode(config ? config.network_config : this.config?.network_config);
 
 		await this.start();
 		log.info("::restart: Node restarted");
@@ -96,10 +91,7 @@ export class DRPNode {
 		this.networkNode.subscribe(group);
 	}
 
-	addCustomGroupMessageHandler(
-		group: string,
-		handler: EventCallback<CustomEvent<GossipsubMessage>>
-	): void {
+	addCustomGroupMessageHandler(group: string, handler: EventCallback<CustomEvent<GossipsubMessage>>): void {
 		this.networkNode.addGroupMessageHandler(group, handler);
 	}
 
@@ -112,10 +104,7 @@ export class DRPNode {
 		await this.networkNode.broadcastMessage(group, message);
 	}
 
-	async addCustomMessageHandler(
-		protocol: string | string[],
-		handler: StreamHandler
-	): Promise<void> {
+	async addCustomMessageHandler(protocol: string | string[], handler: StreamHandler): Promise<void> {
 		await this.networkNode.addCustomMessageHandler(protocol, handler);
 	}
 
@@ -154,9 +143,7 @@ export class DRPNode {
 	 * @param options.drp - The DRP instance. It can be undefined where we just want the HG state
 	 * @param options.sync.peerId - The peer ID to sync with
 	 */
-	async connectObject<T extends IDRP>(
-		options: NodeConnectObjectOptions<T>
-	): Promise<IDRPObject<T>> {
+	async connectObject<T extends IDRP>(options: NodeConnectObjectOptions<T>): Promise<IDRPObject<T>> {
 		const object = await operations.connectObject(this, options.id, {
 			peerId: options.sync?.peerId,
 			drp: options.drp,
