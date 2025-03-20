@@ -1,4 +1,5 @@
-import type { IMessageQueue, IMessageQueueOptions } from "@ts-drp/types";
+import { Logger } from "@ts-drp/logger";
+import type { IMessageQueue, IMessageQueueHandler, IMessageQueueOptions } from "@ts-drp/types";
 
 import { Channel } from "./channel.js";
 
@@ -10,12 +11,22 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 	private subscribers: Array<(message: T) => Promise<void>> = [];
 	// A flag to ensure the fanout loop starts only once
 	private fanoutLoopStarted: boolean = false;
+	private logger: Logger;
 
-	constructor(options: IMessageQueueOptions = {}) {
-		this.options = {
-			maxSize: options.maxSize ?? 1000,
-		};
+	constructor(options: IMessageQueueOptions) {
+		this.options = this.getOptions(options);
 		this.channel = new Channel<T>({ capacity: this.options.maxSize });
+		this.logger = new Logger(`drp::message-queue::${this.options.id}`, this.options.logConfig);
+	}
+
+	private getOptions(options: IMessageQueueOptions): Required<IMessageQueueOptions> {
+		return {
+			id: options.id ?? "default",
+			maxSize: options.maxSize ?? 1000,
+			logConfig: options.logConfig ?? {
+				level: "info",
+			},
+		};
 	}
 
 	async enqueue(message: T): Promise<void> {
@@ -29,7 +40,7 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 	 * Register a subscriber's handler.
 	 * The handler will be called for every message enqueued.
 	 */
-	subscribe(handler: (message: T) => Promise<void>): void {
+	subscribe(handler: IMessageQueueHandler<T>): void {
 		this.subscribers.push(handler);
 
 		// Start the fanout loop if not already running

@@ -1,5 +1,9 @@
 import { Logger } from "@ts-drp/logger";
-import type { IMessageQueueManager, IMessageQueueManagerOptions } from "@ts-drp/types";
+import type {
+	IMessageQueueHandler,
+	IMessageQueueManager,
+	IMessageQueueManagerOptions,
+} from "@ts-drp/types";
 
 import { MessageQueue } from "./message-queue.js";
 
@@ -11,16 +15,28 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 	private logger: Logger;
 
 	constructor(options: IMessageQueueManagerOptions = {}) {
-		this.options = {
+		this.options = this.getOptions(options);
+		this.queues = new Map();
+		this.createQueue(GENERAL_QUEUE_ID);
+		this.logger = new Logger("drp::message-queue-manager", options.logConfig);
+	}
+
+	private getOptions(options: IMessageQueueManagerOptions): Required<IMessageQueueManagerOptions> {
+		return {
 			maxQueues: (options.maxQueues ?? 100) + 1, // +1 for the general queue
 			maxQueueSize: options.maxQueueSize ?? 1000,
-			logConfig: options.logConfig ?? {
-				level: "info",
-			},
+			logConfig: options.logConfig ?? { level: "info" },
 		};
-		this.queues = new Map();
-		this.queues.set(GENERAL_QUEUE_ID, new MessageQueue<T>({ maxSize: this.options.maxQueueSize }));
-		this.logger = new Logger("drp::message-queue-manager", options.logConfig);
+	}
+
+	private createQueue(queueId: string): MessageQueue<T> {
+		const queue = new MessageQueue<T>({
+			id: queueId,
+			maxSize: this.options.maxQueueSize,
+			logConfig: this.options.logConfig,
+		});
+		this.queues.set(queueId, queue);
+		return queue;
 	}
 
 	async enqueue(queueId: string, message: T): Promise<void> {
@@ -36,17 +52,16 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 		this.logger.info(`queue manager::enqueued message ${message} to ${queueId}`);
 	}
 
-	subscribe(queueId: string, handler: (message: T) => Promise<void>): void {
+	subscribe(queueId: string, handler: IMessageQueueHandler<T>): void {
 		if (queueId === "") {
 			queueId = GENERAL_QUEUE_ID;
 		}
 		const queue = this.queues.get(queueId);
 		if (!queue) {
-			if (this.queues.size < this.options.maxQueues) {
-				this.queues.set(queueId, new MessageQueue<T>({ maxSize: this.options.maxQueueSize }));
-			} else {
+			if (this.queues.size >= this.options.maxQueues) {
 				throw new Error("Max number of queues reached");
 			}
+			this.createQueue(queueId);
 		}
 		this.queues.get(queueId)?.subscribe(handler);
 		console.log(`queue manager::subscribed to ${queueId}`);

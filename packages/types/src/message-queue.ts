@@ -1,10 +1,19 @@
-import type { LoggerOptions } from "@ts-drp/logger";
+import type { LoggerOptions } from "./logger.js";
 
 /**
  * Options for the message queue.
  */
 export interface IMessageQueueOptions {
+	id: string; // The id of the queue
 	maxSize?: number; // Maximum number of messages in the queue
+	logConfig?: LoggerOptions;
+}
+
+/**
+ * A handler for the message queue.
+ */
+export interface IMessageQueueHandler<T> {
+	(message: T): Promise<void>;
 }
 
 /**
@@ -21,7 +30,7 @@ export interface IMessageQueue<T> {
 	 * Subscribe to the queue
 	 * @param handler The handler to apply to each message received
 	 */
-	subscribe(handler: (message: T) => Promise<void>): void;
+	subscribe(handler: IMessageQueueHandler<T>): void;
 
 	/**
 	 * Close the queue
@@ -48,7 +57,7 @@ export interface IMessageQueueManager<T> {
 	 * @param queueId The queue to subscribe to
 	 * @param handler The handler to apply to each message received
 	 */
-	subscribe(queueId: string, handler: (message: T) => Promise<void>): void;
+	subscribe(queueId: string, handler: IMessageQueueHandler<T>): void;
 
 	/**
 	 * Close the queue

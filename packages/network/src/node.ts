@@ -31,6 +31,7 @@ import {
 	DRP_DISCOVERY_TOPIC,
 	DRP_INTERVAL_DISCOVERY_TOPIC,
 	type DRPNetworkNode as DRPNetworkNodeInterface,
+	type IMessageQueueHandler,
 	type LoggerOptions,
 	Message,
 } from "@ts-drp/types";
@@ -245,6 +246,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	async stop(): Promise<void> {
 		if (this._node?.status === "stopped") throw new Error("Node not started");
 		await this._node?.stop();
+		this._messageQueue.close();
 	}
 
 	async restart(config?: DRPNetworkNodeConfig, rawPrivateKey?: Uint8Array): Promise<void> {
@@ -433,5 +435,9 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		this._messageQueue.enqueue(message).catch((e) => {
 			log.error("::startEnqueueMessages::enqueue:", e);
 		});
+	}
+
+	subscribeToMessageQueue(handler: IMessageQueueHandler<Message>): void {
+		this._messageQueue.subscribe(handler);
 	}
 }

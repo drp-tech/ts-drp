@@ -3,6 +3,7 @@ import { type Address, type PeerId } from "@libp2p/interface";
 import { type MultiaddrInput } from "@multiformats/multiaddr";
 
 import { type LoggerOptions } from "./logger.js";
+import { type IMessageQueueHandler } from "./message-queue.js";
 import { type Message } from "./proto/drp/v1/messages_pb.js";
 
 /**
@@ -172,4 +173,10 @@ export interface DRPNetworkNode {
 	 * @throws {Error} If the group has no peers
 	 */
 	sendGroupMessageRandomPeer(group: string, message: Message): Promise<void>;
+
+	/**
+	 * Subscribes to the message queue
+	 * @param {IMessageQueueHandler<Message>} handler - The handler to subscribe to the message queue
+	 */
+	subscribeToMessageQueue(handler: IMessageQueueHandler<Message>): void;
 }

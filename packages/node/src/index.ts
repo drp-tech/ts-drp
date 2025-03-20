@@ -1,5 +1,5 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
+import type { EventCallback } from "@libp2p/interface";
 import { createDRPDiscovery } from "@ts-drp/interval-discovery";
 import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
@@ -7,7 +7,6 @@ import { MessageQueueManager } from "@ts-drp/message-queue";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { DRPObject } from "@ts-drp/object";
 import {
-	DRP_INTERVAL_DISCOVERY_TOPIC,
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
 	type IDRP,
@@ -20,17 +19,19 @@ import {
 } from "@ts-drp/types";
 
 import { loadConfig } from "./config.js";
-import {
-	gossipSubHandler,
-	protocolHandler,
-	subscribeToMessageQueue,
-	unsubscribeFromMessageQueue,
-} from "./handlers.js";
+import { subscribeToMessageQueue, unsubscribeFromMessageQueue } from "./handlers.js";
 import { log } from "./logger.js";
 import * as operations from "./operations.js";
 import { DRPObjectStore } from "./store/index.js";
 
 export { loadConfig };
+
+const discoveryMessageTypes = [
+	MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
+	MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE,
+];
+
+const discoveryQueueId = "discovery";
 
 export class DRPNode {
 	config: DRPNodeConfig;
@@ -63,14 +64,7 @@ export class DRPNode {
 	async start(): Promise<void> {
 		await this.keychain.start();
 		await this.networkNode.start(this.keychain.secp256k1PrivateKey);
-		void subscribeToMessageQueue(this, DRP_INTERVAL_DISCOVERY_TOPIC);
-		await this.networkNode.addMessageHandler(
-			({ stream }: IncomingStreamData) => void protocolHandler(this, stream)
-		);
-		this.networkNode.addGroupMessageHandler(
-			DRP_INTERVAL_DISCOVERY_TOPIC,
-			(e: CustomEvent<GossipsubMessage>) => void gossipSubHandler(this, e.detail.msg.data)
-		);
+		this.networkNode.subscribeToMessageQueue(this.dispatchMessage);
 		this._intervals.forEach((interval) => interval.start());
 	}
 
@@ -90,6 +84,15 @@ export class DRPNode {
 
 		await this.start();
 		log.info("::restart: Node restarted");
+	}
+
+	async dispatchMessage(msg: Message): Promise<void> {
+		if (discoveryMessageTypes.includes(msg.type)) {
+			await this.messageQueueManager.enqueue(discoveryQueueId, msg);
+			return;
+		}
+
+		await this.messageQueueManager.enqueue(msg.objectId, msg);
 	}
 
 	addCustomGroup(group: string): void {
