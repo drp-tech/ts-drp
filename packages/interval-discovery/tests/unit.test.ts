@@ -279,9 +279,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 			const mockSubscribedTopics = ["test-id"];
 
 			// Mock getSubscribedTopics to return our test topic
-			(mockNetworkNode.getSubscribedTopics as ReturnType<typeof vi.fn>).mockReturnValue(
-				mockSubscribedTopics
-			);
+			(mockNetworkNode.getSubscribedTopics as ReturnType<typeof vi.fn>).mockReturnValue(mockSubscribedTopics);
 			// Mock getGroupPeers to return empty list initially
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue([]);
 			// Mock getPeerMultiaddrs to return valid multiaddr
@@ -315,9 +313,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 			const mockSubscribedTopics = ["different-topic"];
 
 			// Mock getSubscribedTopics to return a different topic
-			(mockNetworkNode.getSubscribedTopics as ReturnType<typeof vi.fn>).mockReturnValue(
-				mockSubscribedTopics
-			);
+			(mockNetworkNode.getSubscribedTopics as ReturnType<typeof vi.fn>).mockReturnValue(mockSubscribedTopics);
 			// Mock getGroupPeers to return empty list
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue([]);
 			// Mock getPeerMultiaddrs to return valid multiaddr
