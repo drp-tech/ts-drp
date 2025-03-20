@@ -1,4 +1,9 @@
-import { DRPDiscovery, type DRPIntervalDiscoveryOptions, type DRPNetworkNode } from "@ts-drp/types";
+import {
+	DRPDiscovery,
+	IntervalRunnerState,
+	type DRPIntervalDiscoveryOptions,
+	type DRPNetworkNode,
+} from "@ts-drp/types";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { createDRPDiscovery, DRPIntervalDiscovery } from "../src/index.js";
@@ -71,18 +76,18 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 
 	describe("State Management", () => {
 		test("should start in stopped state", () => {
-			expect(discoveryInstance.state).toBe("stopped");
+			expect(discoveryInstance.state).toBe(IntervalRunnerState.Stopped);
 		});
 
 		test("should change state to running when started", () => {
 			discoveryInstance.start();
-			expect(discoveryInstance.state).toBe("running");
+			expect(discoveryInstance.state).toBe(IntervalRunnerState.Running);
 		});
 
 		test("should change state to stopped when stopped", () => {
 			discoveryInstance.start();
 			discoveryInstance.stop();
-			expect(discoveryInstance.state).toBe("stopped");
+			expect(discoveryInstance.state).toBe(IntervalRunnerState.Stopped);
 		});
 	});
 

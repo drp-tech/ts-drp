@@ -1,3 +1,4 @@
+import { type IntervalRunnerState } from "./enum.js";
 import { type LoggerOptions } from "./logger.js";
 
 type AnyFnCallback<T, Args extends unknown[] = []> =
@@ -40,7 +41,7 @@ export interface IIntervalRunner<Type extends string, Args extends unknown[] = [
 	/**
 	 * The current state of the interval runner
 	 */
-	state: "running" | "stopped";
+	state: IntervalRunnerState;
 
 	/**
 	 * Start the interval runner

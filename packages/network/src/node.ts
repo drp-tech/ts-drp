@@ -37,6 +37,7 @@ import {
 	DRP_DISCOVERY_TOPIC,
 	DRP_INTERVAL_DISCOVERY_TOPIC,
 	type DRPNetworkNode as DRPNetworkNodeInterface,
+	IntervalRunnerState,
 	type LoggerOptions,
 	Message,
 } from "@ts-drp/types";
@@ -244,7 +245,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	}
 
 	async stop(): Promise<void> {
-		if (this._node?.status === "stopped") throw new Error("Node not started");
+		if (this._node?.status === IntervalRunnerState.Stopped) throw new Error("Node not started");
 		await this._node?.stop();
 	}
 

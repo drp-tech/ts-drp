@@ -150,7 +150,7 @@ Stops the interval runner.
 
 The interval in milliseconds.
 
-#### `state: "running" | "stopped"`
+#### `state: IntervalRunnerState`
 
 The current state of the interval runner.
 

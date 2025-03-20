@@ -7,6 +7,7 @@ import {
 	type DRPIntervalDiscoveryOptions,
 	type DRPNetworkNode,
 	type IDRPIntervalDiscovery,
+	type IntervalRunnerState,
 	Message,
 	MessageType,
 	type SubscriberInfo,
@@ -129,7 +130,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	/**
 	 * Returns the current state of the discovery process
 	 */
-	get state(): "running" | "stopped" {
+	get state(): IntervalRunnerState {
 		return this._intervalRunner.state;
 	}
 

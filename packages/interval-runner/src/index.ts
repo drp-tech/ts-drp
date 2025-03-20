@@ -1,5 +1,10 @@
 import { Logger } from "@ts-drp/logger";
-import type { AnyBooleanCallback, IIntervalRunner, IntervalRunnerOptions } from "@ts-drp/types";
+import {
+	type AnyBooleanCallback,
+	type IIntervalRunner,
+	type IntervalRunnerOptions,
+	IntervalRunnerState,
+} from "@ts-drp/types";
 import { isAsyncGenerator, isGenerator, isPromise } from "@ts-drp/utils";
 import * as crypto from "node:crypto";
 
@@ -124,7 +129,7 @@ export class IntervalRunner<Args extends unknown[] = []>
 		}
 	}
 
-	get state(): "running" | "stopped" {
-		return this._state === 1 ? "running" : "stopped";
+	get state(): IntervalRunnerState {
+		return this._state === 1 ? IntervalRunnerState.Running : IntervalRunnerState.Stopped;
 	}
 }

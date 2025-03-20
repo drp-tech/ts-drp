@@ -34,6 +34,7 @@ export type * from "./finality.js";
 export * from "./hashgraph.js";
 export type * from "./interval-runner.js";
 export * from "./constants.js";
+export * from "./enum.js";
 export type * from "./keychain.js";
 export type * from "./logger.js";
 export type * from "./metrics.js";

@@ -4,6 +4,7 @@ import {
 	type DRPIntervalReconnectOptions,
 	type DRPNetworkNode,
 	type IDRPIntervalReconnectBootstrap,
+	type IntervalRunnerState,
 } from "@ts-drp/types";
 
 export class DRPIntervalReconnectBootstrap implements IDRPIntervalReconnectBootstrap {
@@ -28,7 +29,7 @@ export class DRPIntervalReconnectBootstrap implements IDRPIntervalReconnectBoots
 	/**
 	 * Returns the current state of the discovery process
 	 */
-	get state(): "running" | "stopped" {
+	get state(): IntervalRunnerState {
 		return this._intervalRunner.state;
 	}
 
