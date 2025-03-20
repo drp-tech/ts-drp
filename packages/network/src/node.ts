@@ -357,6 +357,10 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		return this._config?.bootstrap_peers ?? BOOTSTRAP_NODES;
 	}
 
+	getSubscribedTopics(): string[] {
+		return this._pubsub?.getTopics() ?? [];
+	}
+
 	getMultiaddrs(): string[] {
 		return this._node?.getMultiaddrs().map((addr) => addr.toString()) ?? [];
 	}
