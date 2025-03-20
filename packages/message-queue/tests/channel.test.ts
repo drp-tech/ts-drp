@@ -103,6 +103,141 @@ describe("Channel", () => {
 
 			await expect(channel.send(values[0])).rejects.toThrow("Unexpected undefined value in channel");
 		});
+
+		it("should throw error when sending to a closed channel", async () => {
+			const channel = new Channel<string>();
+			channel.close();
+
+			await expect(channel.send("test")).rejects.toThrow("Channel is closed");
+		});
+
+		it("should throw error when receiving from a closed empty channel", async () => {
+			const channel = new Channel<string>();
+			channel.close();
+
+			await expect(channel.receive()).rejects.toThrow("Channel is closed");
+		});
+
+		it("should throw error when buffer has an unexpected undefined value", async () => {
+			const channel = new Channel<string>();
+			// Purposely inject undefined value using type assertion for testing error path
+			(channel as unknown as { values: Array<string | undefined> }).values.push(undefined);
+
+			await expect(channel.receive()).rejects.toThrow("Unexpected undefined value in channel");
+		});
+	});
+
+	describe("close functionality", () => {
+		it("should reject pending receives when channel is closed", async () => {
+			const channel = new Channel<string>();
+			const receivePromise = channel.receive();
+
+			channel.close();
+
+			await expect(receivePromise).rejects.toThrow("Channel is closed");
+		});
+
+		it("should allow receiving buffered values after closing", async () => {
+			const channel = new Channel<string>();
+			await channel.send("test");
+
+			channel.close();
+
+			const received = await channel.receive();
+			expect(received).toBe("test");
+
+			// After draining buffer, it should throw
+			await expect(channel.receive()).rejects.toThrow("Channel is closed");
+		});
+
+		it("should allow receiving pending sends after closing", async () => {
+			const channel = new Channel<string>({ capacity: 0 });
+
+			// This will create a pending send
+			const sendPromise = channel.send("test");
+
+			// Close the channel (should still allow the pending send to complete)
+			channel.close();
+
+			// We should still be able to receive the pending send
+			const received = await channel.receive();
+			expect(received).toBe("test");
+
+			// But new receives should fail
+			await expect(channel.receive()).rejects.toThrow("Channel is closed");
+
+			// The send should complete
+			await sendPromise;
+		});
+
+		it("should throw error when channel is closed during waiting for send", async () => {
+			const channel = new Channel<string>();
+
+			// Start a receive that will have to wait (no values or pending sends)
+			const receivePromise = channel.receive();
+
+			// Small delay to ensure the receive is waiting
+			await new Promise((resolve) => setTimeout(resolve, 10));
+
+			// Close the channel
+			channel.close();
+
+			// The receive should be rejected
+			await expect(receivePromise).rejects.toThrow("Channel is closed");
+		});
+	});
+
+	describe("waiting for messages", () => {
+		it("should wait for a send when there are no values or pending sends", async () => {
+			const channel = new Channel<string>();
+			const value = "test";
+
+			// Start a receive that will have to wait
+			const receivePromise = channel.receive();
+
+			// Send a value which should resolve the waiting receive
+			await channel.send(value);
+
+			// The receive should complete with the value
+			const received = await receivePromise;
+			expect(received).toBe(value);
+		});
+
+		it("should directly return signal.promise when waiting for a message", async () => {
+			// Using zero capacity to ensure we hit the waiting path
+			const channel = new Channel<string>({ capacity: 0 });
+
+			// Start receive that will wait
+			const receivePromise = channel.receive();
+
+			void channel.send("test");
+
+			const received = await receivePromise;
+			expect(received).toBe("test");
+		});
+	});
+
+	describe("edge cases", () => {
+		it("should throw when closed with capacity zero after draining pending sends", async () => {
+			// Using zero capacity to ensure we test direct passing between send/receive
+			const channel = new Channel<string>({ capacity: 0 });
+
+			// Create a pending send
+			const sendPromise = channel.send("test");
+
+			// Close the channel
+			channel.close();
+
+			// First receive works (gets the pending send)
+			const received = await channel.receive();
+			expect(received).toBe("test");
+
+			// Second receive should fail with channel closed
+			await expect(channel.receive()).rejects.toThrow("Channel is closed");
+
+			// Make sure send resolves
+			await sendPromise;
+		});
 	});
 
 	describe("concurrent operations", () => {
