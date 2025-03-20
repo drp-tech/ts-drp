@@ -112,13 +112,6 @@ export class DRPNode {
 		await this.networkNode.broadcastMessage(group, message);
 	}
 
-	async addCustomMessageHandler(
-		protocol: string | string[],
-		handler: StreamHandler
-	): Promise<void> {
-		await this.networkNode.addCustomMessageHandler(protocol, handler);
-	}
-
 	async sendCustomMessage(peerId: string, data: Uint8Array): Promise<void> {
 		const message = Message.create({
 			sender: this.networkNode.peerId,

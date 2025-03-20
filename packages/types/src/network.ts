@@ -195,12 +195,4 @@ export interface DRPNetworkNode {
 	 * @returns {Promise<void>} Resolves when the handler is added
 	 */
 	addMessageHandler(handler: StreamHandler): Promise<void>;
-
-	/**
-	 * Adds a custom protocol message handler
-	 * @param {string | string[]} protocol - The protocol(s) to handle messages for
-	 * @param {StreamHandler} handler - The message handler function
-	 * @returns {Promise<void>} Resolves when the handler is added
-	 */
-	addCustomMessageHandler(protocol: string | string[], handler: StreamHandler): Promise<void>;
 }

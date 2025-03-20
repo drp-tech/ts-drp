@@ -427,11 +427,4 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	async addMessageHandler(handler: StreamHandler): Promise<void> {
 		await this._node?.handle(DRP_MESSAGE_PROTOCOL, handler);
 	}
-
-	async addCustomMessageHandler(
-		protocol: string | string[],
-		handler: StreamHandler
-	): Promise<void> {
-		await this._node?.handle(protocol, handler);
-	}
 }
