@@ -162,7 +162,6 @@ export function init(node: DRPNode, port: number = 6969): void {
 	server.addService(DrpRpcService, {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		subscribeDRP,
-
 		unsubscribeDRP,
 		getDRPHashGraph,
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises

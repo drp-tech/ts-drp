@@ -14,4 +14,11 @@ A lightweight, in-memory channel-based message queue implementation for efficien
 
 - `enqueue(message: T): Promise<void>` - Enqueues a message to the queue
 - `subscribe(handler: (message: T) => Promise<void>): void` - Subscribes to messages
-- `close(): Promise<void>` - Closes the queue
+- `close(): void` - Closes the queue
+
+### `MessageQueueManager<T>`
+
+- `enqueue(queueId: string, message: T): Promise<void>` - Enqueues a message to the queue for the given queue ID
+- `subscribe(queueId: string, handler: (message: T) => Promise<void>): void` - Subscribes to messages for the given queue ID
+- `close(queueId: string): void` - Closes the queue for the given queue ID
+- `closeAll(): void` - Closes all queues

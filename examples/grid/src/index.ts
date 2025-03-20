@@ -21,13 +21,6 @@ export function getNetworkConfigFromEnv(): DRPNodeConfig {
 	};
 
 	if (!hasEnv) {
-		// config.network_config = {
-		// 	...config.network_config,
-		// 	bootstrap_peers: [
-		// 		"/ip4/127.0.0.1/tcp/50000/ws/p2p/16Uiu2HAmTY71bbCHtmYD3nvVKUGbk7NWqLBbPFNng4jhaXJHi3W5",
-		// 	],
-		// 	browser_metrics: true,
-		// };
 		return config;
 	}
 
