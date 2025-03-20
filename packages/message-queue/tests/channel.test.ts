@@ -83,10 +83,7 @@ describe("Channel", () => {
 			const receivePromise1 = channel.receive();
 
 			// Check if sendPromise is still pending (not resolved)
-			const sendPromiseStatus = await Promise.race([
-				sendPromise.then(() => "resolved"),
-				Promise.resolve("pending"),
-			]);
+			const sendPromiseStatus = await Promise.race([sendPromise.then(() => "resolved"), Promise.resolve("pending")]);
 			expect(sendPromiseStatus).toBe("pending");
 
 			const receivePromise2 = channel.receive();
@@ -104,9 +101,7 @@ describe("Channel", () => {
 			const channel = new Channel<string>();
 			const values: string[] = [undefined as unknown as string];
 
-			await expect(channel.send(values[0])).rejects.toThrow(
-				"Unexpected undefined value in channel"
-			);
+			await expect(channel.send(values[0])).rejects.toThrow("Unexpected undefined value in channel");
 		});
 	});
 
@@ -127,14 +122,9 @@ describe("Channel", () => {
 			const received: string[] = [];
 
 			// Start multiple operations concurrently
-			const operations = [
-				...values.map((value) => channel.send(value)),
-				...values.map(() => channel.receive()),
-			];
+			const operations = [...values.map((value) => channel.send(value)), ...values.map(() => channel.receive())];
 			const results = await Promise.all(operations);
-			received.push(
-				...results.slice(values.length).filter((result): result is string => result !== undefined)
-			);
+			received.push(...results.slice(values.length).filter((result): result is string => result !== undefined));
 
 			expect(received).toEqual(values);
 		});

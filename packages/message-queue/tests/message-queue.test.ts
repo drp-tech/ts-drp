@@ -5,10 +5,6 @@ import { MessageQueue } from "../src/message-queue.js";
 describe("MessageQueue", () => {
 	let queue: MessageQueue<string>;
 	let messages: string[] = [];
-	const handler = vi.fn(async (msg: string) => {
-		await new Promise((resolve) => setTimeout(resolve, 100));
-		messages.push(msg);
-	});
 
 	beforeEach(() => {
 		queue = new MessageQueue<string>();
@@ -19,6 +15,31 @@ describe("MessageQueue", () => {
 
 	describe("basic functionality", () => {
 		it("should process messages in order", async () => {
+			const promises: Promise<void>[] = [];
+			const resolvers: (() => void)[] = [];
+
+			const createResolver = (): { handlerPromise: Promise<void>; resolveHandler(): void } => {
+				let resolveHandler: () => void;
+				const handlerPromise = new Promise<void>((resolve) => {
+					resolveHandler = resolve;
+				});
+				// @ts-expect-error -- resolveHandler is set in the closure
+				return { handlerPromise, resolveHandler };
+			};
+
+			for (let i = 0; i < 3; i++) {
+				const { handlerPromise, resolveHandler } = createResolver();
+				promises.push(handlerPromise);
+				resolvers.push(resolveHandler);
+			}
+
+			let i = 0;
+			const handler = vi.fn(async (msg: string) => {
+				messages.push(msg);
+				resolvers[i]();
+				i++;
+				return Promise.resolve();
+			});
 			// Start subscription before enqueueing
 			queue.subscribe(handler);
 
@@ -28,7 +49,7 @@ describe("MessageQueue", () => {
 			await queue.enqueue("third");
 
 			// Wait for messages to be processed
-			await new Promise((resolve) => setTimeout(resolve, 100 * 4));
+			await Promise.all(promises);
 			// Close queue to stop subscription
 			queue.close();
 
@@ -47,9 +68,15 @@ describe("MessageQueue", () => {
 	describe("queue closing", () => {
 		it("should stop processing messages after closing", async () => {
 			const messages: string[] = [];
+			let resolveHandler: () => void;
+			const handlerPromise = new Promise<void>((resolve) => {
+				resolveHandler = resolve;
+			});
+
 			const handler = vi.fn(async (msg: string) => {
-				await new Promise((resolve) => setTimeout(resolve, 100));
 				messages.push(msg);
+				resolveHandler();
+				return Promise.resolve();
 			});
 
 			queue.subscribe(handler);
@@ -58,8 +85,7 @@ describe("MessageQueue", () => {
 			await queue.enqueue("test");
 
 			// Wait for message to be processed
-			await new Promise((resolve) => setTimeout(resolve, 100 * 2));
-
+			await handlerPromise;
 			// Close queue
 			queue.close();
 
@@ -84,22 +110,22 @@ describe("MessageQueue", () => {
 			});
 
 			const handler1 = vi.fn(async (msg: string) => {
-				await Promise.resolve();
 				messages.push(msg);
 				resolveHandler1();
+				return Promise.resolve();
 			});
 
 			const handler2 = vi.fn(async (msg: string) => {
-				await Promise.resolve();
 				messages.push(msg);
 				resolveHandler2();
+				return Promise.resolve();
 			});
 
 			queue.subscribe(handler1);
 			queue.subscribe(handler2);
 
 			await queue.enqueue("test");
-
+			// Wait for both handlers to process the message
 			await Promise.all([handler1Promise, handler2Promise]);
 			queue.close();
 

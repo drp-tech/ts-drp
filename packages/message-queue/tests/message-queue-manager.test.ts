@@ -15,9 +15,15 @@ describe("MessageQueueManager", () => {
 		it("should create and use queues", async () => {
 			const queueId = "test-queue";
 			const messages: string[] = [];
+			let resolveHandler: () => void;
+			const handlerPromise = new Promise<void>((resolve) => {
+				resolveHandler = resolve;
+			});
+
 			const handler = vi.fn(async (msg: string) => {
-				await new Promise((resolve) => setTimeout(resolve, 100));
 				messages.push(msg);
+				resolveHandler();
+				return Promise.resolve();
 			});
 
 			// Start subscription
@@ -27,7 +33,7 @@ describe("MessageQueueManager", () => {
 			await manager.enqueue(queueId, "test");
 
 			// Wait for message to be processed
-			await new Promise((resolve) => setTimeout(resolve, 100));
+			await handlerPromise;
 
 			// Close queue
 			manager.close(queueId);
@@ -41,13 +47,25 @@ describe("MessageQueueManager", () => {
 			const queue2Id = "queue2";
 			const messages1: string[] = [];
 			const messages2: string[] = [];
+
+			let resolveHandler1: () => void;
+			let resolveHandler2: () => void;
+			const handler1Promise = new Promise<void>((resolve) => {
+				resolveHandler1 = resolve;
+			});
+			const handler2Promise = new Promise<void>((resolve) => {
+				resolveHandler2 = resolve;
+			});
+
 			const handler1 = vi.fn(async (msg: string) => {
-				await new Promise((resolve) => setTimeout(resolve, 100));
 				messages1.push(msg);
+				resolveHandler1();
+				return Promise.resolve();
 			});
 			const handler2 = vi.fn(async (msg: string) => {
-				await new Promise((resolve) => setTimeout(resolve, 100));
 				messages2.push(msg);
+				resolveHandler2();
+				return Promise.resolve();
 			});
 
 			// Start subscriptions
@@ -59,7 +77,7 @@ describe("MessageQueueManager", () => {
 			await manager.enqueue(queue2Id, "queue2-message");
 
 			// Wait for messages to be processed
-			await new Promise((resolve) => setTimeout(resolve, 100));
+			await Promise.all([handler1Promise, handler2Promise]);
 
 			// Close queues
 			manager.close(queue1Id);
@@ -75,9 +93,15 @@ describe("MessageQueueManager", () => {
 	describe("general queue", () => {
 		it("should use general queue for empty queue ID", async () => {
 			const messages: string[] = [];
+			let resolveHandler: () => void;
+			const handlerPromise = new Promise<void>((resolve) => {
+				resolveHandler = resolve;
+			});
+
 			const handler = vi.fn(async (msg: string) => {
-				await new Promise((resolve) => setTimeout(resolve, 100));
 				messages.push(msg);
+				resolveHandler();
+				return Promise.resolve();
 			});
 
 			// Start subscription
@@ -87,7 +111,8 @@ describe("MessageQueueManager", () => {
 			await manager.enqueue("", "test");
 
 			// Wait for message to be processed
-			await new Promise((resolve) => setTimeout(resolve, 100));
+			await handlerPromise;
+
 			// Close queue
 			manager.close("");
 
@@ -141,9 +166,15 @@ describe("MessageQueueManager", () => {
 		it("should close specific queue", async () => {
 			const queueId = "test-queue";
 			const messages: string[] = [];
+			let resolveHandler: () => void;
+			const handlerPromise = new Promise<void>((resolve) => {
+				resolveHandler = resolve;
+			});
+
 			const handler = vi.fn(async (msg: string) => {
-				await new Promise((resolve) => setTimeout(resolve, 100));
 				messages.push(msg);
+				resolveHandler();
+				return Promise.resolve();
 			});
 
 			// Start subscription
@@ -153,7 +184,8 @@ describe("MessageQueueManager", () => {
 			await manager.enqueue(queueId, "test");
 
 			// Wait for message to be processed
-			await new Promise((resolve) => setTimeout(resolve, 100));
+			await handlerPromise;
+
 			// Close specific queue
 			manager.close(queueId);
 

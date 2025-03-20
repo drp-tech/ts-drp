@@ -81,10 +81,11 @@ function createConnectHandlers(): void {
 
 	if (!gridState.drpObject?.id) return;
 
-	gridState.node.addCustomGroupMessageHandler(gridState.drpObject?.id, () => {
+	gridState.node.messageQueueManager.subscribe(gridState.drpObject?.id, async () => {
 		if (!gridState.drpObject?.id) return;
 		gridState.objectPeers = gridState.node.networkNode.getGroupPeers(gridState.drpObject?.id);
 		render();
+		return Promise.resolve();
 	});
 
 	gridState.node.objectStore.subscribe(gridState.drpObject?.id, () => {

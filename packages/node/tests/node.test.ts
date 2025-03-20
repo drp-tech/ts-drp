@@ -230,13 +230,13 @@ describe("DRPNode with rpc", () => {
 		expect(object).toBeDefined();
 	});
 
-	test("should run unsubscribeObject", async () => {
-		await drpNode.unsubscribeObject(drpObject.id);
+	test("should run unsubscribeObject", () => {
+		drpNode.unsubscribeObject(drpObject.id);
 		expect(mockLogger.info).toHaveBeenCalledWith("::unsubscribe: Successfuly unsubscribed the topic", drpObject.id);
 	});
 
-	test("should run unsubscribeObject with purge", async () => {
-		await drpNode.unsubscribeObject(drpObject.id, true);
+	test("should run unsubscribeObject with purge", () => {
+		drpNode.unsubscribeObject(drpObject.id, true);
 		const store = drpNode.objectStore.get(drpObject.id);
 		expect(store).toBeUndefined();
 	});
