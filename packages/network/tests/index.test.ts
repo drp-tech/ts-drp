@@ -67,4 +67,10 @@ describe("isDialable", () => {
 	test("should return true if the node is dialable with a callback", async () => {
 		expect(await btNode.isDialable()).toBe(true);
 	});
+
+	test("should have subscribed topics", () => {
+		btNode.subscribe("test");
+		const subscribedTopics = btNode.getSubscribedTopics();
+		expect(subscribedTopics).toContain("test");
+	});
 });

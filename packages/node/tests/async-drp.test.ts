@@ -59,8 +59,7 @@ describe("Async DRP", () => {
 			node1.networkNode.connect(node2.networkNode["_node"]?.getMultiaddrs()),
 			raceEvent(node1.networkNode["_node"] as Libp2p, "connection:open", undefined, {
 				filter: (event: CustomEvent<Connection>) =>
-					event.detail.remotePeer.toString() === node2.networkNode.peerId &&
-					event.detail.limits === undefined,
+					event.detail.remotePeer.toString() === node2.networkNode.peerId && event.detail.limits === undefined,
 			}),
 		]);
 	});

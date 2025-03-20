@@ -19,9 +19,7 @@ describe("drpMessagesHandler inputs", () => {
 
 	test("normal inputs", async () => {
 		await drpMessagesHandler(node);
-		expect(consoleSpy).toHaveBeenLastCalledWith(
-			"drp::node ::messageHandler: Stream and data are undefined"
-		);
+		expect(consoleSpy).toHaveBeenLastCalledWith("drp::node ::messageHandler: Stream and data are undefined");
 
 		const msg = Message.create({
 			sender: node.networkNode.peerId,
@@ -124,13 +122,11 @@ describe("Handle message correctly", () => {
 		await Promise.all([
 			raceEvent(libp2pNode2, "connection:open", controller.signal, {
 				filter: (event: CustomEvent<Connection>) =>
-					event.detail.remotePeer.toString() === node1.networkNode.peerId &&
-					event.detail.limits === undefined,
+					event.detail.remotePeer.toString() === node1.networkNode.peerId && event.detail.limits === undefined,
 			}),
 			raceEvent(libp2pNode1, "connection:open", controller.signal, {
 				filter: (event: CustomEvent<Connection>) =>
-					event.detail.remotePeer.toString() === node2.networkNode.peerId &&
-					event.detail.limits === undefined,
+					event.detail.remotePeer.toString() === node2.networkNode.peerId && event.detail.limits === undefined,
 			}),
 		]);
 		acl = new ObjectACL({
@@ -222,13 +218,9 @@ describe("Handle message correctly", () => {
 		(drpObjectNode2.drp as SetDRP<number>).add(10);
 		const hash = drpObjectNode2.vertices[1].hash;
 		(drpObjectNode2.drp as SetDRP<number>).add(6);
-		expect(
-			node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)
-		).toBe(1);
+		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
 		await new Promise((resolve) => setTimeout(resolve, 500));
-		expect(
-			node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)
-		).toBe(2);
+		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
 	});
 
 	afterAll(async () => {

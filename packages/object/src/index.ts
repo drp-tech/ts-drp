@@ -97,20 +97,15 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 		this.drpStates = new Map([[HashGraph.rootHash, DRPState.create()]]);
 		this._setRootStates();
 
-		this.finalityStore = new FinalityStore(
-			options.config?.finality_config,
-			options.config?.log_config
-		);
+		this.finalityStore = new FinalityStore(options.config?.finality_config, options.config?.log_config);
 		this.originalObjectACL = cloneDeep(objAcl);
 		this.originalDRP = cloneDeep(options.drp);
-		this.callFn =
-			options.metrics?.traceFunc("drpObject.callFn", this.callFn.bind(this)) ?? this.callFn;
+		this.callFn = options.metrics?.traceFunc("drpObject.callFn", this.callFn.bind(this)) ?? this.callFn;
 		this._computeObjectACL =
 			options.metrics?.traceFunc("drpObject.computeObjectACL", this._computeObjectACL.bind(this)) ??
 			this._computeObjectACL;
 		this._computeDRP =
-			options.metrics?.traceFunc("drpObject.computeDRP", this._computeDRP.bind(this)) ??
-			this._computeDRP;
+			options.metrics?.traceFunc("drpObject.computeDRP", this._computeDRP.bind(this)) ?? this._computeDRP;
 	}
 
 	private _initLocalDrpInstance(peerId: string, drp: T, acl: IACL): void {
@@ -267,9 +262,7 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 			: [postOperationDRP, this._computeObjectACL(dependencies, initialLCA, operation)];
 
 		if (isPromise(postDRP) || isPromise(postACL)) {
-			return Promise.all([postDRP, postACL]).then(([drp, acl]) =>
-				this._processOperationUpdateState(context, drp, acl)
-			);
+			return Promise.all([postDRP, postACL]).then(([drp, acl]) => this._processOperationUpdateState(context, drp, acl));
 		}
 
 		return this._processOperationUpdateState(context, postDRP, postACL);
@@ -307,10 +300,7 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 
 	validateVertex(vertex: Vertex): void {
 		// Validate hash value
-		if (
-			vertex.hash !==
-			computeHash(vertex.peerId, vertex.operation, vertex.dependencies, vertex.timestamp)
-		) {
+		if (vertex.hash !== computeHash(vertex.peerId, vertex.operation, vertex.dependencies, vertex.timestamp)) {
 			throw new Error(`Invalid hash for vertex ${vertex.hash}`);
 		}
 
@@ -334,10 +324,7 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 		}
 
 		// Validate writer permission
-		if (
-			vertex.operation?.drpType === DrpType.DRP &&
-			!this._checkWriterPermission(vertex.peerId, vertex.dependencies)
-		) {
+		if (vertex.operation?.drpType === DrpType.DRP && !this._checkWriterPermission(vertex.peerId, vertex.dependencies)) {
 			throw new Error(`Vertex ${vertex.peerId} does not have write permission.`);
 		}
 	}
@@ -423,11 +410,7 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 	}
 
 	// apply the operation to the DRP
-	private _applyOperation(
-		drp: IDRP,
-		operation: Operation,
-		caller: string
-	): unknown | Promise<unknown> {
+	private _applyOperation(drp: IDRP, operation: Operation, caller: string): unknown | Promise<unknown> {
 		const { opType, value } = operation;
 
 		const typeParts = opType.split(".");
@@ -557,8 +540,7 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 			vertexDependencies.length === 1
 				? vertexDependencies[0]
 				: this.hashGraph.lowestCommonAncestorMultipleVertices(vertexDependencies, subgraph);
-		const linearizedVertices =
-			vertexDependencies.length === 1 ? [] : this.hashGraph.linearizeVertices(lca, subgraph);
+		const linearizedVertices = vertexDependencies.length === 1 ? [] : this.hashGraph.linearizeVertices(lca, subgraph);
 		return { lca, linearizedVertices };
 	}
 
@@ -606,13 +588,7 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 	): void | Promise<void> {
 		if (this.acl) {
 			const stateComputation =
-				drpState ??
-				this._computeObjectACLState(
-					vertex.dependencies,
-					preCompute,
-					vertex.operation,
-					vertex.peerId
-				);
+				drpState ?? this._computeObjectACLState(vertex.dependencies, preCompute, vertex.operation, vertex.peerId);
 
 			return handlePromiseOrValue(stateComputation, (state) => {
 				this.aclStates.set(vertex.hash, state);
@@ -626,8 +602,7 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 		drpState?: DRPState
 	): void | Promise<void> {
 		const stateComputation =
-			drpState ??
-			this._computeDRPState(vertex.dependencies, preCompute, vertex.operation, vertex.peerId);
+			drpState ?? this._computeDRPState(vertex.dependencies, preCompute, vertex.operation, vertex.peerId);
 
 		return handlePromiseOrValue(stateComputation, (state) => {
 			this.drpStates.set(vertex.hash, state);

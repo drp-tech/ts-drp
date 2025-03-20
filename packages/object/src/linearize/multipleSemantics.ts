@@ -3,11 +3,7 @@ import { ActionType, type Hash, type Vertex } from "@ts-drp/types";
 import { type HashGraph } from "../hashgraph/index.js";
 import type { ObjectSet } from "../utils/objectSet.js";
 
-export function linearizeMultipleSemantics(
-	hashGraph: HashGraph,
-	origin: Hash,
-	subgraph: ObjectSet<string>
-): Vertex[] {
+export function linearizeMultipleSemantics(hashGraph: HashGraph, origin: Hash, subgraph: ObjectSet<string>): Vertex[] {
 	const order = hashGraph.topologicalSort(true, origin, subgraph);
 	const result: Vertex[] = [];
 	// if there is no resolveConflicts function, we can just return the operations in topological order
@@ -67,9 +63,7 @@ export function linearizeMultipleSemantics(
 				k++;
 			}
 
-			const resolved = hashGraph.resolveConflicts(
-				concurrentOps.map((hash) => hashGraph.vertices.get(hash) as Vertex)
-			);
+			const resolved = hashGraph.resolveConflicts(concurrentOps.map((hash) => hashGraph.vertices.get(hash) as Vertex));
 
 			switch (resolved.action) {
 				case ActionType.Drop: {
