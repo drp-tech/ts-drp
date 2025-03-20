@@ -1,4 +1,4 @@
-import { gossipsub, type GossipSub, type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
+import { gossipsub, type GossipSub } from "@chainsafe/libp2p-gossipsub";
 import {
 	createPeerScoreParams,
 	createTopicScoreParams,
@@ -13,14 +13,7 @@ import { privateKeyFromRaw } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
-import type {
-	Address,
-	EventCallback,
-	PeerDiscovery,
-	PeerId,
-	Stream,
-	StreamHandler,
-} from "@libp2p/interface";
+import type { Address, PeerDiscovery, PeerId, Stream } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { ping } from "@libp2p/ping";
 import {
@@ -43,7 +36,7 @@ import {
 } from "@ts-drp/types";
 import { createLibp2p, type Libp2p, type ServiceFactoryMap } from "libp2p";
 
-import { uint8ArrayToStream } from "./stream.js";
+import { streamToUint8Array, uint8ArrayToStream } from "./stream.js";
 
 export * from "./stream.js";
 
@@ -244,6 +237,9 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		// needed as I've disabled the pubsubPeerDiscovery
 		this._pubsub?.subscribe(DRP_DISCOVERY_TOPIC);
 		this._pubsub?.subscribe(DRP_INTERVAL_DISCOVERY_TOPIC);
+
+		// start the routing loop to enqueue messages
+		void this.startEnqueueMessages();
 	}
 
 	async stop(): Promise<void> {
@@ -417,17 +413,25 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		}
 	}
 
-	addGroupMessageHandler(
-		group: string,
-		handler: EventCallback<CustomEvent<GossipsubMessage>>
-	): void {
-		this._pubsub?.addEventListener("gossipsub:message", (e) => {
-			if (group && e.detail.msg.topic !== group) return;
-			handler(e);
+	private async startEnqueueMessages(): Promise<void> {
+		this._pubsub?.addEventListener("gossipsub:message", (e) =>
+			this.handleGossipsubMessage(e.detail.msg.data)
+		);
+		await this._node?.handle(DRP_MESSAGE_PROTOCOL, ({ stream }) => void this.handleStream(stream));
+	}
+
+	private handleGossipsubMessage(data: Uint8Array): void {
+		const message = Message.decode(data);
+		this._messageQueue.enqueue(message).catch((e) => {
+			log.error("::startEnqueueMessages::enqueue:", e);
 		});
 	}
 
-	async addMessageHandler(handler: StreamHandler): Promise<void> {
-		await this._node?.handle(DRP_MESSAGE_PROTOCOL, handler);
+	private async handleStream(stream: Stream): Promise<void> {
+		const data = await streamToUint8Array(stream);
+		const message = Message.decode(data);
+		this._messageQueue.enqueue(message).catch((e) => {
+			log.error("::startEnqueueMessages::enqueue:", e);
+		});
 	}
 }

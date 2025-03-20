@@ -1,3 +1,5 @@
+import type { LoggerOptions } from "@ts-drp/logger";
+
 /**
  * Options for the message queue.
  */
@@ -30,6 +32,7 @@ export interface IMessageQueue<T> {
 export interface IMessageQueueManagerOptions {
 	maxQueues?: number; // Maximum number of queues
 	maxQueueSize?: number; // Maximum number of messages in each queue
+	logConfig?: LoggerOptions;
 }
 
 export interface IMessageQueueManager<T> {
