@@ -74,8 +74,7 @@ const renderPeers = (): void => {
 let isPeersInDRPOpen = false;
 
 const renderPeersInDRP = (): void => {
-	if (gridState.drpObject)
-		gridState.objectPeers = gridState.node.networkNode.getGroupPeers(gridState.drpObject.id);
+	if (gridState.drpObject) gridState.objectPeers = gridState.node.networkNode.getGroupPeers(gridState.drpObject.id);
 
 	renderClickablePeerList(
 		gridState.objectPeers,

@@ -43,10 +43,7 @@ function selfCheckConstraints(hg: HashGraph): boolean {
 		}
 	}
 
-	const topoOrder = hg.dfsTopologicalSortIterative(
-		HashGraph.rootHash,
-		new ObjectSet(hg.vertices.keys())
-	);
+	const topoOrder = hg.dfsTopologicalSortIterative(HashGraph.rootHash, new ObjectSet(hg.vertices.keys()));
 
 	for (const vertex of hg.getAllVertices()) {
 		if (!topoOrder.includes(vertex.hash)) {
@@ -157,10 +154,7 @@ describe("HashGraph construction tests", () => {
 		hashgraph.forwardEdges.set(v2.hash, [HashGraph.rootHash]);
 
 		expect(() => {
-			hashgraph.dfsTopologicalSortIterative(
-				HashGraph.rootHash,
-				new ObjectSet(hashgraph.vertices.keys())
-			);
+			hashgraph.dfsTopologicalSortIterative(HashGraph.rootHash, new ObjectSet(hashgraph.vertices.keys()));
 		}).toThrowError("Graph contains a cycle!");
 	});
 
@@ -215,8 +209,7 @@ describe("HashGraph construction tests", () => {
 		acl1.grant("peer1", "peer2", ACLGroup.Writer);
 		expect(acl1.query_isWriter("peer2")).toBe(true);
 		const rootACLState = obj1.aclStates.get(HashGraph.rootHash);
-		const authorizedPeers = rootACLState?.state.filter((e) => e.key === "_authorizedPeers")[0]
-			.value;
+		const authorizedPeers = rootACLState?.state.filter((e) => e.key === "_authorizedPeers")[0].value;
 		expect(authorizedPeers.get("peer1")?.permissions.has(ACLGroup.Admin)).toBe(true);
 		expect(authorizedPeers.get("peer2")).toBe(undefined);
 	});
@@ -435,17 +428,13 @@ describe("HashGraph for SetDRP tests", () => {
 		const order1 = obj1.hashGraph.topologicalSort();
 		const linearizedVertices1 = obj1.hashGraph.linearizeVertices();
 		for (let i = 0; i < linearizedVertices1.length; ++i) {
-			expect(linearizedVertices1[i].operation).toBe(
-				obj1.hashGraph.vertices.get(order1[i + 1])?.operation
-			);
+			expect(linearizedVertices1[i].operation).toBe(obj1.hashGraph.vertices.get(order1[i + 1])?.operation);
 		}
 
 		const order2 = obj2.hashGraph.topologicalSort();
 		const linearizedVertices2 = obj2.hashGraph.linearizeVertices();
 		for (let i = 0; i < linearizedVertices2.length; ++i) {
-			expect(linearizedVertices2[i].operation).toBe(
-				obj2.hashGraph.vertices.get(order2[i + 1])?.operation
-			);
+			expect(linearizedVertices2[i].operation).toBe(obj2.hashGraph.vertices.get(order2[i + 1])?.operation);
 		}
 	});
 });
@@ -651,9 +640,7 @@ describe("Vertex timestamp tests", () => {
 			Number.POSITIVE_INFINITY,
 			new Uint8Array()
 		);
-		expect(() => obj1.validateVertex(vertex)).toThrowError(
-			`Vertex ${vertex.hash} has invalid timestamp.`
-		);
+		expect(() => obj1.validateVertex(vertex)).toThrowError(`Vertex ${vertex.hash} has invalid timestamp.`);
 	});
 
 	test("Test: Vertex's timestamp must not be less than any of its dependencies' timestamps", async () => {
@@ -687,9 +674,7 @@ describe("Vertex timestamp tests", () => {
 			1,
 			new Uint8Array()
 		);
-		expect(() => obj1.validateVertex(vertex)).toThrowError(
-			`Vertex ${vertex.hash} has invalid timestamp.`
-		);
+		expect(() => obj1.validateVertex(vertex)).toThrowError(`Vertex ${vertex.hash} has invalid timestamp.`);
 	});
 });
 
@@ -1062,9 +1047,7 @@ describe("Hash validation tests", () => {
 
 		expect(obj1.hashGraph.getAllVertices().length).toBe(2);
 		expect(obj2.hashGraph.getAllVertices().length).toBe(1);
-		expect(obj2.hashGraph.getAllVertices().includes(obj1.hashGraph.getAllVertices()[1])).toBe(
-			false
-		);
+		expect(obj2.hashGraph.getAllVertices().includes(obj1.hashGraph.getAllVertices()[1])).toBe(false);
 	});
 });
 

@@ -1,10 +1,4 @@
-import {
-	ActionType,
-	type IDRP,
-	type ResolveConflictsType,
-	SemanticsType,
-	type Vertex,
-} from "@ts-drp/types";
+import { ActionType, type IDRP, type ResolveConflictsType, SemanticsType, type Vertex } from "@ts-drp/types";
 
 export class Grid implements IDRP {
 	semanticsType: SemanticsType = SemanticsType.pair;

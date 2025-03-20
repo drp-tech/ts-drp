@@ -30,9 +30,7 @@ function initDRPNode(): void {
 }
 
 function main(): void {
-	const select_address_type = <HTMLSelectElement>(
-		document.getElementById("bootstrap_node_host_address_type")
-	);
+	const select_address_type = <HTMLSelectElement>document.getElementById("bootstrap_node_host_address_type");
 	const address_type_label = <HTMLSpanElement>document.getElementById("bootstrap_addr_type");
 	const bootstrap_node_addr = <HTMLInputElement>document.getElementById("bootstrap_node_addr");
 
@@ -55,9 +53,7 @@ function main(): void {
 
 	const connect_form = <HTMLFormElement>document.getElementById("form_connect_to_bootstrap_node");
 	const connect = async (): Promise<void> => {
-		const bootstrap_node_port: HTMLInputElement = <HTMLInputElement>(
-			document.getElementById("bootstrap_node_port")
-		);
+		const bootstrap_node_port: HTMLInputElement = <HTMLInputElement>document.getElementById("bootstrap_node_port");
 		const bootstrap_node_peer_id: HTMLInputElement = <HTMLInputElement>(
 			document.getElementById("bootstrap_node_peer_id")
 		);
@@ -70,9 +66,7 @@ function main(): void {
 		const is_ws: HTMLInputElement = <HTMLInputElement>document.getElementById("ws");
 
 		const ws_protocl = is_ws.checked ? "ws" : "wss";
-		const field_set = <HTMLFieldSetElement>(
-			document.getElementById("fieldset_connect_bootstrap_node")
-		);
+		const field_set = <HTMLFieldSetElement>document.getElementById("fieldset_connect_bootstrap_node");
 		try {
 			node = new DRPNode({
 				network_config: {

@@ -1,10 +1,4 @@
-import {
-	ActionType,
-	type IDRP,
-	type ResolveConflictsType,
-	SemanticsType,
-	type Vertex,
-} from "@ts-drp/types";
+import { ActionType, type IDRP, type ResolveConflictsType, SemanticsType, type Vertex } from "@ts-drp/types";
 
 export enum MapConflictResolution {
 	SetWins = 0,
@@ -95,12 +89,10 @@ export class MapDRP<K, V> implements IDRP {
 
 		return this._conflictResolution === MapConflictResolution.SetWins
 			? {
-					action:
-						vertices[0].operation.opType === "set" ? ActionType.DropRight : ActionType.DropLeft,
+					action: vertices[0].operation.opType === "set" ? ActionType.DropRight : ActionType.DropLeft,
 				}
 			: {
-					action:
-						vertices[0].operation.opType === "set" ? ActionType.DropLeft : ActionType.DropRight,
+					action: vertices[0].operation.opType === "set" ? ActionType.DropLeft : ActionType.DropRight,
 				};
 	}
 }

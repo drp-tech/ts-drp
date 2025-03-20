@@ -5,11 +5,7 @@ import { DRPObject, ObjectACL } from "@ts-drp/object";
 import { ACLGroup, DrpType, type Vertex } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
-import {
-	signFinalityVertices,
-	signGeneratedVertices,
-	verifyACLIncomingVertices,
-} from "../src/handlers.js";
+import { signFinalityVertices, signGeneratedVertices, verifyACLIncomingVertices } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
 
 describe("DPRNode with verify and sign signature", () => {
@@ -135,25 +131,17 @@ describe("DRPNode voting tests", () => {
 		*/
 
 		obj1.acl.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
-		obj1.acl.setKey(
-			nodeB.networkNode.peerId,
-			nodeB.networkNode.peerId,
-			nodeB.keychain.blsPublicKey
-		);
+		obj1.acl.setKey(nodeB.networkNode.peerId, nodeB.networkNode.peerId, nodeB.keychain.blsPublicKey);
 		obj1.drp?.add(1);
 
 		await obj2.merge(obj1.vertices);
-		const V1 = obj2.vertices.find(
-			(v) => v.operation?.value !== null && v.operation?.value[0] === 1
-		) as Vertex;
+		const V1 = obj2.vertices.find((v) => v.operation?.value !== null && v.operation?.value[0] === 1) as Vertex;
 		expect(V1 !== undefined).toBe(true);
 
 		signFinalityVertices(nodeB, obj2, [V1]);
 
 		expect(obj2.finalityStore.canSign(nodeB.networkNode.peerId, V1.hash)).toBe(true);
-		expect(obj2.finalityStore.getAttestation(V1.hash)?.signature).toEqual(
-			nodeB.keychain.signWithBls(V1.hash)
-		);
+		expect(obj2.finalityStore.getAttestation(V1.hash)?.signature).toEqual(nodeB.keychain.signWithBls(V1.hash));
 		expect(obj2.finalityStore.getNumberOfSignatures(V1.hash)).toBe(1);
 	});
 
@@ -168,9 +156,7 @@ describe("DRPNode voting tests", () => {
 		obj1.drp?.add(2);
 
 		await obj2.merge(obj1.vertices);
-		const V2 = obj2.vertices.find(
-			(v) => v.operation?.value !== null && v.operation?.value[0] === 2
-		) as Vertex;
+		const V2 = obj2.vertices.find((v) => v.operation?.value !== null && v.operation?.value[0] === 2) as Vertex;
 		expect(V2 !== undefined).toBe(true);
 
 		signFinalityVertices(nodeB, obj2, [V2]);
@@ -189,9 +175,7 @@ describe("DRPNode voting tests", () => {
 		obj1.acl.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
 		obj1.drp?.add(1);
 		await obj2.merge(obj1.vertices);
-		const V1 = obj2.vertices.find(
-			(v) => v.operation?.value !== null && v.operation?.value[0] === 1
-		) as Vertex;
+		const V1 = obj2.vertices.find((v) => v.operation?.value !== null && v.operation?.value[0] === 1) as Vertex;
 		expect(V1 !== undefined).toBe(true);
 
 		signFinalityVertices(nodeA, obj2, [V1]);
@@ -200,10 +184,7 @@ describe("DRPNode voting tests", () => {
 		signFinalityVertices(nodeB, obj2, [V1]);
 		expect(obj2.finalityStore.getNumberOfSignatures(V1.hash)).toBe(2);
 		expect(obj2.finalityStore.getAttestation(V1.hash)?.signature).toEqual(
-			bls.aggregateSignatures([
-				nodeA.keychain.signWithBls(V1.hash),
-				nodeB.keychain.signWithBls(V1.hash),
-			])
+			bls.aggregateSignatures([nodeA.keychain.signWithBls(V1.hash), nodeB.keychain.signWithBls(V1.hash)])
 		);
 	});
 });
@@ -237,11 +218,7 @@ describe("DRPNode with rpc", () => {
 		const acl = new ObjectACL({
 			admins: [drpNode.networkNode.peerId],
 		});
-		acl.setKey(
-			drpNode.networkNode.peerId,
-			drpNode.networkNode.peerId,
-			drpNode.keychain.blsPublicKey
-		);
+		acl.setKey(drpNode.networkNode.peerId, drpNode.networkNode.peerId, drpNode.keychain.blsPublicKey);
 		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
 	});
 
@@ -255,10 +232,7 @@ describe("DRPNode with rpc", () => {
 
 	test("should run unsubscribeObject", () => {
 		drpNode.unsubscribeObject(drpObject.id);
-		expect(mockLogger.info).toHaveBeenCalledWith(
-			"::unsubscribe: Successfuly unsubscribed the topic",
-			drpObject.id
-		);
+		expect(mockLogger.info).toHaveBeenCalledWith("::unsubscribe: Successfuly unsubscribed the topic", drpObject.id);
 	});
 
 	test("should run unsubscribeObject with purge", () => {

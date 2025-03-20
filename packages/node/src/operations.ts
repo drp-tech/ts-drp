@@ -69,8 +69,7 @@ export function subscribeObject(node: DRPNode, objectId: string): void {
 	node.networkNode.subscribe(objectId);
 	node.networkNode.addGroupMessageHandler(
 		objectId,
-		(e: CustomEvent<GossipsubMessage>) =>
-			void drpMessagesHandler(node, undefined, e.detail.msg.data)
+		(e: CustomEvent<GossipsubMessage>) => void drpMessagesHandler(node, undefined, e.detail.msg.data)
 	);
 }
 
@@ -79,11 +78,7 @@ export function unsubscribeObject(node: DRPNode, objectId: string, purge?: boole
 	if (purge) node.objectStore.remove(objectId);
 }
 
-export async function fetchState(
-	node: DRPNode,
-	objectId: string,
-	peerId?: string
-): Promise<Deferred<void>> {
+export async function fetchState(node: DRPNode, objectId: string, peerId?: string): Promise<Deferred<void>> {
 	const data = FetchState.create({
 		objectId,
 		vertexHash: HashGraph.rootHash,
@@ -108,11 +103,7 @@ export async function fetchState(
 /**
  *  data: { vertex_hashes: string[] }
  */
-export async function syncObject<T extends IDRP>(
-	node: DRPNode,
-	objectId: string,
-	peerId?: string
-): Promise<void> {
+export async function syncObject<T extends IDRP>(node: DRPNode, objectId: string, peerId?: string): Promise<void> {
 	const object: IDRPObject<T> | undefined = node.objectStore.get(objectId);
 	if (!object) {
 		log.error("::syncObject: Object not found");

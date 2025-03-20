@@ -1,10 +1,5 @@
 import { decode, encode, ExtensionCodec } from "@msgpack/msgpack";
-import {
-	DRPState,
-	DRPStateEntry,
-	DRPStateEntryOtherTheWire,
-	DRPStateOtherTheWire,
-} from "@ts-drp/types";
+import { DRPState, DRPStateEntry, DRPStateEntryOtherTheWire, DRPStateOtherTheWire } from "@ts-drp/types";
 
 const extensionCodec = new ExtensionCodec();
 
