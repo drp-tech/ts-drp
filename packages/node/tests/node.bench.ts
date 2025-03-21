@@ -1,6 +1,18 @@
-import { type GossipSub } from "@chainsafe/libp2p-gossipsub";
-import { type DRPNetworkNodeConfig, type DRPNodeConfig, type KeychainOptions, type LoggerOptions } from "@ts-drp/types";
+import { type GossipSub, type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
+import { type Libp2p, type Libp2pEvents } from "@libp2p/interface";
+import { AddMulDRP } from "@ts-drp/blueprints";
+import { ObjectACL } from "@ts-drp/object";
+import {
+	type DRPNetworkNodeConfig,
+	type DRPNodeConfig,
+	type IDRPObject,
+	type KeychainOptions,
+	type LoggerOptions,
+	Message,
+	MessageType,
+} from "@ts-drp/types";
 import Benchmark from "benchmark";
+import { promisify } from "util";
 
 import { DRPNode } from "../src/index.js";
 
@@ -10,10 +22,26 @@ interface createNodeOptions {
 }
 
 let btNode: DRPNode | undefined;
+
+function waitForLibp2pEvent<K extends keyof Libp2pEvents>(
+	libp2p: Libp2p,
+	type: K,
+	filter: (event: Libp2pEvents[K]) => boolean,
+	callback: (error: Error | null, event: Libp2pEvents[K]) => void
+): void {
+	const listener = (event: Libp2pEvents[K]): void => {
+		if (filter(event)) {
+			libp2p.removeEventListener(type, listener);
+			callback(null, event);
+		}
+	};
+
+	libp2p.addEventListener(type, listener);
+}
+
 async function getBootstrapNode(): Promise<DRPNode> {
 	if (!btNode) {
 		btNode = await createNode({ id: -1, isBootstrap: true });
-		await btNode.start();
 	}
 	return btNode;
 }
@@ -25,6 +53,9 @@ async function getNetworkConfiguration(logConfig: LoggerOptions, isBootstrap = f
 			listen_addresses: ["/ip4/0.0.0.0/tcp/0/ws", "/ip4/0.0.0.0/tcp/0"],
 			bootstrap_peers: [],
 			log_config: logConfig,
+			pubsub: {
+				peer_discovery_interval: 30_000,
+			},
 		};
 	}
 
@@ -34,13 +65,16 @@ async function getNetworkConfiguration(logConfig: LoggerOptions, isBootstrap = f
 		listen_addresses: ["/p2p-circuit", "/webrtc"],
 		bootstrap_peers: bootstrapPeers,
 		log_config: logConfig,
+		pubsub: {
+			peer_discovery_interval: 30_000,
+		},
 	};
 }
 
 async function getNodeConfiguration({ isBootstrap = false, id }: createNodeOptions): Promise<DRPNodeConfig> {
 	const keychainConfig: KeychainOptions = { private_key_seed: `seed-${id}` };
 	const logConfig: LoggerOptions = {
-		//level: "debug",
+		level: "silent",
 	};
 	const networkConfig = await getNetworkConfiguration(logConfig, isBootstrap);
 
@@ -54,7 +88,19 @@ async function getNodeConfiguration({ isBootstrap = false, id }: createNodeOptio
 async function createNode(options: createNodeOptions): Promise<DRPNode> {
 	const config = await getNodeConfiguration(options);
 	const node = new DRPNode(config);
-	await node.start();
+	if (options.isBootstrap) {
+		await node.start();
+		return node;
+	}
+	const btLibp2p = (await getBootstrapNode()).networkNode["_node"] as Libp2p;
+	await Promise.all([
+		node.start(),
+		promisify(waitForLibp2pEvent)(
+			btLibp2p,
+			"peer:identify",
+			(event) => event.detail.peerId.toString() === node.networkNode.peerId && event.detail.listenAddrs.length > 0
+		),
+	]);
 	return node;
 }
 
@@ -70,7 +116,6 @@ async function createNodes(count: number): Promise<DRPNode[]> {
 // Define a topic for message exchange
 const TOPIC = "benchmark-topic";
 const MESSAGE_SIZE = 1024; // 1KB message
-const NUMBER_OF_MESSAGES = Number.parseInt(process.argv[2], 10) || 1000;
 
 function createMessage(size: number): Uint8Array {
 	const buffer = new Uint8Array(size);
@@ -80,83 +125,197 @@ function createMessage(size: number): Uint8Array {
 	return buffer;
 }
 
-async function setupMessageHandlers(nodes: DRPNode[]): Promise<void> {
+async function setupMessageHandlers(nodes: DRPNode[], topic: string): Promise<void> {
 	for (const node of nodes) {
 		const pubsub = node.networkNode["_pubsub"] as GossipSub;
-		pubsub.subscribe(TOPIC);
+		pubsub.subscribe(topic);
 	}
 
 	// Wait a bit for subscription propagation
 	await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
-const suite = new Benchmark.Suite();
-
 // Benchmark for sending messages between nodes
-async function runMessageBenchmark(): Promise<void> {
-	const nodes = await createNodes(3);
-	await setupMessageHandlers(nodes);
+async function runMessageBenchmark(numberOfMessages: number, numberOfNodes: number, time: number): Promise<void> {
+	const suite = new Benchmark.Suite();
+	const nodes = await createNodes(numberOfNodes);
+	await setupMessageHandlers(nodes, TOPIC);
 
 	const message = createMessage(MESSAGE_SIZE);
-	const sender = nodes[0];
+	const totalMessages = numberOfMessages * (nodes.length - 1);
 
-	suite.add(`Send ${NUMBER_OF_MESSAGES} messages (${MESSAGE_SIZE} bytes each)`, {
+	let index = 0;
+	suite.add(`Send ${numberOfMessages} messages for ${numberOfNodes} nodes in ${time} seconds`, {
 		defer: true,
+		minTime: time,
+		maxTime: time,
 		fn: async (deferred: Benchmark.Deferred) => {
-			let sentCount = 0;
-
-			// Set up message reception counter
 			let receivedCount = 0;
-			const onMessage = (): void => {
+			const promises: { resolver(value: unknown): void; promise: Promise<unknown> }[] = Array(totalMessages)
+				.fill(null)
+				.map(() => {
+					let resolver: (value: unknown) => void;
+					const promise = new Promise((resolve) => {
+						resolver = resolve;
+					});
+					// @ts-expect-error -- resolver is not used
+					return { resolver, promise };
+				});
+
+			let promiseIdx = 0;
+			const onMessage = (msg: CustomEvent<GossipsubMessage>): void => {
+				if (msg.detail.msg.topic !== TOPIC) return;
 				receivedCount++;
-				if (receivedCount >= NUMBER_OF_MESSAGES * (nodes.length - 1)) {
-					// All messages received by all other nodes
+				promises[promiseIdx++].resolver(true);
+				if (receivedCount >= totalMessages) {
 					deferred.resolve();
 				}
 			};
 
-			// Set up message handlers for receiving nodes
-			for (let i = 1; i < nodes.length; i++) {
+			// Set up message handlers
+			for (let i = 0; i < nodes.length; i++) {
 				const pubsub = nodes[i].networkNode["_pubsub"] as GossipSub;
 				pubsub.addEventListener("gossipsub:message", onMessage);
 			}
 
 			// Send messages
-			for (let i = 0; i < NUMBER_OF_MESSAGES; i++) {
-				const pubsub = sender.networkNode["_pubsub"] as GossipSub;
-				await pubsub.publish(TOPIC, message);
-				sentCount++;
+			const pubsubSender = nodes[index % nodes.length].networkNode["_pubsub"] as GossipSub;
+			for (let i = 0; i < numberOfMessages; i++) {
+				await pubsubSender.publish(TOPIC, message);
 			}
+			await Promise.all(promises.map((p) => p.promise));
 
-			// If no messages were received, resolve after timeout
-			setTimeout(() => {
-				if (!deferred.resolved) {
-					console.log(`Timeout: Sent ${sentCount}, received ${receivedCount}`);
-					deferred.resolve();
-				}
-			}, 10000);
+			// Clean up listeners
+			for (let i = 0; i < nodes.length; i++) {
+				const pubsub = nodes[i].networkNode["_pubsub"] as GossipSub;
+				pubsub.removeEventListener("gossipsub:message", onMessage);
+			}
+			index++;
 		},
 	});
 
-	// Add more benchmarks here as needed
+	return new Promise<void>((resolve) => {
+		suite
+			.on("cycle", (event: Benchmark.Event) => {
+				console.log(String(event.target));
+			})
+			.on("complete", async function (this: Benchmark.Suite) {
+				const benchmark = this.pop() as unknown as Benchmark.Target;
+				const totalOps = benchmark.count ?? 0;
+				const opsPerSec = benchmark.hz ?? 0;
 
-	suite
-		.on("cycle", (event: Benchmark.Event) => {
-			console.log(String(event.target));
-		})
-		.on("complete", function (this: Benchmark.Suite) {
-			console.log(`Fastest is ${this.filter("fastest").map("name")}`);
+				console.log("=== Benchmark Result ===");
+				console.log(`Total Operations: ${totalOps}`);
+				console.log(`Operations per second: ${opsPerSec.toFixed(2)}`);
+				console.log(`Benchmark duration: ${(totalOps / opsPerSec).toFixed(2)} seconds`);
 
-			// Clean up nodes
-			for (const node of nodes) {
-				node.stop().catch(console.error);
-			}
-			if (btNode) {
-				btNode.stop().catch(console.error);
-			}
-		})
-		.run({ async: true });
+				// Cleanup nodes
+				await Promise.all(nodes.map((node): Promise<void> => node.stop().catch(console.error)));
+				if (btNode) {
+					await btNode.stop().catch(console.error);
+					btNode = undefined;
+				}
+				resolve();
+			})
+			.run({ async: true });
+	});
 }
 
-// Run the benchmark
-runMessageBenchmark().catch(console.error);
+async function runObjectBenchmark(numberOfMessages: number, numberOfNodes: number, time: number): Promise<void> {
+	const suite = new Benchmark.Suite();
+	const nodes = await createNodes(numberOfNodes);
+	const objects: IDRPObject<AddMulDRP>[] = [];
+	const admins = nodes.map((node) => node.networkNode.peerId);
+	const acl = new ObjectACL({ admins, permissionless: true });
+	for (let i = 0; i < nodes.length; i++) {
+		const obj = new AddMulDRP();
+		if (i === 0) {
+			objects.push(await nodes[i].createObject({ id: "addmul", drp: obj, acl, log_config: { level: "silent" } }));
+			continue;
+		}
+		objects.push(await nodes[i].connectObject({ id: "addmul", drp: obj, acl, log_config: { level: "silent" } }));
+	}
+
+	await setupMessageHandlers(nodes, objects[0].id);
+
+	let promiseIdx = 0;
+	let promises: { resolver(value: unknown): void; promise: Promise<unknown> }[] | undefined = undefined;
+	const totalMessages = numberOfMessages * (nodes.length - 1);
+	const getPromises = (totalMessages: number): { resolver(value: unknown): void; promise: Promise<unknown> }[] => {
+		if (promises) return promises;
+		promiseIdx = 0;
+		promises = Array(totalMessages)
+			.fill(null)
+			.map(() => {
+				let resolver: (value: unknown) => void;
+				const promise = new Promise((resolve) => {
+					resolver = resolve;
+				});
+				// @ts-expect-error -- resolver is not used
+				return { resolver, promise };
+			});
+		return promises;
+	};
+
+	const onMessage = (msg: CustomEvent<GossipsubMessage>): void => {
+		if (msg.detail.msg.topic !== objects[0].id) return;
+		const message = Message.decode(msg.detail.msg.data);
+		if (message.type !== MessageType.MESSAGE_TYPE_UPDATE) return;
+		getPromises(totalMessages)[promiseIdx++].resolver(true);
+	};
+
+	for (let i = 0; i < nodes.length; i++) {
+		nodes[i].addCustomGroupMessageHandler(objects[i].id, onMessage);
+	}
+
+	let index = 0;
+	suite.add(`Send ${numberOfMessages} messages for ${numberOfNodes} nodes in ${time} seconds`, {
+		defer: true,
+		minTime: time,
+		maxTime: time,
+		fn: async (deferred: Benchmark.Deferred) => {
+			const addMul = objects[index % nodes.length].drp;
+			for (let i = 0; i < numberOfMessages; i++) {
+				const a = Math.floor(Math.random() * 10) + 1;
+				addMul?.add(a);
+			}
+			await Promise.all(getPromises(totalMessages).map((p) => p.promise));
+			promises = undefined;
+			index++;
+			deferred.resolve();
+		},
+	});
+
+	return new Promise<void>((resolve) => {
+		suite
+			.on("cycle", (event: Benchmark.Event) => {
+				console.log(String(event.target));
+			})
+			.on("complete", async function (this: Benchmark.Suite) {
+				const benchmark = this.pop() as unknown as Benchmark.Target;
+				const totalOps = benchmark.count ?? 0;
+				const opsPerSec = benchmark.hz ?? 0;
+
+				console.log("=== Benchmark Result ===");
+				console.log(`Total Operations: ${totalOps}`);
+				console.log(`Operations per second: ${opsPerSec.toFixed(2)}`);
+				console.log(`Benchmark duration: ${(totalOps / opsPerSec).toFixed(2)} seconds`);
+
+				// Cleanup nodes
+				await Promise.all(nodes.map((node): Promise<void> => node.stop().catch(console.error)));
+				if (btNode) {
+					await btNode.stop().catch(console.error);
+					btNode = undefined;
+				}
+				resolve();
+			})
+			.run({ async: true });
+	});
+}
+
+async function runBenchmarks(): Promise<void> {
+	await runMessageBenchmark(1, 3, 10);
+	await runObjectBenchmark(1, 3, 10);
+}
+
+runBenchmarks().catch(console.error);

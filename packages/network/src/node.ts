@@ -141,7 +141,6 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 					Dhi: 0,
 					Dout: 0,
 					doPX: true,
-					ignoreDuplicatePublishError: true,
 					allowPublishToZeroTopicPeers: true,
 					scoreParams: createPeerScoreParams({
 						topicScoreCap: 50,
