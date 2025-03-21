@@ -29,6 +29,11 @@ jobs:
           cd packages/object
           pnpm run benchmark
 
+      - shell: bash
+        run: |
+          cd packages/node
+          pnpm run benchmark
+
       - name: Set cache dir
         uses: actions/cache@v4
         with:
