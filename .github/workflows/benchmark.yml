@@ -41,7 +41,7 @@ jobs:
           name: Benchmark.js Benchmark
           tool: "benchmarkjs"
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          output-file-path: packages/object/benchmark-output.txt
+          output-file-path: packages/benchmark-output.txt
           alert-threshold: "130%"
           fail-on-alert: ${{ github.event_name != 'push' }}
           comment-on-alert: ${{ github.event_name == 'push' }}
