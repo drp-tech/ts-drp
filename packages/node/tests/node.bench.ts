@@ -200,14 +200,14 @@ async function runMessageBenchmark(numberOfMessages: number, numberOfNodes: numb
 				console.log(String(event.target));
 			})
 			.on("complete", async function (this: Benchmark.Suite) {
-				const benchmark = this.pop() as unknown as Benchmark.Target;
-				const totalOps = benchmark.count ?? 0;
-				const opsPerSec = benchmark.hz ?? 0;
+				//const benchmark = this.pop() as unknown as Benchmark.Target;
+				//const totalOps = benchmark.count ?? 0;
+				//const opsPerSec = benchmark.hz ?? 0;
 
-				console.log("=== Benchmark Result ===");
-				console.log(`Total Operations: ${totalOps}`);
-				console.log(`Operations per second: ${opsPerSec.toFixed(2)}`);
-				console.log(`Benchmark duration: ${(totalOps / opsPerSec).toFixed(2)} seconds`);
+				//console.log("=== Benchmark Result ===");
+				//console.log(`Total Operations: ${totalOps}`);
+				//console.log(`Operations per second: ${opsPerSec.toFixed(2)}`);
+				//console.log(`Benchmark duration: ${(totalOps / opsPerSec).toFixed(2)} seconds`);
 
 				// Cleanup nodes
 				await Promise.all(nodes.map((node): Promise<void> => node.stop().catch(console.error)));
@@ -291,17 +291,23 @@ async function runObjectBenchmark(numberOfMessages: number, numberOfNodes: numbe
 			.on("cycle", (event: Benchmark.Event) => {
 				console.log(String(event.target));
 			})
-			.on("complete", function (this: Benchmark.Suite) {
-				const benchmark = this.pop() as unknown as Benchmark.Target;
-				const totalOps = benchmark.count ?? 0;
-				const opsPerSec = benchmark.hz ?? 0;
+			.on("complete", async function (this: Benchmark.Suite) {
+				//const benchmark = this.pop() as unknown as Benchmark.Target;
+				//const totalOps = benchmark.count ?? 0;
+				//const opsPerSec = benchmark.hz ?? 0;
 
-				console.log("=== Benchmark Result ===");
-				console.log(`Total Operations: ${totalOps}`);
-				console.log(`Operations per second: ${opsPerSec.toFixed(2)}`);
-				console.log(`Benchmark duration: ${(totalOps / opsPerSec).toFixed(2)} seconds`);
+				//console.log("=== Benchmark Result ===");
+				//console.log(`Total Operations: ${totalOps}`);
+				//console.log(`Operations per second: ${opsPerSec.toFixed(2)}`);
+				//console.log(`Benchmark duration: ${(totalOps / opsPerSec).toFixed(2)} seconds`);
 
 				// Cleanup nodes
+				await Promise.all(nodes.map((node): Promise<void> => node.stop().catch(console.error)));
+				if (btNode) {
+					await btNode.stop().catch(console.error);
+					btNode = undefined;
+				}
+				//console.log("done3");
 				resolve();
 			})
 			.run({ async: true });
@@ -311,6 +317,7 @@ async function runObjectBenchmark(numberOfMessages: number, numberOfNodes: numbe
 async function runBenchmarks(): Promise<void> {
 	await runMessageBenchmark(1, 3, 10);
 	await runObjectBenchmark(1, 3, 10);
+	process.exit(0);
 }
 
 runBenchmarks().catch(console.error);
