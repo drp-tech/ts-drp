@@ -291,7 +291,7 @@ async function runObjectBenchmark(numberOfMessages: number, numberOfNodes: numbe
 			.on("cycle", (event: Benchmark.Event) => {
 				console.log(String(event.target));
 			})
-			.on("complete", async function (this: Benchmark.Suite) {
+			.on("complete", function (this: Benchmark.Suite) {
 				const benchmark = this.pop() as unknown as Benchmark.Target;
 				const totalOps = benchmark.count ?? 0;
 				const opsPerSec = benchmark.hz ?? 0;
@@ -302,11 +302,6 @@ async function runObjectBenchmark(numberOfMessages: number, numberOfNodes: numbe
 				console.log(`Benchmark duration: ${(totalOps / opsPerSec).toFixed(2)} seconds`);
 
 				// Cleanup nodes
-				await Promise.all(nodes.map((node): Promise<void> => node.stop().catch(console.error)));
-				if (btNode) {
-					await btNode.stop().catch(console.error);
-					btNode = undefined;
-				}
 				resolve();
 			})
 			.run({ async: true });
