@@ -19,9 +19,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./cache
-          key: benchmark-${{ runner.os }}-${{ github.run_id }}
-          restore-keys: |
-            benchmark-${{ runner.os }}
+          key: ${{ runner.os }}-benchmark
 
       - run: |
           pnpm install --no-frozen-lockfile
