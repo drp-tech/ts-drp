@@ -34,11 +34,14 @@ jobs:
           cd packages/node
           pnpm run benchmark
 
-      - name: Set cache dir
-        uses: actions/cache@v4
+      - name: Restore cached benchmark data
+        id: restore-benchmark-data
+        uses: actions/cache/restore@v4
         with:
+          key: ${{ runner.os }}-benchmark-${{ github.run_id }}
           path: ./cache
-          key: ${{ runner.os }}-benchmark
+          restore-keys: |
+            ${{ runner.os }}-benchmark-
 
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
@@ -54,7 +57,13 @@ jobs:
           gh-pages-branch: main
           skip-fetch-gh-pages: ${{ github.event_name == 'push' }}
           benchmark-data-dir-path: ./cache/benchmarks
-          external-data-json-path: ./cache/benchmarks/benchmark-data.json
+
+      - name: Store benchmark data
+        uses: actions/cache/save@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          key: ${{ steps.restore-benchmark-data.outputs.cache-primary-key }}
+          path: ./cache
 
   docs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
