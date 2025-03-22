@@ -1,6 +1,7 @@
 import * as esbuild from "esbuild";
 import { readFileSync } from "fs";
 import pascalCase from "pascalcase";
+import { nodeModulesPolyfillPlugin } from 'esbuild-plugins-node-modules-polyfill';
 import { join } from "path";
 
 const pkg = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8"));
@@ -12,6 +13,16 @@ await esbuild.build({
 	bundle: true,
 	minify: true,
 	format: "esm",
+	plugins: [nodeModulesPolyfillPlugin({
+		modules: {
+			zlib: true,
+			cluster: true,
+			http: true,
+			v8: true,
+			https: true,
+			fs: true,
+		}
+	})],
 	footer: { js: umdPost },
 	globalName,
 	define: {
