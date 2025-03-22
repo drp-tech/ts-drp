@@ -37,21 +37,21 @@ function benchmarkSerializeValue(depth: number, breadth: number): Benchmark.Suit
 		}
 		// Benchmark
 		const iterations = 100;
-		const start = performance.now();
+		//const start = performance.now();
 		for (let i = 0; i < iterations; i++) {
 			serializeValue(deepObject);
 		}
-		const end = performance.now();
-		const avgMs = (end - start) / iterations;
-		const leaf = Math.pow(depth, breadth);
-		console.log(`Average serialization time: ${avgMs.toFixed(2)}ms`);
-		console.log(`Object stats:
-			- Depth: ${depth}
-			- Breadth: ${breadth}
-			- Leaf nodes: ${leaf}
-			- Complex properties per leaf: 7
-			- Total complex values: ${leaf * 7}
-	 `);
+		//const end = performance.now();
+		//const avgMs = (end - start) / iterations;
+		//const leaf = Math.pow(depth, breadth);
+		//	console.log(`Average serialization time: ${avgMs.toFixed(2)}ms`);
+		//	console.log(`Object stats:
+		//		- Depth: ${depth}
+		//		- Breadth: ${breadth}
+		//		- Leaf nodes: ${leaf}
+		//		- Complex properties per leaf: 7
+		//		- Total complex values: ${leaf * 7}
+		// `);
 	});
 }
 
@@ -79,21 +79,21 @@ function benchmarkDeserializeValue(depth: number, breadth: number): Benchmark.Su
 		}
 		// Benchmark
 		const iterations = 100;
-		const start = performance.now();
+		//const start = performance.now();
 		for (let i = 0; i < iterations; i++) {
 			deserializeValue(serialized);
 		}
-		const end = performance.now();
-		const avgMs = (end - start) / iterations;
-		const leaf = Math.pow(depth, breadth);
-		console.log(`Average deserialization time: ${avgMs.toFixed(2)}ms`);
-		console.log(`Object stats:
-			- Depth: ${depth}
-			- Breadth: ${breadth}
-			- Leaf nodes: ${leaf}
-			- Complex properties per leaf: 7
-			- Total complex values: ${leaf * 7}
-	 `);
+		//	const end = performance.now();
+		//	const avgMs = (end - start) / iterations;
+		//	const leaf = Math.pow(depth, breadth);
+		//	console.log(`Average deserialization time: ${avgMs.toFixed(2)}ms`);
+		//	console.log(`Object stats:
+		//		- Depth: ${depth}
+		//		- Breadth: ${breadth}
+		//		- Leaf nodes: ${leaf}
+		//		- Complex properties per leaf: 7
+		//		- Total complex values: ${leaf * 7}
+		// `);
 	});
 }
 
