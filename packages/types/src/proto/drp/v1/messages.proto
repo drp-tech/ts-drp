@@ -21,53 +21,45 @@ message Message {
   string sender = 1;
   MessageType type = 2;
   bytes data = 3;
+  string object_id = 4;
 }
 
 message FetchState {
-  string object_id = 1;
-  string vertex_hash = 2;
+  string vertex_hash = 1;
 }
 
 message FetchStateResponse {
-  string object_id = 1;
-  string vertex_hash = 2;
-  drp.v1.DRPStateOtherTheWire acl_state = 3;
-  drp.v1.DRPStateOtherTheWire drp_state = 4;
+  string vertex_hash = 1;
+  drp.v1.DRPStateOtherTheWire acl_state = 2;
+  drp.v1.DRPStateOtherTheWire drp_state = 3;
 }
 
 message Update {
-  string object_id = 1;
-  repeated drp.v1.Vertex vertices = 2;
-  repeated drp.v1.Attestation attestations = 3;
-}
-
-message AttestationUpdate {
-  string object_id = 1;
+  repeated drp.v1.Vertex vertices = 1;
   repeated drp.v1.Attestation attestations = 2;
 }
 
+message AttestationUpdate {
+  repeated drp.v1.Attestation attestations = 1;
+}
+
 message Sync {
-  string object_id = 1;
-  repeated string vertex_hashes = 2;
+  repeated string vertex_hashes = 1;
 }
 
 message SyncAccept {
-  string object_id = 1;
-  repeated drp.v1.Vertex requested = 2;
-  repeated drp.v1.AggregatedAttestation attestations = 3;
-  repeated string requesting = 4;
+  repeated drp.v1.Vertex requested = 1;
+  repeated drp.v1.AggregatedAttestation attestations = 2;
+  repeated string requesting = 3;
 }
 
 message SyncReject {}
 
-message DRPDiscovery {
-  string object_id = 1;
-}
+message DRPDiscovery {}
 
 message DRPDiscoveryResponse {
-  string object_id = 1;
   message Subscribers {
     repeated string multiaddrs = 1;
   }
-  map<string, Subscribers> subscribers = 2;
+  map<string, Subscribers> subscribers = 1;
 }

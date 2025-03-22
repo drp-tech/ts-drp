@@ -1,9 +1,7 @@
 import { publicKeyFromRaw } from "@libp2p/crypto/keys";
-import type { Stream } from "@libp2p/interface";
 import { peerIdFromPublicKey } from "@libp2p/peer-id";
 import { Signature } from "@noble/secp256k1";
 import { DRPIntervalDiscovery } from "@ts-drp/interval-discovery";
-import { streamToUint8Array } from "@ts-drp/network";
 import { deserializeDRPState, HashGraph, serializeDRPState } from "@ts-drp/object";
 import {
 	type AggregatedAttestation,
@@ -30,7 +28,6 @@ import { log } from "./logger.js";
 interface HandleParams {
 	node: DRPNode;
 	message: Message;
-	stream?: Stream;
 }
 
 interface IHandlerStrategy {
@@ -52,38 +49,23 @@ const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
 	[MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE]: attestationUpdateHandler,
 	[MessageType.MESSAGE_TYPE_DRP_DISCOVERY]: drpDiscoveryHandler,
 	[MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE]: ({ node, message }) =>
-		node.handleDiscoveryResponse(message.sender, message.data),
+		node.handleDiscoveryResponse(message.sender, message),
 	[MessageType.MESSAGE_TYPE_CUSTOM]: undefined,
 	[MessageType.UNRECOGNIZED]: undefined,
 };
 
 /**
- * Handler for all DRP messages, including pubsub messages and direct messages
- * You need to setup stream xor data
+ * Handle message and run the handler
+ * @param node
+ * @param message
  */
-export async function drpMessagesHandler(node: DRPNode, stream?: Stream, data?: Uint8Array): Promise<void> {
-	let message: Message;
-	try {
-		if (stream) {
-			const byteArray = await streamToUint8Array(stream);
-			message = Message.decode(byteArray);
-		} else if (data) {
-			message = Message.decode(data);
-		} else {
-			log.error("::messageHandler: Stream and data are undefined");
-			return;
-		}
-	} catch (err) {
-		log.error("::messageHandler: Error decoding message", err);
-		return;
-	}
-
+export async function handleMessage(node: DRPNode, message: Message): Promise<void> {
 	const handler = messageHandlers[message.type];
 	if (!handler) {
 		log.error("::messageHandler: Invalid operation");
 		return;
 	}
-	const result = handler({ node, message, stream });
+	const result = handler({ node, message });
 	if (isPromise(result)) {
 		await result;
 	}
@@ -92,7 +74,7 @@ export async function drpMessagesHandler(node: DRPNode, stream?: Stream, data?: 
 function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
 	const { data, sender } = message;
 	const fetchState = FetchState.decode(data);
-	const drpObject = node.objectStore.get(fetchState.objectId);
+	const drpObject = node.objectStore.get(message.objectId);
 	if (!drpObject) {
 		log.error("::fetchStateHandler: Object not found");
 		return;
@@ -101,7 +83,6 @@ function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandler
 	const aclState = drpObject.aclStates.get(fetchState.vertexHash);
 	const drpState = drpObject.drpStates.get(fetchState.vertexHash);
 	const response = FetchStateResponse.create({
-		objectId: fetchState.objectId,
 		vertexHash: fetchState.vertexHash,
 		aclState: serializeDRPState(aclState),
 		drpState: serializeDRPState(drpState),
@@ -111,6 +92,7 @@ function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandler
 		sender: node.networkNode.peerId,
 		type: MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE,
 		data: FetchStateResponse.encode(response).finish(),
+		objectId: drpObject.id,
 	});
 	node.networkNode.sendMessage(sender, messageFetchStateResponse).catch((e) => {
 		log.error("::fetchStateHandler: Error sending message", e);
@@ -123,7 +105,7 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 	if (!fetchStateResponse.drpState && !fetchStateResponse.aclState) {
 		log.error("::fetchStateResponseHandler: No state found");
 	}
-	const object = node.objectStore.get(fetchStateResponse.objectId);
+	const object = node.objectStore.get(message.objectId);
 	if (!object) {
 		log.error("::fetchStateResponseHandler: Object not found");
 		return;
@@ -164,7 +146,7 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 function attestationUpdateHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
 	const { data, sender } = message;
 	const attestationUpdate = AttestationUpdate.decode(data);
-	const object = node.objectStore.get(attestationUpdate.objectId);
+	const object = node.objectStore.get(message.objectId);
 	if (!object) {
 		log.error("::attestationUpdateHandler: Object not found");
 		return;
@@ -183,7 +165,7 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 	const { sender, data } = message;
 
 	const updateMessage = Update.decode(data);
-	const object = node.objectStore.get(updateMessage.objectId);
+	const object = node.objectStore.get(message.objectId);
 	if (!object) {
 		log.error("::updateHandler: Object not found");
 		return;
@@ -199,7 +181,7 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 	const [merged, _] = await object.merge(verifiedVertices);
 
 	if (!merged) {
-		await node.syncObject(updateMessage.objectId, sender);
+		await node.syncObject(message.objectId, sender);
 	} else {
 		// add their signatures
 		object.finalityStore.addSignatures(sender, updateMessage.attestations);
@@ -214,10 +196,10 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 				type: MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
 				data: AttestationUpdate.encode(
 					AttestationUpdate.create({
-						objectId: object.id,
 						attestations: attestations,
 					})
 				).finish(),
+				objectId: object.id,
 			});
 
 			node.networkNode.broadcastMessage(object.id, message).catch((e) => {
@@ -246,15 +228,11 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
  * @returns {Promise<void>} A promise that resolves when the sync response is sent
  * @throws {Error} If the stream is undefined or if the object is not found
  */
-async function syncHandler({ node, message, stream }: HandleParams): Promise<void> {
-	if (!stream) {
-		log.error("::syncHandler: Stream is undefined");
-		return;
-	}
+async function syncHandler({ node, message }: HandleParams): Promise<void> {
 	const { sender, data } = message;
 	// (might send reject) <- TODO: when should we reject?
 	const syncMessage = Sync.decode(data);
-	const object = node.objectStore.get(syncMessage.objectId);
+	const object = node.objectStore.get(message.objectId);
 	if (!object) {
 		log.error("::syncHandler: Object not found");
 		return;
@@ -283,12 +261,12 @@ async function syncHandler({ node, message, stream }: HandleParams): Promise<voi
 		// add data here
 		data: SyncAccept.encode(
 			SyncAccept.create({
-				objectId: object.id,
 				requested: [...requested],
 				attestations,
 				requesting,
 			})
 		).finish(),
+		objectId: object.id,
 	});
 
 	node.networkNode.sendMessage(sender, messageSyncAccept).catch((e) => {
@@ -300,14 +278,10 @@ async function syncHandler({ node, message, stream }: HandleParams): Promise<voi
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-async function syncAcceptHandler({ node, message, stream }: HandleParams): Promise<void> {
-	if (!stream) {
-		log.error("::syncAcceptHandler: Stream is undefined");
-		return;
-	}
+async function syncAcceptHandler({ node, message }: HandleParams): Promise<void> {
 	const { data, sender } = message;
 	const syncAcceptMessage = SyncAccept.decode(data);
-	const object = node.objectStore.get(syncAcceptMessage.objectId);
+	const object = node.objectStore.get(message.objectId);
 	if (!object) {
 		log.error("::syncAcceptHandler: Object not found");
 		return;
@@ -347,12 +321,12 @@ async function syncAcceptHandler({ node, message, stream }: HandleParams): Promi
 		type: MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
 		data: SyncAccept.encode(
 			SyncAccept.create({
-				objectId: object.id,
 				requested,
 				attestations,
 				requesting: [],
 			})
 		).finish(),
+		objectId: object.id,
 	});
 	node.networkNode.sendMessage(sender, messageSyncAccept).catch((e) => {
 		log.error("::syncAcceptHandler: Error sending message", e);
@@ -360,7 +334,7 @@ async function syncAcceptHandler({ node, message, stream }: HandleParams): Promi
 }
 
 async function drpDiscoveryHandler({ node, message }: HandleParams): Promise<void> {
-	await DRPIntervalDiscovery.handleDiscoveryRequest(message.sender, message.data, node.networkNode);
+	await DRPIntervalDiscovery.handleDiscoveryRequest(message.sender, message, node.networkNode);
 }
 
 /* data: { id: string } */
@@ -393,11 +367,11 @@ export function drpObjectChangesHandler<T extends IDRP>(
 						type: MessageType.MESSAGE_TYPE_UPDATE,
 						data: Update.encode(
 							Update.create({
-								objectId: obj.id,
 								vertices: vertices,
 								attestations: attestations,
 							})
 						).finish(),
+						objectId: obj.id,
 					});
 					node.networkNode.broadcastMessage(obj.id, message).catch((e) => {
 						log.error("::drpObjectChangesHandler: Error broadcasting message", e);
@@ -492,7 +466,6 @@ export function verifyACLIncomingVertices(incomingVertices: Vertex[]): Vertex[] 
 				const recovery = vertex.signature[0];
 				const compactSignature = vertex.signature.slice(1);
 				const signatureWithRecovery = Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
-
 				const rawSecp256k1PublicKey = signatureWithRecovery.recoverPublicKey(hashData).toRawBytes(true);
 				const secp256k1PublicKey = publicKeyFromRaw(rawSecp256k1PublicKey);
 				const expectedPeerId = peerIdFromPublicKey(secp256k1PublicKey).toString();

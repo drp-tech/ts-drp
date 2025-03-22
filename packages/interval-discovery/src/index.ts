@@ -99,11 +99,12 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	 */
 	private async _broadcastDiscoveryRequest(): Promise<void> {
 		try {
-			const data = DRPDiscoveryRequest.create({ objectId: this.id });
+			const data = DRPDiscoveryRequest.create({});
 			const message = Message.create({
 				sender: this.networkNode.peerId.toString(),
 				type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
 				data: DRPDiscoveryRequest.encode(data).finish(),
+				objectId: this.id,
 			});
 
 			this._logger.info("Broadcasting discovery request");
@@ -172,13 +173,11 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	 * @param data - The data of the discovery request
 	 * @param networkNode - The network node instance
 	 */
-	static async handleDiscoveryRequest(sender: string, data: Uint8Array, networkNode: DRPNetworkNode): Promise<void> {
+	static async handleDiscoveryRequest(sender: string, message: Message, networkNode: DRPNetworkNode): Promise<void> {
 		const logger = new Logger("drp::discovery::static");
 
 		try {
-			const request = DRPDiscoveryRequest.decode(data);
-			const objectId = request.objectId;
-
+			const objectId = message.objectId;
 			// Get all peers for this object ID
 			const peers = networkNode.getGroupPeers(objectId);
 			if (networkNode.getSubscribedTopics().includes(objectId)) {
@@ -231,11 +230,12 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 		objectId: string
 	): Promise<void> {
 		try {
-			const response = DRPDiscoveryResponse.create({ subscribers, objectId });
+			const response = DRPDiscoveryResponse.create({ subscribers });
 			const message = Message.create({
 				sender: recipient,
 				type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE,
 				data: DRPDiscoveryResponse.encode(response).finish(),
+				objectId,
 			});
 
 			await networkNode.sendMessage(recipient, message);

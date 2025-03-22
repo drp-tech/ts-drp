@@ -1,16 +1,19 @@
 import { type GossipSub, type MeshPeer } from "@chainsafe/libp2p-gossipsub";
 import { MapDRP } from "@ts-drp/blueprints";
 import { DRPNode } from "@ts-drp/node";
-import { DRP_INTERVAL_DISCOVERY_TOPIC, type DRPNodeConfig } from "@ts-drp/types";
+import { DRP_INTERVAL_DISCOVERY_TOPIC, type DRPNodeConfig, type LoggerOptions } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-describe("Heartbeat integration test", () => {
+describe("DRP Interval Discovery integration test", () => {
 	let node1: DRPNode;
 	let node2: DRPNode;
 	let node3: DRPNode;
 
 	beforeEach(async () => {
+		const logConfig: LoggerOptions = {
+			level: "silent",
+		};
 		const nodeConfig: DRPNodeConfig = {
 			network_config: {
 				listen_addresses: ["/ip4/0.0.0.0/tcp/0/ws"],
@@ -18,22 +21,16 @@ describe("Heartbeat integration test", () => {
 				pubsub: {
 					peer_discovery_interval: 100_000_000,
 				},
-				log_config: {
-					level: "silent",
-				},
+				log_config: logConfig,
 			},
 			keychain_config: {
 				private_key_seed: "topic_discovery_peer_1",
 			},
 			interval_discovery_options: {
 				interval: 1000,
-				logConfig: {
-					level: "silent",
-				},
+				logConfig: logConfig,
 			},
-			log_config: {
-				level: "silent",
-			},
+			log_config: logConfig,
 		};
 
 		node1 = new DRPNode({
@@ -106,12 +103,11 @@ describe("Heartbeat integration test", () => {
 			id: "test_topic_discovery",
 		});
 
+		const node3GossipSub = node3.networkNode["_pubsub"] as GossipSub;
+		const node1GossipSub = node1.networkNode["_pubsub"] as GossipSub;
 		await node3.connectObject({
 			id: drpObject.id,
 		});
-
-		const node3GossipSub = node3.networkNode["_pubsub"] as GossipSub;
-		const node1GossipSub = node1.networkNode["_pubsub"] as GossipSub;
 		await Promise.all([
 			raceEvent(node3GossipSub, "gossipsub:graft", undefined, {
 				filter: (e: CustomEvent<MeshPeer>) => e.detail.topic === drpObject.id,

@@ -1,4 +1,4 @@
-import { type GossipSub, gossipsub, type GossipsubMessage, type GossipsubOpts } from "@chainsafe/libp2p-gossipsub";
+import { type GossipSub, gossipsub, type GossipsubOpts } from "@chainsafe/libp2p-gossipsub";
 import {
 	createPeerScoreParams,
 	createTopicScoreParams,
@@ -14,14 +14,7 @@ import { privateKeyFromRaw } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
-import {
-	type Address,
-	type EventCallback,
-	type PeerDiscovery,
-	type PeerId,
-	type Stream,
-	type StreamHandler,
-} from "@libp2p/interface";
+import { type Address, type PeerDiscovery, type PeerId, type Stream } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { ping } from "@libp2p/ping";
 import { pubsubPeerDiscovery, type PubSubPeerDiscoveryComponents } from "@libp2p/pubsub-peer-discovery";
@@ -31,18 +24,20 @@ import * as filters from "@libp2p/websockets/filters";
 import { multiaddr, type MultiaddrInput } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger } from "@ts-drp/logger";
+import { MessageQueue } from "@ts-drp/message-queue";
 import {
 	DRP_DISCOVERY_TOPIC,
 	DRP_INTERVAL_DISCOVERY_TOPIC,
 	type DRPNetworkNodeConfig,
 	type DRPNetworkNode as DRPNetworkNodeInterface,
+	type IMessageQueueHandler,
 	IntervalRunnerState,
 	Message,
 } from "@ts-drp/types";
 import { createLibp2p, type Libp2p, type ServiceFactoryMap } from "libp2p";
 
 import { PrometheusMetricsRegister } from "./metrics/prometheus.js";
-import { uint8ArrayToStream } from "./stream.js";
+import { streamToUint8Array, uint8ArrayToStream } from "./stream.js";
 
 export * from "./stream.js";
 
@@ -61,6 +56,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: GossipSub;
+	private _messageQueue: MessageQueue<Message>;
 	private _metrics?: PrometheusMetricsRegister;
 	private _bootstrapNodesList: string[];
 
@@ -69,6 +65,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	constructor(config?: DRPNetworkNodeConfig) {
 		this._config = config;
 		log = new Logger("drp::network", config?.log_config);
+		this._messageQueue = new MessageQueue<Message>({ id: "network", logConfig: config?.log_config });
 		this._bootstrapNodesList = this._config?.bootstrap_peers ? this._config.bootstrap_peers : BOOTSTRAP_NODES;
 	}
 
@@ -178,15 +175,19 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 
 		this._pubsub.addEventListener("gossipsub:graft", (e) => log.info("::start::gossipsub::graft", e.detail));
 
-		// needded as I've disabled the pubsubPeerDiscovery
+		// needed as I've disabled the pubsubPeerDiscovery
 		this._pubsub?.subscribe(DRP_DISCOVERY_TOPIC);
 		this._pubsub?.subscribe(DRP_INTERVAL_DISCOVERY_TOPIC);
+
+		// start the routing loop to enqueue messages
+		void this.startEnqueueMessages();
 		this._metrics?.start(`drp-network-${this.peerId}`, 10_000);
 	}
 
 	async stop(): Promise<void> {
 		if (this._node?.status === IntervalRunnerState.Stopped) throw new Error("Node not started");
 		await this._node?.stop();
+		this._messageQueue.close();
 		this._metrics?.stop();
 	}
 
@@ -290,7 +291,6 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 
 		try {
 			this._pubsub?.subscribe(topic);
-			this._pubsub?.getPeers();
 			log.info("::subscribe: Successfuly subscribed the topic", topic);
 		} catch (e) {
 			log.error("::subscribe:", e);
@@ -408,18 +408,27 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		}
 	}
 
-	addGroupMessageHandler(group: string, handler: EventCallback<CustomEvent<GossipsubMessage>>): void {
-		this._pubsub?.addEventListener("gossipsub:message", (e) => {
-			if (group && e.detail.msg.topic !== group) return;
-			handler(e);
+	private async startEnqueueMessages(): Promise<void> {
+		this._pubsub?.addEventListener("gossipsub:message", (e) => this.handleGossipsubMessage(e.detail.msg.data));
+		await this._node?.handle(DRP_MESSAGE_PROTOCOL, ({ stream }) => void this.handleStream(stream));
+	}
+
+	private handleGossipsubMessage(data: Uint8Array): void {
+		const message = Message.decode(data);
+		this._messageQueue.enqueue(message).catch((e) => {
+			log.error("::startEnqueueMessages::enqueue:", e);
 		});
 	}
 
-	async addMessageHandler(handler: StreamHandler): Promise<void> {
-		await this._node?.handle(DRP_MESSAGE_PROTOCOL, handler);
+	private async handleStream(stream: Stream): Promise<void> {
+		const data = await streamToUint8Array(stream);
+		const message = Message.decode(data);
+		this._messageQueue.enqueue(message).catch((e) => {
+			log.error("::startEnqueueMessages::enqueue:", e);
+		});
 	}
 
-	async addCustomMessageHandler(protocol: string | string[], handler: StreamHandler): Promise<void> {
-		await this._node?.handle(protocol, handler);
+	subscribeToMessageQueue(handler: IMessageQueueHandler<Message>): void {
+		this._messageQueue.subscribe(handler);
 	}
 }

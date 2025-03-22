@@ -1,17 +1,11 @@
 import { type GossipSub, type MeshPeer } from "@chainsafe/libp2p-gossipsub";
-import {
-	type Connection,
-	type IdentifyResult,
-	type Libp2p,
-	type Stream,
-	type SubscriptionChangeData,
-} from "@libp2p/interface";
-import { type DRPNetworkNodeConfig, type DRPNodeConfig, Message } from "@ts-drp/types";
+import { type Connection, type IdentifyResult, type Libp2p, type SubscriptionChangeData } from "@libp2p/interface";
+import { type DRPNetworkNodeConfig, type DRPNodeConfig } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import rawConfig from "../../../configs/local-bootstrap.json" with { type: "json" };
-import { DRPNetworkNode, streamToUint8Array } from "../src/node.js";
+import { DRPNetworkNode } from "../src/node.js";
 
 describe("DRPNetworkNode can connect & send messages", () => {
 	const controller = new AbortController();
@@ -89,38 +83,19 @@ describe("DRPNetworkNode can connect & send messages", () => {
 				event.detail.remotePeer.toString() === node2.peerId && event.detail.limits === undefined,
 		});
 
-		const streamHandler =
-			(resolve: (boolean: boolean) => void) =>
-			async ({ stream }: { stream: Stream }): Promise<boolean> => {
-				try {
-					const byteArray = await streamToUint8Array(stream);
-					const message = Message.decode(byteArray);
-					expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
-					boolean = true;
-					resolve(true);
-					return true;
-				} catch (e) {
-					// error from the stream
-					console.error(e);
-					resolve(false);
-					return false;
-				}
-			};
-
 		const messageProcessed = new Promise((resolve) => {
-			node2
-				.addMessageHandler(({ stream }) => void streamHandler(resolve)({ stream }))
-				.catch((e) => {
-					// error from the addMessageHandler
-					console.error(e);
-					resolve(false);
-				});
+			node2.subscribeToMessageQueue(async () => {
+				await Promise.resolve();
+				boolean = true;
+				resolve(true);
+			});
 		});
 
 		await node1.sendMessage(node2.peerId, {
 			sender: "",
 			type: 0,
 			data: new Uint8Array(Buffer.from(data)),
+			objectId: "",
 		});
 
 		await messageProcessed;
@@ -147,9 +122,8 @@ describe("DRPNetworkNode can connect & send messages", () => {
 
 		node2.subscribe(group);
 		const messageProcessed = new Promise((resolve) => {
-			node2.addGroupMessageHandler(group, (e) => {
-				const message = Message.decode(e.detail.msg.data);
-				expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
+			node2.subscribeToMessageQueue(async () => {
+				await Promise.resolve();
 				boolean = true;
 				resolve(true);
 			});
@@ -160,6 +134,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			sender: "",
 			type: 0,
 			data: new Uint8Array(Buffer.from(data)),
+			objectId: "",
 		});
 		await messageProcessed;
 

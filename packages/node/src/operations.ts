@@ -1,92 +1,20 @@
-import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import { DRPObject as DRPObjectImpl, HashGraph } from "@ts-drp/object";
-import {
-	type ConnectObjectOptions,
-	FetchState,
-	type IDRP,
-	type IDRPObject,
-	Message,
-	MessageType,
-	Sync,
-} from "@ts-drp/types";
+import { HashGraph } from "@ts-drp/object";
+import { FetchState, type IDRP, type IDRPObject, Message, MessageType, Sync } from "@ts-drp/types";
 import { Deferred } from "@ts-drp/utils/promise/deferred";
-import { AbortError, raceSignal } from "race-signal";
 
-import { drpMessagesHandler, drpObjectChangesHandler, fetchStateDeferredMap } from "./handlers.js";
+import { fetchStateDeferredMap } from "./handlers.js";
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
 
-export function createObject<T extends IDRP>(node: DRPNode, object: IDRPObject<T>): void {
-	node.objectStore.put(object.id, object);
-	object.subscribe((obj, originFn, vertices) => {
-		drpObjectChangesHandler(node, obj, originFn, vertices);
-	});
-}
-
-export async function connectObject<T extends IDRP>(
-	node: DRPNode,
-	id: string,
-	options: ConnectObjectOptions<T>
-): Promise<IDRPObject<T>> {
-	const object = DRPObjectImpl.createObject({
-		peerId: node.networkNode.peerId,
-		id,
-		drp: options.drp,
-		metrics: options.metrics,
-		log_config: options.log_config,
-	});
-	node.objectStore.put(id, object);
-
-	const deferred = await fetchState(node, id, options.peerId);
-
-	// fetch state needs to finish before subscribing
-	try {
-		await raceSignal(deferred.promise, AbortSignal.timeout(5_000));
-	} catch (error) {
-		if (error instanceof AbortError) {
-			log.error("::connectObject: Fetch state timed out");
-		}
-	}
-
-	// sync process needs to finish before subscribing
-	// TODO: since when the interval can run this twice do we really want it to be runned while the other one might still be running?
-	const intervalFn = (interval: NodeJS.Timeout) => async (): Promise<void> => {
-		if (object.acl) {
-			await syncObject(node, id, options.peerId);
-			subscribeObject(node, id);
-			object.subscribe((obj, originFn, vertices) => {
-				drpObjectChangesHandler(node, obj, originFn, vertices);
-			});
-			clearInterval(interval);
-		}
-	};
-	const retry = setInterval(() => void intervalFn(retry)(), 1000);
-	return object;
-}
-
-/* data: { id: string } */
-export function subscribeObject(node: DRPNode, objectId: string): void {
-	node.networkNode.subscribe(objectId);
-	node.networkNode.addGroupMessageHandler(
-		objectId,
-		(e: CustomEvent<GossipsubMessage>) => void drpMessagesHandler(node, undefined, e.detail.msg.data)
-	);
-}
-
-export function unsubscribeObject(node: DRPNode, objectId: string, purge?: boolean): void {
-	node.networkNode.unsubscribe(objectId);
-	if (purge) node.objectStore.remove(objectId);
-}
-
 export async function fetchState(node: DRPNode, objectId: string, peerId?: string): Promise<Deferred<void>> {
 	const data = FetchState.create({
-		objectId,
 		vertexHash: HashGraph.rootHash,
 	});
 	const message = Message.create({
 		sender: node.networkNode.peerId,
 		type: MessageType.MESSAGE_TYPE_FETCH_STATE,
 		data: FetchState.encode(data).finish(),
+		objectId: objectId,
 	});
 
 	if (!peerId) {
@@ -110,13 +38,13 @@ export async function syncObject<T extends IDRP>(node: DRPNode, objectId: string
 		return;
 	}
 	const data = Sync.create({
-		objectId,
 		vertexHashes: object.vertices.map((v) => v.hash),
 	});
 	const message = Message.create({
 		sender: node.networkNode.peerId,
 		type: MessageType.MESSAGE_TYPE_SYNC,
 		data: Sync.encode(data).finish(),
+		objectId: objectId,
 	});
 
 	if (!peerId) {

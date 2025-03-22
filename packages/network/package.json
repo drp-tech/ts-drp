@@ -54,6 +54,7 @@
 		"@multiformats/multiaddr": "^12.3.1",
 		"@multiformats/multiaddr-matcher": "^1.6.0",
 		"@ts-drp/logger": "^0.10.0",
+		"@ts-drp/message-queue": "0.10.0",
 		"@ts-drp/types": "^0.10.0",
 		"it-length-prefixed": "^10.0.0",
 		"it-map": "^3.1.1",

@@ -99,38 +99,33 @@ export interface Message {
   sender: string;
   type: MessageType;
   data: Uint8Array;
+  objectId: string;
 }
 
 export interface FetchState {
-  objectId: string;
   vertexHash: string;
 }
 
 export interface FetchStateResponse {
-  objectId: string;
   vertexHash: string;
   aclState: DRPStateOtherTheWire | undefined;
   drpState: DRPStateOtherTheWire | undefined;
 }
 
 export interface Update {
-  objectId: string;
   vertices: Vertex[];
   attestations: Attestation[];
 }
 
 export interface AttestationUpdate {
-  objectId: string;
   attestations: Attestation[];
 }
 
 export interface Sync {
-  objectId: string;
   vertexHashes: string[];
 }
 
 export interface SyncAccept {
-  objectId: string;
   requested: Vertex[];
   attestations: AggregatedAttestation[];
   requesting: string[];
@@ -140,11 +135,9 @@ export interface SyncReject {
 }
 
 export interface DRPDiscovery {
-  objectId: string;
 }
 
 export interface DRPDiscoveryResponse {
-  objectId: string;
   subscribers: { [key: string]: DRPDiscoveryResponse_Subscribers };
 }
 
@@ -158,7 +151,7 @@ export interface DRPDiscoveryResponse_SubscribersEntry {
 }
 
 function createBaseMessage(): Message {
-  return { sender: "", type: 0, data: new Uint8Array(0) };
+  return { sender: "", type: 0, data: new Uint8Array(0), objectId: "" };
 }
 
 export const Message: MessageFns<Message> = {
@@ -171,6 +164,9 @@ export const Message: MessageFns<Message> = {
     }
     if (message.data.length !== 0) {
       writer.uint32(26).bytes(message.data);
+    }
+    if (message.objectId !== "") {
+      writer.uint32(34).string(message.objectId);
     }
     return writer;
   },
@@ -206,6 +202,14 @@ export const Message: MessageFns<Message> = {
           message.data = reader.bytes();
           continue;
         }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.objectId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -220,6 +224,7 @@ export const Message: MessageFns<Message> = {
       sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
       type: isSet(object.type) ? messageTypeFromJSON(object.type) : 0,
       data: isSet(object.data) ? bytesFromBase64(object.data) : new Uint8Array(0),
+      objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
     };
   },
 
@@ -234,6 +239,9 @@ export const Message: MessageFns<Message> = {
     if (message.data.length !== 0) {
       obj.data = base64FromBytes(message.data);
     }
+    if (message.objectId !== "") {
+      obj.objectId = message.objectId;
+    }
     return obj;
   },
 
@@ -245,21 +253,19 @@ export const Message: MessageFns<Message> = {
     message.sender = object.sender ?? "";
     message.type = object.type ?? 0;
     message.data = object.data ?? new Uint8Array(0);
+    message.objectId = object.objectId ?? "";
     return message;
   },
 };
 
 function createBaseFetchState(): FetchState {
-  return { objectId: "", vertexHash: "" };
+  return { vertexHash: "" };
 }
 
 export const FetchState: MessageFns<FetchState> = {
   encode(message: FetchState, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.objectId !== "") {
-      writer.uint32(10).string(message.objectId);
-    }
     if (message.vertexHash !== "") {
-      writer.uint32(18).string(message.vertexHash);
+      writer.uint32(10).string(message.vertexHash);
     }
     return writer;
   },
@@ -276,14 +282,6 @@ export const FetchState: MessageFns<FetchState> = {
             break;
           }
 
-          message.objectId = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
           message.vertexHash = reader.string();
           continue;
         }
@@ -297,17 +295,11 @@ export const FetchState: MessageFns<FetchState> = {
   },
 
   fromJSON(object: any): FetchState {
-    return {
-      objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
-      vertexHash: isSet(object.vertexHash) ? globalThis.String(object.vertexHash) : "",
-    };
+    return { vertexHash: isSet(object.vertexHash) ? globalThis.String(object.vertexHash) : "" };
   },
 
   toJSON(message: FetchState): unknown {
     const obj: any = {};
-    if (message.objectId !== "") {
-      obj.objectId = message.objectId;
-    }
     if (message.vertexHash !== "") {
       obj.vertexHash = message.vertexHash;
     }
@@ -319,29 +311,25 @@ export const FetchState: MessageFns<FetchState> = {
   },
   fromPartial<I extends Exact<DeepPartial<FetchState>, I>>(object: I): FetchState {
     const message = createBaseFetchState();
-    message.objectId = object.objectId ?? "";
     message.vertexHash = object.vertexHash ?? "";
     return message;
   },
 };
 
 function createBaseFetchStateResponse(): FetchStateResponse {
-  return { objectId: "", vertexHash: "", aclState: undefined, drpState: undefined };
+  return { vertexHash: "", aclState: undefined, drpState: undefined };
 }
 
 export const FetchStateResponse: MessageFns<FetchStateResponse> = {
   encode(message: FetchStateResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.objectId !== "") {
-      writer.uint32(10).string(message.objectId);
-    }
     if (message.vertexHash !== "") {
-      writer.uint32(18).string(message.vertexHash);
+      writer.uint32(10).string(message.vertexHash);
     }
     if (message.aclState !== undefined) {
-      DRPStateOtherTheWire.encode(message.aclState, writer.uint32(26).fork()).join();
+      DRPStateOtherTheWire.encode(message.aclState, writer.uint32(18).fork()).join();
     }
     if (message.drpState !== undefined) {
-      DRPStateOtherTheWire.encode(message.drpState, writer.uint32(34).fork()).join();
+      DRPStateOtherTheWire.encode(message.drpState, writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -358,7 +346,7 @@ export const FetchStateResponse: MessageFns<FetchStateResponse> = {
             break;
           }
 
-          message.objectId = reader.string();
+          message.vertexHash = reader.string();
           continue;
         }
         case 2: {
@@ -366,19 +354,11 @@ export const FetchStateResponse: MessageFns<FetchStateResponse> = {
             break;
           }
 
-          message.vertexHash = reader.string();
+          message.aclState = DRPStateOtherTheWire.decode(reader, reader.uint32());
           continue;
         }
         case 3: {
           if (tag !== 26) {
-            break;
-          }
-
-          message.aclState = DRPStateOtherTheWire.decode(reader, reader.uint32());
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
             break;
           }
 
@@ -396,7 +376,6 @@ export const FetchStateResponse: MessageFns<FetchStateResponse> = {
 
   fromJSON(object: any): FetchStateResponse {
     return {
-      objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
       vertexHash: isSet(object.vertexHash) ? globalThis.String(object.vertexHash) : "",
       aclState: isSet(object.aclState) ? DRPStateOtherTheWire.fromJSON(object.aclState) : undefined,
       drpState: isSet(object.drpState) ? DRPStateOtherTheWire.fromJSON(object.drpState) : undefined,
@@ -405,9 +384,6 @@ export const FetchStateResponse: MessageFns<FetchStateResponse> = {
 
   toJSON(message: FetchStateResponse): unknown {
     const obj: any = {};
-    if (message.objectId !== "") {
-      obj.objectId = message.objectId;
-    }
     if (message.vertexHash !== "") {
       obj.vertexHash = message.vertexHash;
     }
@@ -425,7 +401,6 @@ export const FetchStateResponse: MessageFns<FetchStateResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<FetchStateResponse>, I>>(object: I): FetchStateResponse {
     const message = createBaseFetchStateResponse();
-    message.objectId = object.objectId ?? "";
     message.vertexHash = object.vertexHash ?? "";
     message.aclState = (object.aclState !== undefined && object.aclState !== null)
       ? DRPStateOtherTheWire.fromPartial(object.aclState)
@@ -438,19 +413,16 @@ export const FetchStateResponse: MessageFns<FetchStateResponse> = {
 };
 
 function createBaseUpdate(): Update {
-  return { objectId: "", vertices: [], attestations: [] };
+  return { vertices: [], attestations: [] };
 }
 
 export const Update: MessageFns<Update> = {
   encode(message: Update, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.objectId !== "") {
-      writer.uint32(10).string(message.objectId);
-    }
     for (const v of message.vertices) {
-      Vertex.encode(v!, writer.uint32(18).fork()).join();
+      Vertex.encode(v!, writer.uint32(10).fork()).join();
     }
     for (const v of message.attestations) {
-      Attestation.encode(v!, writer.uint32(26).fork()).join();
+      Attestation.encode(v!, writer.uint32(18).fork()).join();
     }
     return writer;
   },
@@ -467,19 +439,11 @@ export const Update: MessageFns<Update> = {
             break;
           }
 
-          message.objectId = reader.string();
+          message.vertices.push(Vertex.decode(reader, reader.uint32()));
           continue;
         }
         case 2: {
           if (tag !== 18) {
-            break;
-          }
-
-          message.vertices.push(Vertex.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
             break;
           }
 
@@ -497,7 +461,6 @@ export const Update: MessageFns<Update> = {
 
   fromJSON(object: any): Update {
     return {
-      objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
       vertices: globalThis.Array.isArray(object?.vertices) ? object.vertices.map((e: any) => Vertex.fromJSON(e)) : [],
       attestations: globalThis.Array.isArray(object?.attestations)
         ? object.attestations.map((e: any) => Attestation.fromJSON(e))
@@ -507,9 +470,6 @@ export const Update: MessageFns<Update> = {
 
   toJSON(message: Update): unknown {
     const obj: any = {};
-    if (message.objectId !== "") {
-      obj.objectId = message.objectId;
-    }
     if (message.vertices?.length) {
       obj.vertices = message.vertices.map((e) => Vertex.toJSON(e));
     }
@@ -524,7 +484,6 @@ export const Update: MessageFns<Update> = {
   },
   fromPartial<I extends Exact<DeepPartial<Update>, I>>(object: I): Update {
     const message = createBaseUpdate();
-    message.objectId = object.objectId ?? "";
     message.vertices = object.vertices?.map((e) => Vertex.fromPartial(e)) || [];
     message.attestations = object.attestations?.map((e) => Attestation.fromPartial(e)) || [];
     return message;
@@ -532,16 +491,13 @@ export const Update: MessageFns<Update> = {
 };
 
 function createBaseAttestationUpdate(): AttestationUpdate {
-  return { objectId: "", attestations: [] };
+  return { attestations: [] };
 }
 
 export const AttestationUpdate: MessageFns<AttestationUpdate> = {
   encode(message: AttestationUpdate, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.objectId !== "") {
-      writer.uint32(10).string(message.objectId);
-    }
     for (const v of message.attestations) {
-      Attestation.encode(v!, writer.uint32(18).fork()).join();
+      Attestation.encode(v!, writer.uint32(10).fork()).join();
     }
     return writer;
   },
@@ -555,14 +511,6 @@ export const AttestationUpdate: MessageFns<AttestationUpdate> = {
       switch (tag >>> 3) {
         case 1: {
           if (tag !== 10) {
-            break;
-          }
-
-          message.objectId = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
             break;
           }
 
@@ -580,7 +528,6 @@ export const AttestationUpdate: MessageFns<AttestationUpdate> = {
 
   fromJSON(object: any): AttestationUpdate {
     return {
-      objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
       attestations: globalThis.Array.isArray(object?.attestations)
         ? object.attestations.map((e: any) => Attestation.fromJSON(e))
         : [],
@@ -589,9 +536,6 @@ export const AttestationUpdate: MessageFns<AttestationUpdate> = {
 
   toJSON(message: AttestationUpdate): unknown {
     const obj: any = {};
-    if (message.objectId !== "") {
-      obj.objectId = message.objectId;
-    }
     if (message.attestations?.length) {
       obj.attestations = message.attestations.map((e) => Attestation.toJSON(e));
     }
@@ -603,23 +547,19 @@ export const AttestationUpdate: MessageFns<AttestationUpdate> = {
   },
   fromPartial<I extends Exact<DeepPartial<AttestationUpdate>, I>>(object: I): AttestationUpdate {
     const message = createBaseAttestationUpdate();
-    message.objectId = object.objectId ?? "";
     message.attestations = object.attestations?.map((e) => Attestation.fromPartial(e)) || [];
     return message;
   },
 };
 
 function createBaseSync(): Sync {
-  return { objectId: "", vertexHashes: [] };
+  return { vertexHashes: [] };
 }
 
 export const Sync: MessageFns<Sync> = {
   encode(message: Sync, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.objectId !== "") {
-      writer.uint32(10).string(message.objectId);
-    }
     for (const v of message.vertexHashes) {
-      writer.uint32(18).string(v!);
+      writer.uint32(10).string(v!);
     }
     return writer;
   },
@@ -633,14 +573,6 @@ export const Sync: MessageFns<Sync> = {
       switch (tag >>> 3) {
         case 1: {
           if (tag !== 10) {
-            break;
-          }
-
-          message.objectId = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
             break;
           }
 
@@ -658,7 +590,6 @@ export const Sync: MessageFns<Sync> = {
 
   fromJSON(object: any): Sync {
     return {
-      objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
       vertexHashes: globalThis.Array.isArray(object?.vertexHashes)
         ? object.vertexHashes.map((e: any) => globalThis.String(e))
         : [],
@@ -667,9 +598,6 @@ export const Sync: MessageFns<Sync> = {
 
   toJSON(message: Sync): unknown {
     const obj: any = {};
-    if (message.objectId !== "") {
-      obj.objectId = message.objectId;
-    }
     if (message.vertexHashes?.length) {
       obj.vertexHashes = message.vertexHashes;
     }
@@ -681,29 +609,25 @@ export const Sync: MessageFns<Sync> = {
   },
   fromPartial<I extends Exact<DeepPartial<Sync>, I>>(object: I): Sync {
     const message = createBaseSync();
-    message.objectId = object.objectId ?? "";
     message.vertexHashes = object.vertexHashes?.map((e) => e) || [];
     return message;
   },
 };
 
 function createBaseSyncAccept(): SyncAccept {
-  return { objectId: "", requested: [], attestations: [], requesting: [] };
+  return { requested: [], attestations: [], requesting: [] };
 }
 
 export const SyncAccept: MessageFns<SyncAccept> = {
   encode(message: SyncAccept, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.objectId !== "") {
-      writer.uint32(10).string(message.objectId);
-    }
     for (const v of message.requested) {
-      Vertex.encode(v!, writer.uint32(18).fork()).join();
+      Vertex.encode(v!, writer.uint32(10).fork()).join();
     }
     for (const v of message.attestations) {
-      AggregatedAttestation.encode(v!, writer.uint32(26).fork()).join();
+      AggregatedAttestation.encode(v!, writer.uint32(18).fork()).join();
     }
     for (const v of message.requesting) {
-      writer.uint32(34).string(v!);
+      writer.uint32(26).string(v!);
     }
     return writer;
   },
@@ -720,7 +644,7 @@ export const SyncAccept: MessageFns<SyncAccept> = {
             break;
           }
 
-          message.objectId = reader.string();
+          message.requested.push(Vertex.decode(reader, reader.uint32()));
           continue;
         }
         case 2: {
@@ -728,19 +652,11 @@ export const SyncAccept: MessageFns<SyncAccept> = {
             break;
           }
 
-          message.requested.push(Vertex.decode(reader, reader.uint32()));
+          message.attestations.push(AggregatedAttestation.decode(reader, reader.uint32()));
           continue;
         }
         case 3: {
           if (tag !== 26) {
-            break;
-          }
-
-          message.attestations.push(AggregatedAttestation.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
             break;
           }
 
@@ -758,7 +674,6 @@ export const SyncAccept: MessageFns<SyncAccept> = {
 
   fromJSON(object: any): SyncAccept {
     return {
-      objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
       requested: globalThis.Array.isArray(object?.requested)
         ? object.requested.map((e: any) => Vertex.fromJSON(e))
         : [],
@@ -773,9 +688,6 @@ export const SyncAccept: MessageFns<SyncAccept> = {
 
   toJSON(message: SyncAccept): unknown {
     const obj: any = {};
-    if (message.objectId !== "") {
-      obj.objectId = message.objectId;
-    }
     if (message.requested?.length) {
       obj.requested = message.requested.map((e) => Vertex.toJSON(e));
     }
@@ -793,7 +705,6 @@ export const SyncAccept: MessageFns<SyncAccept> = {
   },
   fromPartial<I extends Exact<DeepPartial<SyncAccept>, I>>(object: I): SyncAccept {
     const message = createBaseSyncAccept();
-    message.objectId = object.objectId ?? "";
     message.requested = object.requested?.map((e) => Vertex.fromPartial(e)) || [];
     message.attestations = object.attestations?.map((e) => AggregatedAttestation.fromPartial(e)) || [];
     message.requesting = object.requesting?.map((e) => e) || [];
@@ -845,14 +756,11 @@ export const SyncReject: MessageFns<SyncReject> = {
 };
 
 function createBaseDRPDiscovery(): DRPDiscovery {
-  return { objectId: "" };
+  return {};
 }
 
 export const DRPDiscovery: MessageFns<DRPDiscovery> = {
-  encode(message: DRPDiscovery, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.objectId !== "") {
-      writer.uint32(10).string(message.objectId);
-    }
+  encode(_: DRPDiscovery, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     return writer;
   },
 
@@ -863,14 +771,6 @@ export const DRPDiscovery: MessageFns<DRPDiscovery> = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.objectId = reader.string();
-          continue;
-        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -880,39 +780,32 @@ export const DRPDiscovery: MessageFns<DRPDiscovery> = {
     return message;
   },
 
-  fromJSON(object: any): DRPDiscovery {
-    return { objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "" };
+  fromJSON(_: any): DRPDiscovery {
+    return {};
   },
 
-  toJSON(message: DRPDiscovery): unknown {
+  toJSON(_: DRPDiscovery): unknown {
     const obj: any = {};
-    if (message.objectId !== "") {
-      obj.objectId = message.objectId;
-    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<DRPDiscovery>, I>>(base?: I): DRPDiscovery {
     return DRPDiscovery.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<DRPDiscovery>, I>>(object: I): DRPDiscovery {
+  fromPartial<I extends Exact<DeepPartial<DRPDiscovery>, I>>(_: I): DRPDiscovery {
     const message = createBaseDRPDiscovery();
-    message.objectId = object.objectId ?? "";
     return message;
   },
 };
 
 function createBaseDRPDiscoveryResponse(): DRPDiscoveryResponse {
-  return { objectId: "", subscribers: {} };
+  return { subscribers: {} };
 }
 
 export const DRPDiscoveryResponse: MessageFns<DRPDiscoveryResponse> = {
   encode(message: DRPDiscoveryResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.objectId !== "") {
-      writer.uint32(10).string(message.objectId);
-    }
     Object.entries(message.subscribers).forEach(([key, value]) => {
-      DRPDiscoveryResponse_SubscribersEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).join();
+      DRPDiscoveryResponse_SubscribersEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).join();
     });
     return writer;
   },
@@ -929,17 +822,9 @@ export const DRPDiscoveryResponse: MessageFns<DRPDiscoveryResponse> = {
             break;
           }
 
-          message.objectId = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          const entry2 = DRPDiscoveryResponse_SubscribersEntry.decode(reader, reader.uint32());
-          if (entry2.value !== undefined) {
-            message.subscribers[entry2.key] = entry2.value;
+          const entry1 = DRPDiscoveryResponse_SubscribersEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.subscribers[entry1.key] = entry1.value;
           }
           continue;
         }
@@ -954,7 +839,6 @@ export const DRPDiscoveryResponse: MessageFns<DRPDiscoveryResponse> = {
 
   fromJSON(object: any): DRPDiscoveryResponse {
     return {
-      objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
       subscribers: isObject(object.subscribers)
         ? Object.entries(object.subscribers).reduce<{ [key: string]: DRPDiscoveryResponse_Subscribers }>(
           (acc, [key, value]) => {
@@ -969,9 +853,6 @@ export const DRPDiscoveryResponse: MessageFns<DRPDiscoveryResponse> = {
 
   toJSON(message: DRPDiscoveryResponse): unknown {
     const obj: any = {};
-    if (message.objectId !== "") {
-      obj.objectId = message.objectId;
-    }
     if (message.subscribers) {
       const entries = Object.entries(message.subscribers);
       if (entries.length > 0) {
@@ -989,7 +870,6 @@ export const DRPDiscoveryResponse: MessageFns<DRPDiscoveryResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<DRPDiscoveryResponse>, I>>(object: I): DRPDiscoveryResponse {
     const message = createBaseDRPDiscoveryResponse();
-    message.objectId = object.objectId ?? "";
     message.subscribers = Object.entries(object.subscribers ?? {}).reduce<
       { [key: string]: DRPDiscoveryResponse_Subscribers }
     >((acc, [key, value]) => {

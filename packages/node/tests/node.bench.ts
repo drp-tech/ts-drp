@@ -8,7 +8,7 @@ import {
 	type IDRPObject,
 	type KeychainOptions,
 	type LoggerOptions,
-	Message,
+	type Message,
 	MessageType,
 } from "@ts-drp/types";
 import Benchmark from "benchmark";
@@ -257,15 +257,14 @@ async function runObjectBenchmark(numberOfMessages: number, numberOfNodes: numbe
 		return promises;
 	};
 
-	const onMessage = (msg: CustomEvent<GossipsubMessage>): void => {
-		if (msg.detail.msg.topic !== objects[0].id) return;
-		const message = Message.decode(msg.detail.msg.data);
-		if (message.type !== MessageType.MESSAGE_TYPE_UPDATE) return;
+	const onMessage = (msg: Message): Promise<void> => {
+		if (msg.type !== MessageType.MESSAGE_TYPE_UPDATE) return Promise.resolve();
 		getPromises(totalMessages)[promiseIdx++].resolver(true);
+		return Promise.resolve();
 	};
 
 	for (let i = 0; i < nodes.length; i++) {
-		nodes[i].addCustomGroupMessageHandler(objects[i].id, onMessage);
+		nodes[i].messageQueueManager.subscribe(objects[i].id, onMessage);
 	}
 
 	let index = 0;

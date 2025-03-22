@@ -22,10 +22,10 @@ const render = (): void => {
 
 function initDRPNode(): void {
 	if (node) {
-		node.addCustomGroupMessageHandler("", () => {
+		setInterval(() => {
 			peers = node.networkNode.getAllPeers();
 			render();
-		});
+		}, 1000);
 	}
 }
 
