@@ -59,7 +59,7 @@ benchmarkForAddWinSet(
 	true
 );
 
-suite.add("Create a HashGraph with 1000 operations for set wins map", () => {
+suite.add("Create a HashGraph with 1000 operations for set wins map 1000", () => {
 	const object = new DRPObject({
 		peerId: "peer1",
 		acl,
