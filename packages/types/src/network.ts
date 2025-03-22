@@ -27,6 +27,10 @@ export interface DRPNetworkNodeConfig {
 	pubsub?: {
 		/** Interval in milliseconds between peer discovery attempts */
 		peer_discovery_interval?: number;
+		/** Whether to enable prometheus metrics */
+		prometheus_metrics?: boolean;
+		/** URL of the pushgateway to send metrics to */
+		pushgateway_url?: string;
 	};
 }
 

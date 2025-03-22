@@ -6,12 +6,12 @@ import {
 	type Stream,
 	type SubscriptionChangeData,
 } from "@libp2p/interface";
-import { type DRPNodeConfig, Message } from "@ts-drp/types";
+import { type DRPNetworkNodeConfig, type DRPNodeConfig, Message } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import rawConfig from "../../../configs/local-bootstrap.json" with { type: "json" };
-import { DRPNetworkNode, type DRPNetworkNodeConfig, streamToUint8Array } from "../src/node.js";
+import { DRPNetworkNode, streamToUint8Array } from "../src/node.js";
 
 describe("DRPNetworkNode can connect & send messages", () => {
 	const controller = new AbortController();
