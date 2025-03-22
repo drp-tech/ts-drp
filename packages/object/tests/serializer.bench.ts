@@ -57,15 +57,6 @@ function benchmarkSerializeValue(depth: number, breadth: number): Benchmark.Suit
 
 benchmarkSerializeValue(5, 5);
 
-suite
-	.on("cycle", (event: Benchmark.Event) => {
-		console.log(String(event.target));
-	})
-	.on("complete", function (this: Benchmark.Suite) {
-		console.log(`Fastest is ${this.filter("fastest").map("name")}`);
-	})
-	.run({ async: true });
-
 function benchmarkDeserializeValue(depth: number, breadth: number): Benchmark.Suite {
 	return suite.add(`Deserialize ${depth} depth ${breadth} breadth`, () => {
 		// Create a deeply nested structure
