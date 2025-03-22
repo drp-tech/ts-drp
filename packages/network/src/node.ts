@@ -65,7 +65,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	constructor(config?: DRPNetworkNodeConfig) {
 		this._config = config;
 		log = new Logger("drp::network", config?.log_config);
-		this._messageQueue = new MessageQueue<Message>({ id: "network" });
+		this._messageQueue = new MessageQueue<Message>({ id: "network", logConfig: config?.log_config });
 		this._bootstrapNodesList = this._config?.bootstrap_peers ? this._config.bootstrap_peers : BOOTSTRAP_NODES;
 	}
 

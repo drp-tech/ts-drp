@@ -57,7 +57,7 @@ export class DRPNode {
 				...config?.interval_discovery_options,
 			},
 		};
-		this.messageQueueManager = new MessageQueueManager<Message>();
+		this.messageQueueManager = new MessageQueueManager<Message>({ logConfig: this.config.log_config });
 	}
 
 	async start(): Promise<void> {
