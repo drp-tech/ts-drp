@@ -269,7 +269,7 @@ async function runObjectBenchmark(numberOfMessages: number, numberOfNodes: numbe
 	}
 
 	let index = 0;
-	suite.add(`Send ${numberOfMessages} messages for ${numberOfNodes} nodes in ${time} seconds`, {
+	suite.add(`Send ${numberOfMessages} add in addmul for ${numberOfNodes} nodes in ${time} seconds`, {
 		defer: true,
 		minTime: time,
 		maxTime: time,
