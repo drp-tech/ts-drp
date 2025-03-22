@@ -2,11 +2,11 @@ import type { Connection, IdentifyResult, Libp2p, Stream } from "@libp2p/interfa
 import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
-import { DrpType, FetchState, type IACL, Message, MessageType } from "@ts-drp/types";
+import { DrpType, FetchState, Message, MessageType } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { drpMessagesHandler, signGeneratedVertices } from "../src/handlers.js";
+import { drpMessagesHandler } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
 
 describe("drpMessagesHandler inputs", () => {
@@ -50,10 +50,10 @@ describe("Handle message correctly", () => {
 	let node1: DRPNode;
 	let node2: DRPNode;
 	let bootstrapNode: DRPNetworkNode;
+	let drpObjectNode1: DRPObject<SetDRP<number>>;
 	let drpObjectNode2: DRPObject<SetDRP<number>>;
 	let libp2pNode2: Libp2p;
 	let libp2pNode1: Libp2p;
-	let acl: IACL;
 
 	const isDialable = async (node: DRPNetworkNode, timeout = false): Promise<boolean> => {
 		let resolver: (value: boolean) => void;
@@ -129,27 +129,32 @@ describe("Handle message correctly", () => {
 					event.detail.remotePeer.toString() === node2.networkNode.peerId && event.detail.limits === undefined,
 			}),
 		]);
-		acl = new ObjectACL({
-			admins: [node1.networkNode.peerId, node2.networkNode.peerId],
-		});
-		acl.setKey(node1.networkNode.peerId, node1.networkNode.peerId, node1.keychain.blsPublicKey);
-		acl.setKey(node2.networkNode.peerId, node2.networkNode.peerId, node2.keychain.blsPublicKey);
+
+		const acl = new ObjectACL({ admins: [node1.networkNode.peerId, node2.networkNode.peerId] });
+		acl.context = {
+			caller: node1.networkNode.peerId,
+		};
+		acl.setKey(node1.keychain.blsPublicKey);
+
+		acl.context = {
+			caller: node2.networkNode.peerId,
+		};
+		acl.setKey(node2.keychain.blsPublicKey);
+
 		drpObjectNode2 = await node2.createObject({
 			drp: new SetDRP<number>(),
-			acl: acl,
+			acl,
 		});
-		await node1.createObject({
+		drpObjectNode1 = await node1.createObject({
 			drp: new SetDRP<number>(),
+			acl,
 			id: drpObjectNode2.id,
-			acl: acl,
 		});
 	});
 
 	test("should handle update message correctly", async () => {
 		drpObjectNode2.drp?.add(5);
 		drpObjectNode2.drp?.add(10);
-		const vertices = drpObjectNode2.vertices;
-		await signGeneratedVertices(node2, vertices);
 		await new Promise((resolve) => setTimeout(resolve, 500));
 		const expected_vertices = node1.objectStore.get(drpObjectNode2.id)?.vertices.map((vertex) => {
 			return vertex.operation;
@@ -187,16 +192,15 @@ describe("Handle message correctly", () => {
 		(drpObjectNode2.drp as SetDRP<number>).add(5);
 		(drpObjectNode2.drp as SetDRP<number>).add(10);
 		await new Promise((resolve) => setTimeout(resolve, 500));
-		const node1DrpObject = node1.objectStore.get(drpObjectNode2.id);
-		expect(node1DrpObject).toBeDefined();
+		expect(drpObjectNode1).toBeDefined();
 
-		node1DrpObject?.drp?.add(1);
-		node1DrpObject?.drp?.add(2);
+		drpObjectNode1?.drp?.add(1);
+		drpObjectNode1?.drp?.add(2);
 
 		await new Promise((resolve) => setTimeout(resolve, 500));
 
 		expect(drpObjectNode2.vertices.length).toBe(5);
-		expect(node1DrpObject?.vertices.length).toBe(5);
+		expect(drpObjectNode1?.vertices.length).toBe(5);
 
 		const node3 = createNewNode("node3");
 

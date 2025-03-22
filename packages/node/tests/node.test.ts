@@ -112,12 +112,13 @@ describe("DRPNode voting tests", () => {
 			admins: [nodeA.networkNode.peerId],
 		});
 
-		acl.setKey(nodeA.networkNode.peerId, nodeA.networkNode.peerId, nodeA.keychain.blsPublicKey);
 		obj1 = new DRPObject({
 			peerId: nodeA.networkNode.peerId,
 			acl,
 			drp: new SetDRP(),
 		});
+		obj1.acl.setKey(nodeA.keychain.blsPublicKey);
+
 		obj2 = new DRPObject({
 			peerId: nodeB.networkNode.peerId,
 			acl: obj1.acl,
@@ -130,11 +131,12 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
 
-		obj1.acl.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
-		obj1.acl.setKey(nodeB.networkNode.peerId, nodeB.networkNode.peerId, nodeB.keychain.blsPublicKey);
+		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Finality);
 		obj1.drp?.add(1);
 
 		await obj2.merge(obj1.vertices);
+		obj2.acl.setKey(nodeB.keychain.blsPublicKey);
+
 		const V1 = obj2.vertices.find((v) => v.operation?.value !== null && v.operation?.value[0] === 1) as Vertex;
 		expect(V1 !== undefined).toBe(true);
 
@@ -150,9 +152,9 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1) ---- A:REVOKE(B) ---- B:ADD(2)
 		*/
 
-		obj1.acl.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
+		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Writer);
 		obj1.drp?.add(1);
-		obj1.acl.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
+		obj1.acl.revoke(nodeB.networkNode.peerId, ACLGroup.Writer);
 		obj1.drp?.add(2);
 
 		await obj2.merge(obj1.vertices);
@@ -172,7 +174,7 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
 
-		obj1.acl.grant(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Finality);
+		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Finality);
 		obj1.drp?.add(1);
 		await obj2.merge(obj1.vertices);
 		const V1 = obj2.vertices.find((v) => v.operation?.value !== null && v.operation?.value[0] === 1) as Vertex;
@@ -218,8 +220,8 @@ describe("DRPNode with rpc", () => {
 		const acl = new ObjectACL({
 			admins: [drpNode.networkNode.peerId],
 		});
-		acl.setKey(drpNode.networkNode.peerId, drpNode.networkNode.peerId, drpNode.keychain.blsPublicKey);
 		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
+		drpObject.acl.setKey(drpNode.keychain.blsPublicKey);
 	});
 
 	test("should run connectObject", async () => {

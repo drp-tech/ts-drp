@@ -59,6 +59,7 @@ export class DRPNode {
 				...this.config.interval_reconnect_options,
 				id: this.networkNode.peerId.toString(),
 				networkNode: this.networkNode,
+				logConfig: this.config.log_config,
 			})
 		);
 		await this.networkNode.addMessageHandler(({ stream }: IncomingStreamData) => void drpMessagesHandler(this, stream));

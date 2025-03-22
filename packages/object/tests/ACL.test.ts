@@ -21,52 +21,55 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 
 	test("Grant write permissions to a new writer", () => {
-		acl.grant("peer1", "peer3", ACLGroup.Writer);
+		acl.context = { caller: "peer1" };
+		acl.grant("peer3", ACLGroup.Writer);
 
 		expect(acl.query_isWriter("peer3")).toBe(true);
 	});
 
 	test("Should grant admin permission to a new admin", () => {
 		const newAdmin = "newAdmin";
-		acl.grant("peer1", newAdmin, ACLGroup.Admin);
+		acl.context = { caller: "peer1" };
+		acl.grant(newAdmin, ACLGroup.Admin);
 		expect(acl.query_isAdmin(newAdmin)).toBe(true);
 	});
 
-	test("Nodes should not able to setKey for another node", () => {
-		expect(() => {
-			acl.setKey("peer1", "peer2", "blsPublicKey1");
-		}).toThrowError("Cannot set key for another peer.");
-	});
-
 	test("Nodes without finality permissions should not be able to setKey", () => {
+		acl.context = { caller: "peer2" };
 		expect(() => {
-			acl.setKey("peer2", "peer2", "blsPublicKey2");
+			acl.setKey("blsPublicKey2");
 		}).toThrowError("Only finality signers can set their BLS public key.");
 	});
 
 	test("Nodes should be able to setKey for themselves", () => {
-		acl.setKey("peer1", "peer1", "blsPublicKey1");
+		acl.context = { caller: "peer1" };
+		acl.setKey("blsPublicKey1");
 		expect(acl.query_getPeerKey("peer1")).toStrictEqual("blsPublicKey1");
 	});
 
 	test("Should be able to setKey after grant", () => {
-		acl.grant("peer1", "peer2", ACLGroup.Finality);
-		acl.grant("peer1", "peer2", ACLGroup.Writer);
+		acl.context = { caller: "peer1" };
+		acl.grant("peer2", ACLGroup.Finality);
+		acl.grant("peer2", ACLGroup.Writer);
 		expect(acl.query_isWriter("peer2")).toBe(true);
 		expect(acl.query_getPeerKey("peer2")).toStrictEqual("");
 
-		acl.setKey("peer2", "peer2", "blsPublicKey2");
+		acl.context = { caller: "peer2" };
+		acl.setKey("blsPublicKey2");
 		expect(acl.query_isWriter("peer2")).toBe(true);
 		expect(acl.query_getPeerKey("peer2")).toStrictEqual("blsPublicKey2");
 	});
 
 	test("Should be able to setKey before grant", () => {
-		acl.grant("peer1", "peer2", ACLGroup.Finality);
-		acl.setKey("peer2", "peer2", "blsPublicKey2");
+		acl.context = { caller: "peer1" };
+		acl.grant("peer2", ACLGroup.Finality);
+		acl.context = { caller: "peer2" };
+		acl.setKey("blsPublicKey2");
 		expect(acl.query_isWriter("peer2")).toBe(false);
 		expect(acl.query_getPeerKey("peer2")).toStrictEqual("blsPublicKey2");
 
-		acl.grant("peer1", "peer2", ACLGroup.Writer);
+		acl.context = { caller: "peer1" };
+		acl.grant("peer2", ACLGroup.Writer);
 		expect(acl.query_isWriter("peer2")).toBe(true);
 		expect(acl.query_getPeerKey("peer2")).toStrictEqual("blsPublicKey2");
 	});
@@ -95,35 +98,41 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 
 	test("Should grant finality permission to a new finality", () => {
+		acl.context = { caller: "peer1" };
 		const newFinality = "newFinality";
-		acl.grant("peer1", newFinality, ACLGroup.Finality);
+		acl.grant(newFinality, ACLGroup.Finality);
 		expect(acl.query_isFinalitySigner(newFinality)).toBe(true);
 	});
 
 	test("Should cannot revoke admin permissions", () => {
+		acl.context = { caller: "peer1" };
 		expect(() => {
-			acl.revoke("peer1", "peer1", ACLGroup.Admin);
+			acl.revoke("peer1", ACLGroup.Admin);
 		}).toThrow("Cannot revoke permissions from a peer with admin privileges.");
 
 		expect(acl.query_isAdmin("peer1")).toBe(true);
 	});
 
 	test("Should revoke finality permissions", () => {
+		acl.context = { caller: "peer1" };
 		const newFinality = "newFinality";
-		acl.revoke("peer1", newFinality, ACLGroup.Finality);
+		acl.revoke(newFinality, ACLGroup.Finality);
 		expect(acl.query_isFinalitySigner(newFinality)).toBe(false);
 	});
 
 	test("Revoke write permissions from a writer", () => {
-		acl.grant("peer1", "peer3", ACLGroup.Writer);
-		acl.revoke("peer1", "peer3", ACLGroup.Writer);
+		acl.context = { caller: "peer1" };
+		acl.grant("peer3", ACLGroup.Writer);
+		acl.context = { caller: "peer1" };
+		acl.revoke("peer3", ACLGroup.Writer);
 
 		expect(acl.query_isWriter("peer3")).toBe(false);
 	});
 
 	test("Cannot revoke admin permissions", () => {
+		acl.context = { caller: "peer1" };
 		expect(() => {
-			acl.revoke("peer1", "peer1", ACLGroup.Writer);
+			acl.revoke("peer1", ACLGroup.Writer);
 		}).toThrow("Cannot revoke permissions from a peer with admin privileges.");
 
 		expect(acl.query_isWriter("peer1")).toBe(true);
@@ -168,8 +177,9 @@ describe("AccessControl tests with permissionless", () => {
 	});
 
 	test("Should admin cannot grant write permissions", () => {
+		acl.context = { caller: "peer1" };
 		expect(() => {
-			acl.grant("peer1", "peer3", ACLGroup.Writer);
+			acl.grant("peer3", ACLGroup.Writer);
 		}).toThrow("Cannot grant write permissions to a peer in permissionless mode.");
 	});
 
@@ -183,7 +193,8 @@ describe("AccessControl tests with permissionless", () => {
 		expect(acl1.query_isWriter("peer1")).toBe(false);
 		expect(acl1.query_isWriter("peer2")).toBe(false);
 
-		acl1.grant("peer1", "peer2", ACLGroup.Writer);
+		acl1.context = { caller: "peer1" };
+		acl1.grant("peer2", ACLGroup.Writer);
 		expect(acl1.query_isWriter("peer1")).toBe(false);
 		expect(acl1.query_isWriter("peer2")).toBe(true);
 	});

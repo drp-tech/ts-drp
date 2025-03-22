@@ -22,8 +22,8 @@
 		}
 	},
 	"scripts": {
-		"benchmark": "tsx tests/hashgraph.bench.ts | tee benchmark-output.txt",
-		"build": "tsc -b tsconfig.build.json && node build.mjs",
+		"benchmark": "tsx tests/hashgraph.bench.ts | tee -a ../benchmark-output.txt && tsx tests/serializer.bench.ts | tee -a ../benchmark-output.txt",
+		"build": "tsc -b tsconfig.build.json",
 		"clean": "rm -rf dist/ node_modules/",
 		"prepack": "tsc -b",
 		"test": "vitest",
