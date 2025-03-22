@@ -318,7 +318,7 @@
 						{
 							"editorMode": "code",
 							"expr": "gossipsub_msg_publish_count_total{job=~\"$job\" ,topic=~\"$topic\"}",
-							"legendFormat": "{{job}}",
+							"legendFormat": "{{job}} {{topic}}",
 							"range": true,
 							"refId": "A"
 						}
@@ -782,7 +782,7 @@
 					"targets": [
 						{
 							"editorMode": "code",
-							"expr": "histogram_quantile(0.5, sum(rate(gossisub_duplicate_msg_delivery_delay_seconds{job=~\"$job\" ,topic=~\"$topic\"}[1m])) by (job, le))",
+							"expr": "histogram_quantile(0.5, sum(rate(gossisub_duplicate_msg_delivery_delay_seconds_bucket{job=~\"$job\" ,topic=~\"$topic\"}[1m])) by (job, le))",
 							"legendFormat": "{{job}} p50",
 							"range": true,
 							"refId": "A"
@@ -1313,7 +1313,8 @@
 										"value": 80
 									}
 								]
-							}
+							},
+							"unit": "s"
 						},
 						"overrides": []
 					},
@@ -1341,7 +1342,7 @@
 					"targets": [
 						{
 							"editorMode": "code",
-							"expr": "gossipsub_msg_publish_seconds{job=~\"$job\" ,topic=~\"$topic\"}",
+							"expr": "histogram_quantile(0.95, sum(rate(gossipsub_msg_publish_seconds_bucket{job=~\"$job\" ,topic=~\"$topic\"}[$__rate_interval])) by (le, job))",
 							"legendFormat": "{{job}}",
 							"range": true,
 							"refId": "A"
@@ -2240,7 +2241,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -2256,7 +2258,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 69
+						"y": 15
 					},
 					"id": 26,
 					"options": {
@@ -2333,7 +2335,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -2348,7 +2351,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 69
+						"y": 15
 					},
 					"id": 37,
 					"options": {
@@ -2425,7 +2428,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -2440,7 +2444,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 69
+						"y": 15
 					},
 					"id": 38,
 					"options": {
@@ -2517,7 +2521,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -2532,7 +2537,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 18,
-						"y": 69
+						"y": 15
 					},
 					"id": 39,
 					"options": {
@@ -2609,7 +2614,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -2624,7 +2630,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 78
+						"y": 24
 					},
 					"id": 40,
 					"options": {
@@ -2701,7 +2707,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -2716,7 +2723,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 78
+						"y": 24
 					},
 					"id": 41,
 					"options": {
@@ -2793,7 +2800,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -2808,7 +2816,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 78
+						"y": 24
 					},
 					"id": 46,
 					"options": {
@@ -2885,7 +2893,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -2900,7 +2909,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 18,
-						"y": 78
+						"y": 24
 					},
 					"id": 45,
 					"options": {
@@ -2977,7 +2986,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -2992,7 +3002,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 87
+						"y": 33
 					},
 					"id": 44,
 					"options": {
@@ -3069,7 +3079,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -3084,7 +3095,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 87
+						"y": 33
 					},
 					"id": 42,
 					"options": {
@@ -3161,7 +3172,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -3176,7 +3188,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 87
+						"y": 33
 					},
 					"id": 43,
 					"options": {
@@ -3253,7 +3265,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -3268,7 +3281,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 18,
-						"y": 87
+						"y": 33
 					},
 					"id": 47,
 					"options": {
@@ -3360,7 +3373,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 96
+						"y": 42
 					},
 					"id": 51,
 					"options": {
@@ -3452,7 +3465,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 96
+						"y": 42
 					},
 					"id": 49,
 					"options": {
@@ -3544,7 +3557,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 96
+						"y": 42
 					},
 					"id": 54,
 					"options": {
@@ -3636,7 +3649,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 18,
-						"y": 96
+						"y": 42
 					},
 					"id": 50,
 					"options": {
@@ -3729,7 +3742,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 105
+						"y": 51
 					},
 					"id": 48,
 					"options": {
@@ -3821,7 +3834,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 105
+						"y": 51
 					},
 					"id": 53,
 					"options": {
@@ -3913,7 +3926,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 105
+						"y": 51
 					},
 					"id": 55,
 					"options": {
@@ -4005,7 +4018,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 18,
-						"y": 105
+						"y": 51
 					},
 					"id": 56,
 					"options": {
@@ -4097,7 +4110,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 114
+						"y": 60
 					},
 					"id": 52,
 					"options": {
@@ -4189,7 +4202,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 114
+						"y": 60
 					},
 					"id": 57,
 					"options": {
@@ -4280,7 +4293,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -4295,7 +4309,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 348
+						"y": 16
 					},
 					"id": 135,
 					"options": {
@@ -4372,7 +4386,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -4387,7 +4402,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 348
+						"y": 16
 					},
 					"id": 136,
 					"options": {
@@ -4464,7 +4479,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -4479,7 +4495,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 348
+						"y": 16
 					},
 					"id": 138,
 					"options": {
@@ -4556,7 +4572,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -4571,7 +4588,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 18,
-						"y": 348
+						"y": 16
 					},
 					"id": 139,
 					"options": {
@@ -4648,7 +4665,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -4663,7 +4681,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 366
+						"y": 25
 					},
 					"id": 141,
 					"options": {
@@ -4683,10 +4701,36 @@
 					"targets": [
 						{
 							"editorMode": "code",
-							"expr": "gossipsub_score_per_mesh{job=~\"$job\" ,topic=~\"$topic\"}",
-							"legendFormat": "{{job}}",
+							"expr": "gossipsub_score_per_mesh_avg{job=~\"$job\" ,topic=~\"$topic\"}",
+							"legendFormat": "avg {{job}}",
 							"range": true,
 							"refId": "A"
+						},
+						{
+							"datasource": {
+								"type": "prometheus",
+								"uid": "PBFA97CFB590B2093"
+							},
+							"editorMode": "code",
+							"expr": "gossipsub_score_per_mesh_min{job=~\"$job\" ,topic=~\"$topic\"}",
+							"hide": false,
+							"instant": false,
+							"legendFormat": "min {{job}}",
+							"range": true,
+							"refId": "B"
+						},
+						{
+							"datasource": {
+								"type": "prometheus",
+								"uid": "PBFA97CFB590B2093"
+							},
+							"editorMode": "code",
+							"expr": "gossipsub_score_per_mesh_max{job=~\"$job\" ,topic=~\"$topic\"}",
+							"hide": false,
+							"instant": false,
+							"legendFormat": "max {{job}}",
+							"range": true,
+							"refId": "C"
 						}
 					],
 					"title": "Gossipsub score per mesh",
@@ -4740,7 +4784,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -4755,7 +4800,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 366
+						"y": 25
 					},
 					"id": 140,
 					"options": {
@@ -4775,10 +4820,36 @@
 					"targets": [
 						{
 							"editorMode": "code",
-							"expr": "gossipsub_score_weights{job=~\"$job\" ,topic=~\"$topic\"}",
-							"legendFormat": "{{job}}",
+							"expr": "gossipsub_score_weights_avg{job=~\"$job\" ,topic=~\"$topic\"}",
+							"legendFormat": "avg {{job}}",
 							"range": true,
 							"refId": "A"
+						},
+						{
+							"datasource": {
+								"type": "prometheus",
+								"uid": "PBFA97CFB590B2093"
+							},
+							"editorMode": "code",
+							"expr": "gossipsub_score_weights_min{job=~\"$job\" ,topic=~\"$topic\"}",
+							"hide": false,
+							"instant": false,
+							"legendFormat": "min {{job}}",
+							"range": true,
+							"refId": "B"
+						},
+						{
+							"datasource": {
+								"type": "prometheus",
+								"uid": "PBFA97CFB590B2093"
+							},
+							"editorMode": "code",
+							"expr": "gossipsub_score_weights_max{job=~\"$job\" ,topic=~\"$topic\"}",
+							"hide": false,
+							"instant": false,
+							"legendFormat": "max {{job}}",
+							"range": true,
+							"refId": "C"
 						}
 					],
 					"title": "Gossipsub score weights",
@@ -4831,7 +4902,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -4847,7 +4919,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 366
+						"y": 25
 					},
 					"id": 137,
 					"options": {
@@ -4867,7 +4939,7 @@
 					"targets": [
 						{
 							"editorMode": "code",
-							"expr": "histogram_quantile(0.5, sum(rate(gossipsub_score_cache_delta{job=~\"$job\"}[1m])) by (job, le))",
+							"expr": "histogram_quantile(0.5, sum(rate(gossipsub_score_cache_delta_bucket{job=~\"$job\"}[1m])) by (job, le))",
 							"legendFormat": "{{job}} p50",
 							"range": true,
 							"refId": "A"
@@ -4923,7 +4995,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -4939,7 +5012,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 18,
-						"y": 366
+						"y": 25
 					},
 					"id": 143,
 					"options": {
@@ -4959,7 +5032,7 @@
 					"targets": [
 						{
 							"editorMode": "code",
-							"expr": "histogram_quantile(0.5, sum(rate(gossipsub_peer_stat_behaviour_penalty{job=~\"$job\"}[1m])) by (job, le))",
+							"expr": "histogram_quantile(0.5, sum(rate(gossipsub_peer_stat_behaviour_penalty_bucket{job=~\"$job\"}[1m])) by (job, le))",
 							"legendFormat": "{{job}} p50",
 							"range": true,
 							"refId": "A"
@@ -5016,7 +5089,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -5031,7 +5105,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 375
+						"y": 34
 					},
 					"id": 142,
 					"options": {
@@ -5122,7 +5196,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -5137,7 +5212,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 349
+						"y": 17
 					},
 					"id": 145,
 					"options": {
@@ -5214,7 +5289,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -5229,7 +5305,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 349
+						"y": 17
 					},
 					"id": 146,
 					"options": {
@@ -5305,7 +5381,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -5321,7 +5398,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 349
+						"y": 17
 					},
 					"id": 158,
 					"options": {
@@ -5341,7 +5418,7 @@
 					"targets": [
 						{
 							"editorMode": "code",
-							"expr": "histogram_quantile(0.5, sum(rate(gossipsub_iwant_promise_delivery_seconds{job=~\"$job\"}[1m])) by (job, le))",
+							"expr": "histogram_quantile(0.5, sum(rate(gossipsub_iwant_promise_delivery_seconds_bucket{job=~\"$job\"}[1m])) by (job, le))",
 							"legendFormat": "{{job}} p50",
 							"range": true,
 							"refId": "A"
@@ -5398,7 +5475,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -5413,7 +5491,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 18,
-						"y": 349
+						"y": 17
 					},
 					"id": 147,
 					"options": {
@@ -5490,7 +5568,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -5505,7 +5584,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 358
+						"y": 26
 					},
 					"id": 148,
 					"options": {
@@ -5582,7 +5661,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -5597,7 +5677,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 358
+						"y": 26
 					},
 					"id": 149,
 					"options": {
@@ -5674,7 +5754,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -5689,7 +5770,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 358
+						"y": 26
 					},
 					"id": 150,
 					"options": {
@@ -5766,7 +5847,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -5781,7 +5863,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 18,
-						"y": 358
+						"y": 26
 					},
 					"id": 151,
 					"options": {
@@ -5858,7 +5940,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -5873,7 +5956,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 367
+						"y": 35
 					},
 					"id": 152,
 					"options": {
@@ -5950,7 +6033,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -5965,7 +6049,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 367
+						"y": 35
 					},
 					"id": 153,
 					"options": {
@@ -6042,7 +6126,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -6057,7 +6142,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 367
+						"y": 35
 					},
 					"id": 154,
 					"options": {
@@ -6134,7 +6219,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -6149,7 +6235,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 18,
-						"y": 367
+						"y": 35
 					},
 					"id": 155,
 					"options": {
@@ -6241,7 +6327,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 376
+						"y": 44
 					},
 					"id": 156,
 					"options": {
@@ -6333,7 +6419,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 376
+						"y": 44
 					},
 					"id": 157,
 					"options": {
@@ -6425,7 +6511,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 376
+						"y": 44
 					},
 					"id": 159,
 					"options": {
@@ -6531,7 +6617,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 204
+						"y": 1318
 					},
 					"id": 161,
 					"options": {
@@ -6622,7 +6708,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -6637,7 +6724,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 360
+						"y": 19
 					},
 					"id": 163,
 					"options": {
@@ -6714,7 +6801,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -6729,7 +6817,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 360
+						"y": 19
 					},
 					"id": 164,
 					"options": {
@@ -6806,7 +6894,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -6821,7 +6910,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 360
+						"y": 19
 					},
 					"id": 165,
 					"options": {
@@ -6898,7 +6987,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -6913,7 +7003,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 18,
-						"y": 360
+						"y": 19
 					},
 					"id": 166,
 					"options": {
@@ -7019,7 +7109,7 @@
 						"h": 9,
 						"w": 24,
 						"x": 0,
-						"y": 361
+						"y": 200
 					},
 					"id": 168,
 					"options": {
@@ -7125,7 +7215,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 195
+						"y": 613
 					},
 					"id": 36,
 					"options": {
@@ -7217,7 +7307,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 195
+						"y": 613
 					},
 					"id": 27,
 					"options": {
@@ -7309,7 +7399,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 195
+						"y": 613
 					},
 					"id": 28,
 					"options": {
@@ -7401,7 +7491,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 18,
-						"y": 195
+						"y": 613
 					},
 					"id": 29,
 					"options": {
@@ -7493,7 +7583,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 204
+						"y": 622
 					},
 					"id": 31,
 					"options": {
@@ -7585,7 +7675,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 204
+						"y": 622
 					},
 					"id": 113,
 					"options": {
@@ -7677,7 +7767,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 204
+						"y": 622
 					},
 					"id": 114,
 					"options": {
@@ -7769,7 +7859,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 18,
-						"y": 204
+						"y": 622
 					},
 					"id": 30,
 					"options": {
@@ -7860,7 +7950,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -7875,7 +7966,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 0,
-						"y": 204
+						"y": 22
 					},
 					"id": 22,
 					"options": {
@@ -7951,7 +8042,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -7967,7 +8059,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 6,
-						"y": 204
+						"y": 22
 					},
 					"id": 33,
 					"options": {
@@ -8011,7 +8103,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -8026,7 +8119,7 @@
 						"h": 9,
 						"w": 6,
 						"x": 12,
-						"y": 204
+						"y": 22
 					},
 					"id": 24,
 					"options": {
@@ -8126,7 +8219,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -8141,7 +8235,7 @@
 						"h": 12,
 						"w": 8,
 						"x": 0,
-						"y": 213
+						"y": 23
 					},
 					"id": 7,
 					"options": {
@@ -8227,7 +8321,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -8242,7 +8337,7 @@
 						"h": 12,
 						"w": 8,
 						"x": 8,
-						"y": 213
+						"y": 23
 					},
 					"id": 8,
 					"options": {
@@ -8324,7 +8419,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -8339,7 +8435,7 @@
 						"h": 12,
 						"w": 8,
 						"x": 16,
-						"y": 213
+						"y": 23
 					},
 					"id": 9,
 					"options": {
@@ -8422,7 +8518,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -8437,7 +8534,7 @@
 						"h": 12,
 						"w": 8,
 						"x": 0,
-						"y": 225
+						"y": 35
 					},
 					"id": 10,
 					"options": {
@@ -8519,7 +8616,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -8534,7 +8632,7 @@
 						"h": 12,
 						"w": 8,
 						"x": 8,
-						"y": 225
+						"y": 35
 					},
 					"id": 11,
 					"options": {
@@ -8616,7 +8714,8 @@
 								"mode": "absolute",
 								"steps": [
 									{
-										"color": "green"
+										"color": "green",
+										"value": null
 									},
 									{
 										"color": "red",
@@ -8631,7 +8730,7 @@
 						"h": 12,
 						"w": 8,
 						"x": 16,
-						"y": 225
+						"y": 35
 					},
 					"id": 12,
 					"options": {
@@ -8728,7 +8827,7 @@
 						"h": 11,
 						"w": 12,
 						"x": 0,
-						"y": 237
+						"y": 47
 					},
 					"id": 13,
 					"options": {
@@ -8825,7 +8924,7 @@
 						"h": 11,
 						"w": 12,
 						"x": 12,
-						"y": 237
+						"y": 47
 					},
 					"id": 14,
 					"options": {
@@ -8922,7 +9021,7 @@
 						"h": 11,
 						"w": 8,
 						"x": 0,
-						"y": 248
+						"y": 58
 					},
 					"id": 16,
 					"options": {
@@ -9019,7 +9118,7 @@
 						"h": 11,
 						"w": 8,
 						"x": 8,
-						"y": 248
+						"y": 58
 					},
 					"id": 17,
 					"options": {
@@ -9116,7 +9215,7 @@
 						"h": 11,
 						"w": 8,
 						"x": 16,
-						"y": 248
+						"y": 58
 					},
 					"id": 18,
 					"options": {
@@ -9213,7 +9312,7 @@
 						"h": 11,
 						"w": 12,
 						"x": 0,
-						"y": 259
+						"y": 69
 					},
 					"id": 19,
 					"options": {
@@ -9310,7 +9409,7 @@
 						"h": 11,
 						"w": 12,
 						"x": 12,
-						"y": 259
+						"y": 69
 					},
 					"id": 20,
 					"options": {
@@ -9421,7 +9520,7 @@
 						"h": 8,
 						"w": 12,
 						"x": 0,
-						"y": 535
+						"y": 709
 					},
 					"id": 3,
 					"options": {
@@ -9513,7 +9612,7 @@
 						"h": 8,
 						"w": 12,
 						"x": 12,
-						"y": 535
+						"y": 709
 					},
 					"id": 6,
 					"options": {
@@ -9597,13 +9696,13 @@
 		]
 	},
 	"time": {
-		"from": "now-5m",
+		"from": "now-15m",
 		"to": "now"
 	},
 	"timepicker": {},
 	"timezone": "browser",
 	"title": "Libp2p GossipSub Dashboard",
 	"uid": "ceftsedn688owe2",
-	"version": 5,
+	"version": 15,
 	"weekStart": ""
 }
