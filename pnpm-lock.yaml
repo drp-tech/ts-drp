@@ -468,6 +468,12 @@ importers:
       '@ts-drp/test-utils':
         specifier: 0.10.0
         version: link:../test-utils
+      '@types/benchmark':
+        specifier: ^2.1.5
+        version: 2.1.5
+      benchmark:
+        specifier: ^2.1.4
+        version: 2.1.4
       race-event:
         specifier: ^1.3.0
         version: 1.3.0

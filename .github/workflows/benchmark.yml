@@ -14,7 +14,7 @@ jobs:
   benchmark:
     name: Run benchmark
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -27,6 +27,11 @@ jobs:
       - shell: bash
         run: |
           cd packages/object
+          pnpm run benchmark
+
+      - shell: bash
+        run: |
+          cd packages/node
           pnpm run benchmark
 
       - name: Set cache dir
@@ -49,6 +54,7 @@ jobs:
           gh-pages-branch: main
           skip-fetch-gh-pages: ${{ github.event_name == 'push' }}
           benchmark-data-dir-path: ./cache/benchmarks
+          external-data-json-path: ./cache/benchmark-data.json
 
   docs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
