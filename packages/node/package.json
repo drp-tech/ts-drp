@@ -21,6 +21,7 @@
 		}
 	},
 	"scripts": {
+		"benchmark": "tsx tests/node.bench.ts | tee -a ../benchmark-output.txt",
 		"build": "tsc -b tsconfig.build.json",
 		"clean": "rm -rf dist/ node_modules/",
 		"cli": "tsx ./src/run.ts",
@@ -32,6 +33,8 @@
 	},
 	"devDependencies": {
 		"@ts-drp/test-utils": "0.10.0",
+		"@types/benchmark": "^2.1.5",
+		"benchmark": "^2.1.4",
 		"race-event": "^1.3.0",
 		"tsx": "4.19.1",
 		"vitest": "^3.0.5"

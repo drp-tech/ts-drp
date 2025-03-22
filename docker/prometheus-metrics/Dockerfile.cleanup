@@ -1,0 +1,8 @@
+FROM alpine:latest
+
+RUN apk add --no-cache curl
+
+COPY cleanup-metrics.sh /cleanup-metrics.sh
+RUN chmod +x /cleanup-metrics.sh
+
+CMD ["/bin/sh", "/cleanup-metrics.sh"] 

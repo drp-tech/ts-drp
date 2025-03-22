@@ -206,7 +206,7 @@ describe("HashGraph construction tests", () => {
 
 	test("Root vertex acl state should not be modified", () => {
 		const acl1 = obj1.acl as ObjectACL;
-		acl1.grant("peer1", "peer2", ACLGroup.Writer);
+		acl1.grant("peer2", ACLGroup.Writer);
 		expect(acl1.query_isWriter("peer2")).toBe(true);
 		const rootACLState = obj1.aclStates.get(HashGraph.rootHash);
 		const authorizedPeers = rootACLState?.state.filter((e) => e.key === "_authorizedPeers")[0].value;
@@ -690,8 +690,8 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
 
 		const acl1 = obj1.acl as ObjectACL;
-		acl1.grant("peer1", "peer2", ACLGroup.Finality);
-		acl1.grant("peer1", "peer3", ACLGroup.Finality);
+		acl1.grant("peer2", ACLGroup.Finality);
+		acl1.grant("peer3", ACLGroup.Finality);
 		await obj2.merge(obj1.hashGraph.getAllVertices());
 		await obj3.merge(obj1.hashGraph.getAllVertices());
 	});
@@ -726,7 +726,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		const acl2 = obj2.acl as ObjectACL;
 
 		drp1.add(1);
-		acl1.grant("peer1", "peer2", ACLGroup.Writer);
+		acl1.grant("peer2", ACLGroup.Writer);
 		expect(acl1.query_isAdmin("peer1")).toBe(true);
 
 		await obj2.merge(obj1.hashGraph.getAllVertices());
@@ -751,8 +751,8 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		const drp3 = obj3.drp as SetDRP<number>;
 		const acl1 = obj1.acl as ObjectACL;
 
-		acl1.grant("peer1", "peer2", ACLGroup.Writer);
-		acl1.grant("peer1", "peer3", ACLGroup.Writer);
+		acl1.grant("peer2", ACLGroup.Writer);
+		acl1.grant("peer3", ACLGroup.Writer);
 		await obj2.merge(obj1.hashGraph.getAllVertices());
 		await obj3.merge(obj1.hashGraph.getAllVertices());
 
@@ -765,7 +765,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		expect(drp1.query_has(1)).toBe(true);
 		expect(drp1.query_has(2)).toBe(true);
 
-		acl1.revoke("peer1", "peer3", ACLGroup.Writer);
+		acl1.revoke("peer3", ACLGroup.Writer);
 		await obj3.merge(obj1.hashGraph.getAllVertices());
 		drp3.add(3);
 		await obj2.merge(obj3.hashGraph.getAllVertices());
@@ -781,7 +781,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 	test("Should grant admin permission to a peer", () => {
 		const acl1 = obj1.acl as ObjectACL;
 		const newAdminPeer1 = "newAdminPeer1";
-		acl1.grant("peer1", "newAdminPeer1", ACLGroup.Admin);
+		acl1.grant("newAdminPeer1", ACLGroup.Admin);
 		expect(acl1.query_isAdmin(newAdminPeer1)).toBe(true);
 	});
 
@@ -803,7 +803,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		const hash1 = obj1.hashGraph.getFrontier()[0];
 		await obj2.merge(obj1.hashGraph.getAllVertices());
 		drp1.add(2);
-		acl1.grant("peer1", "peer2", ACLGroup.Writer);
+		acl1.grant("peer2", ACLGroup.Writer);
 
 		const vertex = newVertex(
 			"peer2",
@@ -820,15 +820,15 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 
 	test("Should update key in the ACL", async () => {
 		const acl1 = obj1.acl as ObjectACL;
-		acl1.setKey("peer1", "peer1", "blsPublicKey1");
+		acl1.setKey("blsPublicKey1");
 
 		await obj2.merge(obj1.hashGraph.getAllVertices());
 		const acl2 = obj2.acl as ObjectACL;
 		expect(acl2.query_getPeerKey("peer1")).toStrictEqual("blsPublicKey1");
 
 		const acl3 = obj3.acl as ObjectACL;
-		acl3.setKey("peer3", "peer3", "blsPublicKey3");
-		acl2.setKey("peer2", "peer2", "blsPublicKey2");
+		acl3.setKey("blsPublicKey3");
+		acl2.setKey("blsPublicKey2");
 
 		await obj1.merge(obj2.hashGraph.getAllVertices());
 		await obj1.merge(obj3.hashGraph.getAllVertices());
@@ -1188,5 +1188,75 @@ describe("DRP Context tests", () => {
 				expect(obj1.drp?.context.caller).toBe("peer2");
 			}
 		}
+	});
+});
+
+describe("Nodes admin permission tests", () => {
+	let obj1: DRPObject<SetDRP<number>>;
+	let obj2: DRPObject<SetDRP<number>>;
+	let obj3: DRPObject<SetDRP<number>>;
+
+	beforeEach(() => {
+		obj1 = new DRPObject({
+			peerId: "peer1",
+			acl: new ObjectACL({ admins: ["peer1"] }),
+			drp: new SetDRP<number>(),
+		});
+		obj2 = new DRPObject({
+			peerId: "peer2",
+			acl: new ObjectACL({ admins: ["peer1", "peer2"] }),
+			drp: new SetDRP<number>(),
+		});
+		obj3 = new DRPObject({
+			peerId: "peer3",
+			acl: new ObjectACL({ admins: ["peer1"] }),
+			drp: new SetDRP<number>(),
+		});
+	});
+
+	test("Should not able to grant if node an admin", async () => {
+		obj2.acl.grant("peer3", ACLGroup.Writer);
+		expect(obj2.acl.query_isWriter("peer3")).toBe(true);
+
+		await obj1.merge(obj2.vertices);
+		expect(obj1.acl.query_isWriter("peer3")).toBe(false);
+		await obj3.merge(obj2.vertices);
+		expect(obj3.acl.query_isWriter("peer3")).toBe(false);
+	});
+
+	test("Should not able to revoke if node an admin", async () => {
+		obj1.acl.grant("peer3", ACLGroup.Writer);
+		expect(obj1.acl.query_isWriter("peer3")).toBe(true);
+
+		await obj3.merge(obj1.vertices);
+		expect(obj3.acl.query_isWriter("peer3")).toBe(true);
+		obj3.drp?.add(1);
+		expect(obj3.drp?.query_has(1)).toBe(true);
+
+		await obj2.merge(obj3.vertices);
+		expect(obj2.drp?.query_has(1)).toBe(true);
+		obj2.acl.revoke("peer3", ACLGroup.Writer);
+		expect(obj2.acl.query_isWriter("peer3")).toBe(false);
+
+		await obj3.merge(obj2.vertices);
+		expect(obj3.acl.query_isWriter("peer3")).toBe(true);
+	});
+
+	test("Should able to grant/revoke if node an admin", async () => {
+		obj1.acl.grant("peer3", ACLGroup.Writer);
+		expect(obj1.acl.query_isWriter("peer3")).toBe(true);
+		await obj3.merge(obj1.vertices);
+		obj1.acl.grant("peer2", ACLGroup.Admin);
+		await obj2.merge(obj1.vertices);
+
+		obj3.drp?.add(1);
+		await obj2.merge(obj3.vertices);
+		expect(obj2.drp?.query_has(1)).toBe(true);
+		obj2.acl.revoke("peer3", ACLGroup.Writer);
+		obj2.acl.grant("peer3", ACLGroup.Finality);
+
+		await obj1.merge(obj2.vertices);
+		expect(obj1.acl.query_isWriter("peer3")).toBe(false);
+		expect(obj1.acl.query_isFinalitySigner("peer3")).toBe(true);
 	});
 });

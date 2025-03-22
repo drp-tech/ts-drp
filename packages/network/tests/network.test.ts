@@ -1,11 +1,11 @@
 import { type GossipSub, type MeshPeer } from "@chainsafe/libp2p-gossipsub";
 import { type Connection, type IdentifyResult, type Libp2p, type SubscriptionChangeData } from "@libp2p/interface";
-import { type DRPNodeConfig } from "@ts-drp/types";
+import { type DRPNetworkNodeConfig, type DRPNodeConfig } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import rawConfig from "../../../configs/local-bootstrap.json" with { type: "json" };
-import { DRPNetworkNode, type DRPNetworkNodeConfig } from "../src/node.js";
+import { DRPNetworkNode } from "../src/node.js";
 
 describe("DRPNetworkNode can connect & send messages", () => {
 	const controller = new AbortController();

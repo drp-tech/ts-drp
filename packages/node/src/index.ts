@@ -69,6 +69,7 @@ export class DRPNode {
 				...this.config.interval_reconnect_options,
 				id: this.networkNode.peerId.toString(),
 				networkNode: this.networkNode,
+				logConfig: this.config.log_config,
 			})
 		);
 		this.networkNode.subscribeToMessageQueue(this.dispatchMessage.bind(this));

@@ -54,7 +54,8 @@ function renderClickablePeerList(
 let isDiscoveryPeersOpen = false;
 
 const renderDiscoveryPeers = (): void => {
-	gridState.discoveryPeers = gridState.node.networkNode.getGroupPeers(DRP_DISCOVERY_TOPIC);
+	const node = gridState.getNode();
+	gridState.discoveryPeers = node.networkNode.getGroupPeers(DRP_DISCOVERY_TOPIC);
 
 	renderClickablePeerList(gridState.discoveryPeers, isDiscoveryPeersOpen, "discoveryPeers", () => {
 		isDiscoveryPeersOpen = !isDiscoveryPeersOpen;
@@ -64,7 +65,8 @@ const renderDiscoveryPeers = (): void => {
 let isPeersOpen = false;
 
 const renderPeers = (): void => {
-	gridState.peers = gridState.node.networkNode.getAllPeers();
+	const node = gridState.getNode();
+	gridState.peers = node.networkNode.getAllPeers();
 
 	renderClickablePeerList(gridState.peers, isPeersOpen, "peers", () => {
 		isPeersOpen = !isPeersOpen;
@@ -74,7 +76,10 @@ const renderPeers = (): void => {
 let isPeersInDRPOpen = false;
 
 const renderPeersInDRP = (): void => {
-	if (gridState.drpObject) gridState.objectPeers = gridState.node.networkNode.getGroupPeers(gridState.drpObject.id);
+	if (gridState.drpObject) {
+		const node = gridState.getNode();
+		gridState.objectPeers = node.networkNode.getGroupPeers(gridState.drpObject.id);
+	}
 
 	renderClickablePeerList(
 		gridState.objectPeers,
@@ -91,17 +96,18 @@ let isPeerIdExpanded = false;
 
 const renderPeerId = (): void => {
 	const element_peerId = <HTMLDivElement>document.getElementById("peerId");
+	const node = gridState.getNode();
 
 	const innerHtml = (): string => `
 	<strong id="peerIdExpanded" 
-			style="color: ${getColorForPeerId(gridState.node.networkNode.peerId)};
+			style="color: ${getColorForPeerId(node.networkNode.peerId)};
 				   ${isPeerIdExpanded ? "" : "display: none;"}">
-	  ${gridState.node.networkNode.peerId}
+	  ${node.networkNode.peerId}
 	</strong>
 	<strong id="peerIdCollapsed" 
-			style="color: ${getColorForPeerId(gridState.node.networkNode.peerId)};
+			style="color: ${getColorForPeerId(node.networkNode.peerId)};
 				   ${!isPeerIdExpanded ? "" : "display: none;"}">
-	  ${formatPeerId(gridState.node.networkNode.peerId)}
+	  ${formatPeerId(node.networkNode.peerId)}
 	</strong>`;
 
 	element_peerId.style.cursor = "pointer";
@@ -168,14 +174,14 @@ export const render = (): void => {
 	if (!users) return;
 	for (const userColorString of users) {
 		const [id, color] = userColorString.split(":");
-		const position = gridState.drpObject.drp?.query_userPosition(userColorString);
-
+		const position = gridState.gridDRP?.query_userPosition(userColorString);
+		const node = gridState.getNode();
 		if (position) {
 			const div = document.createElement("div");
 			div.style.position = "absolute";
 			div.style.left = `${centerX + position.x * 50 + 5}px`; // Center the circle
 			div.style.top = `${centerY - position.y * 50 + 5}px`; // Center the circle
-			if (id === gridState.node.networkNode.peerId) {
+			if (id === node.networkNode.peerId) {
 				div.style.width = `${34}px`;
 				div.style.height = `${34}px`;
 			} else {
@@ -188,7 +194,7 @@ export const render = (): void => {
 			div.style.animation = `glow-${id} 0.5s infinite alternate`;
 
 			// Add black border for the current user's circle
-			if (id === gridState.node.networkNode.peerId) {
+			if (id === node.networkNode.peerId) {
 				div.style.border = "3px solid black";
 			}
 

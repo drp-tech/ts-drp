@@ -42,8 +42,8 @@ export class ObjectACL implements IACL {
 		this._conflictResolution = options.conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
 
-	grant(senderId: string, peerId: string, group: ACLGroup): void {
-		if (!this.query_isAdmin(senderId)) {
+	grant(peerId: string, group: ACLGroup): void {
+		if (!this.query_isAdmin(this.context.caller)) {
 			throw new Error("Only admin peers can grant permissions.");
 		}
 		let peerPermissions = this._authorizedPeers.get(peerId);
@@ -70,8 +70,8 @@ export class ObjectACL implements IACL {
 		}
 	}
 
-	revoke(senderId: string, peerId: string, group: ACLGroup): void {
-		if (!this.query_isAdmin(senderId)) {
+	revoke(peerId: string, group: ACLGroup): void {
+		if (!this.query_isAdmin(this.context.caller)) {
 			throw new Error("Only admin peers can revoke permissions.");
 		}
 		if (this.query_isAdmin(peerId)) {
@@ -93,20 +93,17 @@ export class ObjectACL implements IACL {
 		}
 	}
 
-	setKey(senderId: string, peerId: string, blsPublicKey: string): void {
-		if (senderId !== peerId) {
-			throw new Error("Cannot set key for another peer.");
-		}
-		if (!this.query_isFinalitySigner(peerId)) {
+	setKey(blsPublicKey: string): void {
+		if (!this.query_isFinalitySigner(this.context.caller)) {
 			throw new Error("Only finality signers can set their BLS public key.");
 		}
-		let peerPermissions = this._authorizedPeers.get(peerId);
+		let peerPermissions = this._authorizedPeers.get(this.context.caller);
 		if (!peerPermissions) {
 			peerPermissions = getPeerPermissions({ blsPublicKey });
 		} else {
 			peerPermissions.blsPublicKey = blsPublicKey;
 		}
-		this._authorizedPeers.set(peerId, peerPermissions);
+		this._authorizedPeers.set(this.context.caller, peerPermissions);
 	}
 
 	query_getFinalitySigners(): Map<string, string> {
