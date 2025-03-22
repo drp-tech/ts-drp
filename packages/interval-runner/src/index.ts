@@ -1,3 +1,5 @@
+import { sha256 } from "@noble/hashes/sha256";
+import { bytesToHex } from "@noble/hashes/utils";
 import { Logger } from "@ts-drp/logger";
 import {
 	type AnyBooleanCallback,
@@ -6,7 +8,6 @@ import {
 	IntervalRunnerState,
 } from "@ts-drp/types";
 import { isAsyncGenerator, isGenerator, isPromise } from "@ts-drp/utils";
-import * as crypto from "node:crypto";
 
 export class IntervalRunner<Args extends unknown[] = []> implements IIntervalRunner<"interval:runner", Args> {
 	readonly type = "interval:runner";
@@ -37,10 +38,12 @@ export class IntervalRunner<Args extends unknown[] = []> implements IIntervalRun
 		this._logger = new Logger("drp:interval-runner", config.logConfig);
 		this.id =
 			config.id ??
-			crypto
-				.createHash("sha256")
-				.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
-				.digest("hex");
+			bytesToHex(
+				sha256
+					.create()
+					.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
+					.digest()
+			);
 	}
 
 	private async execute(args?: Args): Promise<boolean> {

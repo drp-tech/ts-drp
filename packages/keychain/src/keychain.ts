@@ -3,8 +3,8 @@ import type { SecretKey as BlsSecretKey } from "@chainsafe/bls/types";
 import { deriveKeyFromEntropy } from "@chainsafe/bls-keygen";
 import { generateKeyPair, privateKeyFromRaw } from "@libp2p/crypto/keys";
 import type { Secp256k1PrivateKey } from "@libp2p/interface";
+import { sha256, sha512 } from "@noble/hashes/sha2";
 import { etc, signAsync } from "@noble/secp256k1";
-import * as crypto from "crypto";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 
@@ -25,7 +25,7 @@ export class Keychain {
 
 	async start(): Promise<void> {
 		if (this._config?.private_key_seed) {
-			const seed = crypto.createHash("sha512").update(this._config.private_key_seed).digest();
+			const seed = sha512.create().update(this._config.private_key_seed).digest();
 			const rawSecp256k1PrivateKey = etc.hashToPrivateKey(seed);
 			const key = privateKeyFromRaw(rawSecp256k1PrivateKey);
 			if (key.type !== "secp256k1") throw new Error("Expected secp256k1 key");
@@ -49,7 +49,8 @@ export class Keychain {
 		if (!this._secp256k1PrivateKey) {
 			throw new Error("Private key not found");
 		}
-		const hashData = crypto.createHash("sha256").update(data).digest("hex");
+
+		const hashData = sha256.create().update(data).digest();
 
 		const signature = await signAsync(hashData, this._secp256k1PrivateKey.raw, {
 			extraEntropy: true,

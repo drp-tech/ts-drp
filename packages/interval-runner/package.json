@@ -21,7 +21,7 @@
 		}
 	},
 	"scripts": {
-		"build": "tsc -b tsconfig.build.json",
+		"build": "tsc -b tsconfig.build.json && node build.mjs",
 		"clean": "rm -rf dist/ node_modules/",
 		"cli": "tsx ./src/run.ts",
 		"prebuild": "node -p \"'export const VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
@@ -31,6 +31,7 @@
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
+		"@noble/hashes": "^1.7.1",
 		"@ts-drp/logger": "0.10.0",
 		"@ts-drp/types": "0.10.0",
 		"@ts-drp/utils": "0.10.0"

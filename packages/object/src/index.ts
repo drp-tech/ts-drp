@@ -1,3 +1,5 @@
+import { sha256 } from "@noble/hashes/sha2";
+import { bytesToHex } from "@noble/hashes/utils";
 import { Logger } from "@ts-drp/logger";
 import {
 	type CreateObjectOptions,
@@ -21,7 +23,6 @@ import {
 import { handlePromiseOrValue, isPromise, processSequentially } from "@ts-drp/utils";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
-import * as crypto from "node:crypto";
 
 import { ObjectACL } from "./acl/index.js";
 import { FinalityStore } from "./finality/index.js";
@@ -71,11 +72,13 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 		log = new Logger("drp::object", options.config?.log_config);
 		this.id =
 			options.id ??
-			crypto
-				.createHash("sha256")
-				.update(options.peerId)
-				.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
-				.digest("hex");
+			bytesToHex(
+				sha256
+					.create()
+					.update(options.peerId)
+					.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
+					.digest()
+			);
 
 		const objAcl =
 			options.acl ??

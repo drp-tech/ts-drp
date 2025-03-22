@@ -43,6 +43,7 @@
 	"dependencies": {
 		"@chainsafe/bls": "^8.1.0",
 		"@msgpack/msgpack": "^3.0.1",
+		"@noble/hashes": "^1.7.1",
 		"@ts-drp/logger": "^0.10.0",
 		"@ts-drp/tracer": "^0.10.0",
 		"@ts-drp/types": "^0.10.0",

@@ -2,22 +2,27 @@
 	"compilerOptions": {
 		"strict": true,
 		"allowJs": true,
-		"target": "ES2022",
+		"target": "ES6",
 		"module": "NodeNext",
-		"lib": ["ES2023", "ES2023.Array", "DOM", "DOM.Iterable", "WebWorker"],
-
+		"lib": [
+			"ES2023",
+			"ES2023.Array",
+			"DOM",
+			"DOM.Iterable",
+			"WebWorker"
+		],
 		"esModuleInterop": true,
 		"moduleResolution": "NodeNext",
-
 		"declaration": true,
 		"declarationMap": true,
 		"composite": true,
-
 		"skipLibCheck": true,
 		"stripInternal": true,
 		"resolveJsonModule": true,
 		"paths": {
-			"@ts-drp/*": ["./packages/*"]
+			"@ts-drp/*": [
+				"./packages/*"
+			]
 		}
 	}
 }

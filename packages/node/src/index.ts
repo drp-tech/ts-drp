@@ -19,13 +19,10 @@ import {
 	type NodeCreateObjectOptions,
 } from "@ts-drp/types";
 
-import { loadConfig } from "./config.js";
 import { drpMessagesHandler } from "./handlers.js";
 import { log } from "./logger.js";
 import * as operations from "./operations.js";
 import { DRPObjectStore } from "./store/index.js";
-
-export { loadConfig };
 
 export class DRPNode {
 	config: DRPNodeConfig;
