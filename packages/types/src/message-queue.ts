@@ -36,6 +36,11 @@ export interface IMessageQueue<T> {
 	 * Close the queue
 	 */
 	close(): void;
+
+	/**
+	 * Start the queue
+	 */
+	start(): void;
 }
 
 export interface IMessageQueueManagerOptions {
