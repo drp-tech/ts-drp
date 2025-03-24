@@ -34,11 +34,10 @@ describe("MessageQueue", () => {
 			}
 
 			let i = 0;
-			const handler = vi.fn(async (msg: string) => {
+			const handler = vi.fn((msg: string) => {
 				messages.push(msg);
 				resolvers[i]();
 				i++;
-				return Promise.resolve();
 			});
 			// Start subscription before enqueueing
 			queue.subscribe(handler);
@@ -73,10 +72,9 @@ describe("MessageQueue", () => {
 				resolveHandler = resolve;
 			});
 
-			const handler = vi.fn(async (msg: string) => {
+			const handler = vi.fn((msg: string) => {
 				messages.push(msg);
 				resolveHandler();
-				return Promise.resolve();
 			});
 
 			queue.subscribe(handler);
@@ -109,16 +107,14 @@ describe("MessageQueue", () => {
 				resolveHandler2 = resolve;
 			});
 
-			const handler1 = vi.fn(async (msg: string) => {
+			const handler1 = vi.fn((msg: string) => {
 				messages.push(msg);
 				resolveHandler1();
-				return Promise.resolve();
 			});
 
-			const handler2 = vi.fn(async (msg: string) => {
+			const handler2 = vi.fn((msg: string) => {
 				messages.push(msg);
 				resolveHandler2();
-				return Promise.resolve();
 			});
 
 			queue.subscribe(handler1);

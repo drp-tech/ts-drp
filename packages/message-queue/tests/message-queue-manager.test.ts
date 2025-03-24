@@ -20,10 +20,9 @@ describe("MessageQueueManager", () => {
 				resolveHandler = resolve;
 			});
 
-			const handler = vi.fn(async (msg: string) => {
+			const handler = vi.fn((msg: string) => {
 				messages.push(msg);
 				resolveHandler();
-				return Promise.resolve();
 			});
 
 			// Start subscription
@@ -57,15 +56,13 @@ describe("MessageQueueManager", () => {
 				resolveHandler2 = resolve;
 			});
 
-			const handler1 = vi.fn(async (msg: string) => {
+			const handler1 = vi.fn((msg: string) => {
 				messages1.push(msg);
 				resolveHandler1();
-				return Promise.resolve();
 			});
-			const handler2 = vi.fn(async (msg: string) => {
+			const handler2 = vi.fn((msg: string) => {
 				messages2.push(msg);
 				resolveHandler2();
-				return Promise.resolve();
 			});
 
 			// Start subscriptions
@@ -98,10 +95,9 @@ describe("MessageQueueManager", () => {
 				resolveHandler = resolve;
 			});
 
-			const handler = vi.fn(async (msg: string) => {
+			const handler = vi.fn((msg: string) => {
 				messages.push(msg);
 				resolveHandler();
-				return Promise.resolve();
 			});
 
 			// Start subscription
@@ -171,10 +167,9 @@ describe("MessageQueueManager", () => {
 				resolveHandler = resolve;
 			});
 
-			const handler = vi.fn(async (msg: string) => {
+			const handler = vi.fn((msg: string) => {
 				messages.push(msg);
 				resolveHandler();
-				return Promise.resolve();
 			});
 
 			// Start subscription
@@ -196,23 +191,28 @@ describe("MessageQueueManager", () => {
 		it("should close all queues", async () => {
 			const numberOfQueues = 10;
 			const messages: string[] = [];
+
+			const resolvers: (() => void)[] = [];
 			const handlerPromises: Promise<void>[] = [];
 
-			const handler = vi.fn(async (msg: string): Promise<void> => {
-				await Promise.resolve();
-				messages.push(msg);
-			});
+			// Create promises for each handler
+			for (let i = 0; i < numberOfQueues; i++) {
+				handlerPromises.push(
+					new Promise<void>((resolve) => {
+						resolvers[i] = resolve;
+					})
+				);
+			}
 
-			// Create a wrapper that tracks the promise from each handler call.
-			const handlerWrapper = (msg: string): Promise<void> => {
-				const p = handler(msg);
-				handlerPromises.push(p);
-				return p;
-			};
+			const handler = vi.fn((msg: string, index: number) => {
+				messages.push(msg);
+				resolvers[index]();
+			});
 
 			// Subscribe to each queue using the wrapper.
 			for (let i = 0; i < numberOfQueues; i++) {
-				manager.subscribe(`queue${i}`, handlerWrapper);
+				// Bind the queue index to the handler
+				manager.subscribe(`queue${i}`, (msg) => handler(msg, i));
 			}
 
 			// Enqueue a message to each queue.
@@ -247,13 +247,11 @@ describe("MessageQueueManager", () => {
 			});
 
 			// Remove the artificial delay and simply resolve the corresponding promise.
-			const handler1 = vi.fn(async (msg: string) => {
-				await Promise.resolve();
+			const handler1 = vi.fn((msg: string) => {
 				messages.push(msg);
 				resolveHandler1();
 			});
-			const handler2 = vi.fn(async (msg: string) => {
-				await Promise.resolve();
+			const handler2 = vi.fn((msg: string) => {
 				messages.push(msg);
 				resolveHandler2();
 			});
