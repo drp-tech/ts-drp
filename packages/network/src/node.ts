@@ -448,10 +448,14 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	}
 
 	private handleGossipsubMessage(data: Uint8Array): void {
-		const message = Message.decode(data);
-		this._messageQueue.enqueue(message).catch((e) => {
-			log.error("::startEnqueueMessages::enqueue:", e);
-		});
+		try {
+			const message = Message.decode(data);
+			this._messageQueue.enqueue(message).catch((e) => {
+				log.error("::startEnqueueMessages::enqueue:", e);
+			});
+		} catch (e) {
+			log.error(`::startEnqueueMessages::handleGossipsubMessage: msg.length=${data.length} error=${e}`);
+		}
 	}
 
 	private async handleStream(stream: Stream): Promise<void> {
