@@ -24,7 +24,7 @@ const render = (): void => {
 	const element_objectPeers = <HTMLDivElement>document.getElementById("objectPeers");
 	element_objectPeers.innerHTML = `[${objectPeers.join(", ")}]`;
 
-	if (!drpObject.drp) return;
+	if (!drpObject?.drp) return;
 	const chat = drpObject.drp.query_messages();
 	const element_chat = <HTMLDivElement>document.getElementById("chat");
 	element_chat.innerHTML = "";
