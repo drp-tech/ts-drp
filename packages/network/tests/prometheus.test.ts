@@ -1,43 +1,44 @@
-import { Gauge as PromGauge, Histogram as PromHistogram, Pushgateway } from "prom-client";
+// @ts-expect-error -- prom-client is not typed
+import PromGauge from "prom-client/lib/gauge";
+// @ts-expect-error -- prom-client is not typed
+import PromHistogram from "prom-client/lib/histogram";
+// @ts-expect-error -- prom-client is not typed
+import Pushgateway from "prom-client/lib/pushgateway";
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
 import { PrometheusMetricsRegister } from "../src/metrics/prometheus.js";
 
-// Mock prom-client modules
-vi.mock("prom-client", () => {
-	const mockSet = vi.fn();
-	const mockInc = vi.fn();
-	const mockObserve = vi.fn();
-	const mockReset = vi.fn();
-	const mockStartTimer = vi.fn().mockReturnValue(() => {});
-	const mockPushAdd = vi.fn().mockResolvedValue(undefined);
+vi.mock("prom-client/lib/registry", () => ({
+	globalRegistry: {},
+}));
 
-	return {
-		Gauge: vi.fn().mockImplementation(() => ({
-			set: mockSet,
-			inc: mockInc,
-		})),
-		Histogram: vi.fn().mockImplementation(() => ({
-			observe: mockObserve,
-			reset: mockReset,
-			startTimer: mockStartTimer,
-		})),
-		Pushgateway: vi.fn().mockImplementation(() => ({
-			pushAdd: mockPushAdd,
-		})),
-		register: {},
-	};
-});
+vi.mock("prom-client/lib/pushgateway", () => ({
+	default: vi.fn().mockImplementation(() => ({
+		pushAdd: vi.fn().mockResolvedValue(undefined),
+	})),
+}));
+
+vi.mock("prom-client/lib/histogram", () => ({
+	default: vi.fn().mockImplementation(() => ({
+		observe: vi.fn(),
+		reset: vi.fn(),
+		startTimer: vi.fn().mockReturnValue(() => {}),
+	})),
+}));
+
+vi.mock("prom-client/lib/gauge", () => ({
+	default: vi.fn().mockImplementation(() => ({
+		set: vi.fn(),
+		inc: vi.fn(),
+	})),
+}));
 
 describe("PrometheusMetricsRegister", () => {
 	let metricsRegister: PrometheusMetricsRegister;
 	const pushgatewayUrl = "http://localhost:9091";
 
-	// @ts-expect-error - Mocking the modules
 	const MockPromGauge: Mock = PromGauge;
-	// @ts-expect-error - Mocking the modules
 	const MockPromHistogram: Mock = PromHistogram;
-	// @ts-expect-error - Mocking the modules
 	const MockPushgateway: Mock = Pushgateway;
 
 	beforeEach(() => {
