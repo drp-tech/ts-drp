@@ -302,6 +302,18 @@ importers:
         specifier: ^0.8.4
         version: 0.8.4
 
+  packages/message-queue:
+    dependencies:
+      '@ts-drp/logger':
+        specifier: ^0.10.0
+        version: link:../logger
+      '@ts-drp/types':
+        specifier: ^0.10.0
+        version: link:../types
+      '@ts-drp/utils':
+        specifier: ^0.10.0
+        version: link:../utils
+
   packages/network:
     dependencies:
       '@bufbuild/protobuf':
@@ -367,6 +379,9 @@ importers:
       '@ts-drp/logger':
         specifier: ^0.10.0
         version: link:../logger
+      '@ts-drp/message-queue':
+        specifier: 0.10.0
+        version: link:../message-queue
       '@ts-drp/types':
         specifier: ^0.10.0
         version: link:../types
@@ -455,6 +470,9 @@ importers:
       '@ts-drp/logger':
         specifier: 0.10.0
         version: link:../logger
+      '@ts-drp/message-queue':
+        specifier: 0.10.0
+        version: link:../message-queue
       '@ts-drp/network':
         specifier: 0.10.0
         version: link:../network

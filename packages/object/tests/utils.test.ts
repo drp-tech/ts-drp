@@ -232,7 +232,6 @@ describe("Serialize & deserialize", () => {
 		const aclState = drpObject.aclStates.get(HashGraph.rootHash);
 		const drpState = drpObject.drpStates.get(HashGraph.rootHash);
 		const response = FetchStateResponse.create({
-			objectId: "test",
 			vertexHash: "test",
 			aclState: serializeDRPState(aclState),
 			drpState: serializeDRPState(drpState),

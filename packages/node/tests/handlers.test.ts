@@ -1,49 +1,12 @@
-import type { Connection, IdentifyResult, Libp2p, Stream } from "@libp2p/interface";
+import type { Connection, IdentifyResult, Libp2p } from "@libp2p/interface";
 import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
 import { type DRPNetworkNodeConfig, DrpType, FetchState, Message, MessageType } from "@ts-drp/types";
 import { raceEvent } from "race-event";
-import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, test } from "vitest";
 
-import { drpMessagesHandler } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
-
-describe("drpMessagesHandler inputs", () => {
-	let node: DRPNode;
-	const consoleSpy = vi.spyOn(console, "error");
-
-	beforeAll(() => {
-		node = new DRPNode();
-	});
-
-	test("normal inputs", async () => {
-		await drpMessagesHandler(node);
-		expect(consoleSpy).toHaveBeenLastCalledWith("drp::node ::messageHandler: Stream and data are undefined");
-
-		const msg = Message.create({
-			sender: node.networkNode.peerId,
-			type: -1,
-			data: new Uint8Array(),
-		});
-		await drpMessagesHandler(node, undefined, msg.data);
-		expect(consoleSpy).toHaveBeenLastCalledWith("drp::node ::messageHandler: Invalid operation");
-
-		await drpMessagesHandler(
-			node,
-			{
-				close: async () => {},
-				closeRead: async () => {},
-				closeWrite: async () => {},
-			} as Stream,
-			undefined
-		);
-		expect(consoleSpy).toHaveBeenLastCalledWith(
-			"drp::node ::messageHandler: Error decoding message",
-			new Error("Empty pipeline")
-		);
-	});
-});
 
 describe("Handle message correctly", () => {
 	const controller = new AbortController();
@@ -174,10 +137,10 @@ describe("Handle message correctly", () => {
 			type: MessageType.MESSAGE_TYPE_FETCH_STATE,
 			data: FetchState.encode(
 				FetchState.create({
-					objectId: drpObjectNode2.id,
 					vertexHash: drpObjectNode2.vertices[0].hash,
 				})
 			).finish(),
+			objectId: drpObjectNode2.id,
 		});
 
 		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);

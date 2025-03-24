@@ -83,4 +83,4 @@ async function pprofTime(): Promise<void> {
 
 pprofTime().catch(console.error);
 
-await flamegraphForSetDRP(1, 1000, false);
+flamegraphForSetDRP(1, 1000, false).catch(console.error);

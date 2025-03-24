@@ -77,12 +77,9 @@ function createConnectHandlers(): void {
 	const objectId = gridState.getObjectId();
 	if (!objectId) return;
 
-	node.addCustomGroupMessageHandler(objectId, () => {
-		const currentObjectId = gridState.getObjectId();
-		if (!currentObjectId) return;
-
-		const node = gridState.getNode();
-		gridState.objectPeers = node.networkNode.getGroupPeers(currentObjectId);
+	node.messageQueueManager.subscribe(objectId, () => {
+		if (!gridState.drpObject?.id) return;
+		gridState.objectPeers = node.networkNode.getGroupPeers(gridState.drpObject?.id);
 		render();
 	});
 

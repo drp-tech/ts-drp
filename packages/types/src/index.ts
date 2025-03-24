@@ -37,6 +37,7 @@ export * from "./constants.js";
 export * from "./enum.js";
 export type * from "./keychain.js";
 export type * from "./logger.js";
+export type * from "./message-queue.js";
 export type * from "./metrics.js";
 export type * from "./network.js";
 export type * from "./node.js";

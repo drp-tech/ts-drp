@@ -1,0 +1,54 @@
+{
+	"name": "@ts-drp/message-queue",
+	"version": "0.10.0",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/drp-tech/ts-drp.git"
+	},
+	"type": "module",
+	"types": "./dist/src/index.d.ts",
+	"files": [
+		"src",
+		"dist",
+		"!dist/test",
+		"!**/*.tsbuildinfo"
+	],
+	"typesVersions": {
+		"*": {
+			"*": [
+				"*",
+				"dist/*",
+				"dist/src/*",
+				"dist/src/*/index"
+			],
+			"src/*": [
+				"*",
+				"dist/*",
+				"dist/src/*",
+				"dist/src/*/index"
+			]
+		}
+	},
+	"exports": {
+		".": {
+			"types": "./dist/src/index.d.ts",
+			"import": "./dist/src/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc -b tsconfig.build.json",
+		"clean": "rm -rf dist/ node_modules/",
+		"cli": "tsx ./src/run.ts",
+		"prebuild": "node -p \"'export const VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
+		"prepack": "tsc -b",
+		"test": "vitest",
+		"typecheck": "tsc --noEmit",
+		"watch": "tsc -b -w"
+	},
+	"dependencies": {
+		"@ts-drp/types": "^0.10.0",
+		"@ts-drp/utils": "^0.10.0",
+		"@ts-drp/logger": "^0.10.0"
+	}
+}

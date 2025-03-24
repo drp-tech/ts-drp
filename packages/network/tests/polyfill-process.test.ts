@@ -64,7 +64,7 @@ describe("Process Polyfills", () => {
 			vi.advanceTimersByTime(1500);
 
 			const bigintTime = hrtimeFn.bigint();
-			expect(bigintTime).toBe(1500000000n); // 1.5 seconds in nanoseconds
+			expect(bigintTime).toBe(BigInt(1500000000)); // 1.5 seconds in nanoseconds
 		});
 
 		it("should handle negative nanosecond differences", () => {

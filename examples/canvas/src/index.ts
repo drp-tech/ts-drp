@@ -43,7 +43,7 @@ function paint_pixel(pixel: HTMLDivElement): void {
 }
 
 function createConnectHandlers(): void {
-	node.addCustomGroupMessageHandler(drpObject.id, () => {
+	node.messageQueueManager.subscribe(drpObject.id, () => {
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
 		render();
 	});
@@ -75,7 +75,7 @@ async function init(): Promise<void> {
 		}
 	}
 
-	node.addCustomGroupMessageHandler("", () => {
+	node.messageQueueManager.subscribe(DRP_DISCOVERY_TOPIC, () => {
 		peers = node.networkNode.getAllPeers();
 		discoveryPeers = node.networkNode.getGroupPeers(DRP_DISCOVERY_TOPIC);
 		render();
