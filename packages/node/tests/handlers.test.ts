@@ -130,8 +130,8 @@ describe("Handle message correctly", () => {
 	});
 
 	test("should handle fetch state", async () => {
-		(drpObjectNode2.drp as SetDRP<number>).add(5);
-		(drpObjectNode2.drp as SetDRP<number>).add(10);
+		drpObjectNode2.drp?.add(5);
+		drpObjectNode2.drp?.add(10);
 		const message = Message.create({
 			sender: node1.networkNode.peerId,
 			type: MessageType.MESSAGE_TYPE_FETCH_STATE,
@@ -152,8 +152,8 @@ describe("Handle message correctly", () => {
 	});
 
 	test("should handle sync message correctly", async () => {
-		(drpObjectNode2.drp as SetDRP<number>).add(5);
-		(drpObjectNode2.drp as SetDRP<number>).add(10);
+		drpObjectNode2.drp?.add(5);
+		drpObjectNode2.drp?.add(10);
 		await new Promise((resolve) => setTimeout(resolve, 500));
 		expect(drpObjectNode1).toBeDefined();
 
@@ -181,10 +181,10 @@ describe("Handle message correctly", () => {
 	}, 20000);
 
 	test("should handle update attestation message correctly", async () => {
-		(drpObjectNode2.drp as SetDRP<number>).add(5);
-		(drpObjectNode2.drp as SetDRP<number>).add(10);
+		drpObjectNode2.drp?.add(5);
+		drpObjectNode2.drp?.add(10);
 		const hash = drpObjectNode2.vertices[1].hash;
-		(drpObjectNode2.drp as SetDRP<number>).add(6);
+		drpObjectNode2.drp?.add(6);
 		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
 		await new Promise((resolve) => setTimeout(resolve, 500));
 		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);

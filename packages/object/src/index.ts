@@ -226,7 +226,7 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 			result = this._applyOperation(operationDRP, operation, this.hashGraph.peerId);
 		} catch (e) {
 			log.error(`::drpObject::callFn: ${e}`);
-			return result;
+			throw e;
 		}
 
 		return handlePromiseOrValue(result, (result) => {

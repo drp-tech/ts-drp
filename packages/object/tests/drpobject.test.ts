@@ -227,3 +227,23 @@ describe("Async push to array DRP", () => {
 		expect(drpObject2.drp?.query_array()).toEqual([1, 2, 3, 4, 5, 6]);
 	});
 });
+
+class ThrowingDRP extends SetDRP<number> {
+	semanticsType = SemanticsType.pair;
+
+	throw(): void {
+		throw new Error("Not implemented");
+	}
+}
+
+describe("Throwing DRP", () => {
+	let drpObject: DRPObject<ThrowingDRP>;
+
+	beforeEach(() => {
+		drpObject = new DRPObject({ peerId: "peer1", drp: new ThrowingDRP() });
+	});
+
+	test("throw", () => {
+		expect(() => drpObject.drp?.throw()).toThrowError("Error while applying operation throw: Error: Not implemented");
+	});
+});
