@@ -80,9 +80,20 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 
 	close(): void {
 		if (!this.isActive) {
-			throw new Error("Message queue is already closed");
+			this.logger.warn("Message queue is already closed");
+			return;
 		}
 		this.isActive = false;
 		this.channel.close();
+	}
+
+	start(): void {
+		if (this.isActive) {
+			this.logger.warn("Message queue is already started");
+			return;
+		}
+		this.isActive = true;
+		this.channel.start();
+		void this.startFanoutLoop();
 	}
 }

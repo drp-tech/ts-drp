@@ -182,6 +182,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		// start the routing loop to enqueue messages
 		void this.startEnqueueMessages();
 		this._metrics?.start(`drp-network-${this.peerId}`, 10_000);
+		this._messageQueue.start();
 	}
 
 	async stop(): Promise<void> {

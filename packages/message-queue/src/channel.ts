@@ -1,7 +1,9 @@
+import { Logger } from "@ts-drp/logger";
+import { type LoggerOptions } from "@ts-drp/types";
 import { Deferred } from "@ts-drp/utils/promise/deferred";
-
 export interface ChannelOptions {
 	capacity?: number;
+	logOptions?: LoggerOptions;
 }
 
 export class Channel<T> {
@@ -9,12 +11,17 @@ export class Channel<T> {
 	private readonly sends: Array<{ value: T; signal: Deferred<void> }> = [];
 	private readonly receives: Array<Deferred<T>> = [];
 	private readonly options: Required<ChannelOptions>;
+	private readonly logger: Logger;
 	private isClosed: boolean = false;
 
 	constructor(options: ChannelOptions = {}) {
 		this.options = {
 			capacity: options.capacity ?? 1000,
+			logOptions: options.logOptions ?? {
+				level: "info",
+			},
 		};
+		this.logger = new Logger("drp::channel", this.options.logOptions);
 	}
 
 	async send(value: T): Promise<void> {
@@ -92,5 +99,13 @@ export class Channel<T> {
 				recv.reject(new Error("Channel is closed"));
 			}
 		}
+	}
+
+	start(): void {
+		if (this.isClosed) {
+			this.logger.warn("Channel is closed");
+			return;
+		}
+		this.isClosed = true;
 	}
 }
