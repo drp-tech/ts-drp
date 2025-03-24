@@ -15,13 +15,13 @@ import {
 // all those ts-expect-error are because prom-client is not typed at a file level but this allow us to not have to
 // polyfill all the metrics related to node js itself which we don't enable this also allow tree shaking of the metrics library
 // @ts-expect-error -- prom-client is not typed
-import PromGauge from "prom-client/lib/gauge";
+import PromGauge from "prom-client/lib/gauge.js";
 // @ts-expect-error -- prom-client is not typed
-import PromHistogram from "prom-client/lib/histogram";
+import PromHistogram from "prom-client/lib/histogram.js";
 // @ts-expect-error -- prom-client is not typed
-import PromPushgateway from "prom-client/lib/pushgateway";
+import PromPushgateway from "prom-client/lib/pushgateway.js";
 // @ts-expect-error -- prom-client is not typed
-import { globalRegistry } from "prom-client/lib/registry";
+import { globalRegistry } from "prom-client/lib/registry.js";
 
 /**
  * PrometheusGauge wraps prom-client's Gauge to implement our Gauge interface.
