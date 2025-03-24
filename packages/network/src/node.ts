@@ -440,7 +440,10 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	}
 
 	private async startEnqueueMessages(): Promise<void> {
-		this._pubsub?.addEventListener("gossipsub:message", (e) => this.handleGossipsubMessage(e.detail.msg.data));
+		this._pubsub?.addEventListener("gossipsub:message", (e) => {
+			if (e.detail.msg.topic === DRP_DISCOVERY_TOPIC) return;
+			this.handleGossipsubMessage(e.detail.msg.data);
+		});
 		await this._node?.handle(DRP_MESSAGE_PROTOCOL, ({ stream }) => void this.handleStream(stream));
 	}
 

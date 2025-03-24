@@ -314,9 +314,14 @@ async function runObjectBenchmark(numberOfMessages: number, numberOfNodes: numbe
 }
 
 async function runBenchmarks(): Promise<void> {
-	await runMessageBenchmark(1, 3, 10);
-	await runObjectBenchmark(1, 3, 10);
-	process.exit(0);
+	try {
+		await runMessageBenchmark(1, 3, 10);
+		await runObjectBenchmark(1, 3, 10);
+		process.exit(0);
+	} catch (error) {
+		console.error("run benchmark error", error);
+		process.exit(-1);
+	}
 }
 
 runBenchmarks().catch(console.error);
