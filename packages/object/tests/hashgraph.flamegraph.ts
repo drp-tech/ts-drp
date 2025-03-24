@@ -59,14 +59,14 @@ async function mergeObjects(objects: DRPObject<SetDRP<number>>[]): Promise<void>
 
 async function flamegraphForSetDRP(numDRPs: number, verticesPerDRP: number, mergeFn: boolean): Promise<void> {
 	console.log("start to profile >>>");
-	const profile = await pprof.time.profile({
-		durationMillis: 0,
-	});
+	const stopFn = pprof.time.start();
 	const objects = createDRPObjects(numDRPs, verticesPerDRP);
 
 	if (mergeFn) {
 		await mergeObjects(objects);
 	}
+
+	const profile = stopFn();
 	const buf = await pprof.encode(profile);
 	fs.writeFile("flamegraph.pprof", buf, (err) => {
 		if (err) {
