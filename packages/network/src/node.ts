@@ -167,13 +167,17 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 
 		log.info("::start: Successfuly started DRP network w/ peer_id", this.peerId);
 
-		this._node.addEventListener("peer:connect", (e) => log.info("::start::peer::connect", e.detail));
+		this._node.addEventListener("peer:connect", (e) => log.info("::start::peer::connect", e.detail.toString()));
 
-		this._node.addEventListener("peer:discovery", (e) => log.info("::start::peer::discovery", e.detail));
+		this._node.addEventListener("peer:discovery", (e) => log.info("::start::peer::discovery", e.detail.id.toString()));
 
-		this._node.addEventListener("peer:identify", (e) => log.info("::start::peer::identify", e.detail));
+		this._node.addEventListener("peer:identify", (e) =>
+			log.info("::start::peer::identify", e.detail.peerId.toString())
+		);
 
-		this._pubsub.addEventListener("gossipsub:graft", (e) => log.info("::start::gossipsub::graft", e.detail));
+		this._pubsub.addEventListener("gossipsub:graft", (e) =>
+			log.info("::start::gossipsub::graft", e.detail.peerId.toString(), e.detail.topic)
+		);
 
 		// needed as I've disabled the pubsubPeerDiscovery
 		this._pubsub?.subscribe(DRP_DISCOVERY_TOPIC);
