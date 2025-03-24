@@ -1,5 +1,6 @@
 import { Logger } from "@ts-drp/logger";
 import type { IMessageQueue, IMessageQueueHandler, IMessageQueueOptions } from "@ts-drp/types";
+import { handlePromiseOrValue } from "@ts-drp/utils";
 
 import { Channel } from "./channel.js";
 
@@ -8,7 +9,7 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 	private channel: Channel<T>;
 	private isActive: boolean = true;
 	// List of subscriber handlers
-	private subscribers: Array<(message: T) => Promise<void>> = [];
+	private subscribers: Array<(message: T) => void | Promise<void>> = [];
 	// A flag to ensure the fanout loop starts only once
 	private fanoutLoopStarted: boolean = false;
 	private logger: Logger;
@@ -61,7 +62,7 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 
 				for (const handler of this.subscribers) {
 					try {
-						await handler(message);
+						await handlePromiseOrValue(handler, (handler) => handler(message));
 						this.logger.info(`queue::processed message ${message}`);
 					} catch (error) {
 						this.logger.error(`queue::error processing message ${message}:`, error);

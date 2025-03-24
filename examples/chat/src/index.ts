@@ -57,11 +57,10 @@ function sendMessage(message: string): void {
 }
 
 function createConnectHandlers(): void {
-	node.messageQueueManager.subscribe(drpObject.id, async () => {
+	node.messageQueueManager.subscribe(drpObject.id, () => {
 		// on create/connect
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
 		render();
-		return Promise.resolve();
 	});
 
 	node.objectStore.subscribe(drpObject.id, () => {
@@ -74,11 +73,10 @@ async function main(): Promise<void> {
 	render();
 
 	// generic message handler
-	node.messageQueueManager.subscribe(DRP_DISCOVERY_TOPIC, async () => {
+	node.messageQueueManager.subscribe(DRP_DISCOVERY_TOPIC, () => {
 		peers = node.networkNode.getAllPeers();
 		discoveryPeers = node.networkNode.getGroupPeers(DRP_DISCOVERY_TOPIC);
 		render();
-		return Promise.resolve();
 	});
 
 	const button_create = <HTMLButtonElement>document.getElementById("createRoom");

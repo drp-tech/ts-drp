@@ -13,7 +13,7 @@ export interface IMessageQueueOptions {
  * A handler for the message queue.
  */
 export interface IMessageQueueHandler<T> {
-	(message: T): Promise<void>;
+	(message: T): void | Promise<void>;
 }
 
 /**

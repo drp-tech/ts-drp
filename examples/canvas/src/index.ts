@@ -43,10 +43,9 @@ function paint_pixel(pixel: HTMLDivElement): void {
 }
 
 function createConnectHandlers(): void {
-	node.messageQueueManager.subscribe(drpObject.id, async () => {
+	node.messageQueueManager.subscribe(drpObject.id, () => {
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
 		render();
-		return Promise.resolve();
 	});
 
 	node.objectStore.subscribe(drpObject.id, () => {
@@ -76,11 +75,10 @@ async function init(): Promise<void> {
 		}
 	}
 
-	node.messageQueueManager.subscribe(DRP_DISCOVERY_TOPIC, async () => {
+	node.messageQueueManager.subscribe(DRP_DISCOVERY_TOPIC, () => {
 		peers = node.networkNode.getAllPeers();
 		discoveryPeers = node.networkNode.getGroupPeers(DRP_DISCOVERY_TOPIC);
 		render();
-		return Promise.resolve();
 	});
 
 	const create_button = <HTMLButtonElement>document.getElementById("create");

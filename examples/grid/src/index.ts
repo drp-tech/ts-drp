@@ -77,11 +77,10 @@ function createConnectHandlers(): void {
 	const objectId = gridState.getObjectId();
 	if (!objectId) return;
 
-	node.messageQueueManager.subscribe(objectId, async () => {
+	node.messageQueueManager.subscribe(objectId, () => {
 		if (!gridState.drpObject?.id) return;
 		gridState.objectPeers = node.networkNode.getGroupPeers(gridState.drpObject?.id);
 		render();
-		return Promise.resolve();
 	});
 
 	node.objectStore.subscribe(objectId, () => {
