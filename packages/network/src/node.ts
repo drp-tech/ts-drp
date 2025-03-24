@@ -14,14 +14,14 @@ import { privateKeyFromRaw } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
-import { type Address, type PeerDiscovery, type PeerId, type Stream } from "@libp2p/interface";
+import { type Address, type Connection, type PeerDiscovery, type PeerId, type Stream } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { ping } from "@libp2p/ping";
 import { pubsubPeerDiscovery, type PubSubPeerDiscoveryComponents } from "@libp2p/pubsub-peer-discovery";
 import { webRTC } from "@libp2p/webrtc";
 import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
-import { multiaddr, type MultiaddrInput } from "@multiformats/multiaddr";
+import { type Multiaddr, multiaddr, type MultiaddrInput } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger } from "@ts-drp/logger";
 import { MessageQueue } from "@ts-drp/message-queue";
@@ -155,7 +155,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		if (!this._config?.bootstrap) {
 			for (const addr of this._config?.bootstrap_peers || []) {
 				try {
-					await this._node.dial(multiaddr(addr));
+					await this.safeDial(multiaddr(addr));
 				} catch (e) {
 					log.error("::start::dial::error", e);
 				}
@@ -311,9 +311,39 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		}
 	}
 
+	private addrsPerPeerId(peerIds: string[] | Multiaddr[]): Record<string, Multiaddr[]> {
+		const addrs: Record<string, Multiaddr[]> = {};
+		for (const peerId of peerIds) {
+			const ma: Multiaddr = typeof peerId === "string" ? multiaddr(peerId) : peerId;
+			const currentPeerId = ma.getPeerId()?.toString();
+			if (!currentPeerId) continue;
+			addrs[currentPeerId] = [...(addrs[currentPeerId] ?? []), ma];
+		}
+		return addrs;
+	}
+
+	/**
+	 * @description Dial a peer with a peerId, multiaddr or array of multiaddrs it also handles the case where the caller
+	 * do something bad like passing multiaddrs that as different PeerIds
+	 *
+	 * @param peerId - The peerId, multiaddr or array of multiaddrs to dial
+	 * @returns The connection or undefined if no connection was made
+	 */
+	async safeDial(peerId: string[] | string | PeerId | Multiaddr | Multiaddr[]): Promise<Connection | undefined> {
+		const isArray = Array.isArray(peerId);
+		if (!isArray) {
+			const addr =
+				typeof peerId === "string" ? (peerId.includes("/") ? multiaddr(peerId) : peerIdFromString(peerId)) : peerId;
+			return this._node?.dial(addr);
+		}
+
+		const addrsPerPeerId = this.addrsPerPeerId(peerId);
+		return Promise.race(Object.values(addrsPerPeerId).map((addrs) => this._node?.dial(addrs)));
+	}
+
 	async connectToBootstraps(): Promise<void> {
 		try {
-			await Promise.race(this._bootstrapNodesList.map((addr) => this._node?.dial(multiaddr(addr))));
+			await this.safeDial(this._bootstrapNodesList);
 			log.info("::connectToBootstraps: Successfully connected to bootstrap nodes");
 		} catch (e) {
 			log.error("::connectToBootstraps:", e);
@@ -323,7 +353,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	async connect(addr: MultiaddrInput | MultiaddrInput[]): Promise<void> {
 		try {
 			const multiaddrs = Array.isArray(addr) ? addr.map(multiaddr) : [multiaddr(addr)];
-			await this._node?.dial(multiaddrs);
+			await this.safeDial(multiaddrs);
 			log.info("::connect: Successfully dialed", addr);
 		} catch (e) {
 			log.error("::connect:", e);
@@ -384,7 +414,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 
 	async sendMessage(peerId: string, message: Message): Promise<void> {
 		try {
-			const connection = await this._node?.dial([multiaddr(`/p2p/${peerId}`)]);
+			const connection = await this.safeDial([multiaddr(`/p2p/${peerId}`)]);
 			const stream = <Stream>await connection?.newStream(DRP_MESSAGE_PROTOCOL);
 			const messageBuffer = Message.encode(message).finish();
 			await uint8ArrayToStream(stream, messageBuffer);
@@ -399,7 +429,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 			if (!peers || peers.length === 0) throw Error("Topic wo/ peers");
 			const peerId = peers[Math.floor(Math.random() * peers.length)];
 
-			const connection = await this._node?.dial(peerId);
+			const connection = await this.safeDial(peerId);
 			const stream: Stream = (await connection?.newStream(DRP_MESSAGE_PROTOCOL)) as Stream;
 			const messageBuffer = Message.encode(message).finish();
 			await uint8ArrayToStream(stream, messageBuffer);
