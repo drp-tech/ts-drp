@@ -194,10 +194,8 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 
 	async restart(config?: DRPNetworkNodeConfig, rawPrivateKey?: Uint8Array): Promise<void> {
 		await this.stop();
-		this._metrics?.stop();
 		if (config) this._config = config;
 		await this.start(rawPrivateKey);
-		this._metrics?.start(`drp-network-${this.peerId}`, 10_000);
 	}
 
 	async isDialable(callback?: () => void | Promise<void>): Promise<boolean> {

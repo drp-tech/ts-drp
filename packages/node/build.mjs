@@ -1,33 +1,8 @@
 import * as esbuild from "esbuild";
-import { readFileSync } from "fs";
-import pascalCase from "pascalcase";
-import { nodeModulesPolyfillPlugin } from 'esbuild-plugins-node-modules-polyfill';
-import { join } from "path";
 
-const pkg = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8"));
-const globalName = pascalCase(pkg.name);
-const umdPost = `(async()=>{if(typeof window!=='undefined'){const m=await import(import.meta.url);window.${globalName}=m}})();`;
-
+import { esbuildConfigWithPolyfill } from "../../esbuild-config.mjs";
 await esbuild.build({
+	...esbuildConfigWithPolyfill,
 	entryPoints: ["dist/src/index.js"],
-	bundle: true,
-	minify: true,
-	format: "esm",
-	plugins: [nodeModulesPolyfillPlugin({
-		modules: {
-			zlib: true,
-			cluster: true,
-			http: true,
-			v8: true,
-			https: true,
-			fs: true,
-		}
-	})],
-	footer: { js: umdPost },
-	globalName,
-	define: {
-		"global": "globalThis",
-		"process.env.NODE_ENV": '"production"',
-	},
 	outfile: "dist/index.min.js",
 });

@@ -1,7 +1,3 @@
-// this is a polyfill for process.uptime and process.hrtime to work in the browser
-// this needs to be imported before the metrics are used
-import "./polyfill-process.js";
-
 import {
 	type AvgMinMax,
 	type AvgMinMaxConfig,
@@ -11,13 +7,27 @@ import {
 	type HistogramConfig,
 	type MetricsRegister,
 } from "@chainsafe/libp2p-gossipsub/metrics";
-import { Gauge as PromGauge, Histogram as PromHistogram, Pushgateway as Pushgateway, register } from "prom-client";
+import {
+	type Gauge as TypePromGauge,
+	type Histogram as TypePromHistogram,
+	type Pushgateway as TypePromPushgateway,
+} from "prom-client";
+// all those ts-expect-error are because prom-client is not typed at a file level but this allow us to not have to
+// polyfill all the metrics related to node js itself which we don't enable this also allow tree shaking of the metrics library
+// @ts-expect-error -- prom-client is not typed
+import PromGauge from "prom-client/lib/gauge";
+// @ts-expect-error -- prom-client is not typed
+import PromHistogram from "prom-client/lib/histogram";
+// @ts-expect-error -- prom-client is not typed
+import PromPushgateway from "prom-client/lib/pushgateway";
+// @ts-expect-error -- prom-client is not typed
+import { globalRegistry } from "prom-client/lib/registry";
 
 /**
  * PrometheusGauge wraps prom-client's Gauge to implement our Gauge interface.
  */
 class PrometheusGauge<Labels extends Record<string, string | number> = Record<string, never>> implements Gauge<Labels> {
-	private gauge: PromGauge<string>;
+	private gauge: TypePromGauge<string>;
 	private collects: Array<(metric: Gauge<Labels>) => void> = [];
 
 	constructor(config: GaugeConfig<Labels>) {
@@ -68,7 +78,7 @@ class PrometheusGauge<Labels extends Record<string, string | number> = Record<st
 class PrometheusHistogram<Labels extends Record<string, string | number> = Record<string, never>>
 	implements Histogram<Labels>
 {
-	private histogram: PromHistogram<string>;
+	private histogram: TypePromHistogram<string>;
 
 	constructor(config: HistogramConfig<Labels>) {
 		this.histogram = new PromHistogram({
@@ -105,9 +115,9 @@ class PrometheusHistogram<Labels extends Record<string, string | number> = Recor
 class PrometheusAvgMinMax<Labels extends Record<string, string | number> = Record<string, never>>
 	implements AvgMinMax<Labels>
 {
-	private gaugeAvg: PromGauge<string>;
-	private gaugeMin: PromGauge<string>;
-	private gaugeMax: PromGauge<string>;
+	private gaugeAvg: TypePromGauge<string>;
+	private gaugeMin: TypePromGauge<string>;
+	private gaugeMax: TypePromGauge<string>;
 
 	constructor(config: AvgMinMaxConfig<Labels>) {
 		const labelNames = config.labelNames ? (config.labelNames as string[]) : [];
@@ -157,11 +167,11 @@ class PrometheusAvgMinMax<Labels extends Record<string, string | number> = Recor
  * and provides a method to push metrics to a Pushgateway.
  */
 export class PrometheusMetricsRegister implements MetricsRegister {
-	private pushgateway: Pushgateway<"text/plain; version=0.0.4; charset=utf-8">;
+	private pushgateway: TypePromPushgateway<"text/plain; version=0.0.4; charset=utf-8">;
 	private interval: NodeJS.Timeout | undefined;
 
 	constructor(pushgatewayUrl: string) {
-		this.pushgateway = new Pushgateway(pushgatewayUrl, {}, register);
+		this.pushgateway = new PromPushgateway(pushgatewayUrl, {}, globalRegistry);
 	}
 
 	start(jobName: string, interval: number): void {
