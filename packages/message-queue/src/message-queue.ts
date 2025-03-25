@@ -63,7 +63,7 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 				for (const handler of this.subscribers) {
 					try {
 						await handlePromiseOrValue(handler, (handler) => handler(message));
-						this.logger.info(`queue::processed message ${message}`);
+						this.logger.trace(`queue::processed message ${message}`);
 					} catch (error) {
 						this.logger.error(`queue::error processing message ${message}:`, error);
 					}
