@@ -25,8 +25,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 
 	test("Test creating an object wo/ DRP", () => {
-		const obj = DRPObject.createObject({ peerId: "" });
-		expect(obj.drp).toBeUndefined();
+		expect(() => DRPObject.createObject({ peerId: "" })).toThrowError();
 	});
 });
 
@@ -115,7 +114,9 @@ describe("Merging vertices tests", () => {
 		await obj1.merge(obj2.hashGraph.getAllVertices());
 		obj1.drp?.add(3);
 
-		const vertex = obj1.vertices.find((v) => v.operation?.opType === "add" && v.operation.value[0] === 3);
+		const vertex = obj1.vertices.find(
+			(v) => v.operation?.opType === "add" && v.operation.value[0] === 3
+		);
 		if (!vertex) {
 			throw new Error("Vertex not found");
 		}
