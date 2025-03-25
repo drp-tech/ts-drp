@@ -1,5 +1,6 @@
 import { type IACL } from "./acl.js";
 import { type DRPIntervalDiscoveryOptions } from "./drp-interval-discovery.js";
+import { type DRPIntervalReconnectOptions } from "./drp-interval-reconnect.js";
 import { type IDRP } from "./drp.js";
 import { type KeychainOptions } from "./keychain.js";
 import { type LoggerOptions } from "./logger.js";
@@ -11,6 +12,7 @@ export interface DRPNodeConfig {
 	network_config?: DRPNetworkNodeConfig;
 	keychain_config?: KeychainOptions;
 	interval_discovery_options?: Omit<DRPIntervalDiscoveryOptions, "id" | "networkNode">;
+	interval_reconnect_options?: Omit<DRPIntervalReconnectOptions, "id" | "networkNode">;
 }
 
 interface NodeObjectOptionsBase<T> {

@@ -22,10 +22,7 @@ const objectPeersSelector = "#objectPeers";
  * @param searchPattern - String or RegExp to match against file content
  * @returns Promise that resolves when the required matches are found
  */
-function chackFileUntilMatches(
-	filePath: string,
-	searchPattern: () => string | RegExp
-): Promise<void> {
+function chackFileUntilMatches(filePath: string, searchPattern: () => string | RegExp): Promise<void> {
 	return new Promise((resolve, reject) => {
 		const intervalMs = 300;
 

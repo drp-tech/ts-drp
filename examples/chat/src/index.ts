@@ -24,7 +24,7 @@ const render = (): void => {
 	const element_objectPeers = <HTMLDivElement>document.getElementById("objectPeers");
 	element_objectPeers.innerHTML = `[${objectPeers.join(", ")}]`;
 
-	if (!drpObject.drp) return;
+	if (!drpObject?.drp) return;
 	const chat = drpObject.drp.query_messages();
 	const element_chat = <HTMLDivElement>document.getElementById("chat");
 	element_chat.innerHTML = "";
@@ -57,7 +57,7 @@ function sendMessage(message: string): void {
 }
 
 function createConnectHandlers(): void {
-	node.addCustomGroupMessageHandler(drpObject.id, () => {
+	node.messageQueueManager.subscribe(drpObject.id, () => {
 		// on create/connect
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
 		render();
@@ -73,7 +73,7 @@ async function main(): Promise<void> {
 	render();
 
 	// generic message handler
-	node.addCustomGroupMessageHandler("", () => {
+	node.messageQueueManager.subscribe(DRP_DISCOVERY_TOPIC, () => {
 		peers = node.networkNode.getAllPeers();
 		discoveryPeers = node.networkNode.getGroupPeers(DRP_DISCOVERY_TOPIC);
 		render();

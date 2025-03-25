@@ -6,11 +6,7 @@ export default defineConfig({
 	build: {
 		target: "esnext",
 	},
-	plugins: [
-		nodePolyfills({
-			overrides: {},
-		}),
-	],
+	plugins: [nodePolyfills()],
 	optimizeDeps: {
 		esbuildOptions: {
 			target: "esnext",
@@ -18,7 +14,10 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			"@ts-drp": path.resolve(__dirname, "../../packages"),
+			"vite-plugin-node-polyfills/shims/process": path.resolve(
+				__dirname,
+				"node_modules/vite-plugin-node-polyfills/shims/process"
+			),
 		},
 	},
 });

@@ -21,7 +21,8 @@
 		}
 	},
 	"scripts": {
-		"build": "tsc -b tsconfig.build.json",
+		"benchmark": "tsx tests/node.bench.ts | tee -a ../benchmark-output.txt",
+		"build": "tsc -b tsconfig.build.json && node build.mjs",
 		"clean": "rm -rf dist/ node_modules/",
 		"cli": "tsx ./src/run.ts",
 		"prebuild": "node -p \"'export const VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
@@ -32,6 +33,8 @@
 	},
 	"devDependencies": {
 		"@ts-drp/test-utils": "0.10.0",
+		"@types/benchmark": "^2.1.5",
+		"benchmark": "^2.1.4",
 		"race-event": "^1.3.0",
 		"tsx": "4.19.1",
 		"vitest": "^3.0.5"
@@ -46,9 +49,12 @@
 		"@libp2p/crypto": "^5.0.5",
 		"@libp2p/interface": "^2.1.3",
 		"@libp2p/peer-id": "^5.0.14",
+		"@noble/hashes": "^1.7.1",
+		"@multiformats/multiaddr": "^12.3.1",
 		"@noble/secp256k1": "^2.2.3",
 		"@ts-drp/blueprints": "0.10.0",
 		"@ts-drp/interval-discovery": "0.10.0",
+		"@ts-drp/interval-reconnect": "0.10.0",
 		"@ts-drp/interval-runner": "0.10.0",
 		"@ts-drp/keychain": "0.10.0",
 		"@ts-drp/logger": "0.10.0",
@@ -57,9 +63,12 @@
 		"@ts-drp/tracer": "0.10.0",
 		"@ts-drp/types": "0.10.0",
 		"@ts-drp/utils": "0.10.0",
+		"@ts-drp/message-queue": "0.10.0",
 		"@types/node": "^22.5.4",
 		"commander": "^13.0.0",
 		"dotenv": "^16.4.5",
+		"esbuild-plugins-node-modules-polyfill": "^1.7.0",
+		"race-signal": "^1.1.3",
 		"uint8arrays": "^5.1.0"
 	}
 }

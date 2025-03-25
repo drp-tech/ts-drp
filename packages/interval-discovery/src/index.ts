@@ -7,6 +7,7 @@ import {
 	type DRPIntervalDiscoveryOptions,
 	type DRPNetworkNode,
 	type IDRPIntervalDiscovery,
+	type IntervalRunnerState,
 	Message,
 	MessageType,
 	type SubscriberInfo,
@@ -98,11 +99,12 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	 */
 	private async _broadcastDiscoveryRequest(): Promise<void> {
 		try {
-			const data = DRPDiscoveryRequest.create({ objectId: this.id });
+			const data = DRPDiscoveryRequest.create({});
 			const message = Message.create({
 				sender: this.networkNode.peerId.toString(),
 				type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
 				data: DRPDiscoveryRequest.encode(data).finish(),
+				objectId: this.id,
 			});
 
 			this._logger.info("Broadcasting discovery request");
@@ -129,7 +131,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	/**
 	 * Returns the current state of the discovery process
 	 */
-	get state(): "running" | "stopped" {
+	get state(): IntervalRunnerState {
 		return this._intervalRunner.state;
 	}
 
@@ -139,10 +141,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	 * @param sender - The sender of the discovery response
 	 * @param data - The data of the discovery response
 	 */
-	async handleDiscoveryResponse(
-		sender: string,
-		subscribers: Record<string, SubscriberInfo>
-	): Promise<void> {
+	async handleDiscoveryResponse(sender: string, subscribers: Record<string, SubscriberInfo>): Promise<void> {
 		this._logger.info("Received discovery response from", sender);
 
 		await this._connectToDiscoveredPeers(subscribers);
@@ -151,9 +150,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	/**
 	 * Connects to peers from a discovery response
 	 */
-	private async _connectToDiscoveredPeers(
-		subscribers: Record<string, SubscriberInfo>
-	): Promise<void> {
+	private async _connectToDiscoveredPeers(subscribers: Record<string, SubscriberInfo>): Promise<void> {
 		const selfId = this.networkNode.peerId.toString();
 
 		for (const [peerId, info] of Object.entries(subscribers)) {
@@ -176,19 +173,16 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	 * @param data - The data of the discovery request
 	 * @param networkNode - The network node instance
 	 */
-	static async handleDiscoveryRequest(
-		sender: string,
-		data: Uint8Array,
-		networkNode: DRPNetworkNode
-	): Promise<void> {
+	static async handleDiscoveryRequest(sender: string, message: Message, networkNode: DRPNetworkNode): Promise<void> {
 		const logger = new Logger("drp::discovery::static");
 
 		try {
-			const request = DRPDiscoveryRequest.decode(data);
-			const objectId = request.objectId;
-
+			const objectId = message.objectId;
 			// Get all peers for this object ID
 			const peers = networkNode.getGroupPeers(objectId);
+			if (networkNode.getSubscribedTopics().includes(objectId)) {
+				peers.push(networkNode.peerId.toString());
+			}
 			if (peers.length === 0) return; // No peers to report
 
 			// Collect peer information
@@ -236,11 +230,12 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 		objectId: string
 	): Promise<void> {
 		try {
-			const response = DRPDiscoveryResponse.create({ subscribers, objectId });
+			const response = DRPDiscoveryResponse.create({ subscribers });
 			const message = Message.create({
 				sender: recipient,
 				type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE,
 				data: DRPDiscoveryResponse.encode(response).finish(),
+				objectId,
 			});
 
 			await networkNode.sendMessage(recipient, message);

@@ -26,9 +26,7 @@ export class FinalityState {
 
 		// deterministic order
 		const peerIds = Array.from(signers.keys()).sort();
-		this.signerCredentials = peerIds
-			.map((peerId) => signers.get(peerId))
-			.filter((c) => c !== undefined);
+		this.signerCredentials = peerIds.map((peerId) => signers.get(peerId)).filter((c) => c !== undefined);
 
 		this.signerIndices = new Map();
 		for (let i = 0; i < peerIds.length; i++) {

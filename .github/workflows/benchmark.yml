@@ -14,7 +14,7 @@ jobs:
   benchmark:
     name: Run benchmark
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -29,13 +29,19 @@ jobs:
           cd packages/object
           pnpm run benchmark
 
-      - name: Set cache dir
-        uses: actions/cache@v4
+      - shell: bash
+        run: |
+          cd packages/node
+          pnpm run benchmark
+
+      - name: Restore cached benchmark data
+        id: restore-benchmark-data
+        uses: actions/cache/restore@v4
         with:
+          key: ${{ runner.os }}-benchmark-${{ github.run_id }}
           path: ./cache
-          key: benchmark-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
-            benchmark-${{ runner.os }}
+            ${{ runner.os }}-benchmark-
 
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
@@ -43,7 +49,7 @@ jobs:
           name: Benchmark.js Benchmark
           tool: "benchmarkjs"
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          output-file-path: packages/object/benchmark-output.txt
+          output-file-path: packages/benchmark-output.txt
           alert-threshold: "130%"
           fail-on-alert: ${{ github.event_name != 'push' }}
           comment-on-alert: ${{ github.event_name == 'push' }}
@@ -51,6 +57,13 @@ jobs:
           gh-pages-branch: main
           skip-fetch-gh-pages: ${{ github.event_name == 'push' }}
           benchmark-data-dir-path: ./cache/benchmarks
+
+      - name: Store benchmark data
+        uses: actions/cache/save@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          key: ${{ steps.restore-benchmark-data.outputs.cache-primary-key }}
+          path: ./cache
 
   docs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

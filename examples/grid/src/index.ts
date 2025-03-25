@@ -9,10 +9,9 @@ import { gridState } from "./state";
 import { getColorForPeerId } from "./util/color";
 
 export function getNetworkConfigFromEnv(): DRPNodeConfig {
-	const hasBootstrapPeers = env.bootstrapPeers;
-	const hasDiscoveryInterval = env.discoveryInterval;
+	const { bootstrapPeers, discoveryInterval, enablePrometheusMetrics } = env;
 
-	const hasEnv = hasBootstrapPeers || hasDiscoveryInterval;
+	const hasEnv = bootstrapPeers || discoveryInterval || enablePrometheusMetrics;
 
 	const config: DRPNodeConfig = {
 		network_config: {
@@ -24,14 +23,14 @@ export function getNetworkConfigFromEnv(): DRPNodeConfig {
 		return config;
 	}
 
-	if (hasBootstrapPeers) {
+	if (bootstrapPeers) {
 		config.network_config = {
 			...config.network_config,
 			bootstrap_peers: env.bootstrapPeers.split(","),
 		};
 	}
 
-	if (hasDiscoveryInterval) {
+	if (discoveryInterval) {
 		config.network_config = {
 			...config.network_config,
 			pubsub: {
@@ -41,47 +40,50 @@ export function getNetworkConfigFromEnv(): DRPNodeConfig {
 		};
 	}
 
+	if (enablePrometheusMetrics) {
+		config.network_config = {
+			...config.network_config,
+			pubsub: {
+				...config.network_config?.pubsub,
+				prometheus_metrics: true,
+				pushgateway_url: window.location.origin,
+			},
+		};
+	}
+
 	return config;
 }
 
 function addUser(): void {
-	if (!gridState.drpObject?.drp) {
-		console.error("Grid DRP not initialized");
-		alert("Please create or join a grid first");
-		return;
-	}
-
-	gridState.drpObject.drp.addUser(
-		gridState.node.networkNode.peerId,
-		getColorForPeerId(gridState.node.networkNode.peerId)
-	);
+	const node = gridState.getNode();
+	const gridDRP = gridState.getGridDRP();
+	gridDRP.addUser(node.networkNode.peerId, getColorForPeerId(node.networkNode.peerId));
 	render();
 }
 
 function moveUser(direction: string): void {
-	if (!gridState.drpObject?.drp) {
-		console.error("Grid DRP not initialized");
-		alert("Please create or join a grid first");
-		return;
-	}
-
-	gridState.drpObject.drp.moveUser(gridState.node.networkNode.peerId, direction);
+	const node = gridState.getNode();
+	const gridDRP = gridState.getGridDRP();
+	gridDRP.moveUser(node.networkNode.peerId, direction);
 	render();
 }
 
 function createConnectHandlers(): void {
-	if (gridState.drpObject)
-		gridState.objectPeers = gridState.node.networkNode.getGroupPeers(gridState.drpObject.id);
+	const node = gridState.getNode();
+	if (gridState.drpObject) {
+		gridState.objectPeers = node.networkNode.getGroupPeers(gridState.drpObject.id);
+	}
 
-	if (!gridState.drpObject?.id) return;
+	const objectId = gridState.getObjectId();
+	if (!objectId) return;
 
-	gridState.node.addCustomGroupMessageHandler(gridState.drpObject?.id, () => {
+	node.messageQueueManager.subscribe(objectId, () => {
 		if (!gridState.drpObject?.id) return;
-		gridState.objectPeers = gridState.node.networkNode.getGroupPeers(gridState.drpObject?.id);
+		gridState.objectPeers = node.networkNode.getGroupPeers(gridState.drpObject?.id);
 		render();
 	});
 
-	gridState.node.objectStore.subscribe(gridState.drpObject?.id, () => {
+	node.objectStore.subscribe(objectId, () => {
 		render();
 	});
 }
@@ -92,10 +94,13 @@ function run(metrics?: IMetrics): void {
 
 	const button_create = <HTMLButtonElement>document.getElementById("createGrid");
 	const create = async (): Promise<void> => {
-		gridState.drpObject = await gridState.node.createObject({
+		const node = gridState.getNode();
+
+		gridState.drpObject = await node.createObject({
 			drp: new Grid(),
 			metrics,
 		});
+		gridState.gridDRP = gridState.drpObject.drp;
 		createConnectHandlers();
 		addUser();
 		render();
@@ -113,12 +118,15 @@ function run(metrics?: IMetrics): void {
 
 	const connect = async (): Promise<void> => {
 		const drpId = grid_input.value;
+		const node = gridState.getNode();
+
 		try {
-			gridState.drpObject = await gridState.node.connectObject({
+			gridState.drpObject = await node.connectObject({
 				id: drpId,
 				drp: new Grid(),
 				metrics,
 			});
+			gridState.gridDRP = gridState.drpObject.drp;
 			createConnectHandlers();
 			addUser();
 			render();

@@ -166,10 +166,7 @@ function processRemainingAsync<T>(
  * ); // returns "1-Test"
  * ```
  */
-export function handlePromiseOrValue<T, R>(
-	value: T | Promise<T>,
-	fn: (value: T) => R
-): R | Promise<R> {
+export function handlePromiseOrValue<T, R>(value: T | Promise<T>, fn: (value: T) => R): R | Promise<R> {
 	if (isPromise(value)) {
 		return value.then(fn);
 	}
