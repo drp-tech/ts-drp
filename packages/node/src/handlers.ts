@@ -63,10 +63,7 @@ const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
 export async function handleMessage(node: DRPNode, message: Message): Promise<void> {
 	const validation = MessageSchema.safeParse(message);
 	if (!validation.success) {
-		log.error("::messageHandler: Invalid message format", {
-			errors: validation.error.errors,
-			message: message,
-		});
+		log.error(`::messageHandler: Invalid message format ${validation.error.message}`);
 		return;
 	}
 	const validatedMessage = validation.data;

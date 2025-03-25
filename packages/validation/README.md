@@ -1,6 +1,8 @@
 # @ts-drp/validation
 
-The `@ts-drp/validation` package provides a simple interface for generating and managing cryptographic keys used in the DRP (Distributed Real-Time Programs) protocol. It utilizes the `@chainsafe/bls` library for generating BLS (Boneh-Lynn-Shacham) keys and the `@noble/secp256k1` library for generating Secp256k1 keys.
+The `@ts-drp/validation` package provides centralized, reusable runtime validation schemas for inputs and messages used in the ts-drp project. It uses [Zod](https://zod.dev/) — a TypeScript-first schema validation library — to ensure correctness and safety of incoming data, especially from network messages and user input.
+
+This package helps prevent malformed data (e.g., empty object id when connecting to an object) from propagating through the system.
 
 ## Installation
 
