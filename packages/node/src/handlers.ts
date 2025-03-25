@@ -158,8 +158,8 @@ function attestationUpdateHandler({ node, message }: HandleParams): ReturnType<I
 }
 
 /*
-	data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
-	operations array doesn't contain the full remote operations array
+  data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
+  operations array doesn't contain the full remote operations array
 */
 async function updateHandler({ node, message }: HandleParams): Promise<void> {
 	const { sender, data } = message;
@@ -275,8 +275,8 @@ async function syncHandler({ node, message }: HandleParams): Promise<void> {
 }
 
 /*
-	data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
-	operations array contain the full remote operations array
+  data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
+  operations array contain the full remote operations array
 */
 async function syncAcceptHandler({ node, message }: HandleParams): Promise<void> {
 	const { data, sender } = message;
