@@ -1,10 +1,11 @@
 import { MapDRP, SetDRP } from "@ts-drp/blueprints";
 import Benchmark from "benchmark";
 
-import { DRPObject, ObjectACL } from "../src/index.js";
+import { ObjectACL } from "../src/acl/index.js";
+import { DRPObject } from "../src/object2.js";
 
 const acl = new ObjectACL({
-	admins: ["peer1"],
+	admins: ["peer1", "peer2"],
 });
 
 const NUMBER_OF_OPERATIONS = Number.parseInt(process.argv[2], 10) || 1000;
@@ -41,7 +42,7 @@ function benchmarkForAddWinSet(
 			for (let i = 0; i < objects.length; i++) {
 				for (let j = 0; j < objects.length; j++) {
 					if (i !== j) {
-						await objects[i].merge(objects[j].hashGraph.getAllVertices());
+						await objects[i].merge(objects[j].vertices);
 					}
 				}
 			}
@@ -168,8 +169,8 @@ suite.add(
 		});
 		initialize(object2.drp);
 
-		await object1.merge(object2.hashGraph.getAllVertices());
-		await object2.merge(object1.hashGraph.getAllVertices());
+		await object1.merge(object2.vertices);
+		await object2.merge(object1.vertices);
 	}
 );
 

@@ -11,7 +11,7 @@ import {
 	FetchState,
 	FetchStateResponse,
 	type IDRP,
-	type IDRPObject,
+	type IDRPObject2,
 	Message,
 	MessageType,
 	Sync,
@@ -81,8 +81,7 @@ function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandler
 		return;
 	}
 
-	const aclState = drpObject.aclStates.get(fetchState.vertexHash);
-	const drpState = drpObject.drpStates.get(fetchState.vertexHash);
+	const [aclState, drpState] = drpObject.getStates(fetchState.vertexHash);
 	const response = FetchStateResponse.create({
 		vertexHash: fetchState.vertexHash,
 		aclState: serializeDRPState(aclState),
@@ -121,9 +120,10 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 		const drpState = deserializeDRPState(fetchStateResponse.drpState);
 		if (fetchStateResponse.vertexHash === HashGraph.rootHash) {
 			const state = aclState;
-			object.aclStates.set(fetchStateResponse.vertexHash, state);
+			object.setACLState(fetchStateResponse.vertexHash, state);
 			for (const e of state.state) {
-				if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value;
+				// TODO: seems useless
+				//if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value;
 				object.acl[e.key] = e.value;
 			}
 			node.objectStore.put(object.id, object);
@@ -131,10 +131,10 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 		}
 
 		if (fetchStateResponse.aclState) {
-			object.aclStates.set(fetchStateResponse.vertexHash, aclState);
+			object.setACLState(fetchStateResponse.vertexHash, aclState);
 		}
 		if (fetchStateResponse.drpState) {
-			object.drpStates.set(fetchStateResponse.vertexHash, drpState);
+			object.setDRPState(fetchStateResponse.vertexHash, drpState);
 		}
 	} finally {
 		if (fetchStateDeferredMap.has(object.id)) {
@@ -348,7 +348,7 @@ function syncRejectHandler(_handleParams: HandleParams): ReturnType<IHandlerStra
 
 export function drpObjectChangesHandler<T extends IDRP>(
 	node: DRPNode,
-	obj: IDRPObject<T>,
+	obj: IDRPObject2<T>,
 	originFn: string,
 	vertices: Vertex[]
 ): void {
@@ -406,14 +406,18 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]): 
 // Signs the vertices. Returns the added attestations
 export function signFinalityVertices<T extends IDRP>(
 	node: DRPNode,
-	obj: IDRPObject<T>,
+	obj: IDRPObject2<T>,
 	vertices: Vertex[]
 ): Attestation[] {
 	const attestations = generateAttestations(node, obj, vertices);
 	return obj.finalityStore.addSignatures(node.networkNode.peerId, attestations, false);
 }
 
-function generateAttestations<T extends IDRP>(node: DRPNode, object: IDRPObject<T>, vertices: Vertex[]): Attestation[] {
+function generateAttestations<T extends IDRP>(
+	node: DRPNode,
+	object: IDRPObject2<T>,
+	vertices: Vertex[]
+): Attestation[] {
 	// Two condition:
 	// - The node can sign the vertex
 	// - The node hasn't signed for the vertex
@@ -428,7 +432,7 @@ function generateAttestations<T extends IDRP>(node: DRPNode, object: IDRPObject<
 	}));
 }
 
-function getAttestations<T extends IDRP>(object: IDRPObject<T>, vertices: Vertex[]): AggregatedAttestation[] {
+function getAttestations<T extends IDRP>(object: IDRPObject2<T>, vertices: Vertex[]): AggregatedAttestation[] {
 	return (
 		vertices
 			.map((v) => object.finalityStore.getAttestation(v.hash))

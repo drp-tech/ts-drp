@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { ObjectACL } from "../src/acl/index.js";
 import { FinalityState, FinalityStore } from "../src/finality/index.js";
 import { BitSet } from "../src/hashgraph/bitset.js";
-import { DRPObject } from "../src/index.js";
+import { DRPObject } from "../src/object2.js";
 
 // initialize log
 const _ = new DRPObject({

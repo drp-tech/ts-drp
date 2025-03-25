@@ -5,7 +5,7 @@ import { ObjectACL } from "@ts-drp/object";
 import {
 	type DRPNetworkNodeConfig,
 	type DRPNodeConfig,
-	type IDRPObject,
+	type IDRPObject2,
 	type KeychainOptions,
 	type LoggerOptions,
 	type Message,
@@ -224,7 +224,7 @@ async function runMessageBenchmark(numberOfMessages: number, numberOfNodes: numb
 async function runObjectBenchmark(numberOfMessages: number, numberOfNodes: number, time: number): Promise<void> {
 	const suite = new Benchmark.Suite();
 	const nodes = await createNodes(numberOfNodes);
-	const objects: IDRPObject<AddMulDRP>[] = [];
+	const objects: IDRPObject2<AddMulDRP>[] = [];
 	const admins = nodes.map((node) => node.networkNode.peerId);
 	const acl = new ObjectACL({ admins, permissionless: true });
 	for (let i = 0; i < nodes.length; i++) {

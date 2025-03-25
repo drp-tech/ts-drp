@@ -1,5 +1,5 @@
 import { HashGraph } from "@ts-drp/object";
-import { FetchState, type IDRP, type IDRPObject, Message, MessageType, Sync } from "@ts-drp/types";
+import { FetchState, type IDRP, type IDRPObject2, Message, MessageType, Sync } from "@ts-drp/types";
 import { Deferred } from "@ts-drp/utils/promise/deferred";
 
 import { fetchStateDeferredMap } from "./handlers.js";
@@ -32,7 +32,7 @@ export async function fetchState(node: DRPNode, objectId: string, peerId?: strin
  *  data: { vertex_hashes: string[] }
  */
 export async function syncObject<T extends IDRP>(node: DRPNode, objectId: string, peerId?: string): Promise<void> {
-	const object: IDRPObject<T> | undefined = node.objectStore.get(objectId);
+	const object: IDRPObject2<T> | undefined = node.objectStore.get(objectId);
 	if (!object) {
 		log.error("::syncObject: Object not found");
 		return;

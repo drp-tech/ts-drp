@@ -2,9 +2,10 @@ import { ActionType, DrpType, SemanticsType, type Vertex } from "@ts-drp/types";
 import { ObjectSet } from "@ts-drp/utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { HashGraph, newVertex } from "../src/index.js";
+import { HashGraph } from "../src/hashgraph/index.js";
 import { linearizeMultipleSemantics } from "../src/linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../src/linearize/pairSemantics.js";
+import { createVertex } from "../src/utils/createVertex.js";
 
 describe("Linearize correctly", () => {
 	test("should linearize correctly with multiple semantics", () => {
@@ -27,7 +28,7 @@ describe("Linearize correctly", () => {
 		for (let i = 0; i < 10; i += 2) {
 			const frontier = hashgraph.getFrontier();
 			hashgraph.addVertex(
-				newVertex(
+				createVertex(
 					"",
 					{
 						opType: "test",
@@ -40,7 +41,7 @@ describe("Linearize correctly", () => {
 				)
 			);
 			hashgraph.addVertex(
-				newVertex(
+				createVertex(
 					"",
 					{
 						opType: "test",
@@ -96,7 +97,7 @@ describe("Linearize correctly", () => {
 		for (let i = 0; i < 10; i += 2) {
 			const frontier = hashgraph.getFrontier();
 			hashgraph.addVertex(
-				newVertex(
+				createVertex(
 					"",
 					{
 						opType: "test",
@@ -109,7 +110,7 @@ describe("Linearize correctly", () => {
 				)
 			);
 			hashgraph.addVertex(
-				newVertex(
+				createVertex(
 					"",
 					{
 						opType: "test",
@@ -159,7 +160,7 @@ describe("linearizeMultipleSemantics", () => {
 
 		// Add vertices to the graph
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				{
 					opType: "set",
@@ -173,7 +174,7 @@ describe("linearizeMultipleSemantics", () => {
 		);
 
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				{
 					opType: "set",
@@ -211,7 +212,7 @@ describe("linearizeMultipleSemantics", () => {
 
 		// Add concurrent vertices
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				{
 					opType: "set",
@@ -225,7 +226,7 @@ describe("linearizeMultipleSemantics", () => {
 		);
 
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				{
 					opType: "set",
@@ -239,7 +240,7 @@ describe("linearizeMultipleSemantics", () => {
 		);
 
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				{
 					opType: "set",
@@ -256,7 +257,7 @@ describe("linearizeMultipleSemantics", () => {
 		frontier = hashGraph.getFrontier();
 
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				{
 					opType: "set",
@@ -269,7 +270,7 @@ describe("linearizeMultipleSemantics", () => {
 			)
 		);
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				{
 					opType: "set",
@@ -285,7 +286,7 @@ describe("linearizeMultipleSemantics", () => {
 		frontier = hashGraph.getFrontier();
 
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				{
 					opType: "set",
@@ -320,7 +321,7 @@ describe("linearizeMultipleSemantics", () => {
 
 		// Add vertices to the graph
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				{
 					opType: "set",
@@ -334,7 +335,7 @@ describe("linearizeMultipleSemantics", () => {
 		);
 
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				{
 					opType: "set",
@@ -379,7 +380,7 @@ describe("linearizeMultipleSemantics", () => {
 		for (let i = 0; i < 100; i += 2) {
 			const frontier = hashGraph.getFrontier();
 			hashGraph.addVertex(
-				newVertex(
+				createVertex(
 					"",
 					{
 						opType: "test",
@@ -392,7 +393,7 @@ describe("linearizeMultipleSemantics", () => {
 				)
 			);
 			hashGraph.addVertex(
-				newVertex(
+				createVertex(
 					"",
 					{
 						opType: "test",

@@ -121,7 +121,7 @@ describe("DRPNode voting tests", () => {
 
 		obj2 = new DRPObject({
 			peerId: nodeB.networkNode.peerId,
-			acl: obj1.acl,
+			acl,
 			drp: new SetDRP(),
 		});
 	});
@@ -132,9 +132,12 @@ describe("DRPNode voting tests", () => {
 		*/
 
 		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Finality);
-
+		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Admin);
+		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Writer);
 		await obj2.merge(obj1.vertices);
+
 		obj2.acl.setKey(nodeB.keychain.blsPublicKey);
+		await obj1.merge(obj2.vertices);
 
 		await obj1.merge(obj2.vertices);
 		obj1.drp?.add(1);
@@ -157,6 +160,7 @@ describe("DRPNode voting tests", () => {
 		*/
 
 		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Finality);
+		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Writer);
 
 		await obj2.merge(obj1.vertices);
 		obj2.acl.setKey(nodeB.keychain.blsPublicKey);
@@ -184,6 +188,7 @@ describe("DRPNode voting tests", () => {
 		*/
 
 		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Finality);
+		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Writer);
 
 		await obj2.merge(obj1.vertices);
 		obj2.acl.setKey(nodeB.keychain.blsPublicKey);

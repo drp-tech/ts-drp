@@ -1,7 +1,6 @@
 import { type IACL } from "./acl.js";
 import { type IDRP } from "./drp.js";
 import { type FinalityConfig, type IFinalityStore } from "./finality.js";
-import { type IHashGraph } from "./hashgraph.js";
 import { type LoggerOptions } from "./logger.js";
 import { type IMetrics } from "./metrics.js";
 import { type DRPObjectBase, type DRPState, type Vertex } from "./proto/drp/v1/object_pb.js";
@@ -28,63 +27,145 @@ export interface DRPObjectOptions<T extends IDRP> {
 
 export type MergeResult = [merged: boolean, missing: string[]];
 
-export interface IDRPObject<T extends IDRP> extends DRPObjectBase {
+export interface ApplyResult {
+	applied: boolean;
+	missing: string[];
+}
+
+//export interface IDRPObject<T extends IDRP> extends DRPObjectBase {
+//	/**
+//	 * The id of the DRP object.
+//	 */
+//	readonly id: string;
+//	/**
+//	 * The ACL of the DRP object.
+//	 */
+//	acl: IACL;
+//	/**
+//	 * The DRP of the DRP object.
+//	 */
+//	drp?: T;
+
+//	/**
+//	 * The original DRP of the DRP object.
+//	 */
+//	originalDRP?: T;
+//	/**
+//	 * The original ACL of the DRP object.
+//	 */
+//	originalObjectACL?: IACL;
+//	/**
+//	 * The finality store of the DRP object.
+//	 */
+//	finalityStore: IFinalityStore;
+//	/**
+//	 * The subscriptions of the DRP object.
+//	 */
+//	subscriptions: DRPObjectCallback<T>[];
+
+//	/**
+//	 * The DRP states of the DRP object.
+//	 */
+//	drpStates: Map<string, DRPState>;
+//	/**
+//	 * The ACL states of the DRP object.
+//	 */
+//	aclStates: Map<string, DRPState>;
+
+//	/**
+//	 * The hash graph of the DRP object.
+//	 */
+//	hashGraph: IHashGraph;
+
+//	/**
+//	 * Subscribe to the DRP object.
+//	 */
+//	subscribe(callback: DRPObjectCallback<T>): void;
+
+//	/**
+//	 * Merge the vertices into the DRP object.
+//	 */
+//	merge(vertices: Vertex[]): Promise<MergeResult>;
+//}
+
+export type DRPObjectCallback2<T extends IDRP> = (object: IDRPObject2<T>, origin: string, vertices: Vertex[]) => void;
+
+export interface IDRPObject2<T extends IDRP> extends DRPObjectBase {
 	/**
 	 * The id of the DRP object.
 	 */
 	readonly id: string;
+
 	/**
 	 * The ACL of the DRP object.
 	 */
 	acl: IACL;
+
 	/**
-	 * The DRP of the DRP object.
+	 * The original ACL of the DRP object.
 	 */
 	drp?: T;
 
 	/**
-	 * The original DRP of the DRP object.
+	 * The vertices of the DRP object.
 	 */
-	originalDRP?: T;
-	/**
-	 * The original ACL of the DRP object.
-	 */
-	originalObjectACL?: IACL;
+	vertices: Vertex[];
+
 	/**
 	 * The finality store of the DRP object.
 	 */
 	finalityStore: IFinalityStore;
-	/**
-	 * The subscriptions of the DRP object.
-	 */
-	subscriptions: DRPObjectCallback<T>[];
 
 	/**
-	 * The DRP states of the DRP object.
+	 * Get the drp state and the acl state for a given vertex hash.
+	 *
+	 * @param {string} vertexHash - The hash of the vertex to get the state for.
+	 * @returns {Array<DRPState | undefined, DRPState | undefined>} The drp state and the acl state for the given vertex hash.
 	 */
-	drpStates: Map<string, DRPState>;
-	/**
-	 * The ACL states of the DRP object.
-	 */
-	aclStates: Map<string, DRPState>;
+	getStates(vertexHash: string): [DRPState | undefined, DRPState | undefined];
 
 	/**
-	 * The hash graph of the DRP object.
+	 * Set the acl state for a given vertex hash.
+	 *
+	 * @param {string} vertexHash - The hash of the vertex to set the state for.
+	 * @param {DRPState} aclState - The acl state to set for the given vertex hash.
 	 */
-	hashGraph: IHashGraph;
+	setACLState(vertexHash: string, aclState: DRPState): void;
+
+	/**
+	 * Set the drp state for a given vertex hash.
+	 *
+	 * @param {string} vertexHash - The hash of the vertex to set the state for.
+	 * @param {DRPState} drpState - The drp state to set for the given vertex hash.
+	 */
+	setDRPState(vertexHash: string, drpState: DRPState): void;
 
 	/**
 	 * Subscribe to the DRP object.
+	 *
+	 * @param {DRPObjectCallback2<T>} callback - The callback to call when the DRP object changes.
 	 */
-	subscribe(callback: DRPObjectCallback<T>): void;
+	subscribe(callback: DRPObjectCallback2<T>): void;
 
 	/**
+	 * Apply the vertices to the DRP object.
+	 *
+	 * @param {Vertex[]} vertices - The vertices to apply to the DRP object.
+	 * @returns {Promise<ApplyResult>} The result of the apply.
+	 */
+	applyVertices(vertices: Vertex[]): Promise<ApplyResult>;
+
+	/**
+	 * @deprecated Use applyVertices instead
 	 * Merge the vertices into the DRP object.
+	 *
+	 * @param {Vertex[]} vertices - The vertices to merge into the DRP object.
+	 * @returns {Promise<MergeResult>} The result of the merge.
 	 */
 	merge(vertices: Vertex[]): Promise<MergeResult>;
 }
 
-export type DRPObjectCallback<T extends IDRP> = (object: IDRPObject<T>, origin: string, vertices: Vertex[]) => void;
+//export type DRPObjectCallback<T extends IDRP> = (object: IDRPObject<T>, origin: string, vertices: Vertex[]) => void;
 
 export interface ConnectObjectOptions<T extends IDRP> {
 	peerId?: string;

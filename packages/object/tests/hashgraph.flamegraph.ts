@@ -2,7 +2,8 @@ import { SetDRP } from "@ts-drp/blueprints";
 import fs from "fs";
 import * as pprof from "pprof";
 
-import { DRPObject, ObjectACL } from "../src/index.js";
+import { ObjectACL } from "../src/acl/index.js";
+import { DRPObject } from "../src/object2.js";
 
 const acl = new ObjectACL({
 	admins: ["peer1"],
@@ -51,7 +52,7 @@ async function mergeObjects(objects: DRPObject<SetDRP<number>>[]): Promise<void>
 	for (const [sourceIndex, sourceObject] of objects.entries()) {
 		for (const [targetIndex, targetObject] of objects.entries()) {
 			if (sourceIndex !== targetIndex) {
-				await sourceObject.merge(targetObject.hashGraph.getAllVertices());
+				await sourceObject.merge(targetObject.vertices);
 			}
 		}
 	}

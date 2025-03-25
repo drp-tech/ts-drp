@@ -1,46 +1,85 @@
 import { SetDRP } from "@ts-drp/blueprints";
-import { type Hash } from "@ts-drp/types";
+import { DrpType, type Hash, type IACL, type IDRP, SemanticsType } from "@ts-drp/types";
 import { bench, describe } from "vitest";
 
-import { DRPObject } from "../src/index.js";
+import { ObjectACL } from "../src/acl/index.js";
+import { FinalityStore } from "../src/finality/index.js";
+import { HashGraph } from "../src/hashgraph/index.js";
+import { DRPSubObject } from "../src/object2.js";
+import { DRPObjectStateManager } from "../src/state.js";
+const notify = (): void => {};
+
+function createDRPSubObject<T extends IDRP>({
+	drp,
+	states,
+	hg,
+	localPeerID,
+	acl,
+	admins = [],
+}: {
+	drp: T;
+	states?: DRPObjectStateManager<T>;
+	hg: HashGraph;
+	localPeerID: string;
+	acl?: IACL;
+	admins: string[];
+}): DRPSubObject<T> {
+	const options = {
+		type: DrpType.DRP,
+		finalityStore: new FinalityStore(),
+		aclStates: new DRPObjectStateManager(acl ?? new ObjectACL({ admins })),
+	};
+	const obj = new DRPSubObject({ ...options, drp, hg, states, notify, localPeerID });
+	return obj;
+}
 
 describe("AreCausallyDependent benchmark", async () => {
 	const samples = 100000;
 	const tests: Hash[][] = [];
 
-	const obj1 = new DRPObject({
-		peerId: "peer1",
+	const hg = new HashGraph("peer1", undefined, undefined, SemanticsType.pair);
+	const hg2 = new HashGraph("peer2", undefined, undefined, SemanticsType.pair);
+	const hg3 = new HashGraph("peer3", undefined, undefined, SemanticsType.pair);
+
+	const obj1 = createDRPSubObject({
+		localPeerID: "peer1",
 		drp: new SetDRP<number>(),
+		hg,
+		admins: ["peer1", "peer2", "peer3"],
 	});
-	const obj2 = new DRPObject({
-		peerId: "peer2",
+	const obj2 = createDRPSubObject({
+		localPeerID: "peer2",
 		drp: new SetDRP<number>(),
+		hg: hg2,
+		admins: ["peer1", "peer2", "peer3"],
 	});
-	const obj3 = new DRPObject({
-		peerId: "peer3",
+	const obj3 = createDRPSubObject({
+		localPeerID: "peer3",
 		drp: new SetDRP<number>(),
+		hg: hg3,
+		admins: ["peer1", "peer2", "peer3"],
 	});
 
 	obj1.drp?.add(1);
-	await obj2.merge(obj1.hashGraph.getAllVertices());
+	await obj2.applies(hg.getAllVertices());
 
 	obj1.drp?.add(1);
 	obj1.drp?.delete(2);
 	obj2.drp?.delete(2);
 	obj2.drp?.add(2);
 
-	await obj3.merge(obj1.hashGraph.getAllVertices());
+	await obj3.applies(hg.getAllVertices());
 	obj3.drp?.add(3);
 	obj1.drp?.delete(1);
 
-	await obj1.merge(obj2.hashGraph.getAllVertices());
+	await obj1.applies(hg2.getAllVertices());
 	obj1.drp?.delete(3);
 	obj2.drp?.delete(1);
 
-	await obj1.merge(obj2.hashGraph.getAllVertices());
-	await obj1.merge(obj3.hashGraph.getAllVertices());
+	await obj1.applies(hg2.getAllVertices());
+	await obj1.applies(hg3.getAllVertices());
 
-	const vertices = obj1.hashGraph.getAllVertices();
+	const vertices = hg.getAllVertices();
 	for (let i = 0; i < samples; i++) {
 		tests.push([
 			vertices[Math.floor(Math.random() * vertices.length)].hash,
@@ -50,13 +89,13 @@ describe("AreCausallyDependent benchmark", async () => {
 
 	bench("Causality check using BFS", () => {
 		for (let i = 0; i < samples; i++) {
-			obj1.hashGraph.areCausallyRelatedUsingBFS(tests[i][0], tests[i][1]);
+			hg.areCausallyRelatedUsingBFS(tests[i][0], tests[i][1]);
 		}
 	});
 
 	bench("Causality check using Bitsets", () => {
 		for (let i = 0; i < samples; i++) {
-			obj1.hashGraph.areCausallyRelatedUsingBitsets(tests[i][0], tests[i][1]);
+			hg.areCausallyRelatedUsingBitsets(tests[i][0], tests[i][1]);
 		}
 	});
 });

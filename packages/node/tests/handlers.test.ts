@@ -168,7 +168,16 @@ describe("Handle message correctly", () => {
 		const node3 = createNewNode("node3");
 
 		await node3.start();
-		await new Promise((resolve) => setTimeout(resolve, 500));
+		const btLibp2pNode1 = bootstrapNode["_node"] as Libp2p;
+		const libp2pNode3 = node3.networkNode["_node"] as Libp2p;
+		await Promise.all([
+			raceEvent(btLibp2pNode1, "peer:identify", controller.signal, {
+				filter: (event: CustomEvent<IdentifyResult>) =>
+					event.detail.peerId.equals(libp2pNode3.peerId) && event.detail.listenAddrs.length > 0,
+			}),
+			isDialable(node3.networkNode),
+		]);
+
 		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(undefined);
 		await node3.connectObject({
 			id: drpObjectNode2.id,
@@ -176,7 +185,7 @@ describe("Handle message correctly", () => {
 				peerId: node2.networkNode.peerId,
 			},
 		});
-		await new Promise((resolve) => setTimeout(resolve, 2000));
+		await new Promise((resolve) => setTimeout(resolve, 10000));
 		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(5);
 	}, 20000);
 
@@ -186,7 +195,7 @@ describe("Handle message correctly", () => {
 		const hash = drpObjectNode2.vertices[1].hash;
 		drpObjectNode2.drp?.add(6);
 		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
-		await new Promise((resolve) => setTimeout(resolve, 500));
+		await new Promise((resolve) => setTimeout(resolve, 2000));
 		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
 	});
 

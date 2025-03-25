@@ -40,16 +40,10 @@ const config = tsLintConfig(
 				typescript: {},
 			},
 		},
-		plugins: {
-			"@typescript-eslint": plugin,
-			"prettier": prettier,
-			"unused-imports": unusedImports,
-			"vitest": vitest,
-		},
 		languageOptions: {
 			parser: tsparser,
 			parserOptions: {
-				ecmaVersion: 2021,
+				ecmaVersion: 2022,
 				sourceType: "module",
 				tsconfigRootDir: import.meta.dirname,
 				project: "./tsconfig.json",
@@ -58,6 +52,12 @@ const config = tsLintConfig(
 				...globals.node,
 				...globals.es2021,
 			},
+		},
+		plugins: {
+			"@typescript-eslint": plugin,
+			"prettier": prettier,
+			"unused-imports": unusedImports,
+			"vitest": vitest,
 		},
 		rules: {
 			"prettier/prettier": ["error", { printWidth: 120 }],

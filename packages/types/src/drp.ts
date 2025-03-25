@@ -25,6 +25,10 @@ export interface DrpRuntimeContext {
 	caller: string;
 }
 
+export interface ResolveConflictFn {
+	(vertices: Vertex[]): ResolveConflictsType;
+}
+
 export interface IDRP {
 	/**
 	 * The semantics type of the DRP.
@@ -39,7 +43,7 @@ export interface IDRP {
 	 *
 	 * @param vertices - The vertices to resolve conflicts from.
 	 */
-	resolveConflicts?(vertices: Vertex[]): ResolveConflictsType;
+	resolveConflicts?: ResolveConflictFn;
 	/**
 	 * The properties of the DRP.
 	 */

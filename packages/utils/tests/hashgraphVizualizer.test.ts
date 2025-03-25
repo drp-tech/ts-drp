@@ -4,6 +4,7 @@ import {
 	type Hash,
 	type IBitSet,
 	type IHashGraph,
+	type LowestCommonAncestorResult,
 	type Operation,
 	SemanticsType,
 	type Vertex,
@@ -64,6 +65,25 @@ class MockHashGraph implements IHashGraph {
 			dependencies,
 			timestamp,
 			signature: new Uint8Array(),
+		};
+	}
+
+	createVertex2(operation: Operation): Vertex {
+		const hash = `v${Date.now()}`;
+		return {
+			hash,
+			peerId: this.peerId,
+			operation,
+			dependencies: this.getFrontier(),
+			timestamp: Date.now(),
+			signature: new Uint8Array(),
+		};
+	}
+
+	getLCA(_: Hash[]): LowestCommonAncestorResult {
+		return {
+			lca: MockHashGraph.rootHash,
+			linearizedVertices: [],
 		};
 	}
 

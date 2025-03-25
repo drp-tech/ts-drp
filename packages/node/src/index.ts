@@ -4,12 +4,12 @@ import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
 import { MessageQueueManager } from "@ts-drp/message-queue";
 import { DRPNetworkNode } from "@ts-drp/network";
-import { DRPObject } from "@ts-drp/object";
+import { createObject, DRPObject } from "@ts-drp/object";
 import {
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
 	type IDRP,
-	type IDRPObject,
+	type IDRPObject2,
 	type IntervalRunnerMap,
 	Message,
 	MessageType,
@@ -69,7 +69,7 @@ export class DRPNode {
 				logConfig: this.config.log_config,
 			})
 		);
-		this.networkNode.subscribeToMessageQueue(this.dispatchMessage.bind(this));
+		this.networkNode.subscribeToMessageQueue(this.dispatchMessage.callFnPipeline(this));
 		this.messageQueueManager.subscribe(DISCOVERY_QUEUE_ID, (msg) => handleMessage(this, msg));
 		this._intervals.forEach((interval) => interval.start());
 	}
@@ -154,8 +154,8 @@ export class DRPNode {
 	 * @param options.drp - The DRP instance. It can be undefined where we just want the HG state
 	 * @param options.sync.peerId - The peer ID to sync with
 	 */
-	async connectObject<T extends IDRP>(options: NodeConnectObjectOptions<T>): Promise<IDRPObject<T>> {
-		const object = DRPObject.createObject({
+	async connectObject<T extends IDRP>(options: NodeConnectObjectOptions<T>): Promise<IDRPObject2<T>> {
+		const object = createObject({
 			peerId: this.networkNode.peerId,
 			id: options.id,
 			drp: options.drp,
@@ -170,7 +170,6 @@ export class DRPNode {
 
 		// start the interval discovery
 		this._createIntervalDiscovery(options.id);
-
 		await operations.fetchState(this, options.id, options.sync?.peerId);
 
 		// TODO: since when the interval can run this twice do we really want it to be
@@ -188,7 +187,7 @@ export class DRPNode {
 		return object;
 	}
 
-	subscribeObject<T extends IDRP>(object: DRPObject<T>): void {
+	subscribeObject<T extends IDRP>(object: IDRPObject2<T>): void {
 		// subscribe to the object
 		object.subscribe((obj, originFn, vertices) => drpObjectChangesHandler(this, obj, originFn, vertices));
 		// subscribe to the topic in gossipsub
