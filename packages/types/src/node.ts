@@ -1,5 +1,6 @@
 import { type IACL } from "./acl.js";
 import { type DRPIntervalDiscoveryOptions } from "./drp-interval-discovery.js";
+import { type DRPIntervalReconnectOptions } from "./drp-interval-reconnect.js";
 import { type IDRP } from "./drp.js";
 import { type KeychainOptions } from "./keychain.js";
 import { type LoggerOptions } from "./logger.js";
@@ -11,24 +12,25 @@ export interface DRPNodeConfig {
 	network_config?: DRPNetworkNodeConfig;
 	keychain_config?: KeychainOptions;
 	interval_discovery_options?: Omit<DRPIntervalDiscoveryOptions, "id" | "networkNode">;
+	interval_reconnect_options?: Omit<DRPIntervalReconnectOptions, "id" | "networkNode">;
 }
 
-interface NodeObjectOptionsBase {
+interface NodeObjectOptionsBase<T> {
 	id?: string;
 	acl?: IACL;
-	drp?: IDRP;
+	drp?: T;
 	metrics?: IMetrics;
 	log_config?: LoggerOptions;
 }
 
-export interface NodeCreateObjectOptions extends NodeObjectOptionsBase {
+export interface NodeCreateObjectOptions<T extends IDRP> extends NodeObjectOptionsBase<T> {
 	sync?: {
 		enabled: boolean;
 		peerId?: string;
 	};
 }
 
-export interface NodeConnectObjectOptions extends NodeObjectOptionsBase {
+export interface NodeConnectObjectOptions<T extends IDRP> extends NodeObjectOptionsBase<T> {
 	id: string;
 	sync?: {
 		peerId?: string;

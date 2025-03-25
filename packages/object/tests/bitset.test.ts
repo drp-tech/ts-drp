@@ -71,10 +71,7 @@ describe("BitSet Test", () => {
 
 	test("Bitset not", () => {
 		const notBitset = bitset.not();
-		const expectBitset = new BitSet(
-			65,
-			new Uint32Array([0xffffffff, 0xffffffff, 0xffffffff]) as unknown as Uint8Array
-		);
+		const expectBitset = new BitSet(65, new Uint32Array([0xffffffff, 0xffffffff, 0xffffffff]) as unknown as Uint8Array);
 		expect(notBitset).toEqual(expectBitset);
 	});
 

@@ -1,4 +1,11 @@
-import { DRPDiscovery, type DRPIntervalDiscoveryOptions, type DRPNetworkNode } from "@ts-drp/types";
+import {
+	DRPDiscovery,
+	type DRPIntervalDiscoveryOptions,
+	type DRPNetworkNode,
+	IntervalRunnerState,
+	Message,
+	MessageType,
+} from "@ts-drp/types";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { createDRPDiscovery, DRPIntervalDiscovery } from "../src/index.js";
@@ -12,6 +19,7 @@ type MockedDRPNetworkNode = {
 describe("DRPIntervalDiscovery Unit Tests", () => {
 	let mockNetworkNode: MockedDRPNetworkNode;
 	let discoveryInstance: DRPIntervalDiscovery;
+	const mockSubscribedTopics: string[] = [];
 	const testId = "test-discovery";
 
 	beforeEach(() => {
@@ -23,6 +31,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 			connect: vi.fn(),
 			sendMessage: vi.fn(),
 			getPeerMultiaddrs: vi.fn(),
+			getSubscribedTopics: vi.fn().mockReturnValue(mockSubscribedTopics),
 		} as unknown as MockedDRPNetworkNode;
 
 		// Create discovery instance with mocked dependencies
@@ -71,18 +80,18 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 
 	describe("State Management", () => {
 		test("should start in stopped state", () => {
-			expect(discoveryInstance.state).toBe("stopped");
+			expect(discoveryInstance.state).toBe(IntervalRunnerState.Stopped);
 		});
 
 		test("should change state to running when started", () => {
 			discoveryInstance.start();
-			expect(discoveryInstance.state).toBe("running");
+			expect(discoveryInstance.state).toBe(IntervalRunnerState.Running);
 		});
 
 		test("should change state to stopped when stopped", () => {
 			discoveryInstance.start();
 			discoveryInstance.stop();
-			expect(discoveryInstance.state).toBe("stopped");
+			expect(discoveryInstance.state).toBe(IntervalRunnerState.Stopped);
 		});
 	});
 
@@ -137,9 +146,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 		});
 
 		test("should handle broadcast error gracefully", async () => {
-			(mockNetworkNode.broadcastMessage as ReturnType<typeof vi.fn>).mockRejectedValue(
-				new Error("Broadcast failed")
-			);
+			(mockNetworkNode.broadcastMessage as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("Broadcast failed"));
 			await discoveryInstance["_runDRPDiscovery"]();
 			expect(mockNetworkNode.broadcastMessage).toHaveBeenCalled();
 		});
@@ -147,7 +154,12 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 
 	describe("Static Handlers", () => {
 		test("should handle discovery request correctly", async () => {
-			const mockData = DRPDiscovery.encode(DRPDiscovery.create({ objectId: "test-id" })).finish();
+			const mockDataMessage = Message.create({
+				sender: "sender",
+				type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
+				data: DRPDiscovery.encode(DRPDiscovery.create({})).finish(),
+				objectId: "test-id",
+			});
 
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue(["peer1"]);
 			(mockNetworkNode.getPeerMultiaddrs as ReturnType<typeof vi.fn>).mockResolvedValue([
@@ -156,7 +168,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 
 			await DRPIntervalDiscovery.handleDiscoveryRequest(
 				"sender",
-				mockData,
+				mockDataMessage,
 				mockNetworkNode as unknown as DRPNetworkNode
 			);
 
@@ -164,13 +176,18 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 		});
 
 		test("should not send response if no peers found", async () => {
-			const mockData = DRPDiscovery.encode(DRPDiscovery.create({ objectId: "test-id" })).finish();
+			const mockDataMessage = Message.create({
+				sender: "sender",
+				type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
+				data: DRPDiscovery.encode(DRPDiscovery.create({})).finish(),
+				objectId: "test-id",
+			});
 
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue([]);
 
 			await DRPIntervalDiscovery.handleDiscoveryRequest(
 				"sender",
-				mockData,
+				mockDataMessage,
 				mockNetworkNode as unknown as DRPNetworkNode
 			);
 
@@ -178,7 +195,12 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 		});
 
 		test("should handle error in getPeerMultiaddrs gracefully", async () => {
-			const mockData = DRPDiscovery.encode(DRPDiscovery.create({ objectId: "test-id" })).finish();
+			const mockDataMessage = Message.create({
+				sender: "sender",
+				type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
+				data: DRPDiscovery.encode(DRPDiscovery.create({})).finish(),
+				objectId: "test-id",
+			});
 
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue(["peer1"]);
 			(mockNetworkNode.getPeerMultiaddrs as ReturnType<typeof vi.fn>).mockRejectedValue(
@@ -187,7 +209,7 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 
 			await DRPIntervalDiscovery.handleDiscoveryRequest(
 				"sender",
-				mockData,
+				mockDataMessage,
 				mockNetworkNode as unknown as DRPNetworkNode
 			);
 
@@ -195,19 +217,22 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 		});
 
 		test("should handle error in sendMessage gracefully", async () => {
-			const mockData = DRPDiscovery.encode(DRPDiscovery.create({ objectId: "test-id" })).finish();
+			const mockDataMessage = Message.create({
+				sender: "sender",
+				type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
+				data: DRPDiscovery.encode(DRPDiscovery.create({})).finish(),
+				objectId: "test-id",
+			});
 
 			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue(["peer1"]);
 			(mockNetworkNode.getPeerMultiaddrs as ReturnType<typeof vi.fn>).mockResolvedValue([
 				{ multiaddr: { toString: (): string => "/ip4/127.0.0.1/tcp/1234" } },
 			]);
-			(mockNetworkNode.sendMessage as ReturnType<typeof vi.fn>).mockRejectedValue(
-				new Error("Failed to send message")
-			);
+			(mockNetworkNode.sendMessage as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("Failed to send message"));
 
 			await DRPIntervalDiscovery.handleDiscoveryRequest(
 				"sender",
-				mockData,
+				mockDataMessage,
 				mockNetworkNode as unknown as DRPNetworkNode
 			);
 
@@ -215,14 +240,82 @@ describe("DRPIntervalDiscovery Unit Tests", () => {
 		});
 
 		test("should handle invalid discovery request data", async () => {
-			const invalidData = new Uint8Array([1, 2, 3]); // Invalid protobuf data
+			const invalidDataMessage = Message.create({
+				sender: "sender",
+				type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
+				data: new Uint8Array([1, 2, 3]), // Invalid protobuf data
+				objectId: "test-id",
+			});
 
 			await DRPIntervalDiscovery.handleDiscoveryRequest(
 				"sender",
-				invalidData,
+				invalidDataMessage,
 				mockNetworkNode as unknown as DRPNetworkNode
 			);
 
+			expect(mockNetworkNode.sendMessage).not.toHaveBeenCalled();
+		});
+
+		test("should include self in peers list if subscribed to topic", async () => {
+			const discoveryRequest = DRPDiscovery.encode(DRPDiscovery.create()).finish();
+			const mockData = Message.create({
+				sender: "sender",
+				type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
+				data: discoveryRequest,
+				objectId: "test-id",
+			});
+			const mockSubscribedTopics = ["test-id"];
+
+			// Mock getSubscribedTopics to return our test topic
+			(mockNetworkNode.getSubscribedTopics as ReturnType<typeof vi.fn>).mockReturnValue(mockSubscribedTopics);
+			// Mock getGroupPeers to return empty list initially
+			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue([]);
+			// Mock getPeerMultiaddrs to return valid multiaddr
+			(mockNetworkNode.getPeerMultiaddrs as ReturnType<typeof vi.fn>).mockResolvedValue([
+				{ multiaddr: { toString: (): string => "/ip4/127.0.0.1/tcp/1234" } },
+			]);
+
+			await DRPIntervalDiscovery.handleDiscoveryRequest(
+				"sender",
+				mockData,
+				mockNetworkNode as unknown as DRPNetworkNode
+			);
+
+			// Verify that sendMessage was called with a response containing our peer ID
+			expect(mockNetworkNode.sendMessage).toHaveBeenCalledWith(
+				"sender",
+				expect.objectContaining({
+					type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE,
+				})
+			);
+		});
+
+		test("should not include self in peers list if not subscribed to topic", async () => {
+			const discoveryRequest = DRPDiscovery.encode(DRPDiscovery.create()).finish();
+			const mockData = Message.create({
+				sender: "sender",
+				type: MessageType.MESSAGE_TYPE_DRP_DISCOVERY,
+				data: discoveryRequest,
+				objectId: "test-id",
+			});
+			const mockSubscribedTopics = ["different-topic"];
+
+			// Mock getSubscribedTopics to return a different topic
+			(mockNetworkNode.getSubscribedTopics as ReturnType<typeof vi.fn>).mockReturnValue(mockSubscribedTopics);
+			// Mock getGroupPeers to return empty list
+			(mockNetworkNode.getGroupPeers as ReturnType<typeof vi.fn>).mockReturnValue([]);
+			// Mock getPeerMultiaddrs to return valid multiaddr
+			(mockNetworkNode.getPeerMultiaddrs as ReturnType<typeof vi.fn>).mockResolvedValue([
+				{ multiaddr: { toString: (): string => "/ip4/127.0.0.1/tcp/1234" } },
+			]);
+
+			await DRPIntervalDiscovery.handleDiscoveryRequest(
+				"sender",
+				mockData,
+				mockNetworkNode as unknown as DRPNetworkNode
+			);
+
+			// Verify that sendMessage was not called since we have no peers
 			expect(mockNetworkNode.sendMessage).not.toHaveBeenCalled();
 		});
 	});

@@ -3,6 +3,7 @@ interface EnvConfig {
 	readonly enableTracing: boolean;
 	readonly renderInfoInterval: number;
 	readonly discoveryInterval: number;
+	readonly enablePrometheusMetrics: boolean;
 	readonly mode: string;
 }
 
@@ -21,5 +22,6 @@ export const env: EnvConfig = {
 	enableTracing: getBooleanFromEnv("VITE_ENABLE_TRACING"),
 	renderInfoInterval: getNumberFromEnv("VITE_RENDER_INFO_INTERVAL"),
 	discoveryInterval: getNumberFromEnv("VITE_DISCOVERY_INTERVAL"),
+	enablePrometheusMetrics: getBooleanFromEnv("VITE_ENABLE_PROMETHEUS_METRICS"),
 	mode: import.meta.env.MODE,
 };

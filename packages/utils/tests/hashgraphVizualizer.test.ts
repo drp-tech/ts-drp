@@ -429,13 +429,11 @@ describe("hashGraphVizualizer tests", () => {
 		// Find y-positions of vertices in the output
 		const vertexPositions = new Map<string, number>();
 		lines.forEach((line, y) => {
-			[MockHashGraph.rootHash, vertex1.hash, vertex2.hash, vertex3.hash, vertex4.hash].forEach(
-				(hash) => {
-					if (line.includes(hash)) {
-						vertexPositions.set(hash, y);
-					}
+			[MockHashGraph.rootHash, vertex1.hash, vertex2.hash, vertex3.hash, vertex4.hash].forEach((hash) => {
+				if (line.includes(hash)) {
+					vertexPositions.set(hash, y);
 				}
-			);
+			});
 		});
 
 		// Verify topological ordering through y-positions

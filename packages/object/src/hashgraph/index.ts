@@ -44,8 +44,7 @@ export class HashGraph implements IHashGraph {
 		-1,
 	);
 	*/
-	static readonly rootHash: Hash =
-		"425d2b1f5243dbf23c685078034b06fbfa71dc31dcce30f614e28023f140ff13";
+	static readonly rootHash: Hash = "425d2b1f5243dbf23c685078034b06fbfa71dc31dcce30f614e28023f140ff13";
 	private arePredecessorsFresh = false;
 	private reachablePredecessors: Map<Hash, BitSet> = new Map();
 	private topoSortedIndex: Map<Hash, number> = new Map();
@@ -239,12 +238,7 @@ export class HashGraph implements IHashGraph {
 				throw new Error("LCA not found");
 			}
 			if (!visited.has(targetVertices[i])) {
-				lca = this.lowestCommonAncestorPairVertices(
-					lca,
-					targetVertices[i],
-					visited,
-					targetVertices
-				);
+				lca = this.lowestCommonAncestorPairVertices(lca, targetVertices[i], visited, targetVertices);
 			}
 		}
 		if (!lca) {
@@ -315,10 +309,8 @@ export class HashGraph implements IHashGraph {
 		if (!this.arePredecessorsFresh) {
 			this.topologicalSort(true);
 		}
-		const test1 =
-			this.reachablePredecessors.get(hash1)?.get(this.topoSortedIndex.get(hash2) || 0) || false;
-		const test2 =
-			this.reachablePredecessors.get(hash2)?.get(this.topoSortedIndex.get(hash1) || 0) || false;
+		const test1 = this.reachablePredecessors.get(hash1)?.get(this.topoSortedIndex.get(hash2) || 0) || false;
+		const test2 = this.reachablePredecessors.get(hash2)?.get(this.topoSortedIndex.get(hash1) || 0) || false;
 		return test1 || test2;
 	}
 
@@ -363,10 +355,7 @@ export class HashGraph implements IHashGraph {
 	}
 
 	areCausallyRelatedUsingBFS(hash1: Hash, hash2: Hash): boolean {
-		return (
-			this._areCausallyRelatedUsingBFS(hash1, hash2) ||
-			this._areCausallyRelatedUsingBFS(hash2, hash1)
-		);
+		return this._areCausallyRelatedUsingBFS(hash1, hash2) || this._areCausallyRelatedUsingBFS(hash2, hash1);
 	}
 
 	getFrontier(): Hash[] {

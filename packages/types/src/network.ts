@@ -1,14 +1,9 @@
-import { type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import { type TopicScoreParams } from "@chainsafe/libp2p-gossipsub/score";
-import {
-	type Address,
-	type EventCallback,
-	type PeerId,
-	type StreamHandler,
-} from "@libp2p/interface";
+import { type Address, type PeerId } from "@libp2p/interface";
 import { type MultiaddrInput } from "@multiformats/multiaddr";
 
 import { type LoggerOptions } from "./logger.js";
+import { type IMessageQueueHandler } from "./message-queue.js";
 import { type Message } from "./proto/drp/v1/messages_pb.js";
 
 /**
@@ -32,6 +27,10 @@ export interface DRPNetworkNodeConfig {
 	pubsub?: {
 		/** Interval in milliseconds between peer discovery attempts */
 		peer_discovery_interval?: number;
+		/** Whether to enable prometheus metrics */
+		prometheus_metrics?: boolean;
+		/** URL of the pushgateway to send metrics to */
+		pushgateway_url?: string;
 	};
 }
 
@@ -103,6 +102,12 @@ export interface DRPNetworkNode {
 	unsubscribe(topic: string): void;
 
 	/**
+	 * Connects to the bootstrap nodes
+	 * @returns {Promise<void>} Resolves when connection is established
+	 */
+	connectToBootstraps(): Promise<void>;
+
+	/**
 	 * Connects to one or more peer addresses
 	 * @param {MultiaddrInput | MultiaddrInput[]} addr - The address(es) to connect to
 	 * @returns {Promise<void>} Resolves when connection is established
@@ -128,6 +133,12 @@ export interface DRPNetworkNode {
 	 * @returns {string[]} Array of bootstrap node addresses
 	 */
 	getBootstrapNodes(): string[];
+
+	/**
+	 * Get all topics this node is subscribed to
+	 * @returns {string[]} Array of topics
+	 */
+	getSubscribedTopics(): string[];
 
 	/**
 	 * Gets the multiaddresses this node is listening on
@@ -174,27 +185,8 @@ export interface DRPNetworkNode {
 	sendGroupMessageRandomPeer(group: string, message: Message): Promise<void>;
 
 	/**
-	 * Adds a message handler for a specific group
-	 * @param {string} group - The group to handle messages for
-	 * @param {EventCallback<CustomEvent<GossipsubMessage>>} handler - The message handler function
+	 * Subscribes to the message queue
+	 * @param {IMessageQueueHandler<Message>} handler - The handler to subscribe to the message queue
 	 */
-	addGroupMessageHandler(
-		group: string,
-		handler: EventCallback<CustomEvent<GossipsubMessage>>
-	): void;
-
-	/**
-	 * Adds a general message handler for all messages
-	 * @param {StreamHandler} handler - The message handler function
-	 * @returns {Promise<void>} Resolves when the handler is added
-	 */
-	addMessageHandler(handler: StreamHandler): Promise<void>;
-
-	/**
-	 * Adds a custom protocol message handler
-	 * @param {string | string[]} protocol - The protocol(s) to handle messages for
-	 * @param {StreamHandler} handler - The message handler function
-	 * @returns {Promise<void>} Resolves when the handler is added
-	 */
-	addCustomMessageHandler(protocol: string | string[], handler: StreamHandler): Promise<void>;
+	subscribeToMessageQueue(handler: IMessageQueueHandler<Message>): void;
 }
