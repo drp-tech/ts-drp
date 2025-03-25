@@ -10,11 +10,11 @@ import {
 	SemanticsType,
 	type Vertex,
 } from "@ts-drp/types";
+import { ObjectSet } from "@ts-drp/utils";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
 import { DRPObject, HashGraph, newVertex } from "../src/index.js";
-import { ObjectSet } from "../src/utils/objectSet.js";
 
 const acl = new ObjectACL({
 	admins: ["peer1", "peer2", "peer3"],
@@ -89,9 +89,9 @@ describe("HashGraph construction tests", () => {
 
 	test("Test: HashGraph should be DAG compatible", async () => {
 		/*
-		        __ V1:ADD(1)
-		  ROOT /
-		       \__ V2:ADD(2)
+						__ V1:ADD(1)
+			ROOT /
+					 \__ V2:ADD(2)
 		*/
 		const drp1 = obj1.drp as SetDRP<number>;
 		const drp2 = obj2.drp as SetDRP<number>;
@@ -160,8 +160,8 @@ describe("HashGraph construction tests", () => {
 
 	test("Test: HashGraph with 2 root vertices", () => {
 		/*
-		  ROOT -- V1:ADD(1)
-		  FAKE_ROOT -- V2:ADD(1)
+			ROOT -- V1:ADD(1)
+			FAKE_ROOT -- V2:ADD(1)
 		*/
 		const drp1 = obj1.drp as SetDRP<number>;
 		drp1.add(1);
@@ -229,7 +229,7 @@ describe("HashGraph for SetDRP tests", () => {
 
 	test("Test: Add Two Vertices", () => {
 		/*
-		  ROOT -- ADD(1) -- delete(1)
+			ROOT -- ADD(1) -- delete(1)
 		*/
 
 		const drp1 = obj1.drp as SetDRP<number>;
@@ -247,9 +247,9 @@ describe("HashGraph for SetDRP tests", () => {
 
 	test("Test: Add Two Concurrent Vertices With Same Value", async () => {
 		/*
-		                     __ V2:delete(1)
-		  ROOT -- V1:ADD(1) /
-		                    \__ V3:ADD(1)
+												 __ V2:delete(1)
+			ROOT -- V1:ADD(1) /
+												\__ V3:ADD(1)
 		*/
 
 		const drp1 = obj1.drp as SetDRP<number>;
@@ -277,9 +277,9 @@ describe("HashGraph for SetDRP tests", () => {
 
 	test("Test: Add Two Concurrent Vertices With Different Values", async () => {
 		/*
-		                     __ V2:delete(1)
-		  ROOT -- V1:ADD(1) /
-		                    \__ V3:ADD(2)
+												 __ V2:delete(1)
+			ROOT -- V1:ADD(1) /
+												\__ V3:ADD(2)
 		*/
 
 		const drp1 = obj1.drp as SetDRP<number>;
@@ -308,9 +308,9 @@ describe("HashGraph for SetDRP tests", () => {
 
 	test("Test: Tricky Case", async () => {
 		/*
-		                     __ V2:delete(1) -- V4:ADD(10)
-		  ROOT -- V1:ADD(1) /
-		                    \__ V3:ADD(1) -- V5:delete(5)
+												 __ V2:delete(1) -- V4:ADD(10)
+			ROOT -- V1:ADD(1) /
+												\__ V3:ADD(1) -- V5:delete(5)
 		*/
 
 		const drp1 = obj1.drp as SetDRP<number>;
@@ -343,9 +343,9 @@ describe("HashGraph for SetDRP tests", () => {
 
 	test("Test: Yuta Papa's Case", async () => {
 		/*
-		                     __ V2:delete(1) -- V4:ADD(2)
-		  ROOT -- V1:ADD(1) /
-		                    \__ V3:delete(2) -- V5:ADD(1)
+												 __ V2:delete(1) -- V4:ADD(2)
+			ROOT -- V1:ADD(1) /
+												\__ V3:delete(2) -- V5:ADD(1)
 		*/
 
 		const drp1 = obj1.drp as SetDRP<number>;
@@ -376,9 +376,9 @@ describe("HashGraph for SetDRP tests", () => {
 
 	test("Test: Joao's latest brain teaser", async () => {
 		/*
-		                     __ V2:ADD(2) -------------\
-		  ROOT -- V1:ADD(1) /                           \ V5:RM(2)
-		                    \__ V3:RM(2) -- V4:RM(2) --/
+												 __ V2:ADD(2) -------------\
+			ROOT -- V1:ADD(1) /                           \ V5:RM(2)
+												\__ V3:RM(2) -- V4:RM(2) --/
 		*/
 
 		const drp1 = obj1.drp as SetDRP<number>;
@@ -485,9 +485,9 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 	test("Test object3 merge", async () => {
 		// reproduce Test: Joao's latest brain teaser
 		/*
-		                     __ V2:ADD(2) -------------\
-		  ROOT -- V1:ADD(1) /                           \ V5:RM(2)
-		                    \__ V3:RM(2) -- V4:RM(2) --/
+												 __ V2:ADD(2) -------------\
+			ROOT -- V1:ADD(1) /                           \ V5:RM(2)
+												\__ V3:RM(2) -- V4:RM(2) --/
 		*/
 
 		const drp1 = obj1.drp as SetDRP<number>;
@@ -535,7 +535,7 @@ describe("Vertex state tests", () => {
 
 	test("Test: Vertex states work correctly with single HashGraph", () => {
 		/*
-		  ROOT -- V1:ADD(1) -- V2:ADD(2) -- V3:ADD(3)
+			ROOT -- V1:ADD(1) -- V2:ADD(2) -- V3:ADD(3)
 		*/
 		const drp1 = obj1.drp as SetDRP<number>;
 
@@ -563,11 +563,11 @@ describe("Vertex state tests", () => {
 
 	test("Test: Tricky merging", async () => {
 		/*
-		        __ V1:ADD(1) ------ V4:ADD(4) __
-		       /                   /            \
-		  ROOT -- V2:ADD(2) ------/              \ V6:ADD(6)
-		       \                   \            /
-		        -- V3:ADD(3) ------ V5:ADD(5) --
+						__ V1:ADD(1) ------ V4:ADD(4) __
+					 /                   /            \
+			ROOT -- V2:ADD(2) ------/              \ V6:ADD(6)
+					 \                   \            /
+						-- V3:ADD(3) ------ V5:ADD(5) --
 		*/
 
 		// in above hashgraph, A represents drp1, B represents drp2, C represents drp3
@@ -645,11 +645,11 @@ describe("Vertex timestamp tests", () => {
 
 	test("Test: Vertex's timestamp must not be less than any of its dependencies' timestamps", async () => {
 		/*
-		        __ V1:ADD(1) __
-		       /               \
-		  ROOT -- V2:ADD(2) ---- V4:ADD(4) (invalid)
-		       \               /
-		        -- V3:ADD(3) --
+						__ V1:ADD(1) __
+					 /               \
+			ROOT -- V2:ADD(2) ---- V4:ADD(4) (invalid)
+					 \               /
+						-- V3:ADD(3) --
 		*/
 
 		const drp1 = obj1.drp as SetDRP<number>;
@@ -718,7 +718,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 
 	test("Accept vertex if creator has write permission", async () => {
 		/*
-		  ROOT -- V1:ADD(1) -- V2:GRANT(peer2) -- V3:ADD(4)
+			ROOT -- V1:ADD(1) -- V2:GRANT(peer2) -- V3:ADD(4)
 		*/
 		const drp1 = obj1.drp as SetDRP<number>;
 		const drp2 = obj2.drp as SetDRP<number>;
@@ -740,11 +740,11 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 
 	test("Discard vertex if writer permission is revoked", async () => {
 		/*
-		                                              __ V4:ADD(1) --
-		                                             /                \
-		  ROOT -- V1:GRANT(peer2) -- V2:grant(peer3)                   V6:REVOKE(peer3) -- V7:ADD(4)
-		                                             \                /
-		                                              -- V5:ADD(2) --
+																									__ V4:ADD(1) --
+																								 /                \
+			ROOT -- V1:GRANT(peer2) -- V2:grant(peer3)                   V6:REVOKE(peer3) -- V7:ADD(4)
+																								 \                /
+																									-- V5:ADD(2) --
 		*/
 		const drp1 = obj1.drp as SetDRP<number>;
 		const drp2 = obj2.drp as SetDRP<number>;
@@ -787,8 +787,8 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 
 	test("Should use ACL on dependencies to determine if vertex is valid", async () => {
 		/*
-		  ROOT -- V1:ADD(1) -- V2:ADD(2) -- V3:GRANT(peer2)
-		  					\_ V4:ADD(3) (invalid)
+			ROOT -- V1:ADD(1) -- V2:ADD(2) -- V3:GRANT(peer2)
+								\_ V4:ADD(3) (invalid)
 		*/
 		const acl = new ObjectACL({
 			admins: ["peer1"],
@@ -862,11 +862,11 @@ describe("HashGraph for set wins map tests", () => {
 
 	test("Should correctly perform set and delete map operations", async () => {
 		/*
-		       __ V1:SET("key1", "value1") -- V3:DELETE("key1")
-		      /
-		  ROOT
-		      \
-		       -- V2:SET("key2, "value2")
+					 __ V1:SET("key1", "value1") -- V3:DELETE("key1")
+					/
+			ROOT
+					\
+					 -- V2:SET("key2, "value2")
 		*/
 		const drp1 = obj1.drp;
 		const drp2 = obj2.drp;
@@ -883,11 +883,11 @@ describe("HashGraph for set wins map tests", () => {
 
 	test("Should resolve conflicts between concurrent set and delete operations that set wins after merging", async () => {
 		/*
-		       __ V1:SET("key1", "value2") ------------------------- V5:DELETE("key2")
-		      /                                                    /
-		  ROOT                                                    /
-		      \                                                  /
-		       --- V2:SET("key1", "value1") -- V3:DELETE("key1") -- V4:SET("key2", "value2")
+					 __ V1:SET("key1", "value2") ------------------------- V5:DELETE("key2")
+					/                                                    /
+			ROOT                                                    /
+					\                                                  /
+					 --- V2:SET("key1", "value1") -- V3:DELETE("key1") -- V4:SET("key2", "value2")
 		*/
 
 		const drp1 = obj1.drp;
@@ -911,13 +911,13 @@ describe("HashGraph for set wins map tests", () => {
 
 	test("Should resolve conflict between concurrent set and delete operations that set wins after merging complex case", async () => {
 		/*
-		        __ V1:SET("key1", "value1") -- V2:DELETE("key2") -- V5:SET("key2", "value1")
-		       /                                                                            \
-		      /                                                                              \
-		  ROOT -- V3:DELETE("key3") -- V4:SET("key2", "value2") ------------------------------ V7:DELETE("key1")
-		      \                                                    \                           \
-		       \                                                    ----------------------------\
-		        -- V6:SET("key2", "eulav3") ---------------------------------------------------- v8:SET("key1", "value")
+						__ V1:SET("key1", "value1") -- V2:DELETE("key2") -- V5:SET("key2", "value1")
+					 /                                                                            \
+					/                                                                              \
+			ROOT -- V3:DELETE("key3") -- V4:SET("key2", "value2") ------------------------------ V7:DELETE("key1")
+					\                                                    \                           \
+					 \                                                    ----------------------------\
+						-- V6:SET("key2", "eulav3") ---------------------------------------------------- v8:SET("key1", "value")
 		*/
 
 		obj1.drp?.set("key1", "value1");
@@ -960,11 +960,11 @@ describe("HashGraph for delete wins map tests", () => {
 
 	test("Should resolve conflict between concurrent set and delete operations that delete wins after merging", async () => {
 		/*
-		       __ V1:SET("key1", "value1")
-		      /
-		  ROOT
-		      \
-		       -- V2:SET("key1", "value2") -- DELETE("key1")
+					 __ V1:SET("key1", "value1")
+					/
+			ROOT
+					\
+					 -- V2:SET("key1", "value2") -- DELETE("key1")
 		*/
 		obj1.drp?.set("key1", "value1"); // greater hash
 		obj2.drp?.set("key1", "value2"); // smaller hash
@@ -977,11 +977,11 @@ describe("HashGraph for delete wins map tests", () => {
 
 	test("Should resolve conflict between concurrent set and delete operations that delete wins after merging complex case", async () => {
 		/*
-		       __V1:SET("key1", "value2") -- V3:DELETE("key1") -- V5:SET("key2", "value3") -- V6:DELETE("key2")
-		      /                          \                      /
-		  ROOT                            \____________________/
-		      \                           /\
-		       --V2:SET("key1", "value1") -- V4:SET("key2", "value3")
+					 __V1:SET("key1", "value2") -- V3:DELETE("key1") -- V5:SET("key2", "value3") -- V6:DELETE("key2")
+					/                          \                      /
+			ROOT                            \____________________/
+					\                           /\
+					 --V2:SET("key1", "value1") -- V4:SET("key2", "value3")
 		*/
 
 		obj1.drp?.set("key1", "value2");
