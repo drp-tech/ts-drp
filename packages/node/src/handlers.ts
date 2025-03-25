@@ -21,6 +21,7 @@ import {
 } from "@ts-drp/types";
 import { isPromise } from "@ts-drp/utils";
 import { type Deferred } from "@ts-drp/utils/promise/deferred";
+import { MessageSchema } from "@ts-drp/validation";
 
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
@@ -60,12 +61,18 @@ const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
  * @param message
  */
 export async function handleMessage(node: DRPNode, message: Message): Promise<void> {
-	const handler = messageHandlers[message.type];
+	const validation = MessageSchema.safeParse(message);
+	if (!validation.success) {
+		log.error("::messageHandler: Invalid message format", validation.error);
+		return;
+	}
+
+	const handler = messageHandlers[validation.data.type];
 	if (!handler) {
 		log.error("::messageHandler: Invalid operation");
 		return;
 	}
-	const result = handler({ node, message });
+	const result = handler({ node, message: validation.data });
 	if (isPromise(result)) {
 		await result;
 	}
@@ -416,11 +423,7 @@ export function signFinalityVertices<T extends IDRP>(
 	return attestations;
 }
 
-function generateAttestations<T extends IDRP>(
-	node: DRPNode,
-	object: IDRPObject<T>,
-	vertices: Vertex[]
-): Attestation[] {
+function generateAttestations<T extends IDRP>(node: DRPNode, object: IDRPObject<T>, vertices: Vertex[]): Attestation[] {
 	// Two condition:
 	// - The node can sign the vertex
 	// - The node hasn't signed for the vertex
@@ -435,10 +438,7 @@ function generateAttestations<T extends IDRP>(
 	}));
 }
 
-function getAttestations<T extends IDRP>(
-	object: IDRPObject<T>,
-	vertices: Vertex[]
-): AggregatedAttestation[] {
+function getAttestations<T extends IDRP>(object: IDRPObject<T>, vertices: Vertex[]): AggregatedAttestation[] {
 	return (
 		vertices
 			.map((v) => object.finalityStore.getAttestation(v.hash))
@@ -472,11 +472,8 @@ export function verifyACLIncomingVertices(incomingVertices: Vertex[]): Vertex[] 
 				const hashData = sha256.create().update(vertex.hash).digest();
 				const recovery = vertex.signature[0];
 				const compactSignature = vertex.signature.slice(1);
-				const signatureWithRecovery =
-					Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
-				const rawSecp256k1PublicKey = signatureWithRecovery
-					.recoverPublicKey(hashData)
-					.toRawBytes(true);
+				const signatureWithRecovery = Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
+				const rawSecp256k1PublicKey = signatureWithRecovery.recoverPublicKey(hashData).toRawBytes(true);
 				const secp256k1PublicKey = publicKeyFromRaw(rawSecp256k1PublicKey);
 				const expectedPeerId = peerIdFromPublicKey(secp256k1PublicKey).toString();
 				const isValid = expectedPeerId === vertex.peerId;

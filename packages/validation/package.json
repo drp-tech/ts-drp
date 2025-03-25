@@ -30,6 +30,7 @@
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
+		"@ts-drp/types": "0.10.0",
 		"zod": "^3.24.2"
 	}
 }
