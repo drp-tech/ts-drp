@@ -96,9 +96,12 @@ export class FinalityState {
 	}
 }
 
+export type DRPFinalityCallback = (hashes: Hash[]) => void;
+
 export class FinalityStore {
 	states: Map<string, FinalityState>;
 	finalityThreshold: number;
+	subscriptions: DRPFinalityCallback[];
 
 	private log: Logger;
 
@@ -107,6 +110,17 @@ export class FinalityStore {
 		this.finalityThreshold = config?.finality_threshold ?? DEFAULT_FINALITY_THRESHOLD;
 
 		this.log = new Logger("drp::finality", logConfig);
+		this.subscriptions = [];
+	}
+
+	subscribe(callback: DRPFinalityCallback) {
+		this.subscriptions.push(callback);
+	}
+
+	notifyFinality(hashes: Hash[]) {
+		for (const callback of this.subscriptions) {
+			callback(hashes);
+		}
 	}
 
 	initializeState(hash: Hash, signers: Map<string, string>): void {
@@ -158,7 +172,14 @@ export class FinalityStore {
 	addSignatures(peerId: string, attestations: Attestation[], verify = true): void {
 		for (const attestation of attestations) {
 			try {
-				this.states.get(attestation.data)?.addSignature(peerId, attestation.signature, verify);
+				const oldState = this.isFinalized(attestation.data);
+				this.states
+					.get(attestation.data)
+					?.addSignature(peerId, attestation.signature, verify);
+				const newState = this.isFinalized(attestation.data);
+				if (oldState !== newState) {
+					this.notifyFinality([attestation.data]);
+				}
 			} catch (e) {
 				this.log.error("::finality::addSignatures", e);
 			}
@@ -181,7 +202,12 @@ export class FinalityStore {
 	mergeSignatures(attestations: AggregatedAttestation[]): void {
 		for (const attestation of attestations) {
 			try {
+				const oldState = this.isFinalized(attestation.data);
 				this.states.get(attestation.data)?.merge(attestation);
+				const newState = this.isFinalized(attestation.data);
+				if (oldState !== newState) {
+					this.notifyFinality([attestation.data]);
+				}
 			} catch (e) {
 				this.log.error("::finality::mergeSignatures", e);
 			}
