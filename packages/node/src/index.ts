@@ -16,6 +16,7 @@ import {
 	type NodeConnectObjectOptions,
 	type NodeCreateObjectOptions,
 } from "@ts-drp/types";
+import { NodeConnectObjectOptionsSchema } from "@ts-drp/validation/dist/src/index.js";
 
 import { drpObjectChangesHandler, handleMessage } from "./handlers.js";
 import { log } from "./logger.js";
@@ -54,7 +55,9 @@ export class DRPNode {
 				...config?.interval_discovery_options,
 			},
 		};
-		this.messageQueueManager = new MessageQueueManager<Message>({ logConfig: this.config.log_config });
+		this.messageQueueManager = new MessageQueueManager<Message>({
+			logConfig: this.config.log_config,
+		});
 	}
 
 	async start(): Promise<void> {
@@ -155,9 +158,14 @@ export class DRPNode {
 	 * @param options.sync.peerId - The peer ID to sync with
 	 */
 	async connectObject<T extends IDRP>(options: NodeConnectObjectOptions<T>): Promise<IDRPObject<T>> {
+		const validation = NodeConnectObjectOptionsSchema.safeParse(options);
+		if (!validation.success) {
+			throw new Error(`Invalid options when connecting to object: ${validation.error.message}`);
+		}
+		const validatedOptions = validation.data;
 		const object = DRPObject.createObject({
 			peerId: this.networkNode.peerId,
-			id: options.id,
+			id: validatedOptions.id,
 			drp: options.drp,
 			metrics: options.metrics,
 			log_config: options.log_config,

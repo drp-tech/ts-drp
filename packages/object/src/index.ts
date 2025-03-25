@@ -128,9 +128,7 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 	static createObject<T extends IDRP>(options: CreateObjectOptions<T>): DRPObject<T> {
 		const validation = CreateObjectOptionsSchema.safeParse(options);
 		if (!validation.success) {
-			throw new Error(
-				`Invalid options when creating object: ${validation.error.errors.map((e) => e.message).join(", ")}`
-			);
+			throw new Error(`Invalid options when creating object: ${validation.error.message}`);
 		}
 		const validatedOptions = validation.data;
 		const aclObj = new ObjectACL({
@@ -140,7 +138,7 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 
 		const object = new DRPObject({
 			peerId: validatedOptions.peerId,
-			id: options.id,
+			id: validatedOptions.id,
 			acl: aclObj,
 			drp: options.drp,
 			metrics: options.metrics,
