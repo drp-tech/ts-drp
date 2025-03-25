@@ -3,7 +3,7 @@ import { peerIdFromPublicKey } from "@libp2p/peer-id";
 import { sha256 } from "@noble/hashes/sha2";
 import { Signature } from "@noble/secp256k1";
 import { DRPIntervalDiscovery } from "@ts-drp/interval-discovery";
-import { deserializeDRPState, HashGraph, serializeDRPState } from "@ts-drp/object";
+import { HashGraph } from "@ts-drp/object";
 import {
 	type AggregatedAttestation,
 	type Attestation,
@@ -19,7 +19,7 @@ import {
 	Update,
 	type Vertex,
 } from "@ts-drp/types";
-import { isPromise } from "@ts-drp/utils";
+import { deserializeDRPState, isPromise, serializeDRPState } from "@ts-drp/utils";
 import { type Deferred } from "@ts-drp/utils/promise/deferred";
 
 import { type DRPNode } from "./index.js";
@@ -158,8 +158,8 @@ function attestationUpdateHandler({ node, message }: HandleParams): ReturnType<I
 }
 
 /*
-  data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
-  operations array doesn't contain the full remote operations array
+	data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
+	operations array doesn't contain the full remote operations array
 */
 async function updateHandler({ node, message }: HandleParams): Promise<void> {
 	const { sender, data } = message;
@@ -275,8 +275,8 @@ async function syncHandler({ node, message }: HandleParams): Promise<void> {
 }
 
 /*
-  data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
-  operations array contain the full remote operations array
+	data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
+	operations array contain the full remote operations array
 */
 async function syncAcceptHandler({ node, message }: HandleParams): Promise<void> {
 	const { data, sender } = message;

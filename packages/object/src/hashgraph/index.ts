@@ -9,12 +9,11 @@ import {
 	SemanticsType,
 	Vertex,
 } from "@ts-drp/types";
+import { computeHash, ObjectSet } from "@ts-drp/utils";
 
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../linearize/pairSemantics.js";
-import { computeHash } from "../utils/computeHash.js";
-import { ObjectSet } from "../utils/objectSet.js";
 
 export enum OperationType {
 	// TODO: rename this and make it part of action type this is the init action for the object
