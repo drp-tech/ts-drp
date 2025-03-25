@@ -416,7 +416,11 @@ export function signFinalityVertices<T extends IDRP>(
 	return attestations;
 }
 
-function generateAttestations<T extends IDRP>(node: DRPNode, object: IDRPObject<T>, vertices: Vertex[]): Attestation[] {
+function generateAttestations<T extends IDRP>(
+	node: DRPNode,
+	object: IDRPObject<T>,
+	vertices: Vertex[]
+): Attestation[] {
 	// Two condition:
 	// - The node can sign the vertex
 	// - The node hasn't signed for the vertex
@@ -431,7 +435,10 @@ function generateAttestations<T extends IDRP>(node: DRPNode, object: IDRPObject<
 	}));
 }
 
-function getAttestations<T extends IDRP>(object: IDRPObject<T>, vertices: Vertex[]): AggregatedAttestation[] {
+function getAttestations<T extends IDRP>(
+	object: IDRPObject<T>,
+	vertices: Vertex[]
+): AggregatedAttestation[] {
 	return (
 		vertices
 			.map((v) => object.finalityStore.getAttestation(v.hash))
@@ -465,8 +472,11 @@ export function verifyACLIncomingVertices(incomingVertices: Vertex[]): Vertex[] 
 				const hashData = sha256.create().update(vertex.hash).digest();
 				const recovery = vertex.signature[0];
 				const compactSignature = vertex.signature.slice(1);
-				const signatureWithRecovery = Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
-				const rawSecp256k1PublicKey = signatureWithRecovery.recoverPublicKey(hashData).toRawBytes(true);
+				const signatureWithRecovery =
+					Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
+				const rawSecp256k1PublicKey = signatureWithRecovery
+					.recoverPublicKey(hashData)
+					.toRawBytes(true);
 				const secp256k1PublicKey = publicKeyFromRaw(rawSecp256k1PublicKey);
 				const expectedPeerId = peerIdFromPublicKey(secp256k1PublicKey).toString();
 				const isValid = expectedPeerId === vertex.peerId;
