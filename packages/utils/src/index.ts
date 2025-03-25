@@ -172,3 +172,7 @@ export function handlePromiseOrValue<T, R>(value: T | Promise<T>, fn: (value: T)
 	}
 	return fn(value);
 }
+
+export * from "./object/computeHash.js";
+export * from "./object/objectSet.js";
+export * from "./object/serializer.js";
