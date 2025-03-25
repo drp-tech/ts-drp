@@ -63,16 +63,20 @@ const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
 export async function handleMessage(node: DRPNode, message: Message): Promise<void> {
 	const validation = MessageSchema.safeParse(message);
 	if (!validation.success) {
-		log.error("::messageHandler: Invalid message format", validation.error);
+		log.error("::messageHandler: Invalid message format", {
+			errors: validation.error.errors,
+			message: message,
+		});
 		return;
 	}
+	const validatedMessage = validation.data;
 
-	const handler = messageHandlers[validation.data.type];
+	const handler = messageHandlers[validatedMessage.type];
 	if (!handler) {
 		log.error("::messageHandler: Invalid operation");
 		return;
 	}
-	const result = handler({ node, message: validation.data });
+	const result = handler({ node, message: validatedMessage });
 	if (isPromise(result)) {
 		await result;
 	}
