@@ -170,7 +170,6 @@ export class DRPNode {
 
 		// start the interval discovery
 		this._createIntervalDiscovery(options.id);
-
 		await operations.fetchState(this, options.id, options.sync?.peerId);
 
 		// TODO: since when the interval can run this twice do we really want it to be

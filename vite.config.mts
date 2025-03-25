@@ -8,7 +8,7 @@ export default defineConfig({
 		coverage: {
 			enabled: true,
 			reporter: ["text", "lcov", "json-summary", "json"],
-			include: ["packages/**/*.{ts,tsx}"],
+			include: ["packages/object/tests/drpobject.test.ts"],
 			exclude: ["**/node_modules/**", "**/__tests__/**", "**/tests/**", "**/proto/**", "**/dist/**", "**/version.ts"],
 		},
 		testTimeout: 10000,

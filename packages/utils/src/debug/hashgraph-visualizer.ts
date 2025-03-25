@@ -290,3 +290,8 @@ export class HashGraphVisualizer {
 		return this.render(positionedNodes, edgeShapes);
 	}
 }
+
+export function visualizeHashGraph(hashGraph: IHashGraph): string {
+	const viz = new HashGraphVisualizer();
+	return viz.stringify(hashGraph);
+}

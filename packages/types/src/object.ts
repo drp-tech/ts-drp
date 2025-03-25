@@ -28,6 +28,11 @@ export interface DRPObjectOptions<T extends IDRP> {
 
 export type MergeResult = [merged: boolean, missing: string[]];
 
+export interface ApplyResult {
+	applied: boolean;
+	missing: string[];
+}
+
 export interface IDRPObject<T extends IDRP> extends DRPObjectBase {
 	/**
 	 * The id of the DRP object.
@@ -79,6 +84,31 @@ export interface IDRPObject<T extends IDRP> extends DRPObjectBase {
 	subscribe(callback: DRPObjectCallback<T>): void;
 
 	/**
+	 * Merge the vertices into the DRP object.
+	 */
+	merge(vertices: Vertex[]): Promise<MergeResult>;
+}
+
+export type DRPObjectCallback2<T extends IDRP> = (object: IDRPObject2<T>, origin: string, vertices: Vertex[]) => void;
+
+export interface IDRPObject2<T extends IDRP> extends DRPObjectBase {
+	/**
+	 * The id of the DRP object.
+	 */
+	readonly id: string;
+
+	/**
+	 * Subscribe to the DRP object.
+	 */
+	subscribe(callback: DRPObjectCallback2<T>): void;
+
+	/**
+	 * Apply the vertices to the DRP object.
+	 */
+	applyVertices(vertices: Vertex[]): Promise<ApplyResult>;
+
+	/**
+	 * @deprecated Use applyVertices instead
 	 * Merge the vertices into the DRP object.
 	 */
 	merge(vertices: Vertex[]): Promise<MergeResult>;

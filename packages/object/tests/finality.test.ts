@@ -8,10 +8,10 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { ObjectACL } from "../src/acl/index.js";
 import { FinalityState, FinalityStore } from "../src/finality/index.js";
 import { BitSet } from "../src/hashgraph/bitset.js";
-import { DRPObject } from "../src/index.js";
+import { DRPObject2 } from "../src/index.js";
 
 // initialize log
-const _ = new DRPObject({
+const _ = new DRPObject2({
 	peerId: "peer1",
 	acl: new ObjectACL({ admins: [] }),
 	drp: new SetDRP(),

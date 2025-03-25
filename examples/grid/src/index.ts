@@ -16,6 +16,9 @@ export function getNetworkConfigFromEnv(): DRPNodeConfig {
 	const config: DRPNodeConfig = {
 		network_config: {
 			browser_metrics: true,
+			log_config: {
+				level: "info",
+			},
 		},
 	};
 

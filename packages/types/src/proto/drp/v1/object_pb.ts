@@ -18,6 +18,23 @@ export interface Vertex {
   signature: Uint8Array;
 }
 
+class Vextex2 implements Vertex {
+	hash: string;
+	peerId: string;
+	operation: Vertex_Operation | undefined;
+	dependencies: string[];
+	timestamp: number;
+	signature: Uint8Array;
+
+  constructor(hash: string, peerId: string, operation: Vertex_Operation | undefined, dependencies: string[], timestamp: number, signature: Uint8Array) {
+    this.hash = hash;
+    this.peerId = peerId;
+    this.operation = operation;
+    this.dependencies = dependencies;
+    this.timestamp = timestamp;
+    this.signature = signature;
+  }
+}
 export interface Vertex_Operation {
   drpType: string;
   opType: string;

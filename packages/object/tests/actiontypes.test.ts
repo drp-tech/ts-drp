@@ -1,7 +1,7 @@
 import { AddMulDRP } from "@ts-drp/blueprints";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { DRPObject, ObjectACL } from "../src/index.js";
+import { DRPObject2, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: [],
@@ -14,12 +14,12 @@ beforeAll(async () => {
 });
 
 describe("Test: ActionTypes (Nop and Swap)", () => {
-	let drp: DRPObject<AddMulDRP>;
-	let drp2: DRPObject<AddMulDRP>;
+	let drp: DRPObject2<AddMulDRP>;
+	let drp2: DRPObject2<AddMulDRP>;
 
 	beforeEach(() => {
-		drp = new DRPObject({ peerId: "peer1", drp: new AddMulDRP(), acl });
-		drp2 = new DRPObject({ peerId: "peer2", drp: new AddMulDRP(), acl });
+		drp = new DRPObject2({ peerId: "peer1", drp: new AddMulDRP(), acl });
+		drp2 = new DRPObject2({ peerId: "peer2", drp: new AddMulDRP(), acl });
 
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));

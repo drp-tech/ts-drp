@@ -5,6 +5,7 @@ import type { ObjectSet } from "../utils/objectSet.js";
 
 export function linearizePairSemantics(hashGraph: HashGraph, origin: Hash, subgraph: ObjectSet<string>): Vertex[] {
 	const order = hashGraph.topologicalSort(true, origin, subgraph);
+	console.log("order", order);
 	const result: Vertex[] = [];
 	// if there is no resolveConflicts function, we can just return the operations in topological order
 	if (!hashGraph.resolveConflictsACL && !hashGraph.resolveConflictsDRP) {

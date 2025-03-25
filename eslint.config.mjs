@@ -1,6 +1,7 @@
 import eslint from "@eslint/js";
 import tsparser from "@typescript-eslint/parser";
 import importPlugin from "eslint-plugin-import";
+import neverthrowPlugin from '@bufferings/eslint-plugin-neverthrow';
 import prettier from "eslint-plugin-prettier";
 import unusedImports from "eslint-plugin-unused-imports";
 import vitest from "eslint-plugin-vitest";
@@ -34,22 +35,17 @@ const config = tsLintConfig(
 	configs.strict,
 	importPlugin.flatConfigs.recommended,
 	importPlugin.flatConfigs.typescript,
+	neverthrowPlugin.configs.recommended,
 	{
 		settings: {
 			"import/resolver": {
 				typescript: {},
 			},
 		},
-		plugins: {
-			"@typescript-eslint": plugin,
-			"prettier": prettier,
-			"unused-imports": unusedImports,
-			"vitest": vitest,
-		},
 		languageOptions: {
 			parser: tsparser,
 			parserOptions: {
-				ecmaVersion: 2021,
+				ecmaVersion: 2022,
 				sourceType: "module",
 				tsconfigRootDir: import.meta.dirname,
 				project: "./tsconfig.json",
@@ -58,6 +54,12 @@ const config = tsLintConfig(
 				...globals.node,
 				...globals.es2021,
 			},
+		},
+		plugins: {
+			"@typescript-eslint": plugin,
+			"prettier": prettier,
+			"unused-imports": unusedImports,
+			"vitest": vitest,
 		},
 		rules: {
 			"prettier/prettier": ["error", { printWidth: 120 }],

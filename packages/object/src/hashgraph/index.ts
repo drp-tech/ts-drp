@@ -4,16 +4,18 @@ import {
 	type Hash,
 	type IHashGraph,
 	type LoggerOptions,
+	type LowestCommonAncestorResult,
 	type Operation,
+	type ResolveConflictFn,
 	type ResolveConflictsType,
 	SemanticsType,
-	Vertex,
+	type Vertex,
 } from "@ts-drp/types";
 
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../linearize/pairSemantics.js";
-import { computeHash } from "../utils/computeHash.js";
+import { createVertex } from "../utils/createVertex.js";
 import { ObjectSet } from "../utils/objectSet.js";
 
 export enum OperationType {
@@ -54,14 +56,16 @@ export class HashGraph implements IHashGraph {
 
 	constructor(
 		peerId: string,
-		resolveConflictsACL?: (vertices: Vertex[]) => ResolveConflictsType,
-		resolveConflictsDRP?: (vertices: Vertex[]) => ResolveConflictsType,
+		resolveConflictsACL: ResolveConflictFn = this.resolveConflictsACL,
+		resolveConflictsDRP: ResolveConflictFn = this.resolveConflictsDRP,
 		semanticsTypeDRP?: SemanticsType,
 		logConfig?: LoggerOptions
 	) {
 		this.peerId = peerId;
-		if (resolveConflictsACL) this.resolveConflictsACL = resolveConflictsACL;
-		if (resolveConflictsDRP) this.resolveConflictsDRP = resolveConflictsDRP;
+
+		this.resolveConflictsACL = resolveConflictsACL;
+		this.resolveConflictsDRP = resolveConflictsDRP;
+
 		this.semanticsTypeDRP = semanticsTypeDRP;
 		this.log = new Logger("drp::hashgraph", logConfig);
 
@@ -100,17 +104,19 @@ export class HashGraph implements IHashGraph {
 	}
 
 	createVertex(operation: Operation, dependencies: Hash[], timestamp: number): Vertex {
-		return Vertex.create({
-			hash: computeHash(this.peerId, operation, dependencies, timestamp),
-			peerId: this.peerId,
-			timestamp,
-			operation,
-			dependencies,
-		});
+		return createVertex(this.peerId, operation, dependencies, timestamp);
+	}
+
+	createVertex2(operation: Operation): Vertex {
+		return createVertex(this.peerId, operation, this.getFrontier(), Date.now());
 	}
 
 	// Add a new vertex to the hashgraph.
 	addVertex(vertex: Vertex): void {
+		if (vertex.dependencies.length === 0) {
+			throw new Error("Vertex has no dependencies");
+		}
+
 		this.vertices.set(vertex.hash, vertex);
 		this.frontier.push(vertex.hash);
 		// Update forward edges
@@ -207,6 +213,16 @@ export class HashGraph implements IHashGraph {
 
 		this.arePredecessorsFresh = true;
 		return result;
+	}
+
+	getLCA(dependencies: Hash[]): LowestCommonAncestorResult {
+		const isSingleDependency = dependencies.length === 1;
+		if (isSingleDependency) return { lca: dependencies[0], linearizedVertices: [] };
+
+		const subgraph: ObjectSet<Hash> = new ObjectSet();
+		const lca = this.lowestCommonAncestorMultipleVertices(dependencies, subgraph);
+		const linearizedVertices = this.linearizeVertices(lca, subgraph);
+		return { lca, linearizedVertices };
 	}
 
 	linearizeVertices(

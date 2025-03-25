@@ -2,7 +2,7 @@ import { SetDRP } from "@ts-drp/blueprints";
 import fs from "fs";
 import * as pprof from "pprof";
 
-import { DRPObject, ObjectACL } from "../src/index.js";
+import { DRPObject2, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: ["peer1"],
@@ -14,8 +14,8 @@ const createWithStrategy = (
 	peerId: number,
 	verticesPerDRP: number,
 	strategy: DRPManipulationStrategy
-): DRPObject<SetDRP<number>> => {
-	const obj = new DRPObject({
+): DRPObject2<SetDRP<number>> => {
+	const obj = new DRPObject2({
 		peerId: `peer1_${peerId}`,
 		acl,
 		drp: new SetDRP<number>(),
@@ -41,17 +41,17 @@ const manipulationStrategies: DRPManipulationStrategy[] = [
 	},
 ];
 
-function createDRPObjects(numDRPs: number, verticesPerDRP: number): DRPObject<SetDRP<number>>[] {
+function createDRPObjects(numDRPs: number, verticesPerDRP: number): DRPObject2<SetDRP<number>>[] {
 	return Array.from({ length: numDRPs }, (_, peerId) =>
 		createWithStrategy(peerId, verticesPerDRP, manipulationStrategies[peerId % 3])
 	);
 }
 
-async function mergeObjects(objects: DRPObject<SetDRP<number>>[]): Promise<void> {
+async function mergeObjects(objects: DRPObject2<SetDRP<number>>[]): Promise<void> {
 	for (const [sourceIndex, sourceObject] of objects.entries()) {
 		for (const [targetIndex, targetObject] of objects.entries()) {
 			if (sourceIndex !== targetIndex) {
-				await sourceObject.merge(targetObject.hashGraph.getAllVertices());
+				await sourceObject.merge(targetObject.vertices);
 			}
 		}
 	}

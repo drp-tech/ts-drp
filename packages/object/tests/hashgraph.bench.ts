@@ -1,7 +1,7 @@
 import { MapDRP, SetDRP } from "@ts-drp/blueprints";
 import Benchmark from "benchmark";
 
-import { DRPObject, ObjectACL } from "../src/index.js";
+import { DRPObject2, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: ["peer1"],
@@ -16,9 +16,9 @@ function benchmarkForAddWinSet(
 	mergeFn: boolean
 ): Benchmark.Suite {
 	return suite.add(name, async () => {
-		const objects: DRPObject<SetDRP<number>>[] = [];
+		const objects: DRPObject2<SetDRP<number>>[] = [];
 		for (let i = 0; i < numDRPs; i++) {
-			const obj = new DRPObject({
+			const obj = new DRPObject2({
 				peerId: `peer${i + 1}`,
 				acl,
 				drp: new SetDRP<number>(),
@@ -41,7 +41,7 @@ function benchmarkForAddWinSet(
 			for (let i = 0; i < objects.length; i++) {
 				for (let j = 0; j < objects.length; j++) {
 					if (i !== j) {
-						await objects[i].merge(objects[j].hashGraph.getAllVertices());
+						await objects[i].merge(objects[j].vertices);
 					}
 				}
 			}
@@ -60,7 +60,7 @@ benchmarkForAddWinSet(
 );
 
 suite.add("Create a HashGraph with 1000 operations for set wins map 1000", () => {
-	const object = new DRPObject({
+	const object = new DRPObject2({
 		peerId: "peer1",
 		acl,
 		drp: new MapDRP<number, number>(),
@@ -71,7 +71,7 @@ suite.add("Create a HashGraph with 1000 operations for set wins map 1000", () =>
 });
 
 suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map`, () => {
-	const object = new DRPObject({
+	const object = new DRPObject2({
 		peerId: "peer1",
 		acl,
 		drp: new MapDRP<number, number>(),
@@ -82,7 +82,7 @@ suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wi
 });
 
 suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map and read them`, () => {
-	const object = new DRPObject({
+	const object = new DRPObject2({
 		peerId: "peer1",
 		acl,
 		drp: new MapDRP<number, number>(),
@@ -96,7 +96,7 @@ suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wi
 	}
 });
 suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map and delete them`, () => {
-	const object = new DRPObject({
+	const object = new DRPObject2({
 		peerId: "peer1",
 		acl,
 		drp: new MapDRP<number, number>(),
@@ -111,7 +111,7 @@ suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wi
 });
 
 suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map with random operations`, () => {
-	const object = new DRPObject({
+	const object = new DRPObject2({
 		peerId: "peer1",
 		acl,
 		drp: new MapDRP<number, number>(),
@@ -154,22 +154,22 @@ suite.add(
 			}
 		}
 
-		const object1 = new DRPObject({
+		const object1 = new DRPObject2({
 			peerId: "peer1",
 			acl,
 			drp: new MapDRP<number, number>(),
 		});
 		initialize(object1.drp);
 
-		const object2 = new DRPObject({
+		const object2 = new DRPObject2({
 			peerId: "peer2",
 			acl,
 			drp: new MapDRP<number, number>(),
 		});
 		initialize(object2.drp);
 
-		await object1.merge(object2.hashGraph.getAllVertices());
-		await object2.merge(object1.hashGraph.getAllVertices());
+		await object1.merge(object2.vertices);
+		await object2.merge(object1.vertices);
 	}
 );
 
