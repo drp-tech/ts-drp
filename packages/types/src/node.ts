@@ -47,36 +47,45 @@ export interface PeerInfo {
 	id: PeerId;
 }
 
+export interface ObjectId {
+	id: string;
+}
+
 export interface NodeEvents {
 	/**
 	 * Emitted when a peer receives an fetch message
 	 */
-	"peer:fetch": CustomEvent<PeerInfo>;
+	"drp:fetch": CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer responds to a fetch message
 	 */
-	"peer:fetch:response": CustomEvent<PeerInfo>;
+	"drp:fetch:response": CustomEvent<ObjectId>;
 
 	/**
 	 *
 	 */
-	"peer:update": CustomEvent<PeerInfo>;
+	"drp:update": CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer receives a sync message
 	 */
-	"peer:sync": CustomEvent<PeerInfo>;
+	"drp:sync": CustomEvent;
 
 	/**
 	 * Emitted when a peer accepts a sync message
 	 */
-	"peer:sync:accepted": CustomEvent;
+	"drp:sync:accepted": CustomEvent;
 
 	/**
 	 * Emitted when a peer rejects a sync message
 	 */
-	"peer:sync:rejected": CustomEvent;
+	"drp:sync:rejected": CustomEvent;
+
+	/**
+	 * Emitted when a peer receives an update attestation message
+	 */
+	"drp:attestation:update": CustomEvent<ObjectId>;
 }
 
 export interface IDRPNode extends TypedEventTarget<NodeEvents> {

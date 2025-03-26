@@ -1,4 +1,4 @@
-import type { EventHandler } from "@libp2p/interface";
+import { TypedEventEmitter } from "@libp2p/interface";
 import { createDRPDiscovery } from "@ts-drp/interval-discovery";
 import { createDRPReconnectBootstrap } from "@ts-drp/interval-reconnect";
 import { Keychain } from "@ts-drp/keychain";
@@ -30,7 +30,9 @@ const DISCOVERY_MESSAGE_TYPES = [
 	MessageType.MESSAGE_TYPE_DRP_DISCOVERY_RESPONSE,
 ];
 
-export class DRPNode implements IDRPNode {
+const DISCOVERY_QUEUE_ID = "discovery";
+
+export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 	config: DRPNodeConfig;
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
@@ -40,6 +42,7 @@ export class DRPNode implements IDRPNode {
 	private _intervals: Map<string, IntervalRunnerMap[keyof IntervalRunnerMap]> = new Map();
 
 	constructor(config?: DRPNodeConfig) {
+		super();
 		const newLogger = new Logger("drp::node", config?.log_config);
 		log.trace = newLogger.trace;
 		log.debug = newLogger.debug;
@@ -56,26 +59,6 @@ export class DRPNode implements IDRPNode {
 			},
 		};
 		this.messageQueueManager = new MessageQueueManager<Message>({ logConfig: this.config.log_config });
-	}
-
-	addEventListener<K extends keyof NodeEvents>(
-		_type: K,
-		_listener: EventHandler<NodeEvents[K]> | null,
-		_options?: boolean | AddEventListenerOptions
-	): void {
-		throw new Error("Method not implemented.");
-	}
-	listenerCount(_type: string): number {
-		throw new Error("Method not implemented.");
-	}
-	removeEventListener(_type: unknown, _listener?: unknown, _options?: unknown): void {
-		throw new Error("Method not implemented.");
-	}
-	safeDispatchEvent<Detail>(_type: keyof NodeEvents, _detail: CustomEventInit<Detail>): boolean {
-		throw new Error("Method not implemented.");
-	}
-	dispatchEvent(_event: unknown): boolean {
-		throw new Error("Method not implemented.");
 	}
 
 	async start(): Promise<void> {
@@ -101,11 +84,11 @@ export class DRPNode implements IDRPNode {
 		this._intervals.forEach((interval) => interval.stop());
 	}
 
-	async restart(config?: DRPNodeConfig): Promise<void> {
+	async restart(): Promise<void> {
 		await this.stop();
 
 		// reassign the network node ? I think we might not need to do this
-		this.networkNode = new DRPNetworkNode(config ? config.network_config : this.config?.network_config);
+		this.networkNode = new DRPNetworkNode(this.config?.network_config);
 
 		await this.start();
 		log.info("::restart: Node restarted");
@@ -195,7 +178,7 @@ export class DRPNode implements IDRPNode {
 		await operations.fetchState(this, options.id, options.sync?.peerId);
 
 		// TODO: since when the interval can run this twice do we really want it to be
-		// runned while the other one might still be running?
+		// ran while the other one might still be running?
 		const intervalFn = (interval: NodeJS.Timeout) => async (): Promise<void> => {
 			if (object.acl) {
 				await operations.syncObject(this, object.id, options.sync?.peerId);

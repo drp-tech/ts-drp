@@ -97,6 +97,12 @@ function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandler
 	node.networkNode.sendMessage(sender, messageFetchStateResponse).catch((e) => {
 		log.error("::fetchStateHandler: Error sending message", e);
 	});
+
+	node.safeDispatchEvent("drp:fetch", {
+		detail: {
+			id: drpObject.id,
+		},
+	});
 }
 
 function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
@@ -140,6 +146,11 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 			fetchStateDeferredMap.get(object.id)?.resolve();
 			fetchStateDeferredMap.delete(object.id);
 		}
+		node.safeDispatchEvent("drp:fetch:response", {
+			detail: {
+				id: object.id,
+			},
+		});
 	}
 }
 
@@ -154,6 +165,11 @@ function attestationUpdateHandler({ node, message }: HandleParams): ReturnType<I
 
 	if (object.acl.query_isFinalitySigner(sender)) {
 		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
+		node.safeDispatchEvent("drp:attestation:update", {
+			detail: {
+				id: object.id,
+			},
+		});
 	}
 }
 
@@ -209,6 +225,12 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 	}
 
 	node.objectStore.put(object.id, object);
+
+	node.safeDispatchEvent("drp:update", {
+		detail: {
+			id: object.id,
+		},
+	});
 }
 
 /**
@@ -272,6 +294,10 @@ async function syncHandler({ node, message }: HandleParams): Promise<void> {
 	node.networkNode.sendMessage(sender, messageSyncAccept).catch((e) => {
 		log.error("::syncHandler: Error sending message", e);
 	});
+
+	node.safeDispatchEvent("drp:sync", {
+		detail: {},
+	});
 }
 
 /*
@@ -302,6 +328,10 @@ async function syncAcceptHandler({ node, message }: HandleParams): Promise<void>
 
 	await signGeneratedVertices(node, object.vertices);
 	signFinalityVertices(node, object, object.vertices);
+
+	node.safeDispatchEvent("drp:sync:accepted", {
+		detail: { id: object.id },
+	});
 
 	// send missing vertices
 	const requested: Vertex[] = [];
