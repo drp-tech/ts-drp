@@ -16,7 +16,7 @@ import {
 	type NodeConnectObjectOptions,
 	type NodeCreateObjectOptions,
 } from "@ts-drp/types";
-import { NodeConnectObjectOptionsSchema } from "@ts-drp/validation/dist/src/index.js";
+import { NodeConnectObjectOptionsSchema } from "@ts-drp/validation";
 
 import { drpObjectChangesHandler, handleMessage } from "./handlers.js";
 import { log } from "./logger.js";
