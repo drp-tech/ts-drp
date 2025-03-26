@@ -495,7 +495,7 @@ importers:
         specifier: 0.11.0
         version: link:../utils
       '@ts-drp/validation':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../validation
       '@types/node':
         specifier: ^22.5.4
@@ -559,7 +559,7 @@ importers:
         specifier: ^0.11.0
         version: link:../utils
       '@ts-drp/validation':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../validation
       es-toolkit:
         specifier: 1.30.1
@@ -686,7 +686,7 @@ importers:
     dependencies:
       '@ts-drp/types':
         specifier: 0.10.0
-        version: link:../types
+        version: 0.10.0
       zod:
         specifier: ^3.24.2
         version: 3.24.2
@@ -2477,6 +2477,9 @@ packages:
 
   '@tootallnate/quickjs-emscripten@0.23.0':
     resolution: {integrity: sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA==}
+
+  '@ts-drp/types@0.10.0':
+    resolution: {integrity: sha512-Aa8yYg59pjMYYhBREW3+UdU+vLcG3zr5RuiMYFCZN5eun4PULEvF/qkZF8Rg5+TBiwsVgwBKO4U0rhKi91Cdzw==}
 
   '@tsconfig/node10@1.0.11':
     resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
@@ -8935,6 +8938,11 @@ snapshots:
       '@thi.ng/errors': 2.5.30
 
   '@tootallnate/quickjs-emscripten@0.23.0': {}
+
+  '@ts-drp/types@0.10.0':
+    dependencies:
+      '@bufbuild/protobuf': 2.2.5
+      loglevel: 1.9.2
 
   '@tsconfig/node10@1.0.11': {}
 
