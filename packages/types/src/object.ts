@@ -95,7 +95,7 @@ export interface IDRPObject<T extends IDRP> extends DRPObjectBase {
 export type DRPObjectCallback<T extends IDRP> = (object: IDRPObject<T>, origin: string, vertices: Vertex[]) => void;
 
 export interface ConnectObjectOptions<T extends IDRP> {
-	peerId?: string;
+	localPeerId?: string;
 	id?: string;
 	drp?: T;
 	metrics?: IMetrics;
@@ -103,5 +103,6 @@ export interface ConnectObjectOptions<T extends IDRP> {
 }
 
 export interface CreateObjectOptions<T extends IDRP> extends ConnectObjectOptions<T> {
-	peerId: string;
+	originPeerId: string;
+	localPeerId: string;
 }

@@ -131,7 +131,7 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 		});
 
 		const object = new DRPObject({
-			peerId: options.peerId,
+			peerId: options.localPeerId,
 			id: options.id,
 			acl: aclObj,
 			drp: options.drp,
