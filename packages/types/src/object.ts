@@ -34,6 +34,14 @@ export interface IDRPObject<T extends IDRP> extends DRPObjectBase {
 	 */
 	readonly id: string;
 	/**
+	 * The PeerID of the node that originally created this DRPObject.
+	 */
+	readonly originPeerId: string;
+	/**
+	 * The PeerID of the current local node handling or subscribing to this DRPObject.
+	 */
+	readonly localPeerId: string;
+	/**
 	 * The ACL of the DRP object.
 	 */
 	acl: IACL;
