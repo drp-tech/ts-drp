@@ -6,7 +6,7 @@ import {
 	deserializeValue,
 	serializeDRPState,
 	serializeValue,
-} from "@ts-drp/utils/object/serializer";
+} from "@ts-drp/utils/dist/src/serialization/serializer.js";
 import { describe, expect, it } from "vitest";
 
 import { DRPObject, HashGraph } from "../src/index.js";

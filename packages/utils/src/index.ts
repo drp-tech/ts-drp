@@ -173,4 +173,4 @@ export function handlePromiseOrValue<T, R>(value: T | Promise<T>, fn: (value: T)
 	return fn(value);
 }
 
-export * from "./object/objectSet.js";
+export * from "./set/index.js";

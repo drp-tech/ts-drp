@@ -20,7 +20,7 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 import { isPromise } from "@ts-drp/utils";
-import { deserializeDRPState, serializeDRPState } from "@ts-drp/utils/object/serializer";
+import { deserializeDRPState, serializeDRPState } from "@ts-drp/utils/dist/src/serialization/serializer.js";
 import { type Deferred } from "@ts-drp/utils/promise/deferred";
 
 import { type DRPNode } from "./index.js";

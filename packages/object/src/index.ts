@@ -21,7 +21,7 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 import { handlePromiseOrValue, isPromise, ObjectSet, processSequentially } from "@ts-drp/utils";
-import { computeHash } from "@ts-drp/utils/object/computeHash";
+import { computeHash } from "@ts-drp/utils/dist/src/hash/computeHash.js";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 
