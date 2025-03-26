@@ -27,6 +27,7 @@ export function init(node: DRPNode, port: number = 6969): void {
 		let returnCode = 0;
 		try {
 			await node.connectObject({
+				originPeerId: node.networkNode.peerId,
 				id: call.request.drpId,
 			});
 		} catch (e) {
