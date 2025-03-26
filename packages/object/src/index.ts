@@ -77,7 +77,7 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 			bytesToHex(
 				sha256
 					.create()
-					.update(options.peerId)
+					.update(options.originPeerId)
 					.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
 					.digest()
 			);
@@ -87,14 +87,14 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 		const objAcl =
 			options.acl ??
 			new ObjectACL({
-				admins: [options.peerId],
+				admins: [options.originPeerId],
 				permissionless: true,
 			});
 		this.acl = new Proxy(objAcl, this.proxyDRPHandler(DrpType.ACL));
 		if (options.drp) {
-			this._initLocalDrpInstance(options.peerId, options.drp, objAcl);
+			this._initLocalDrpInstance(options.localPeerId, options.drp, objAcl);
 		} else {
-			this._initNonLocalDrpInstance(options.peerId, objAcl);
+			this._initNonLocalDrpInstance(options.localPeerId, objAcl);
 		}
 
 		this.aclStates = new Map([[HashGraph.rootHash, DRPState.create()]]);
@@ -135,7 +135,8 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 		});
 
 		const object = new DRPObject({
-			peerId: options.localPeerId,
+			originPeerId: options.originPeerId,
+			localPeerId: options.localPeerId,
 			id: options.id,
 			acl: aclObj,
 			drp: options.drp,

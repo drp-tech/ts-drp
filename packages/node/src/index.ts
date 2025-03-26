@@ -123,7 +123,8 @@ export class DRPNode {
 
 	async createObject<T extends IDRP>(options: NodeCreateObjectOptions<T>): Promise<DRPObject<T>> {
 		const object = new DRPObject<T>({
-			peerId: this.networkNode.peerId,
+			originPeerId: this.networkNode.peerId,
+			localPeerId: this.networkNode.peerId,
 			acl: options.acl,
 			drp: options.drp,
 			id: options.id,
@@ -156,7 +157,8 @@ export class DRPNode {
 	 */
 	async connectObject<T extends IDRP>(options: NodeConnectObjectOptions<T>): Promise<IDRPObject<T>> {
 		const object = DRPObject.createObject({
-			peerId: this.networkNode.peerId,
+			originPeerId: options.originPeerId,
+			localPeerId: this.networkNode.peerId,
 			id: options.id,
 			drp: options.drp,
 			metrics: options.metrics,
