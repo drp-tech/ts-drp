@@ -1,7 +1,7 @@
 {
 	"name": "ts-drp",
 	"description": "The official TypeScript implementation of DRP protocol",
-	"version": "0.10.0",
+	"version": "0.11.0",
 	"license": "MIT",
 	"homepage": "https://topology.gg/",
 	"repository": {

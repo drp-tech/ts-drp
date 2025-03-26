@@ -45,7 +45,7 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 			return;
 		}
 		await queue.enqueue(message);
-		this.logger.info(`queue manager::enqueued message ${message} to ${queueId}`);
+		this.logger.trace(`queue manager::enqueued message ${message} to ${queueId}`);
 	}
 
 	subscribe(queueId: string, handler: IMessageQueueHandler<T>): void {

@@ -103,13 +103,13 @@ importers:
   examples/canvas:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../../packages/node
       '@ts-drp/object':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../../packages/object
       '@ts-drp/types':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../../packages/types
     devDependencies:
       '@types/node':
@@ -128,13 +128,13 @@ importers:
   examples/chat:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../../packages/node
       '@ts-drp/object':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../../packages/object
       '@ts-drp/types':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../../packages/types
     devDependencies:
       '@types/node':
@@ -153,16 +153,16 @@ importers:
   examples/grid:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../../packages/node
       '@ts-drp/object':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../../packages/object
       '@ts-drp/tracer':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../../packages/tracer
       '@ts-drp/types':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../../packages/types
     devDependencies:
       '@types/node':
@@ -181,7 +181,7 @@ importers:
   examples/local-bootstrap:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../../packages/node
     devDependencies:
       '@types/node':
@@ -203,26 +203,26 @@ importers:
         specifier: ^4.1.0
         version: 4.1.15
       '@ts-drp/types':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../types
 
   packages/interval-discovery:
     dependencies:
       '@ts-drp/interval-runner':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../interval-runner
       '@ts-drp/logger':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../logger
       '@ts-drp/types':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../types
     devDependencies:
       '@chainsafe/libp2p-gossipsub':
         specifier: ^14.1.0
         version: 14.1.0
       '@ts-drp/blueprints':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../blueprints
       race-event:
         specifier: ^1.3.0
@@ -231,13 +231,13 @@ importers:
   packages/interval-reconnect:
     dependencies:
       '@ts-drp/interval-runner':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../interval-runner
       '@ts-drp/logger':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../logger
       '@ts-drp/types':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../types
     devDependencies:
       '@chainsafe/libp2p-gossipsub':
@@ -253,13 +253,13 @@ importers:
         specifier: ^1.7.1
         version: 1.7.1
       '@ts-drp/logger':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../logger
       '@ts-drp/types':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../types
       '@ts-drp/utils':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../utils
 
   packages/keychain:
@@ -286,7 +286,7 @@ importers:
         specifier: ^2.2.3
         version: 2.2.3
       '@ts-drp/types':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../types
       uint8arrays:
         specifier: ^5.1.0
@@ -299,7 +299,7 @@ importers:
   packages/logger:
     dependencies:
       '@ts-drp/types':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../types
       loglevel:
         specifier: ^1.9.2
@@ -311,13 +311,13 @@ importers:
   packages/message-queue:
     dependencies:
       '@ts-drp/logger':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../logger
       '@ts-drp/types':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../types
       '@ts-drp/utils':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../utils
 
   packages/network:
@@ -383,13 +383,13 @@ importers:
         specifier: ^1.6.0
         version: 1.6.0
       '@ts-drp/logger':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../logger
       '@ts-drp/message-queue':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../message-queue
       '@ts-drp/types':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../types
       esbuild-plugins-node-modules-polyfill:
         specifier: ^1.7.0
@@ -414,7 +414,7 @@ importers:
         version: 5.1.0
     devDependencies:
       '@ts-drp/keychain':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../keychain
       race-event:
         specifier: ^1.3.0
@@ -459,40 +459,40 @@ importers:
         specifier: ^2.2.3
         version: 2.2.3
       '@ts-drp/blueprints':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../blueprints
       '@ts-drp/interval-discovery':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../interval-discovery
       '@ts-drp/interval-reconnect':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../interval-reconnect
       '@ts-drp/interval-runner':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../interval-runner
       '@ts-drp/keychain':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../keychain
       '@ts-drp/logger':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../logger
       '@ts-drp/message-queue':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../message-queue
       '@ts-drp/network':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../network
       '@ts-drp/object':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../object
       '@ts-drp/tracer':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../tracer
       '@ts-drp/types':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../types
       '@ts-drp/utils':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../utils
       '@ts-drp/validation':
         specifier: 0.10.0
@@ -517,7 +517,7 @@ importers:
         version: 5.1.0
     devDependencies:
       '@ts-drp/test-utils':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../test-utils
       '@types/benchmark':
         specifier: ^2.1.5
@@ -547,16 +547,16 @@ importers:
         specifier: ^1.7.1
         version: 1.7.1
       '@ts-drp/logger':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../logger
       '@ts-drp/tracer':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../tracer
       '@ts-drp/types':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../types
       '@ts-drp/utils':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../utils
       '@ts-drp/validation':
         specifier: ^0.10.0
@@ -578,13 +578,13 @@ importers:
         specifier: ^2.0.0
         version: 2.2.5
       '@ts-drp/blueprints':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../blueprints
       '@ts-drp/keychain':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../keychain
       '@ts-drp/test-utils':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../test-utils
       '@types/benchmark':
         specifier: ^2.1.5
@@ -602,7 +602,7 @@ importers:
   packages/test-utils:
     dependencies:
       '@ts-drp/types':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../types
 
   packages/tracer:
@@ -635,10 +635,10 @@ importers:
         specifier: 1.28.0
         version: 1.28.0
       '@ts-drp/types':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../types
       '@ts-drp/utils':
-        specifier: ^0.10.0
+        specifier: ^0.11.0
         version: link:../utils
       loglevel:
         specifier: ^1.9.2
@@ -679,7 +679,7 @@ importers:
   packages/utils:
     dependencies:
       '@ts-drp/types':
-        specifier: 0.10.0
+        specifier: 0.11.0
         version: link:../types
 
   packages/validation:
