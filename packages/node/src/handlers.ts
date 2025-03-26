@@ -19,7 +19,8 @@ import {
 	Update,
 	type Vertex,
 } from "@ts-drp/types";
-import { deserializeDRPState, isPromise, serializeDRPState } from "@ts-drp/utils";
+import { isPromise } from "@ts-drp/utils";
+import { deserializeDRPState, serializeDRPState } from "@ts-drp/utils/object/serializer";
 import { type Deferred } from "@ts-drp/utils/promise/deferred";
 
 import { type DRPNode } from "./index.js";

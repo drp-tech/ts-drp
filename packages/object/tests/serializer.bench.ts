@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { deserializeValue, serializeValue } from "@ts-drp/utils";
+import { deserializeValue, serializeValue } from "@ts-drp/utils/object/serializer";
 import Benchmark from "benchmark";
 
 function createNestedObject(depth: number, breadth: number): any {
