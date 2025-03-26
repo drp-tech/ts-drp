@@ -262,6 +262,11 @@ async function main(): Promise<void> {
 		if (!chatState.hasChat()) return;
 		renderChatId(chatState);
 	}, 3000);
+
+	setInterval(() => {
+		if (!chatState.hasChat()) return;
+		render(chatState);
+	}, 10_000);
 }
 
 void main();
