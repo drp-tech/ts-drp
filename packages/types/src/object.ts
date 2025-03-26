@@ -18,7 +18,8 @@ export interface DRPObjectConfig {
 }
 
 export interface DRPObjectOptions<T extends IDRP> {
-	peerId: string;
+	originPeerId: string;
+	localPeerId: string;
 	acl?: IACL;
 	drp?: T;
 	id?: string;

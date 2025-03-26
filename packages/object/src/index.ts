@@ -55,6 +55,8 @@ interface OperationContext {
 
 export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 	id: string;
+	originPeerId: string;
+	localPeerId: string;
 	vertices: Vertex[] = [];
 	acl: IACL;
 	drp?: T;
@@ -79,6 +81,8 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 					.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
 					.digest()
 			);
+		this.originPeerId = options.originPeerId;
+		this.localPeerId = options.localPeerId;
 
 		const objAcl =
 			options.acl ??
