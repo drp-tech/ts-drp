@@ -9,7 +9,8 @@ import {
 	SemanticsType,
 	Vertex,
 } from "@ts-drp/types";
-import { computeHash, ObjectSet } from "@ts-drp/utils";
+import { ObjectSet } from "@ts-drp/utils";
+import { computeHash } from "@ts-drp/utils/object/computeHash";
 
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";

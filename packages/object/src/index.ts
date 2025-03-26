@@ -20,7 +20,8 @@ import {
 	type Operation,
 	type Vertex,
 } from "@ts-drp/types";
-import { computeHash, handlePromiseOrValue, isPromise, ObjectSet, processSequentially } from "@ts-drp/utils";
+import { handlePromiseOrValue, isPromise, ObjectSet, processSequentially } from "@ts-drp/utils";
+import { computeHash } from "@ts-drp/utils/object/computeHash";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 
