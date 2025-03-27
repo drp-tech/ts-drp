@@ -296,7 +296,9 @@ async function syncHandler({ node, message }: HandleParams): Promise<void> {
 	});
 
 	node.safeDispatchEvent("drp:sync", {
-		detail: {},
+		detail: {
+			id: object.id,
+		},
 	});
 }
 
@@ -360,6 +362,9 @@ async function syncAcceptHandler({ node, message }: HandleParams): Promise<void>
 	});
 	node.networkNode.sendMessage(sender, messageSyncAccept).catch((e) => {
 		log.error("::syncAcceptHandler: Error sending message", e);
+	});
+	node.safeDispatchEvent("drp:sync:missing", {
+		detail: { id: object.id },
 	});
 }
 

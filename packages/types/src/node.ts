@@ -63,24 +63,29 @@ export interface NodeEvents {
 	"drp:fetch:response": CustomEvent<ObjectId>;
 
 	/**
-	 *
+	 * Emitted when a peer receives an update message
 	 */
 	"drp:update": CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer receives a sync message
 	 */
-	"drp:sync": CustomEvent;
+	"drp:sync": CustomEvent<ObjectId>;
+
+	/**
+	 * Emitted when a peer receives a sync message with missing objects
+	 */
+	"drp:sync:missing": CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer accepts a sync message
 	 */
-	"drp:sync:accepted": CustomEvent;
+	"drp:sync:accepted": CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer rejects a sync message
 	 */
-	"drp:sync:rejected": CustomEvent;
+	"drp:sync:rejected": CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer receives an update attestation message
