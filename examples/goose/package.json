@@ -1,0 +1,26 @@
+{
+  "name": "ts-drp-example-goose",
+  "version": "0.11.0",
+  "license": "MIT",
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist/ node_modules/",
+    "dev": "vite serve",
+    "start": "vite preview --host --port 5173"
+  },
+  "dependencies": {
+    "@ts-drp/node": "0.11.0",
+    "@ts-drp/object": "0.11.0",
+    "@ts-drp/tracer": "^0.11.0",
+    "@ts-drp/types": "^0.11.0",
+    "three": "^0.162.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.4",
+    "@types/three": "^0.162.0",
+    "typescript": "^5.5.4",
+    "vite": "^6.0.9",
+		"vite-plugin-node-polyfills": "^0.22.0"
+  }
+}

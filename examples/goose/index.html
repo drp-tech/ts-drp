@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GooseWorld - DRP Example</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      canvas {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+      }
+      #ui {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        color: white;
+        font-family: monospace;
+        background: rgba(0,0,0,0.5);
+        padding: 10px;
+        border-radius: 5px;
+      }
+      button {
+        margin: 5px;
+        padding: 5px 10px;
+        border-radius: 3px;
+        border: none;
+        background: #4CAF50;
+        color: white;
+        cursor: pointer;
+      }
+      input {
+        margin: 5px;
+        padding: 5px;
+        border-radius: 3px;
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui">
+      <div>Node ID: <span id="nodeId"></span></div>
+      <div>Connected Peers: <span id="peers"></span></div>
+      <div>Players in World: <span id="players"></span></div>
+      <div>Hashgraph Vertices: <span id="vertices">0</span></div>
+      <div>
+        <button id="createWorld">Create New World</button>
+      </div>
+      <div>
+        <input type="text" id="worldInput" placeholder="Enter World ID">
+        <button id="joinWorld">Join World</button>
+      </div>
+    </div>
+    <script type="module" src="/src/index.ts"></script>
+  </body>
+</html>
