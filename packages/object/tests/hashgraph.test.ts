@@ -11,6 +11,7 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 import { ObjectSet } from "@ts-drp/utils";
+import { validateVertex } from "@ts-drp/validation/vertex";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
@@ -173,9 +174,10 @@ describe("HashGraph construction tests", () => {
 			Date.now(),
 			new Uint8Array()
 		);
-		expect(() => {
-			obj1.validateVertex(fakeRoot);
-		}).toThrowError(`Vertex ${fakeRoot.hash} has no dependencies.`);
+		expect(validateVertex(fakeRoot, obj1.hashGraph, Date.now())).toStrictEqual({
+			success: false,
+			error: `Vertex ${fakeRoot.hash} has no dependencies.`,
+		});
 		const vertex = newVertex(
 			"peer1",
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
@@ -183,9 +185,10 @@ describe("HashGraph construction tests", () => {
 			Date.now(),
 			new Uint8Array()
 		);
-		expect(() => {
-			obj1.validateVertex(vertex);
-		}).toThrowError(`Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}.`);
+		expect(validateVertex(vertex, obj1.hashGraph, Date.now())).toStrictEqual({
+			success: false,
+			error: `Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}.`,
+		});
 		expect(selfCheckConstraints(obj1.hashGraph)).toBe(true);
 
 		const linearizedVertices = obj1.hashGraph.linearizeVertices();
@@ -640,7 +643,10 @@ describe("Vertex timestamp tests", () => {
 			Number.POSITIVE_INFINITY,
 			new Uint8Array()
 		);
-		expect(() => obj1.validateVertex(vertex)).toThrowError(`Vertex ${vertex.hash} has invalid timestamp.`);
+		expect(validateVertex(vertex, obj1.hashGraph, Date.now())).toStrictEqual({
+			success: false,
+			error: `Vertex ${vertex.hash} has invalid timestamp.`,
+		});
 	});
 
 	test("Test: Vertex's timestamp must not be less than any of its dependencies' timestamps", async () => {
@@ -674,7 +680,10 @@ describe("Vertex timestamp tests", () => {
 			1,
 			new Uint8Array()
 		);
-		expect(() => obj1.validateVertex(vertex)).toThrowError(`Vertex ${vertex.hash} has invalid timestamp.`);
+		expect(validateVertex(vertex, obj1.hashGraph, Date.now())).toStrictEqual({
+			success: false,
+			error: `Vertex ${vertex.hash} has invalid timestamp.`,
+		});
 	});
 });
 
