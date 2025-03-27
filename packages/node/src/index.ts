@@ -132,13 +132,12 @@ export class DRPNode {
 		if (!validation.success) {
 			throw new Error(`Invalid options when creating object: ${validation.error.message}`);
 		}
-		const validatedOptions = validation.data;
 
 		const object = new DRPObject<T>({
 			peerId: this.networkNode.peerId,
 			acl: options.acl,
 			drp: options.drp,
-			id: validatedOptions.id,
+			id: options.id,
 			metrics: options.metrics,
 			config: {
 				log_config: options.log_config,
@@ -152,8 +151,8 @@ export class DRPNode {
 		this.subscribeObject(object);
 
 		// sync the object
-		if (validatedOptions.sync?.enabled) {
-			await operations.syncObject(this, object.id, validatedOptions.sync.peerId);
+		if (options.sync?.enabled) {
+			await operations.syncObject(this, object.id, options.sync.peerId);
 		}
 		// create the interval discovery
 		this._createIntervalDiscovery(object.id);
@@ -174,10 +173,9 @@ export class DRPNode {
 		if (!validation.success) {
 			throw new Error(`Invalid options when connecting to object: ${validation.error.message}`);
 		}
-		const validatedOptions = validation.data;
 		const object = DRPObject.createObject({
 			peerId: this.networkNode.peerId,
-			id: validatedOptions.id,
+			id: options.id,
 			drp: options.drp,
 			metrics: options.metrics,
 			log_config: options.log_config,
@@ -189,15 +187,15 @@ export class DRPNode {
 		this.subscribeObject(object);
 
 		// start the interval discovery
-		this._createIntervalDiscovery(validatedOptions.id);
+		this._createIntervalDiscovery(options.id);
 
-		await operations.fetchState(this, validatedOptions.id, validatedOptions.sync?.peerId);
+		await operations.fetchState(this, options.id, options.sync?.peerId);
 
 		// TODO: since when the interval can run this twice do we really want it to be
 		// runned while the other one might still be running?
 		const intervalFn = (interval: NodeJS.Timeout) => async (): Promise<void> => {
 			if (object.acl) {
-				await operations.syncObject(this, object.id, validatedOptions.sync?.peerId);
+				await operations.syncObject(this, object.id, options.sync?.peerId);
 				log.info("::connectObject: Synced object", object.id);
 				log.info("::connectObject: Subscribed to object", object.id);
 				clearInterval(interval);
