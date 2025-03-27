@@ -20,7 +20,7 @@ import {
 	type Operation,
 	type Vertex,
 } from "@ts-drp/types";
-import { handlePromiseOrValue, isPromise, processSequentially, ObjectSet } from "@ts-drp/utils";
+import { handlePromiseOrValue, isPromise, ObjectSet, processSequentially } from "@ts-drp/utils";
 import { computeHash } from "@ts-drp/utils/hash";
 import { CreateObjectOptionsSchema } from "@ts-drp/validation";
 import { cloneDeep } from "es-toolkit";

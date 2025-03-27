@@ -18,6 +18,14 @@
 		".": {
 			"types": "./dist/src/index.d.ts",
 			"import": "./dist/src/index.js"
+		},
+		"./vertex": {
+			"types": "./dist/src/vertex.d.ts",
+			"import": "./dist/src/vertex.js"
+		},
+		"./message": {
+			"types": "./dist/src/schemas/message.d.ts",
+			"import": "./dist/src/schemas/message.js"
 		}
 	},
 	"scripts": {
