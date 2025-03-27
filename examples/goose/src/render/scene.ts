@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { AnimationMixer } from 'three';
 import { PlayerState, TerrainBlock } from '../objects/world';
 import { gameState } from '../state';
 import { ParticleSystem } from './particles';
@@ -13,10 +14,17 @@ export class WorldRenderer {
     private gooseModel: THREE.Group | null = null;
     private modelLoader: GLTFLoader;
     private isLoadingModel: boolean = false;
+    private isLoadingDogemanModel: boolean = false;
+    private isLoadingMcDonaldsModel: boolean = false;
     private particleSystem: ParticleSystem;
     private currentCameraOffset: THREE.Vector3;
     private targetCameraOffset: THREE.Vector3;
     private cameraLerpFactor: number = 0.1; // Smoothing factor for camera movement
+    private dogemanModel: THREE.Group | null = null;
+    private mcdonaldsModel: THREE.Group | null = null;
+    private animationMixer: THREE.AnimationMixer | null = null;
+    private animations: THREE.AnimationClip[] = [];
+    private clock: THREE.Clock;
 
     constructor() {
         this.scene = new THREE.Scene();
@@ -45,10 +53,13 @@ export class WorldRenderer {
         this.terrainMeshes = new Map();
         this.modelLoader = new GLTFLoader();
         this.particleSystem = new ParticleSystem(this.scene);
-
+        this.clock = new THREE.Clock();
+        
         // Load the goose model
         this.loadGooseModel();
-
+        
+        // Models will be loaded after terrain is initialized
+        
         this.setupLighting();
         this.setupEventListeners();
         
@@ -90,6 +101,250 @@ export class WorldRenderer {
         });
     }
 
+    private loadDogemanModel(): void {
+        if (this.isLoadingDogemanModel) return;
+        this.isLoadingDogemanModel = true;
+        
+        console.log('Starting to load dogeman model...');
+        
+        // Create a helper box to mark the position while loading
+        const boxGeometry = new THREE.BoxGeometry(10, 10, 10);
+        const boxMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0xff0000, 
+            wireframe: true 
+        });
+        const box = new THREE.Mesh(boxGeometry, boxMaterial);
+        // Position closer to the player's starting position
+        box.position.set(20, 5, 20);
+        this.scene.add(box);
+        
+        // Add a text label for debugging
+        const debugText = document.createElement('div');
+        debugText.style.position = 'absolute';
+        debugText.style.top = '100px';
+        debugText.style.left = '10px';
+        debugText.style.color = 'white';
+        debugText.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        debugText.style.padding = '5px';
+        debugText.textContent = 'Loading Dogeman...';
+        document.body.appendChild(debugText);
+        
+        // Load the dogeman model directly using the modelLoader
+        this.modelLoader.load('/models/dogeman/scene.gltf', (gltf) => {
+            console.log('Dogeman model loaded successfully');
+            debugText.textContent = 'Dogeman loaded successfully';
+            
+            // Process the model
+            this.dogemanModel = gltf.scene;
+            
+            const dogemanModelScale = 50;
+            this.dogemanModel.scale.set(dogemanModelScale, dogemanModelScale, dogemanModelScale);
+            
+            // Position the model closer to the player's starting position
+            // Add a small offset (1) to keep it above ground
+            this.dogemanModel.position.set(20, 1, 20);
+            
+            // Make sure model casts shadows
+            this.dogemanModel.traverse((child) => {
+                if (child instanceof THREE.Mesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    
+                    // Ensure materials are visible
+                    if (child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(mat => {
+                                mat.transparent = false;
+                                mat.opacity = 1.0;
+                                // Add some emissive property to make it more visible
+                                if (mat.emissive) {
+                                    mat.emissive.set(0x444444);
+                                }
+                            });
+                        } else {
+                            child.material.transparent = false;
+                            child.material.opacity = 1.0;
+                            // Add some emissive property to make it more visible
+                            if (child.material.emissive) {
+                                child.material.emissive.set(0x444444);
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Set up animation
+            this.animationMixer = new THREE.AnimationMixer(this.dogemanModel);
+            this.animations = gltf.animations;
+            
+            // Play all animations if available
+            if (this.animations && this.animations.length > 0) {
+                console.log(`Dogeman has ${this.animations.length} animations`);
+                debugText.textContent = `Dogeman has ${this.animations.length} animations`;
+                this.animations.forEach(clip => {
+                    console.log(`Playing animation: ${clip.name}`);
+                    this.animationMixer?.clipAction(clip).play();
+                });
+            } else {
+                console.log('No animations found for dogeman model');
+                debugText.textContent = 'No animations found for dogeman model';
+            }
+            
+            // Remove the helper box
+            this.scene.remove(box);
+            
+            // Add to scene
+            this.scene.add(this.dogemanModel);
+            console.log('Dogeman added to scene at position:', this.dogemanModel.position);
+            
+            this.isLoadingDogemanModel = false;
+        }, 
+        // Progress callback
+        (xhr) => {
+            const percentComplete = Math.round((xhr.loaded / xhr.total) * 100);
+            console.log(`Loading dogeman model: ${percentComplete}% loaded`);
+            debugText.textContent = `Loading Dogeman: ${percentComplete}%`;
+        },
+        // Error callback
+        (error) => {
+            console.error('Error loading dogeman model:', error);
+            debugText.textContent = `Error loading Dogeman: ${error.message || 'Unknown error'}`;
+            
+            // Create a fallback object if the model fails to load
+            const geometry = new THREE.BoxGeometry(10, 20, 10);
+            const material = new THREE.MeshPhongMaterial({ 
+                color: 0xff00ff, 
+                emissive: 0x550055 
+            });
+            const cube = new THREE.Mesh(geometry, material);
+            cube.position.set(20, 10, 20); // Position it at the same place
+            cube.castShadow = true;
+            cube.receiveShadow = true;
+            
+            // Remove the helper box
+            this.scene.remove(box);
+            
+            this.scene.add(cube);
+            console.log('Added fallback for dogeman at position:', cube.position);
+            
+            this.isLoadingDogemanModel = false;
+        });
+    }
+    
+    private loadMcDonaldsModel(): void {
+        if (this.isLoadingMcDonaldsModel) return;
+        this.isLoadingMcDonaldsModel = true;
+        
+        console.log('Starting to load mcdonalds model...');
+        
+        // Create a helper box to mark the position while loading
+        const boxGeometry = new THREE.BoxGeometry(10, 10, 10);
+        const boxMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x0000ff, 
+            wireframe: true 
+        });
+        const box = new THREE.Mesh(boxGeometry, boxMaterial);
+        // Position closer to the player's starting position
+        box.position.set(-20, 5, -20);
+        this.scene.add(box);
+        
+        // Add a text label for debugging
+        const debugText = document.createElement('div');
+        debugText.style.position = 'absolute';
+        debugText.style.top = '130px';
+        debugText.style.left = '10px';
+        debugText.style.color = 'white';
+        debugText.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        debugText.style.padding = '5px';
+        debugText.textContent = 'Loading McDonalds...';
+        document.body.appendChild(debugText);
+        
+        // Load the mcdonalds model directly using the modelLoader
+        this.modelLoader.load('/models/mcdonalds/scene.gltf', (gltf) => {
+            console.log('McDonalds model loaded successfully');
+            debugText.textContent = 'McDonalds loaded successfully';
+            
+            // Process the model
+            this.mcdonaldsModel = gltf.scene;
+            
+            const mcdonaldsModelScale = 2000;
+            this.mcdonaldsModel.scale.set(mcdonaldsModelScale, mcdonaldsModelScale, mcdonaldsModelScale);
+            
+            // Position the model closer to the player's starting position
+            // Add a small offset (1) to keep it above ground
+            const mcdonaldsModelYOffset = 25;
+            this.mcdonaldsModel.position.set(-30, mcdonaldsModelYOffset, -30);
+            
+            // Make sure model casts shadows
+            this.mcdonaldsModel.traverse((child) => {
+                if (child instanceof THREE.Mesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    
+                    // Ensure materials are visible
+                    if (child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(mat => {
+                                mat.transparent = false;
+                                mat.opacity = 1.0;
+                                // Add some emissive property to make it more visible
+                                if (mat.emissive) {
+                                    mat.emissive.set(0x444444);
+                                }
+                            });
+                        } else {
+                            child.material.transparent = false;
+                            child.material.opacity = 1.0;
+                            // Add some emissive property to make it more visible
+                            if (child.material.emissive) {
+                                child.material.emissive.set(0x444444);
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Remove the helper box
+            this.scene.remove(box);
+            
+            // Add to scene
+            this.scene.add(this.mcdonaldsModel);
+            console.log('McDonalds added to scene at position:', this.mcdonaldsModel.position);
+            
+            this.isLoadingMcDonaldsModel = false;
+        }, 
+        // Progress callback
+        (xhr) => {
+            const percentComplete = Math.round((xhr.loaded / xhr.total) * 100);
+            console.log(`Loading mcdonalds model: ${percentComplete}% loaded`);
+            debugText.textContent = `Loading McDonalds: ${percentComplete}%`;
+        },
+        // Error callback
+        (error) => {
+            console.error('Error loading mcdonalds model:', error);
+            debugText.textContent = `Error loading McDonalds: ${error.message || 'Unknown error'}`;
+            
+            // Create a fallback object if the model fails to load
+            const geometry = new THREE.BoxGeometry(10, 20, 10);
+            const material = new THREE.MeshPhongMaterial({ 
+                color: 0x00ffff, 
+                emissive: 0x005555 
+            });
+            const cube = new THREE.Mesh(geometry, material);
+            cube.position.set(-20, 10, -20); // Position it at the same place
+            cube.castShadow = true;
+            cube.receiveShadow = true;
+            
+            // Remove the helper box
+            this.scene.remove(box);
+            
+            this.scene.add(cube);
+            console.log('Added fallback for mcdonalds at position:', cube.position);
+            
+            this.isLoadingMcDonaldsModel = false;
+        });
+    }
+
     private setupLighting(): void {
         // Brighter ambient light
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
@@ -122,6 +377,11 @@ export class WorldRenderer {
         for (const [id, block] of terrain.entries()) {
             this.addTerrainBlock(id, block);
         }
+        
+        // Now that terrain is initialized, load the additional models
+        console.log('Terrain initialized, loading additional models...');
+        this.loadDogemanModel();
+        this.loadMcDonaldsModel();
     }
 
     addTerrainBlock(id: string, block: TerrainBlock): void {
@@ -253,6 +513,11 @@ export class WorldRenderer {
     }
 
     render(): void {
+        // Update animation mixer if it exists
+        if (this.animationMixer) {
+            this.animationMixer.update(this.clock.getDelta());
+        }
+        
         // Update particle systems
         this.particleSystem.update(1/60); // Assuming ~60fps, could use actual deltaTime
         
@@ -260,6 +525,7 @@ export class WorldRenderer {
     }
 
     dispose(): void {
+        // Clean up models
         this.particleSystem.dispose();
         this.renderer.dispose();
         this.scene.traverse((object: THREE.Object3D) => {
