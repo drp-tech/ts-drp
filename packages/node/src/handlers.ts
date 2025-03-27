@@ -21,8 +21,8 @@ import {
 } from "@ts-drp/types";
 import { isPromise } from "@ts-drp/utils";
 import { type Deferred } from "@ts-drp/utils/promise/deferred";
-import { MessageSchema } from "@ts-drp/validation";
 import { deserializeDRPState, serializeDRPState } from "@ts-drp/utils/serialization";
+import { MessageSchema } from "@ts-drp/validation";
 
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
