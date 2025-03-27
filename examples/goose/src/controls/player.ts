@@ -18,12 +18,17 @@ export class PlayerController {
     private isRotating: boolean;
     private targetRotation: number;
     private mouseSensitivity: number;
+    private verticalSensitivity: number;
     private mouseX: number;
     private mouseY: number;
     private isMouseDown: boolean;
     private canvas: HTMLCanvasElement | null;
     private lastSyncTime: number = 0;
     private syncInterval: number = 50; // Sync at most every 50ms
+    
+    // Camera control properties
+    private cameraPitch: number = 0;
+    private maxPitchAngle: number = Math.PI / 3; // 60 degrees up/down
     
     // State tracking for optimization
     private lastPosition: THREE.Vector3 = new THREE.Vector3();
@@ -39,6 +44,7 @@ export class PlayerController {
         this.isRotating = false;
         this.targetRotation = 0;
         this.mouseSensitivity = 0.005;
+        this.verticalSensitivity = 0.005;
         this.mouseX = 0;
         this.mouseY = 0;
         this.isMouseDown = false;
@@ -190,9 +196,9 @@ export class PlayerController {
         player.userData.lastUpdateTime = Date.now();
         
         // Force one last state update to ensure consistent state
-        if (gameState.world) {
+        if (gameState.world && gameState.playerId) {
             gameState.world.updatePlayerState(
-                gameState.playerId!,
+                gameState.playerId,
                 player.position,
                 player.velocity,
                 player.rotation,
@@ -409,22 +415,48 @@ export class PlayerController {
             this.wakeUp(player);
         }
         
+        // Calculate horizontal (X) and vertical (Y) mouse movement
         const deltaX = event.clientX - this.mouseX;
-        this.mouseX = event.clientX;
+        const deltaY = event.clientY - this.mouseY;
         
-        // Rotate player based on mouse movement
+        this.mouseX = event.clientX;
+        this.mouseY = event.clientY;
+        
+        // Rotate player horizontally based on mouse X movement
         player.rotation -= deltaX * this.mouseSensitivity;
+        
+        // Update camera pitch based on mouse Y movement
+        this.cameraPitch += deltaY * this.verticalSensitivity;
+        
+        // Clamp pitch to prevent camera flipping
+        this.cameraPitch = Math.max(-this.maxPitchAngle, Math.min(this.maxPitchAngle, this.cameraPitch));
+        
+        // Store camera pitch in player's userData for renderer to access
+        if (!player.userData) {
+            player.userData = {};
+        }
+        player.userData.cameraPitch = this.cameraPitch;
+        
+        // // Log camera pitch for debugging
+        // console.log(`Camera pitch: ${this.cameraPitch.toFixed(2)} radians`);
+        
+        // Always sync when camera pitch changes, regardless of throttling
+        // This ensures responsive camera movement
+        const pitchChanged = Math.abs(deltaY) > 0;
         
         // Throttle state synchronization to reduce network overhead
         const now = performance.now();
-        if (now - this.lastSyncTime > this.syncInterval) {
+        if (pitchChanged || now - this.lastSyncTime > this.syncInterval) {
             this.lastSyncTime = now;
             
-            // Check if rotation change exceeds threshold
+            // Check if rotation or pitch change exceeds threshold
             const rotationDelta = Math.abs(player.rotation - this.lastRotation);
-            if (rotationDelta > UPDATE_THRESHOLDS.ROTATION) {
+            const shouldUpdate = rotationDelta > UPDATE_THRESHOLDS.ROTATION || pitchChanged;
+            
+            if (shouldUpdate) {
                 // Ensure state synchronization
                 if (world && gameState.playerId) {
+                    // Update player state including userData with camera pitch
                     world.updatePlayerState(
                         gameState.playerId,
                         player.position,
@@ -432,6 +464,11 @@ export class PlayerController {
                         player.rotation,
                         player.isJumping
                     );
+                    
+                    // Also explicitly update userData to ensure camera pitch is synchronized
+                    if (player.userData) {
+                        world.updatePlayerUserData(gameState.playerId, player.userData);
+                    }
                     
                     // Update last known state
                     this.lastPosition.copy(player.position);

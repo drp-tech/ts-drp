@@ -19,6 +19,7 @@ export interface PlayerState {
         isSleeping?: boolean;
         lastUpdateTime?: number;
         timeInLowActivity?: number;
+        cameraPitch?: number;
     };
 }
 
@@ -201,7 +202,12 @@ export class GooseWorld implements IDRP {
         }
     }
 
-    updatePlayerUserData(playerId: string, userData: { isSleeping?: boolean; lastUpdateTime?: number; timeInLowActivity?: number }): void {
+    updatePlayerUserData(playerId: string, userData: { 
+        isSleeping?: boolean; 
+        lastUpdateTime?: number; 
+        timeInLowActivity?: number;
+        cameraPitch?: number;
+    }): void {
         const player = this.players.get(playerId);
         if (player) {
             player.userData = userData;

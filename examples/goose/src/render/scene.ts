@@ -208,9 +208,21 @@ export class WorldRenderer {
         
         // Update camera if this is the local player
         if (playerId === gameState.playerId) {
-            // Update target camera offset
+            // Get camera pitch from player userData (defaults to 0 if not set)
+            const cameraPitch = state.userData?.cameraPitch || 0;
+            
+            // Update target camera offset - base position
             this.targetCameraOffset.set(0, 15, -25);
+            
+            // Apply horizontal rotation (player's rotation)
             this.targetCameraOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), state.rotation);
+            
+            // Create a rotational axis perpendicular to the camera direction in the horizontal plane
+            const horizontalDir = new THREE.Vector3(this.targetCameraOffset.x, 0, this.targetCameraOffset.z).normalize();
+            const pitchAxis = new THREE.Vector3(-horizontalDir.z, 0, horizontalDir.x);
+            
+            // Apply vertical rotation (camera pitch)
+            this.targetCameraOffset.applyAxisAngle(pitchAxis, cameraPitch);
             
             // Smoothly interpolate current camera offset towards target
             this.currentCameraOffset.lerp(this.targetCameraOffset, this.cameraLerpFactor);
@@ -218,8 +230,13 @@ export class WorldRenderer {
             // Apply the smoothed camera offset
             this.camera.position.copy(state.position).add(this.currentCameraOffset);
             
-            // Look at player
-            this.camera.lookAt(state.position);
+            // Calculate look target with pitch offset
+            const lookTarget = new THREE.Vector3(0, 2 + cameraPitch * 10, 0);
+            lookTarget.applyAxisAngle(new THREE.Vector3(0, 1, 0), state.rotation);
+            lookTarget.add(state.position);
+            
+            // Look at target point
+            this.camera.lookAt(lookTarget);
         }
     }
 
