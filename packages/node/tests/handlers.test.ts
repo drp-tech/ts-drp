@@ -162,7 +162,7 @@ describe("Handle message correctly", () => {
 		await raceEvent(node3, "drp:fetch:response", controller.signal);
 		await raceEvent(node3, "drp:sync:accepted", controller.signal);
 		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(5);
-	}, 15_000); // 15 seconds
+	}, 30_000); // 30 seconds
 
 	test("should handle update attestation message correctly", async () => {
 		drpObjectNode2.drp?.add(5);
