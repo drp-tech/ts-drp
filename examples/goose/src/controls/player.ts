@@ -237,10 +237,10 @@ export class PlayerController {
         // Rotate player based on mouse movement
         player.rotation -= deltaX * this.mouseSensitivity;
         
-        // Only log occasionally to reduce console spam
-        if (Math.random() < 0.05) {
-            console.log(`Mouse moved: deltaX=${deltaX}, new rotation=${player.rotation}`);
-        }
+        // // Only log occasionally to reduce console spam
+        // if (Math.random() < 0.05) {
+        //     console.log(`Mouse moved: deltaX=${deltaX}, new rotation=${player.rotation}`);
+        // }
         
         // Throttle state synchronization to reduce network overhead
         const now = performance.now();
