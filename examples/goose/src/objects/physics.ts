@@ -11,6 +11,12 @@ export class PhysicsEngine {
     static readonly PLAYER_RADIUS = 1; // Player radius for collision detection
 
     updatePlayerPhysics(player: PlayerState, terrain: Map<string, TerrainBlock>, deltaTime: number): void {
+        // Check if player has a sleeping flag
+        if (player.userData && player.userData.isSleeping) {
+            // Skip physics calculations for sleeping players
+            return;
+        }
+        
         // Apply gravity
         player.velocity.y += PhysicsEngine.GRAVITY * deltaTime;
 

@@ -2,6 +2,15 @@ import * as THREE from "three";
 import { gameState } from '../state';
 import { PhysicsEngine } from '../objects/physics';
 
+// Configuration for state update thresholds
+const UPDATE_THRESHOLDS = {
+    POSITION: 0.01,  // Units of movement required to trigger update
+    ROTATION: 0.01,  // Radians of rotation required to trigger update
+    VELOCITY: 0.1,   // Velocity magnitude required to trigger update
+    SLEEP_VELOCITY: 0.5, // Velocity below which player can enter sleep state
+    SLEEP_TIME: 0.5  // Seconds of low activity before entering sleep state
+};
+
 export class PlayerController {
     private physics: PhysicsEngine;
     private moveDirection: THREE.Vector3;
@@ -15,6 +24,13 @@ export class PlayerController {
     private canvas: HTMLCanvasElement | null;
     private lastSyncTime: number = 0;
     private syncInterval: number = 50; // Sync at most every 50ms
+    
+    // State tracking for optimization
+    private lastPosition: THREE.Vector3 = new THREE.Vector3();
+    private lastRotation: number = 0;
+    private lastVelocity: THREE.Vector3 = new THREE.Vector3();
+    private lastJumpState: boolean = false;
+    private hasUserInput: boolean = false;
 
     constructor(physics: PhysicsEngine) {
         this.physics = physics;
@@ -43,8 +59,17 @@ export class PlayerController {
         const player = world.getPlayerState(gameState.playerId);
         if (!player) return;
 
+        // Track if we have user input this frame
+        const hasInput = this.moveDirection.lengthSq() > 0 || this.isRotating || this.isMouseDown;
+        this.hasUserInput = this.hasUserInput || hasInput;
+
         // Apply movement based on input
         if (this.moveDirection.lengthSq() > 0) {
+            // Wake up the player if sleeping
+            if (player.userData && player.userData.isSleeping) {
+                this.wakeUp(player);
+            }
+            
             // Create a movement vector that's relative to the player's rotation
             const rotatedMovement = new THREE.Vector3(this.moveDirection.x, 0, this.moveDirection.z);
             rotatedMovement.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotation);
@@ -55,6 +80,11 @@ export class PlayerController {
 
         // Handle rotation from keyboard
         if (this.isRotating) {
+            // Wake up the player if sleeping
+            if (player.userData && player.userData.isSleeping) {
+                this.wakeUp(player);
+            }
+            
             const rotationDiff = this.targetRotation - player.rotation;
             const rotationStep = this.rotationSpeed * deltaTime;
             if (Math.abs(rotationDiff) < rotationStep) {
@@ -65,17 +95,133 @@ export class PlayerController {
             }
         }
 
-        // Update physics
-        this.physics.updatePlayerPhysics(player, world.getTerrain(), deltaTime);
+        // Skip physics updates if sleeping
+        if (!(player.userData && player.userData.isSleeping)) {
+            // Update physics
+            this.physics.updatePlayerPhysics(player, world.getTerrain(), deltaTime);
+            
+            // Check if player can enter sleep state
+            const velocityMagnitude = player.velocity.length();
+            if (velocityMagnitude < UPDATE_THRESHOLDS.SLEEP_VELOCITY && !hasInput) {
+                if (!player.userData) {
+                    player.userData = {};
+                }
+                if (!player.userData.timeInLowActivity) {
+                    player.userData.timeInLowActivity = 0;
+                }
+                player.userData.timeInLowActivity += deltaTime;
+                if (player.userData.timeInLowActivity > UPDATE_THRESHOLDS.SLEEP_TIME) {
+                    this.putToSleep(player);
+                }
+            } else {
+                if (player.userData) {
+                    player.userData.timeInLowActivity = 0;
+                }
+            }
+        }
         
-        // Update player state in the world
-        world.updatePlayerState(
-            gameState.playerId,
-            player.position,
-            player.velocity,
-            player.rotation,
-            player.isJumping
-        );
+        // Only update state if there are significant changes or we have user input
+        if (this.shouldUpdateState(player) || this.hasUserInput) {
+            // Update player state in the world
+            world.updatePlayerState(
+                gameState.playerId,
+                player.position,
+                player.velocity,
+                player.rotation,
+                player.isJumping
+            );
+            
+            // Update last known state
+            this.lastPosition.copy(player.position);
+            this.lastRotation = player.rotation;
+            this.lastVelocity.copy(player.velocity);
+            this.lastJumpState = player.isJumping;
+            
+            // Reset user input flag after sending an update
+            this.hasUserInput = false;
+        }
+    }
+    
+    // Check if the player state has changed enough to warrant an update
+    private shouldUpdateState(player: any): boolean {
+        // Always update if jumping state changed
+        if (player.isJumping !== this.lastJumpState) {
+            return true;
+        }
+        
+        // Check position change
+        const positionDelta = player.position.distanceTo(this.lastPosition);
+        if (positionDelta > UPDATE_THRESHOLDS.POSITION) {
+            return true;
+        }
+        
+        // Check rotation change
+        const rotationDelta = Math.abs(player.rotation - this.lastRotation);
+        if (rotationDelta > UPDATE_THRESHOLDS.ROTATION) {
+            return true;
+        }
+        
+        // Check velocity change
+        const velocityDelta = new THREE.Vector3()
+            .subVectors(player.velocity, this.lastVelocity)
+            .length();
+        if (velocityDelta > UPDATE_THRESHOLDS.VELOCITY) {
+            return true;
+        }
+        
+        // No significant changes
+        return false;
+    }
+    
+    // Put player to sleep (disable physics updates)
+    private putToSleep(player: any): void {
+        if (player.userData && player.userData.isSleeping) return;
+        
+        console.log('Player entering sleep state');
+        
+        // Zero out velocity to prevent drift
+        player.velocity.set(0, 0, 0);
+        
+        // Set sleeping flag in player userData
+        if (!player.userData) {
+            player.userData = {};
+        }
+        player.userData.isSleeping = true;
+        player.userData.lastUpdateTime = Date.now();
+        
+        // Force one last state update to ensure consistent state
+        if (gameState.world) {
+            gameState.world.updatePlayerState(
+                gameState.playerId!,
+                player.position,
+                player.velocity,
+                player.rotation,
+                player.isJumping
+            );
+            
+            // Update last known state
+            this.lastPosition.copy(player.position);
+            this.lastRotation = player.rotation;
+            this.lastVelocity.copy(player.velocity);
+            this.lastJumpState = player.isJumping;
+        }
+    }
+    
+    // Wake up player (re-enable physics updates)
+    private wakeUp(player: any): void {
+        if (!(player.userData && player.userData.isSleeping)) return;
+        
+        console.log('Player waking up from sleep state');
+        
+        // Clear sleeping flag in player userData
+        if (!player.userData) {
+            player.userData = {};
+        }
+        player.userData.isSleeping = false;
+        player.userData.lastUpdateTime = Date.now();
+        if (player.userData.timeInLowActivity) {
+            player.userData.timeInLowActivity = 0;
+        }
     }
 
     private setupControls(): void {
@@ -105,6 +251,14 @@ export class PlayerController {
         document.addEventListener('keydown', (event) => {
             console.log("Key pressed:", event.code);
             
+            // Wake up player on any key press
+            if (gameState.world && gameState.playerId) {
+                const player = gameState.world.getPlayerState(gameState.playerId);
+                if (player && player.userData && player.userData.isSleeping) {
+                    this.wakeUp(player);
+                }
+            }
+            
             switch (event.code) {
                 case 'KeyW':
                     this.moveDirection.z = 1; 
@@ -127,6 +281,11 @@ export class PlayerController {
                     if (gameState.world && gameState.playerId) {
                         const player = gameState.world.getPlayerState(gameState.playerId);
                         if (player) {
+                            // Wake up player if sleeping
+                            if (player.userData && player.userData.isSleeping) {
+                                this.wakeUp(player);
+                            }
+                            
                             // Apply jump physics
                             this.physics.handleJump(player);
                             
@@ -143,6 +302,12 @@ export class PlayerController {
                                 player.rotation,
                                 player.isJumping
                             );
+                            
+                            // Update last known state
+                            this.lastPosition.copy(player.position);
+                            this.lastRotation = player.rotation;
+                            this.lastVelocity.copy(player.velocity);
+                            this.lastJumpState = player.isJumping;
                             
                             console.log("Jump applied with velocity:", player.velocity.y);
                         }
@@ -193,6 +358,14 @@ export class PlayerController {
                 
                 console.log('Mouse down detected at', this.mouseX, this.mouseY);
                 
+                // Wake up player if sleeping
+                if (gameState.world && gameState.playerId) {
+                    const playerState = gameState.world.getPlayerState(gameState.playerId);
+                    if (playerState && playerState.userData && playerState.userData.isSleeping) {
+                        this.wakeUp(playerState);
+                    }
+                }
+                
                 // Capture mouse movement on the whole document while mouse is down
                 document.addEventListener('mousemove', this.handleMouseMove);
             }
@@ -231,31 +404,41 @@ export class PlayerController {
         const player = world.getPlayerState(gameState.playerId);
         if (!player) return;
         
+        // Wake up player if sleeping
+        if (player.userData && player.userData.isSleeping) {
+            this.wakeUp(player);
+        }
+        
         const deltaX = event.clientX - this.mouseX;
         this.mouseX = event.clientX;
         
         // Rotate player based on mouse movement
         player.rotation -= deltaX * this.mouseSensitivity;
         
-        // // Only log occasionally to reduce console spam
-        // if (Math.random() < 0.05) {
-        //     console.log(`Mouse moved: deltaX=${deltaX}, new rotation=${player.rotation}`);
-        // }
-        
         // Throttle state synchronization to reduce network overhead
         const now = performance.now();
         if (now - this.lastSyncTime > this.syncInterval) {
             this.lastSyncTime = now;
             
-            // Ensure state synchronization
-            if (world && gameState.playerId) {
-                world.updatePlayerState(
-                    gameState.playerId,
-                    player.position,
-                    player.velocity,
-                    player.rotation,
-                    player.isJumping
-                );
+            // Check if rotation change exceeds threshold
+            const rotationDelta = Math.abs(player.rotation - this.lastRotation);
+            if (rotationDelta > UPDATE_THRESHOLDS.ROTATION) {
+                // Ensure state synchronization
+                if (world && gameState.playerId) {
+                    world.updatePlayerState(
+                        gameState.playerId,
+                        player.position,
+                        player.velocity,
+                        player.rotation,
+                        player.isJumping
+                    );
+                    
+                    // Update last known state
+                    this.lastPosition.copy(player.position);
+                    this.lastRotation = player.rotation;
+                    this.lastVelocity.copy(player.velocity);
+                    this.lastJumpState = player.isJumping;
+                }
             }
         }
     };

@@ -15,6 +15,11 @@ export interface PlayerState {
     velocity: THREE.Vector3;
     rotation: number;
     isJumping: boolean;
+    userData?: {
+        isSleeping?: boolean;
+        lastUpdateTime?: number;
+        timeInLowActivity?: number;
+    };
 }
 
 export interface TerrainBlock {
@@ -81,7 +86,8 @@ export class GooseWorld implements IDRP {
                     z: player.velocity.z
                 },
                 rotation: player.rotation,
-                isJumping: player.isJumping
+                isJumping: player.isJumping,
+                userData: player.userData
             };
         }
         
@@ -133,6 +139,7 @@ export class GooseWorld implements IDRP {
                     existingPlayer.velocity.set(p.velocity.x, p.velocity.y, p.velocity.z);
                     existingPlayer.rotation = p.rotation;
                     existingPlayer.isJumping = p.isJumping;
+                    existingPlayer.userData = p.userData;
                 } else {
                     // Create new player
                     this.players.set(id, {
@@ -140,7 +147,8 @@ export class GooseWorld implements IDRP {
                         position: new THREE.Vector3(p.position.x, p.position.y, p.position.z),
                         velocity: new THREE.Vector3(p.velocity.x, p.velocity.y, p.velocity.z),
                         rotation: p.rotation,
-                        isJumping: p.isJumping
+                        isJumping: p.isJumping,
+                        userData: p.userData
                     });
                 }
             }
@@ -188,6 +196,15 @@ export class GooseWorld implements IDRP {
             player.velocity.set(velocity.x, velocity.y, velocity.z);
             player.rotation = rotation;
             player.isJumping = isJumping;
+        } else {
+            console.warn('Attempted to update non-existent player:', playerId.slice(0, 8));
+        }
+    }
+
+    updatePlayerUserData(playerId: string, userData: { isSleeping?: boolean; lastUpdateTime?: number; timeInLowActivity?: number }): void {
+        const player = this.players.get(playerId);
+        if (player) {
+            player.userData = userData;
         } else {
             console.warn('Attempted to update non-existent player:', playerId.slice(0, 8));
         }
