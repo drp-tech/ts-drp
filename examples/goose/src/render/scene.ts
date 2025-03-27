@@ -14,6 +14,9 @@ export class WorldRenderer {
     private modelLoader: GLTFLoader;
     private isLoadingModel: boolean = false;
     private particleSystem: ParticleSystem;
+    private currentCameraOffset: THREE.Vector3;
+    private targetCameraOffset: THREE.Vector3;
+    private cameraLerpFactor: number = 0.1; // Smoothing factor for camera movement
 
     constructor() {
         this.scene = new THREE.Scene();
@@ -28,6 +31,10 @@ export class WorldRenderer {
         // Set an initial camera position that should show the scene
         this.camera.position.set(0, 20, 30);
         this.camera.lookAt(0, 0, 0);
+        
+        // Initialize camera offset vectors
+        this.currentCameraOffset = new THREE.Vector3(0, 15, -25);
+        this.targetCameraOffset = new THREE.Vector3(0, 15, -25);
         
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -201,10 +208,15 @@ export class WorldRenderer {
         
         // Update camera if this is the local player
         if (playerId === gameState.playerId) {
-            // Fixed camera position for debugging - third person view
-            const cameraOffset = new THREE.Vector3(0, 15, -25);
-            cameraOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), state.rotation);
-            this.camera.position.copy(state.position).add(cameraOffset);
+            // Update target camera offset
+            this.targetCameraOffset.set(0, 15, -25);
+            this.targetCameraOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), state.rotation);
+            
+            // Smoothly interpolate current camera offset towards target
+            this.currentCameraOffset.lerp(this.targetCameraOffset, this.cameraLerpFactor);
+            
+            // Apply the smoothed camera offset
+            this.camera.position.copy(state.position).add(this.currentCameraOffset);
             
             // Look at player
             this.camera.lookAt(state.position);

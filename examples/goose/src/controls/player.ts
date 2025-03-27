@@ -13,6 +13,8 @@ export class PlayerController {
     private mouseY: number;
     private isMouseDown: boolean;
     private canvas: HTMLCanvasElement | null;
+    private lastSyncTime: number = 0;
+    private syncInterval: number = 50; // Sync at most every 50ms
 
     constructor(physics: PhysicsEngine) {
         this.physics = physics;
@@ -235,18 +237,26 @@ export class PlayerController {
         // Rotate player based on mouse movement
         player.rotation -= deltaX * this.mouseSensitivity;
         
-        // Log rotation for debugging
-        console.log(`Mouse moved: deltaX=${deltaX}, new rotation=${player.rotation}`);
+        // Only log occasionally to reduce console spam
+        if (Math.random() < 0.05) {
+            console.log(`Mouse moved: deltaX=${deltaX}, new rotation=${player.rotation}`);
+        }
         
-        // Ensure state synchronization
-        if (world && gameState.playerId) {
-            world.updatePlayerState(
-                gameState.playerId,
-                player.position,
-                player.velocity,
-                player.rotation,
-                player.isJumping
-            );
+        // Throttle state synchronization to reduce network overhead
+        const now = performance.now();
+        if (now - this.lastSyncTime > this.syncInterval) {
+            this.lastSyncTime = now;
+            
+            // Ensure state synchronization
+            if (world && gameState.playerId) {
+                world.updatePlayerState(
+                    gameState.playerId,
+                    player.position,
+                    player.velocity,
+                    player.rotation,
+                    player.isJumping
+                );
+            }
         }
     };
 
