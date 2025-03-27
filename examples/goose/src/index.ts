@@ -140,6 +140,32 @@ async function joinWorld(worldId: string, metrics?: IMetrics): Promise<void> {
         if (gameState.world) {
             // Add player using the network node peer ID
             gameState.world.addPlayer(node.networkNode.peerId);
+            
+            // Force player to a visible position for debugging
+            const player = gameState.world.getPlayerState(node.networkNode.peerId);
+            if (player) {
+                player.position.set(0, 15, 0); // Position high above ground
+                console.log('Forced player position to:', player.position);
+            }
+            
+            // Initialize terrain in the renderer
+            if (gameState.renderer) {
+                console.log('Initializing terrain with:', gameState.world.getTerrain());
+                gameState.renderer.initializeTerrain(gameState.world.getTerrain());
+                console.log('Terrain initialized');
+                
+                // Force an immediate render of the player
+                const player = gameState.world.getPlayerState(node.networkNode.peerId);
+                if (player) {
+                    gameState.renderer.updatePlayerRender(node.networkNode.peerId, player);
+                    console.log('Forced initial player render');
+                }
+            } else {
+                console.error('Renderer not available when trying to initialize terrain');
+            }
+            
+            // Add debug UI for player position
+            addDebugUI();
         }
         
         console.log('Successfully joined world:', worldId);
