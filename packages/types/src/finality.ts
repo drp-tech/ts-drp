@@ -110,8 +110,9 @@ export interface IFinalityStore {
 	 *
 	 * @param peerId - The peer id of the signer.
 	 * @param attestations - The attestations to add.
+	 * @returns - Added attestations.
 	 */
-	addSignatures(peerId: string, attestations: Attestation[], verify?: boolean): void;
+	addSignatures(peerId: string, attestations: Attestation[], verify?: boolean): Attestation[];
 	/**
 	 * Returns the aggregated attestation for the given hash.
 	 *

@@ -402,18 +402,14 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]): 
 	await Promise.all(signPromises);
 }
 
-// Signs the vertices. Returns the attestations
+// Signs the vertices. Returns the added attestations
 export function signFinalityVertices<T extends IDRP>(
 	node: DRPNode,
 	obj: IDRPObject<T>,
 	vertices: Vertex[]
 ): Attestation[] {
-	if (!obj.acl.query_isFinalitySigner(node.networkNode.peerId)) {
-		return [];
-	}
 	const attestations = generateAttestations(node, obj, vertices);
-	obj.finalityStore.addSignatures(node.networkNode.peerId, attestations, false);
-	return attestations;
+	return obj.finalityStore.addSignatures(node.networkNode.peerId, attestations, false);
 }
 
 function generateAttestations<T extends IDRP>(node: DRPNode, object: IDRPObject<T>, vertices: Vertex[]): Attestation[] {
