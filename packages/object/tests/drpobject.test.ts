@@ -25,7 +25,8 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 
 	test("Test creating an object wo/ DRP", () => {
-		expect(() => DRPObject.createObject({ peerId: "" })).toThrowError();
+		const obj = DRPObject.createObject({ peerId: "" });
+		expect(obj).toBeDefined();
 	});
 });
 

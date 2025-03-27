@@ -22,7 +22,6 @@ import {
 } from "@ts-drp/types";
 import { handlePromiseOrValue, isPromise, ObjectSet, processSequentially } from "@ts-drp/utils";
 import { computeHash } from "@ts-drp/utils/hash";
-import { CreateObjectOptionsSchema } from "@ts-drp/validation";
 import { validateVertex } from "@ts-drp/validation/vertex";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
@@ -125,19 +124,14 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 	}
 
 	static createObject<T extends IDRP>(options: CreateObjectOptions<T>): DRPObject<T> {
-		const validation = CreateObjectOptionsSchema.safeParse(options);
-		if (!validation.success) {
-			throw new Error(`Invalid options when creating object: ${validation.error.message}`);
-		}
-		const validatedOptions = validation.data;
 		const aclObj = new ObjectACL({
 			admins: [],
 			permissionless: true,
 		});
 
 		const object = new DRPObject({
-			peerId: validatedOptions.peerId,
-			id: validatedOptions.id,
+			peerId: options.peerId,
+			id: options.id,
 			acl: aclObj,
 			drp: options.drp,
 			metrics: options.metrics,

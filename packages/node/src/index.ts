@@ -16,7 +16,7 @@ import {
 	type NodeConnectObjectOptions,
 	type NodeCreateObjectOptions,
 } from "@ts-drp/types";
-import { NodeConnectObjectOptionsSchema } from "@ts-drp/validation";
+import { NodeConnectObjectOptionsSchema, NodeCreateObjectOptionsSchema } from "@ts-drp/validation";
 
 import { drpObjectChangesHandler, handleMessage } from "./handlers.js";
 import { log } from "./logger.js";
@@ -125,11 +125,20 @@ export class DRPNode {
 	}
 
 	async createObject<T extends IDRP>(options: NodeCreateObjectOptions<T>): Promise<DRPObject<T>> {
+		if (this.networkNode.peerId === "") {
+			throw new Error("Node not started");
+		}
+		const validation = NodeCreateObjectOptionsSchema.safeParse(options);
+		if (!validation.success) {
+			throw new Error(`Invalid options when creating object: ${validation.error.message}`);
+		}
+		const validatedOptions = validation.data;
+
 		const object = new DRPObject<T>({
 			peerId: this.networkNode.peerId,
 			acl: options.acl,
 			drp: options.drp,
-			id: options.id,
+			id: validatedOptions.id,
 			metrics: options.metrics,
 			config: {
 				log_config: options.log_config,
@@ -143,8 +152,8 @@ export class DRPNode {
 		this.subscribeObject(object);
 
 		// sync the object
-		if (options.sync?.enabled) {
-			await operations.syncObject(this, object.id, options.sync.peerId);
+		if (validatedOptions.sync?.enabled) {
+			await operations.syncObject(this, object.id, validatedOptions.sync.peerId);
 		}
 		// create the interval discovery
 		this._createIntervalDiscovery(object.id);
@@ -158,6 +167,9 @@ export class DRPNode {
 	 * @param options.sync.peerId - The peer ID to sync with
 	 */
 	async connectObject<T extends IDRP>(options: NodeConnectObjectOptions<T>): Promise<IDRPObject<T>> {
+		if (this.networkNode.peerId === "") {
+			throw new Error("Node not started");
+		}
 		const validation = NodeConnectObjectOptionsSchema.safeParse(options);
 		if (!validation.success) {
 			throw new Error(`Invalid options when connecting to object: ${validation.error.message}`);
@@ -177,15 +189,15 @@ export class DRPNode {
 		this.subscribeObject(object);
 
 		// start the interval discovery
-		this._createIntervalDiscovery(options.id);
+		this._createIntervalDiscovery(validatedOptions.id);
 
-		await operations.fetchState(this, options.id, options.sync?.peerId);
+		await operations.fetchState(this, validatedOptions.id, validatedOptions.sync?.peerId);
 
 		// TODO: since when the interval can run this twice do we really want it to be
 		// runned while the other one might still be running?
 		const intervalFn = (interval: NodeJS.Timeout) => async (): Promise<void> => {
 			if (object.acl) {
-				await operations.syncObject(this, object.id, options.sync?.peerId);
+				await operations.syncObject(this, object.id, validatedOptions.sync?.peerId);
 				log.info("::connectObject: Synced object", object.id);
 				log.info("::connectObject: Subscribed to object", object.id);
 				clearInterval(interval);

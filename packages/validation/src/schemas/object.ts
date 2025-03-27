@@ -1,10 +1,20 @@
 import { z } from "zod";
 
-export const CreateObjectOptionsSchema = z.object({
-	peerId: z.string().min(1, "PeerId is required"),
-	id: z.string().min(1, "Id is required").optional(),
+export const NodeCreateObjectOptionsSchema = z.object({
+	id: z.string().min(1, "A valid object id must be provided").optional(),
+	sync: z
+		.object({
+			enabled: z.boolean(),
+			peerId: z.string().min(1, "A valid peer identifier must be provided").optional(),
+		})
+		.optional(),
 });
 
 export const NodeConnectObjectOptionsSchema = z.object({
-	id: z.string().min(1, "Id is required"),
+	id: z.string().min(1, "A valid object id must be provided"),
+	sync: z
+		.object({
+			peerId: z.string().min(1, "A valid peer identifier must be provided"),
+		})
+		.optional(),
 });
