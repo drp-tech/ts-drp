@@ -2,7 +2,7 @@ import { type IHashGraph, type Vertex } from "@ts-drp/types";
 import { computeHash } from "@ts-drp/utils/hash";
 
 export interface ValidationResult {
-	valid: boolean;
+	success: boolean;
 	error?: string;
 }
 
@@ -37,8 +37,8 @@ export function validateVertex(vertex: Vertex, hashGraph: IHashGraph, currentTim
 		validateVertexHash(vertex);
 		validateVertexDependencies(vertex, hashGraph);
 		validateVertexTimestamp(vertex.timestamp, currentTimeStamp, vertex.hash);
-		return { valid: true };
+		return { success: true };
 	} catch (error) {
-		return { valid: false, error: (error as Error).message };
+		return { success: false, error: (error as Error).message };
 	}
 }

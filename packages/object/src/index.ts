@@ -23,6 +23,7 @@ import {
 import { handlePromiseOrValue, isPromise, ObjectSet, processSequentially } from "@ts-drp/utils";
 import { computeHash } from "@ts-drp/utils/hash";
 import { CreateObjectOptionsSchema } from "@ts-drp/validation";
+import { validateVertex } from "@ts-drp/validation/vertex";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 
@@ -302,37 +303,6 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 		return result;
 	}
 
-	validateVertex(vertex: Vertex): void {
-		// Validate hash value
-		if (vertex.hash !== computeHash(vertex.peerId, vertex.operation, vertex.dependencies, vertex.timestamp)) {
-			throw new Error(`Invalid hash for vertex ${vertex.hash}`);
-		}
-
-		// Validate vertex dependencies
-		if (vertex.dependencies.length === 0) {
-			throw new Error(`Vertex ${vertex.hash} has no dependencies.`);
-		}
-		for (const dep of vertex.dependencies) {
-			const depVertex = this.hashGraph.vertices.get(dep);
-			if (depVertex === undefined) {
-				throw new Error(`Vertex ${vertex.hash} has invalid dependency ${dep}.`);
-			}
-			if (depVertex.timestamp > vertex.timestamp) {
-				// Vertex's timestamp must not be less than any of its dependencies' timestamps
-				throw new Error(`Vertex ${vertex.hash} has invalid timestamp.`);
-			}
-		}
-		if (vertex.timestamp > Date.now()) {
-			// Vertex created in the future is invalid
-			throw new Error(`Vertex ${vertex.hash} has invalid timestamp.`);
-		}
-
-		// Validate writer permission
-		if (vertex.operation?.drpType === DrpType.DRP && !this._checkWriterPermission(vertex.peerId, vertex.dependencies)) {
-			throw new Error(`Vertex ${vertex.peerId} does not have write permission.`);
-		}
-	}
-
 	/**
 	 * Merges the vertices into the hashgraph
 	 * Returns a tuple with a boolean indicating if there were
@@ -355,8 +325,22 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 			}
 
 			try {
-				this.validateVertex(vertex);
+				const validation = validateVertex(vertex, this.hashGraph, Date.now());
+				if (!validation.success) {
+					throw new Error(validation.error);
+				}
 				const preComputeLca = this.computeLCA(vertex.dependencies);
+
+				const acl = this._computeObjectACL(
+					vertex.dependencies,
+					preComputeLca,
+					vertex.operation.drpType === DrpType.ACL ? vertex.operation : undefined,
+					vertex.peerId
+				);
+				if (vertex.operation?.drpType === DrpType.DRP && !acl.query_isWriter(vertex.peerId)) {
+					throw new Error(`Vertex ${vertex.peerId} does not have write permission.`);
+				}
+				await this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
 
 				if (this.drp) {
 					const drp = await this._computeDRP(
@@ -367,14 +351,6 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 					);
 					await this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
 				}
-
-				const acl = this._computeObjectACL(
-					vertex.dependencies,
-					preComputeLca,
-					vertex.operation.drpType === DrpType.ACL ? vertex.operation : undefined,
-					vertex.peerId
-				);
-				await this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
 
 				this.hashGraph.addVertex(vertex);
 				this._initializeFinalityState(vertex.hash, acl);
@@ -405,12 +381,6 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 	// initialize the attestation store for the given vertex hash
 	private _initializeFinalityState(hash: Hash, acl: IACL): void {
 		this.finalityStore.initializeState(hash, acl.query_getFinalitySigners());
-	}
-
-	// check if the given peer has write permission
-	private _checkWriterPermission(peerId: string, deps: Hash[]): boolean {
-		const acl = this._computeObjectACL(deps);
-		return acl.query_isWriter(peerId);
 	}
 
 	// apply the operation to the DRP
