@@ -21,6 +21,7 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 import { handlePromiseOrValue, isPromise, processSequentially } from "@ts-drp/utils";
+import { computeHash } from "@ts-drp/utils/hash";
 import { CreateObjectOptionsSchema } from "@ts-drp/validation";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
@@ -28,10 +29,7 @@ import { deepEqual } from "fast-equals";
 import { ObjectACL } from "./acl/index.js";
 import { FinalityStore } from "./finality/index.js";
 import { HashGraph } from "./hashgraph/index.js";
-import { computeHash } from "./utils/computeHash.js";
-import { ObjectSet } from "./utils/objectSet.js";
 
-export * from "./utils/serializer.js";
 export * from "./acl/index.js";
 export * from "./hashgraph/index.js";
 

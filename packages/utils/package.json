@@ -42,6 +42,14 @@
 		"./promise/deferred": {
 			"types": "./dist/src/promise/deferred/index.d.ts",
 			"import": "./dist/src/promise/deferred/index.js"
+		},
+		"./hash": {
+			"types": "./dist/src/hash/index.d.ts",
+			"import": "./dist/src/hash/index.js"
+		},
+		"./serialization": {
+			"types": "./dist/src/serialization/index.d.ts",
+			"import": "./dist/src/serialization/index.js"
 		}
 	},
 	"scripts": {
@@ -55,6 +63,8 @@
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
-		"@ts-drp/types": "0.11.0"
+		"@ts-drp/types": "0.11.0",
+		"@noble/hashes": "^1.7.1",
+		"@msgpack/msgpack": "^3.0.1"
 	}
 }

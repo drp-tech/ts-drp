@@ -1,10 +1,10 @@
 import { ActionType, DrpType, SemanticsType, type Vertex } from "@ts-drp/types";
+import { ObjectSet } from "@ts-drp/utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { HashGraph, newVertex } from "../src/index.js";
 import { linearizeMultipleSemantics } from "../src/linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../src/linearize/pairSemantics.js";
-import { ObjectSet } from "../src/utils/objectSet.js";
 
 describe("Linearize correctly", () => {
 	test("should linearize correctly with multiple semantics", () => {

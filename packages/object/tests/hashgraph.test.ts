@@ -10,11 +10,11 @@ import {
 	SemanticsType,
 	type Vertex,
 } from "@ts-drp/types";
+import { ObjectSet } from "@ts-drp/utils";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
 import { DRPObject, HashGraph, newVertex } from "../src/index.js";
-import { ObjectSet } from "../src/utils/objectSet.js";
 
 const acl = new ObjectACL({
 	admins: ["peer1", "peer2", "peer3"],
