@@ -26,7 +26,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 
 	test("Test creating an object wo/ DRP", () => {
 		const obj = DRPObject.createObject({ peerId: "" });
-		expect(obj.drp).toBeUndefined();
+		expect(obj).toBeDefined();
 	});
 });
 

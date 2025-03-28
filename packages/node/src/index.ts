@@ -16,6 +16,7 @@ import {
 	type NodeConnectObjectOptions,
 	type NodeCreateObjectOptions,
 } from "@ts-drp/types";
+import { NodeConnectObjectOptionsSchema, NodeCreateObjectOptionsSchema } from "@ts-drp/validation";
 
 import { drpObjectChangesHandler, handleMessage } from "./handlers.js";
 import { log } from "./logger.js";
@@ -54,7 +55,9 @@ export class DRPNode {
 				...config?.interval_discovery_options,
 			},
 		};
-		this.messageQueueManager = new MessageQueueManager<Message>({ logConfig: this.config.log_config });
+		this.messageQueueManager = new MessageQueueManager<Message>({
+			logConfig: this.config.log_config,
+		});
 	}
 
 	async start(): Promise<void> {
@@ -122,6 +125,14 @@ export class DRPNode {
 	}
 
 	async createObject<T extends IDRP>(options: NodeCreateObjectOptions<T>): Promise<DRPObject<T>> {
+		if (this.networkNode.peerId === "") {
+			throw new Error("Node not started");
+		}
+		const validation = NodeCreateObjectOptionsSchema.safeParse(options);
+		if (!validation.success) {
+			throw new Error(`Invalid options when creating object: ${validation.error.message}`);
+		}
+
 		const object = new DRPObject<T>({
 			peerId: this.networkNode.peerId,
 			acl: options.acl,
@@ -155,6 +166,13 @@ export class DRPNode {
 	 * @param options.sync.peerId - The peer ID to sync with
 	 */
 	async connectObject<T extends IDRP>(options: NodeConnectObjectOptions<T>): Promise<IDRPObject<T>> {
+		if (this.networkNode.peerId === "") {
+			throw new Error("Node not started");
+		}
+		const validation = NodeConnectObjectOptionsSchema.safeParse(options);
+		if (!validation.success) {
+			throw new Error(`Invalid options when connecting to object: ${validation.error.message}`);
+		}
 		const object = DRPObject.createObject({
 			peerId: this.networkNode.peerId,
 			id: options.id,
