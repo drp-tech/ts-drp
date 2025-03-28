@@ -1,6 +1,10 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { MessageType } from "@ts-drp/types/dist/src/index.js";
+import { afterEach } from "node:test";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import { handleMessage } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
+import { log } from "../src/logger.js";
 
 describe("Creating object validation tests", () => {
 	let node1: DRPNode;
@@ -62,5 +66,68 @@ describe("Creating object validation tests", () => {
 				},
 			})
 		).rejects.toThrow("A valid peer id must be provided");
+	});
+});
+
+describe("Messages validation tests", () => {
+	let node: DRPNode;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let logSpy: any;
+	beforeEach(async () => {
+		node = new DRPNode();
+		await node.start();
+		logSpy = vi.spyOn(log, "error").mockImplementation(() => {});
+	});
+
+	afterEach(() => {
+		logSpy.mockRestore();
+	});
+
+	test("Should not receive message from an empty sender", async () => {
+		const message = {
+			sender: "",
+			type: MessageType.UNRECOGNIZED,
+			data: new Uint8Array(),
+			objectId: "object",
+		};
+
+		await handleMessage(node, message);
+		expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("::messageHandler: Invalid message format"));
+		expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("A valid sender must be provided"));
+	});
+
+	test("Should not receive message with invalid message type", async () => {
+		const message = {
+			sender: "sender",
+			type: 100,
+			data: new Uint8Array(),
+			objectId: "object",
+		};
+
+		await handleMessage(node, message);
+		expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("::messageHandler: Invalid message format"));
+	});
+
+	test("Should not receive message with an empty object id", async () => {
+		const message = {
+			sender: "sender",
+			type: MessageType.UNRECOGNIZED,
+			data: new Uint8Array(),
+			objectId: "",
+		};
+		await handleMessage(node, message);
+		expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("::messageHandler: Invalid message format"));
+		expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("A valid object id must be provided"));
+	});
+
+	test("Should receive message with a valid message format", async () => {
+		const message = {
+			sender: "sender",
+			type: MessageType.UNRECOGNIZED,
+			data: new Uint8Array(),
+			objectId: "object",
+		};
+		await handleMessage(node, message);
+		expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining("::messageHandler: Invalid message format"));
 	});
 });
