@@ -1,7 +1,7 @@
 import { type Connection, type IdentifyResult, type Libp2p } from "@libp2p/interface";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { AsyncCounterDRP } from "@ts-drp/test-utils";
-import { type DRPNodeConfig } from "@ts-drp/types";
+import { type DRPNodeConfig, type ObjectId } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
@@ -69,6 +69,8 @@ describe("Async DRP", () => {
 	});
 
 	test("async drp", async () => {
+		const controller = new AbortController();
+
 		const drpObjectNode1 = await node1.createObject({
 			drp: new AsyncCounterDRP(),
 		});
@@ -83,11 +85,15 @@ describe("Async DRP", () => {
 
 		const value1 = await drp1.increment();
 		await new Promise((resolve) => setTimeout(resolve, 2000));
+
 		expect(drp2.query_value()).toEqual(1);
 		expect(value1).toEqual(1);
 
 		await drp1.increment();
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+
+		await raceEvent(node2, "drp:update", controller.signal, {
+			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
+		});
 		expect(drp2.query_value()).toEqual(2);
 	});
 });
