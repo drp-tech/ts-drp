@@ -223,6 +223,11 @@ async function main(): Promise<void> {
 	const create = async (): Promise<void> => {
 		chatState._drpObject = await chatState.node.createObject({ drp: new Chat() });
 		createConnectHandlers(chatState);
+
+		// creator can sign for finality
+		if (chatState.node?.keychain.blsPublicKey) {
+			chatState.drp.acl.setKey(chatState.node?.keychain.blsPublicKey);
+		}
 		render(chatState);
 	};
 
