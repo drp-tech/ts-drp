@@ -1,6 +1,7 @@
 import { MessageType } from "@ts-drp/types";
 import { z } from "zod";
 
+// TODO: replace with protovalidate
 export const MessageSchema = z.object({
 	sender: z.string().min(1, "A valid sender must be provided"),
 	type: z.nativeEnum(MessageType),
