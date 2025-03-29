@@ -7,7 +7,7 @@ import { Channel } from "./channel.js";
 export class MessageQueue<T> implements IMessageQueue<T> {
 	private readonly options: Required<IMessageQueueOptions>;
 	private channel: Channel<T>;
-	private isActive: boolean = true;
+	private isActive: boolean = false;
 	// List of subscriber handlers
 	private subscribers: Array<(message: T) => void | Promise<void>> = [];
 	// A flag to ensure the fanout loop starts only once
