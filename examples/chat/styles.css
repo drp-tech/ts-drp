@@ -1,0 +1,504 @@
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --background-color: #f8f9fa;
+    --text-color: #212529;
+    --border-color: #dee2e6;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+h1 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.info-container {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.info-label {
+    font-weight: bold;
+    margin-right: 8px;
+    min-width: 120px;
+}
+
+.info-value {
+    word-break: break-all;
+}
+
+.control-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+input, button {
+    padding: 10px 15px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    font-size: 16px;
+}
+
+input {
+    flex: 1;
+    min-width: 120px;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: var(--secondary-color);
+}
+
+#chat {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    overflow-y: auto;
+    height: 400px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.message {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #e9ecef;
+    max-width: 85%;
+    position: relative;
+}
+
+.message.self {
+    background-color: #d7f5dd;
+    margin-left: auto;
+    border-bottom-right-radius: 2px;
+}
+
+.message:not(.self) {
+    border-bottom-left-radius: 2px;
+}
+
+.message-timestamp {
+    color: #6c757d;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.message-sender {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.message-content {
+    word-wrap: break-word;
+}
+
+.message-form {
+    display: flex;
+    gap: 10px;
+}
+
+.message-form input {
+    flex: 1;
+}
+
+.peer-name {
+    cursor: help;
+    position: relative;
+    display: inline-block;
+}
+
+.peer-name .peer-id-tooltip {
+    visibility: hidden;
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 5px 10px;
+    border-radius: 6px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.peer-name:hover .peer-id-tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.message[data-peer-color] {
+    border-left: 4px solid var(--peer-color);
+}
+
+.peer-name[data-peer-color] {
+    color: var(--peer-color);
+}
+
+@media (max-width: 600px) {    
+    /* Keep message form in column layout */
+    .message-form {
+        flex-direction: column;
+    }
+    
+    input, button {
+        width: 100%;
+    }
+    
+    .message {
+        max-width: 90%;
+    }
+}
+
+/* Add these styles for peer list items */
+.info-value .peer-name {
+    display: inline-block;
+    position: relative;
+    cursor: help;
+    color: var(--peer-color);
+    margin: 2px 0;
+}
+
+.info-value .peer-name .peer-id-tooltip {
+    visibility: hidden;
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 5px 10px;
+    border-radius: 6px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.info-value .peer-name:hover .peer-id-tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Optional: Add some spacing between peers in the list */
+.info-value br {
+    line-height: 1.8;
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    pointer-events: none; /* Allow clicking through the container */
+}
+
+/* Desktop positioning */
+@media (min-width: 768px) {
+    .toast-container {
+        top: 20px;
+        right: 20px;
+        max-width: 400px;
+    }
+}
+
+/* Mobile positioning */
+@media (max-width: 767px) {
+    .toast-container {
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 10px;
+    }
+}
+
+.toast {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 16px 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    width: 100%;
+    pointer-events: auto; /* Re-enable pointer events for the toast */
+    animation: slideIn 0.3s ease-out forwards;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.toast.error {
+    border-left: 4px solid #dc3545;
+}
+
+/* Update animations for desktop */
+@media (min-width: 768px) {
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .toast.removing {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Add animations for mobile */
+@media (max-width: 767px) {
+    @keyframes slideIn {
+        from {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .toast.removing {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    .toast {
+        min-width: unset; /* Remove min-width on mobile */
+    }
+}
+
+.toast-icon {
+    font-size: 20px;
+    color: #dc3545;
+}
+
+.toast-content {
+    flex-grow: 1;
+}
+
+.toast-message {
+    color: #212529;
+    margin: 0;
+    font-size: 14px;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 18px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.toast-close:hover {
+    color: #212529;
+}
+
+/* Add these new styles */
+.copy-button {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 14px;
+    margin-left: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.copy-button:hover {
+    background-color: rgba(67, 97, 238, 0.1);
+}
+
+.copy-button.copied {
+    color: #28a745;
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+/* Optional: Add tooltip for copy success */
+.copy-button .tooltip {
+    position: absolute;
+    background: #28a745;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s;
+}
+
+.copy-button.copied .tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Add styles for collapsible info section */
+/* Info toggle button */
+.info-toggle {
+    display: none; /* Hidden by default, shown only on mobile */
+    width: 100%;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.toggle-icon {
+    font-size: 18px;
+}
+
+.collapsible {
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin-bottom 0.3s ease-out;
+    max-height: 1000px; /* Arbitrary large value to ensure content fits */
+    opacity: 1;
+    overflow: hidden;
+}
+
+/* Mobile styles */
+@media (max-width: 767px) {
+    .info-toggle {
+        display: flex;
+    }
+    
+    /* Initially collapsed on mobile */
+    .info-container.collapsible {
+        max-height: 0;
+        opacity: 0;
+        margin-bottom: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        pointer-events: none;
+    }
+    
+    /* When expanded */
+    .info-container.collapsible.expanded {
+        max-height: 1000px;
+        opacity: 1;
+        margin-bottom: 15px;
+        padding: 15px;
+        pointer-events: auto;
+    }
+
+    /* Other mobile-specific styles for better displaying peer lists */
+    .info-row {
+        margin-bottom: 12px;
+    }
+    
+    .info-label {
+        width: 100%;
+        margin-bottom: 4px;
+    }
+    
+    .info-value {
+        width: 100%;
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        padding-bottom: 4px;
+    }
+    
+    .info-value .peer-name {
+        flex: 0 0 auto;
+        padding: 5px 8px;
+        background-color: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+        white-space: nowrap;
+    }
+
+    /* Make room input and buttons fit in the same row */
+    .control-panel input#roomInput {
+        flex: 1;
+        min-width: 0; /* Allow shrinking below min-width */
+        width: auto !important; /* Override the 100% width */
+    }
+    
+    /* Make sure the buttons don't wrap to a new line */
+    .control-panel button {
+        width: auto !important; /* Override the 100% width */
+        white-space: nowrap;
+        padding: 10px 12px; /* Slightly reduce padding for mobile */
+    }
+    
+    /* Handle message form differently - keep it in column layout */
+    .message-form {
+        flex-direction: column;
+    }
+    
+    .message-form input, 
+    .message-form button {
+        width: 100%;
+    }
+
+    /* Adjust chat window height to have more space on mobile */
+    #chat {
+        height: 55vh;
+    }
+}
