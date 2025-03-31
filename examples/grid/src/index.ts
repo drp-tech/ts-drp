@@ -16,13 +16,6 @@ export function getNetworkConfigFromEnv(): DRPNodeConfig {
 	const config: DRPNodeConfig = {
 		network_config: {
 			browser_metrics: true,
-			pubsub: {
-				prometheus_metrics: true,
-				pushgateway_url: "http://<host>:<pushgateway_port>/",
-			},
-			log_config: {
-				level: "info",
-			},
 		},
 	};
 
