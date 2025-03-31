@@ -17,6 +17,7 @@ import {
 	type NodeCreateObjectOptions,
 } from "@ts-drp/types";
 import { NodeConnectObjectOptionsSchema, NodeCreateObjectOptionsSchema } from "@ts-drp/validation";
+import { DRPValidationError } from "@ts-drp/validation/errors";
 
 import { drpObjectChangesHandler, handleMessage } from "./handlers.js";
 import { log } from "./logger.js";
@@ -130,7 +131,7 @@ export class DRPNode {
 		}
 		const validation = NodeCreateObjectOptionsSchema.safeParse(options);
 		if (!validation.success) {
-			throw new Error(`Invalid options when creating object: ${validation.error.message}`);
+			throw new DRPValidationError(validation.error);
 		}
 
 		const object = new DRPObject<T>({
@@ -171,7 +172,7 @@ export class DRPNode {
 		}
 		const validation = NodeConnectObjectOptionsSchema.safeParse(options);
 		if (!validation.success) {
-			throw new Error(`Invalid options when connecting to object: ${validation.error.message}`);
+			throw new DRPValidationError(validation.error);
 		}
 		const object = DRPObject.createObject({
 			peerId: this.networkNode.peerId,

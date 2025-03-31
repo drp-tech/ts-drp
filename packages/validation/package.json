@@ -26,6 +26,10 @@
 		"./message": {
 			"types": "./dist/src/schemas/message.d.ts",
 			"import": "./dist/src/schemas/message.js"
+		},
+		"./errors": {
+			"types": "./dist/src/errors.d.ts",
+			"import": "./dist/src/errors.js"
 		}
 	},
 	"scripts": {
