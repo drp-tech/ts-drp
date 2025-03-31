@@ -9,7 +9,7 @@ import {
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
 	type IDRP,
-	type IDRPObject2,
+	type IDRPObject,
 	type IntervalRunnerMap,
 	Message,
 	MessageType,
@@ -154,7 +154,7 @@ export class DRPNode {
 	 * @param options.drp - The DRP instance. It can be undefined where we just want the HG state
 	 * @param options.sync.peerId - The peer ID to sync with
 	 */
-	async connectObject<T extends IDRP>(options: NodeConnectObjectOptions<T>): Promise<IDRPObject2<T>> {
+	async connectObject<T extends IDRP>(options: NodeConnectObjectOptions<T>): Promise<IDRPObject<T>> {
 		const object = createObject({
 			peerId: this.networkNode.peerId,
 			id: options.id,
@@ -187,7 +187,7 @@ export class DRPNode {
 		return object;
 	}
 
-	subscribeObject<T extends IDRP>(object: IDRPObject2<T>): void {
+	subscribeObject<T extends IDRP>(object: IDRPObject<T>): void {
 		// subscribe to the object
 		object.subscribe((obj, originFn, vertices) => drpObjectChangesHandler(this, obj, originFn, vertices));
 		// subscribe to the topic in gossipsub

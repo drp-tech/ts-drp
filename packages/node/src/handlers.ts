@@ -11,7 +11,7 @@ import {
 	FetchState,
 	FetchStateResponse,
 	type IDRP,
-	type IDRPObject2,
+	type IDRPObject,
 	Message,
 	MessageType,
 	Sync,
@@ -348,7 +348,7 @@ function syncRejectHandler(_handleParams: HandleParams): ReturnType<IHandlerStra
 
 export function drpObjectChangesHandler<T extends IDRP>(
 	node: DRPNode,
-	obj: IDRPObject2<T>,
+	obj: IDRPObject<T>,
 	originFn: string,
 	vertices: Vertex[]
 ): void {
@@ -406,7 +406,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]): 
 // Signs the vertices. Returns the added attestations
 export function signFinalityVertices<T extends IDRP>(
 	node: DRPNode,
-	obj: IDRPObject2<T>,
+	obj: IDRPObject<T>,
 	vertices: Vertex[]
 ): Attestation[] {
 	const attestations = generateAttestations(node, obj, vertices);
@@ -415,7 +415,7 @@ export function signFinalityVertices<T extends IDRP>(
 
 function generateAttestations<T extends IDRP>(
 	node: DRPNode,
-	object: IDRPObject2<T>,
+	object: IDRPObject<T>,
 	vertices: Vertex[]
 ): Attestation[] {
 	// Two condition:
@@ -432,7 +432,7 @@ function generateAttestations<T extends IDRP>(
 	}));
 }
 
-function getAttestations<T extends IDRP>(object: IDRPObject2<T>, vertices: Vertex[]): AggregatedAttestation[] {
+function getAttestations<T extends IDRP>(object: IDRPObject<T>, vertices: Vertex[]): AggregatedAttestation[] {
 	return (
 		vertices
 			.map((v) => object.finalityStore.getAttestation(v.hash))

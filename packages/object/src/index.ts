@@ -4,12 +4,12 @@ import { Logger } from "@ts-drp/logger";
 import {
 	type ApplyResult,
 	type CreateObjectOptions,
-	type DRPObjectCallback2,
+	type DRPObjectCallback,
 	type DRPObjectOptions,
 	type DRPState,
 	type IACL,
 	type IDRP,
-	type IDRPObject2,
+	type IDRPObject,
 	type IFinalityStore,
 	type MergeResult,
 	type Vertex,
@@ -42,7 +42,7 @@ function defaultACL(peerId: string): IACL {
 	});
 }
 
-export function createObject<T extends IDRP>(options: CreateObjectOptions<T>): IDRPObject2<T> {
+export function createObject<T extends IDRP>(options: CreateObjectOptions<T>): IDRPObject<T> {
 	const acl = new ObjectACL({
 		admins: [],
 		permissionless: true,
@@ -52,7 +52,7 @@ export function createObject<T extends IDRP>(options: CreateObjectOptions<T>): I
 	return object;
 }
 
-export class DRPObject<T extends IDRP> implements IDRPObject2<T> {
+export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 	readonly id: string;
 	private readonly log: Logger;
 	private readonly hg: HashGraph;
@@ -60,7 +60,7 @@ export class DRPObject<T extends IDRP> implements IDRPObject2<T> {
 	private _applier: DRPVertexApplier<T>;
 	private _states: DRPObjectStateManager<T>;
 
-	private subscriptions: DRPObjectCallback2<T>[] = [];
+	private subscriptions: DRPObjectCallback<T>[] = [];
 	private _finalityStore: FinalityStore;
 
 	constructor({
@@ -130,7 +130,7 @@ export class DRPObject<T extends IDRP> implements IDRPObject2<T> {
 		return [applied, missing];
 	}
 
-	subscribe(callback: DRPObjectCallback2<T>): void {
+	subscribe(callback: DRPObjectCallback<T>): void {
 		this.subscriptions.push(callback);
 	}
 

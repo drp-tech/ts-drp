@@ -1,12 +1,12 @@
 import { DRPNode } from "@ts-drp/node";
-import type { IDRPObject2 } from "@ts-drp/types";
+import type { IDRPObject } from "@ts-drp/types";
 import { DRP_DISCOVERY_TOPIC } from "@ts-drp/types";
 
 import { Chat } from "./objects/chat";
 
 class ChatStateManager {
 	_node: DRPNode;
-	_drpObject: IDRPObject2<Chat> | undefined = undefined;
+	_drpObject: IDRPObject<Chat> | undefined = undefined;
 
 	constructor() {
 		this._node = new DRPNode();
@@ -30,7 +30,7 @@ class ChatStateManager {
 		return this.drp.drp;
 	}
 
-	get drp(): IDRPObject2<Chat> {
+	get drp(): IDRPObject<Chat> {
 		if (!this._drpObject) {
 			throw new Error("DRP object not initialized");
 		}
