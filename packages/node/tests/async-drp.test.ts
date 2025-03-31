@@ -61,6 +61,10 @@ describe("Async DRP", () => {
 				filter: (event: CustomEvent<Connection>) =>
 					event.detail.remotePeer.toString() === node2.networkNode.peerId && event.detail.limits === undefined,
 			}),
+			raceEvent(node2.networkNode["_node"] as Libp2p, "connection:open", undefined, {
+				filter: (event: CustomEvent<Connection>) =>
+					event.detail.remotePeer.toString() === node1.networkNode.peerId && event.detail.limits === undefined,
+			}),
 		]);
 	});
 
@@ -78,7 +82,12 @@ describe("Async DRP", () => {
 		const drpObjectNode2 = await node2.connectObject({
 			drp: new AsyncCounterDRP(),
 			id: drpObjectNode1.id,
+			sync: {
+				peerId: node1.networkNode.peerId,
+			},
 		});
+		await raceEvent(node1, NodeEventName.DRP_FETCH);
+		await raceEvent(node2, NodeEventName.DRP_FETCH_RESPONSE, controller.signal);
 
 		const drp1 = drpObjectNode1.drp as AsyncCounterDRP;
 		const drp2 = drpObjectNode2.drp as AsyncCounterDRP;
@@ -95,5 +104,5 @@ describe("Async DRP", () => {
 			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
 		});
 		expect(drp2.query_value()).toEqual(2);
-	});
+	}, 30_000);
 });
