@@ -1,11 +1,13 @@
 import { bls } from "@chainsafe/bls/herumi";
 import { Logger } from "@ts-drp/logger";
-import {
-	type AggregatedAttestation,
-	type Attestation,
-	type FinalityConfig,
-	type Hash,
-	type LoggerOptions,
+import type {
+	AggregatedAttestation,
+	Attestation,
+	FinalityConfig,
+	Hash,
+	IFinalityState,
+	IFinalityStore,
+	LoggerOptions,
 } from "@ts-drp/types";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
@@ -13,7 +15,7 @@ import { BitSet } from "../hashgraph/bitset.js";
 
 const DEFAULT_FINALITY_THRESHOLD = 0.51;
 
-export class FinalityState {
+export class FinalityState implements IFinalityState {
 	data: string;
 	signerCredentials: string[];
 	signerIndices: Map<string, number>;
@@ -41,6 +43,10 @@ export class FinalityState {
 		const index = this.signerIndices.get(peerId);
 		if (index === undefined) {
 			throw new Error("Peer not found in signer list");
+		}
+
+		if (!this.signerCredentials[index]) {
+			throw new Error("Signer credentials not found");
 		}
 
 		if (this.aggregation_bits.get(index)) {
@@ -94,7 +100,7 @@ export class FinalityState {
 	}
 }
 
-export class FinalityStore {
+export class FinalityStore implements IFinalityStore {
 	states: Map<string, FinalityState>;
 	finalityThreshold: number;
 
@@ -153,14 +159,17 @@ export class FinalityStore {
 	}
 
 	// add signatures to the vertex
-	addSignatures(peerId: string, attestations: Attestation[], verify = true): void {
+	addSignatures(peerId: string, attestations: Attestation[], verify = true): Attestation[] {
+		const added = [];
 		for (const attestation of attestations) {
 			try {
 				this.states.get(attestation.data)?.addSignature(peerId, attestation.signature, verify);
+				added.push(attestation);
 			} catch (e) {
-				this.log.error("::finality::addSignatures", e);
+				this.log.warn("::finality::addSignatures", e);
 			}
 		}
+		return added;
 	}
 
 	// returns the attestations for the vertex
@@ -181,7 +190,7 @@ export class FinalityStore {
 			try {
 				this.states.get(attestation.data)?.merge(attestation);
 			} catch (e) {
-				this.log.error("::finality::mergeSignatures", e);
+				this.log.warn("::finality::mergeSignatures", e);
 			}
 		}
 	}

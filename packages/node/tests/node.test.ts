@@ -128,14 +128,18 @@ describe("DRPNode voting tests", () => {
 
 	test("Nodes in writer set are able to sign", async () => {
 		/*
-		  ROOT -- A:GRANT(B) ---- B:ADD(1)
+		  ROOT -- A:GRANT(B) ---- B:SETKEY ---- A:ADD(1)
 		*/
 
 		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Finality);
-		obj1.drp?.add(1);
 
 		await obj2.merge(obj1.vertices);
 		obj2.acl.setKey(nodeB.keychain.blsPublicKey);
+
+		await obj1.merge(obj2.vertices);
+		obj1.drp?.add(1);
+
+		await obj2.merge(obj1.vertices);
 
 		const V1 = obj2.vertices.find((v) => v.operation?.value !== null && v.operation?.value[0] === 1) as Vertex;
 		expect(V1 !== undefined).toBe(true);
@@ -149,12 +153,17 @@ describe("DRPNode voting tests", () => {
 
 	test("Other nodes are not able to sign", async () => {
 		/*
-		  ROOT -- A:GRANT(B) ---- B:ADD(1) ---- A:REVOKE(B) ---- B:ADD(2)
+		  ROOT -- A:GRANT(B) ---- B:SETKEY ---- A:ADD(1) ---- A:REVOKE(B) ---- A:ADD(2)
 		*/
 
-		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Writer);
+		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Finality);
+
+		await obj2.merge(obj1.vertices);
+		obj2.acl.setKey(nodeB.keychain.blsPublicKey);
+
+		await obj1.merge(obj2.vertices);
 		obj1.drp?.add(1);
-		obj1.acl.revoke(nodeB.networkNode.peerId, ACLGroup.Writer);
+		obj1.acl.revoke(nodeB.networkNode.peerId, ACLGroup.Finality);
 		obj1.drp?.add(2);
 
 		await obj2.merge(obj1.vertices);
@@ -171,11 +180,17 @@ describe("DRPNode voting tests", () => {
 
 	test("Signatures are aggregated", async () => {
 		/*
-		  ROOT -- A:GRANT(B) ---- B:ADD(1)
+		  ROOT -- A:GRANT(B) ---- B:SETKEY ---- A:ADD(1)
 		*/
 
 		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Finality);
+
+		await obj2.merge(obj1.vertices);
+		obj2.acl.setKey(nodeB.keychain.blsPublicKey);
+
+		await obj1.merge(obj2.vertices);
 		obj1.drp?.add(1);
+
 		await obj2.merge(obj1.vertices);
 		const V1 = obj2.vertices.find((v) => v.operation?.value !== null && v.operation?.value[0] === 1) as Vertex;
 		expect(V1 !== undefined).toBe(true);
