@@ -4,6 +4,38 @@
     --background-color: #f8f9fa;
     --text-color: #212529;
     --border-color: #dee2e6;
+    --chat-bg: white;
+    --message-bg: #e9ecef;
+    --self-message-bg: #d7f5dd;
+    --input-bg: white;
+    --tooltip-bg: #333;
+    --tooltip-text: white;
+    --toast-bg: white;
+    --toast-text: #333;
+    --toast-error-bg: #f8d7da;
+    --toast-message-text: #212529;
+    --toast-close-color: #6c757d;
+    --toast-close-hover: #212529;
+}
+
+[data-theme="dark"] {
+    --primary-color: #6d83f2;
+    --secondary-color: #5a52e5;
+    --background-color: #121212;
+    --text-color: #e0e0e0;
+    --border-color: #444;
+    --chat-bg: #1e1e1e;
+    --message-bg: #2a2a2a;
+    --self-message-bg: #1a362a;
+    --input-bg: #2a2a2a;
+    --tooltip-bg: #555;
+    --tooltip-text: #f0f0f0;
+    --toast-bg: #2a2a2a;
+    --toast-text: #e0e0e0;
+    --toast-error-bg: #461c24;
+    --toast-message-text: #e0e0e0;
+    --toast-close-color: #aaa;
+    --toast-close-hover: #fff;
 }
 
 * {
@@ -20,6 +52,7 @@ body {
     padding: 20px;
     max-width: 800px;
     margin: 0 auto;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1 {
@@ -28,11 +61,12 @@ h1 {
 }
 
 .info-container {
-    background-color: white;
+    background-color: var(--chat-bg);
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 15px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease;
 }
 
 .info-row {
@@ -64,11 +98,14 @@ input, button {
     border-radius: 4px;
     border: 1px solid var(--border-color);
     font-size: 16px;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 input {
     flex: 1;
     min-width: 120px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
 }
 
 button {
@@ -84,26 +121,28 @@ button:hover {
 }
 
 #chat {
-    background-color: white;
+    background-color: var(--chat-bg);
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 15px;
     overflow-y: auto;
     height: 400px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease;
 }
 
 .message {
     margin-bottom: 15px;
     padding: 10px;
     border-radius: 8px;
-    background-color: #e9ecef;
+    background-color: var(--message-bg);
     max-width: 85%;
     position: relative;
+    transition: background-color 0.3s ease;
 }
 
 .message.self {
-    background-color: #d7f5dd;
+    background-color: var(--self-message-bg);
     margin-left: auto;
     border-bottom-right-radius: 2px;
 }
@@ -144,8 +183,8 @@ button:hover {
 
 .peer-name .peer-id-tooltip {
     visibility: hidden;
-    background-color: #333;
-    color: white;
+    background-color: var(--tooltip-bg);
+    color: var(--tooltip-text);
     text-align: center;
     padding: 5px 10px;
     border-radius: 6px;
@@ -199,8 +238,8 @@ button:hover {
 
 .info-value .peer-name .peer-id-tooltip {
     visibility: hidden;
-    background-color: #333;
-    color: white;
+    background-color: var(--tooltip-bg);
+    color: var(--tooltip-text);
     text-align: center;
     padding: 5px 10px;
     border-radius: 6px;
@@ -263,22 +302,25 @@ button:hover {
 }
 
 .toast {
-    background-color: #fff;
-    border-radius: 8px;
-    padding: 16px 24px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
+    background-color: var(--toast-bg);
+    color: var(--toast-text);
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     gap: 12px;
+    margin-bottom: 8px;
+    pointer-events: auto;
+    animation: slideIn 0.3s forwards;
     min-width: 300px;
-    width: 100%;
-    pointer-events: auto; /* Re-enable pointer events for the toast */
-    animation: slideIn 0.3s ease-out forwards;
-    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    max-width: 100%;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .toast.error {
     border-left: 4px solid #dc3545;
+    background-color: var(--toast-error-bg);
 }
 
 /* Update animations for desktop */
@@ -368,7 +410,7 @@ button:hover {
 }
 
 .toast-message {
-    color: #212529;
+    color: var(--toast-message-text);
     margin: 0;
     font-size: 14px;
 }
@@ -376,7 +418,7 @@ button:hover {
 .toast-close {
     background: none;
     border: none;
-    color: #6c757d;
+    color: var(--toast-close-color);
     cursor: pointer;
     padding: 4px;
     font-size: 18px;
@@ -387,7 +429,7 @@ button:hover {
 }
 
 .toast-close:hover {
-    color: #212529;
+    color: var(--toast-close-hover);
 }
 
 /* Add these new styles */
@@ -437,18 +479,17 @@ button:hover {
 /* Add styles for collapsible info section */
 /* Info toggle button */
 .info-toggle {
-    display: none; /* Hidden by default, shown only on mobile */
-    width: 100%;
-    background-color: var(--primary-color);
-    color: white;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
+    display: none;
     align-items: center;
     justify-content: center;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    margin-bottom: 15px;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
     gap: 8px;
 }
 
@@ -543,5 +584,38 @@ button:hover {
     /* Adjust chat window height to have more space on mobile */
     #chat {
         height: 55vh;
+    }
+}
+
+/* Theme Toggle */
+.theme-toggle {
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 100;
+    transition: background-color 0.3s ease;
+}
+
+.theme-toggle:hover {
+    background-color: var(--secondary-color);
+}
+
+@media (max-width: 767px) {
+    .theme-toggle {
+        top: 25px;
+        right: 25px;
+        width: 35px;
+        height: 35px;
     }
 }

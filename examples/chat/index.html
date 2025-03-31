@@ -9,6 +9,10 @@
 	<body>
 		<h1>DRP - Chat</h1>
 		
+		<button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">
+			🌙
+		</button>
+		
 		<div class="info-row">
 			<div class="info-label">Current peer ID:</div>
 			<div id="peerId" class="info-value"></div>
@@ -49,6 +53,7 @@
 			<button id="createRoom">Create Room</button>
 		</div>
 
+		<!-- Join room on enter -->
 		<script>
 			var input = document.getElementById("roomInput");
 			input.addEventListener("keypress", function (event) {
@@ -67,11 +72,62 @@
 			<button id="sendMessage">Send</button>
 		</div>
 
+		<!-- Send message on enter -->
 		<script>
 			var input = document.getElementById("messageInput");
 			input.addEventListener("keypress", function (event) {
 				if (event.key === "Enter") {
 					document.getElementById("sendMessage").click();
+				}
+			});
+		</script>
+
+		<!-- Dark mode functionality -->
+		<script>
+			// Theme toggle
+			const themeToggle = document.getElementById('themeToggle');
+			const htmlElement = document.documentElement;
+			
+			// Check for saved theme preference or use system preference
+			const savedTheme = localStorage.getItem('theme');
+			const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+			
+			if (savedTheme === 'dark') {
+				htmlElement.setAttribute('data-theme', 'dark');
+				themeToggle.innerHTML = '☀️';
+			} else if (savedTheme === 'light') {
+				htmlElement.removeAttribute('data-theme');
+				themeToggle.innerHTML = '🌙';
+			} else if (prefersDarkScheme.matches) {
+				// No saved preference, use system preference
+				htmlElement.setAttribute('data-theme', 'dark');
+				themeToggle.innerHTML = '☀️';
+			}
+			
+			// Toggle theme
+			themeToggle.addEventListener('click', () => {
+				if (htmlElement.getAttribute('data-theme') === 'dark') {
+					htmlElement.removeAttribute('data-theme');
+					localStorage.setItem('theme', 'light');
+					themeToggle.innerHTML = '🌙';
+				} else {
+					htmlElement.setAttribute('data-theme', 'dark');
+					localStorage.setItem('theme', 'dark');
+					themeToggle.innerHTML = '☀️';
+				}
+			});
+			
+			// Listen for system preference changes
+			prefersDarkScheme.addEventListener('change', (e) => {
+				// Only apply if the user hasn't set a preference
+				if (!localStorage.getItem('theme')) {
+					if (e.matches) {
+						htmlElement.setAttribute('data-theme', 'dark');
+						themeToggle.innerHTML = '☀️';
+					} else {
+						htmlElement.removeAttribute('data-theme');
+						themeToggle.innerHTML = '🌙';
+					}
 				}
 			});
 		</script>
