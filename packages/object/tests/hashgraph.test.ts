@@ -1,5 +1,6 @@
 import { SetDRP } from "@ts-drp/blueprints/dist/src/index.js";
 import {
+	ACLGroup,
 	ActionType,
 	DrpType,
 	type Hash,
@@ -19,7 +20,6 @@ import { HashGraph } from "../src/hashgraph/index.js";
 import { DRPObject } from "../src/index.js";
 import { DRPObjectStateManager } from "../src/state.js";
 import { createVertex } from "../src/utils/createVertex.js";
-import { validateVertexDependencies } from "../src/vertex-validation.js";
 
 function selfCheckConstraints(hg: HashGraph): boolean {
 	const degree = new Map<Hash, number>();
@@ -641,110 +641,6 @@ describe("Vertex state tests", () => {
 	});
 });
 
-<<<<<<< HEAD
-describe("Vertex timestamp tests", () => {
-	beforeEach(() => {
-		vi.useFakeTimers({ now: 0 });
-	});
-
-	afterEach(() => {
-		vi.useRealTimers();
-	});
-
-	test("Test: Vertex's timestamp must not be less than any of its dependencies' timestamps", () => {
-		/*
-		        __ V1:ADD(1) __
-		       /               \
-		  ROOT -- V2:ADD(2) ---- V4:ADD(4) (invalid)
-		       \               /
-		        -- V3:ADD(3) --
-		*/
-
-		const hg = new HashGraph("peer1");
-		const frontier = hg.getFrontier();
-		const v1 = createVertex("peer1", { opType: "add", value: [1], drpType: DrpType.DRP }, frontier, Date.now());
-		hg.addVertex(v1);
-		vi.advanceTimersByTime(1000);
-		const v2 = createVertex("peer2", { opType: "add", value: [2], drpType: DrpType.DRP }, frontier, Date.now());
-		hg.addVertex(v2);
-		vi.advanceTimersByTime(1000);
-		const v3 = createVertex("peer3", { opType: "add", value: [3], drpType: DrpType.DRP }, frontier, Date.now() + 1);
-		hg.addVertex(v3);
-
-		const vertex = createVertex(
-			"peer1",
-			{
-				opType: "add",
-				value: [1],
-				drpType: DrpType.DRP,
-			},
-			hg.getFrontier(),
-			Date.now()
-		);
-		expect(() => validateVertexDependencies(vertex, hg)).toThrowError(
-			`Vertex ${vertex.hash} has invalid timestamp 2001 > 2000.`
-||||||| 8d89e60
-describe("Vertex timestamp tests", () => {
-	let obj1: DRPObject<SetDRP<number>>;
-	let obj2: DRPObject<SetDRP<number>>;
-	let obj3: DRPObject<SetDRP<number>>;
-
-	beforeEach(() => {
-		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
-		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
-		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
-	});
-
-	test("Test: Vertex created in the future is invalid", () => {
-		const drp1 = obj1.drp as SetDRP<number>;
-
-		drp1.add(1);
-
-		const vertex = newVertex(
-			"peer1",
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
-			obj1.hashGraph.getFrontier(),
-			Number.POSITIVE_INFINITY,
-			new Uint8Array()
-		);
-		expect(() => obj1.validateVertex(vertex)).toThrowError(`Vertex ${vertex.hash} has invalid timestamp.`);
-	});
-
-	test("Test: Vertex's timestamp must not be less than any of its dependencies' timestamps", async () => {
-		/*
-		        __ V1:ADD(1) __
-		       /               \
-		  ROOT -- V2:ADD(2) ---- V4:ADD(4) (invalid)
-		       \               /
-		        -- V3:ADD(3) --
-		*/
-
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
-		const drp3 = obj2.drp as SetDRP<number>;
-
-		drp1.add(1);
-		drp2.add(2);
-		drp3.add(3);
-
-		await obj1.merge(obj2.hashGraph.getAllVertices());
-		await obj1.merge(obj3.hashGraph.getAllVertices());
-
-		const vertex = newVertex(
-			"peer1",
-			{
-				opType: "add",
-				value: [1],
-				drpType: DrpType.DRP,
-			},
-			obj1.hashGraph.getFrontier(),
-			1,
-			new Uint8Array()
-		);
-		expect(() => obj1.validateVertex(vertex)).toThrowError(`Vertex ${vertex.hash} has invalid timestamp.`);
-	});
-});
-
 describe("Hashgraph for SetDRP and ACL tests", () => {
 	let obj1: DRPObject<SetDRP<number>>;
 	let obj2: DRPObject<SetDRP<number>>;
@@ -759,8 +655,8 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		const acl1 = obj1.acl as ObjectACL;
 		acl1.grant("peer2", ACLGroup.Finality);
 		acl1.grant("peer3", ACLGroup.Finality);
-		await obj2.merge(obj1.hashGraph.getAllVertices());
-		await obj3.merge(obj1.hashGraph.getAllVertices());
+		await obj2.merge(obj1.vertices);
+		await obj3.merge(obj1.vertices);
 	});
 
 	test("Node without writer permission can generate vertex locally", () => {
@@ -779,7 +675,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		drp1.add(1);
 		drp2.add(2);
 
-		await obj1.merge(obj2.hashGraph.getAllVertices());
+		await obj1.merge(obj2.vertices);
 		expect(drp1.query_has(2)).toBe(false);
 	});
 
@@ -796,12 +692,12 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		acl1.grant("peer2", ACLGroup.Writer);
 		expect(acl1.query_isAdmin("peer1")).toBe(true);
 
-		await obj2.merge(obj1.hashGraph.getAllVertices());
+		await obj2.merge(obj1.vertices);
 		expect(drp2.query_has(1)).toBe(true);
 		expect(acl2.query_isWriter("peer2")).toBe(true);
 
 		drp2.add(4);
-		await obj1.merge(obj2.hashGraph.getAllVertices());
+		await obj1.merge(obj2.vertices);
 		expect(drp1.query_has(4)).toBe(true);
 	});
 
@@ -820,27 +716,27 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 
 		acl1.grant("peer2", ACLGroup.Writer);
 		acl1.grant("peer3", ACLGroup.Writer);
-		await obj2.merge(obj1.hashGraph.getAllVertices());
-		await obj3.merge(obj1.hashGraph.getAllVertices());
+		await obj2.merge(obj1.vertices);
+		await obj3.merge(obj1.vertices);
 
 		drp2.add(1);
 		drp3.add(2);
-		await obj1.merge(obj2.hashGraph.getAllVertices());
-		await obj1.merge(obj3.hashGraph.getAllVertices());
-		await obj2.merge(obj3.hashGraph.getAllVertices());
-		await obj3.merge(obj2.hashGraph.getAllVertices());
+		await obj1.merge(obj2.vertices);
+		await obj1.merge(obj3.vertices);
+		await obj2.merge(obj3.vertices);
+		await obj3.merge(obj2.vertices);
 		expect(drp1.query_has(1)).toBe(true);
 		expect(drp1.query_has(2)).toBe(true);
 
 		acl1.revoke("peer3", ACLGroup.Writer);
-		await obj3.merge(obj1.hashGraph.getAllVertices());
+		await obj3.merge(obj1.vertices);
 		drp3.add(3);
-		await obj2.merge(obj3.hashGraph.getAllVertices());
+		await obj2.merge(obj3.vertices);
 		expect(drp2.query_has(3)).toBe(false);
 
 		drp2.add(4);
-		await obj1.merge(obj2.hashGraph.getAllVertices());
-		await obj1.merge(obj3.hashGraph.getAllVertices());
+		await obj1.merge(obj2.vertices);
+		await obj1.merge(obj3.vertices);
 		expect(drp1.query_has(3)).toBe(false);
 		expect(drp1.query_has(4)).toBe(true);
 	});
@@ -867,153 +763,18 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		const acl1 = obj1.acl as ObjectACL;
 
 		drp1.add(1);
-		const hash1 = obj1.hashGraph.getFrontier()[0];
-		await obj2.merge(obj1.hashGraph.getAllVertices());
+		//const hash1 = obj1["hg"].getFrontier()[0];
+		await obj2.merge(obj1.vertices);
 		drp1.add(2);
 		acl1.grant("peer2", ACLGroup.Writer);
 
-		const vertex = newVertex(
-			"peer2",
-			{ opType: "add", value: [3], drpType: DrpType.DRP },
-			[hash1],
-			Date.now(),
-			new Uint8Array()
-=======
-describe("Hashgraph for SetDRP and ACL tests", () => {
-	let obj1: DRPObject<SetDRP<number>>;
-	let obj2: DRPObject<SetDRP<number>>;
-	let obj3: DRPObject<SetDRP<number>>;
-
-	beforeEach(async () => {
-		const acl = new ObjectACL({ admins: ["peer1"] });
-		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
-		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
-		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
-
-		const acl1 = obj1.acl as ObjectACL;
-		acl1.grant("peer2", ACLGroup.Finality);
-		acl1.grant("peer3", ACLGroup.Finality);
-		await obj2.merge(obj1.hashGraph.getAllVertices());
-		await obj3.merge(obj1.hashGraph.getAllVertices());
-	});
-
-	test("Node without writer permission can generate vertex locally", () => {
-		const drp = obj1.drp as SetDRP<number>;
-		drp.add(1);
-		drp.add(2);
-
-		expect(drp.query_has(1)).toBe(true);
-		expect(drp.query_has(2)).toBe(true);
-	});
-
-	test("Discard vertex if creator does not have write permission", async () => {
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
-
-		drp1.add(1);
-		drp2.add(2);
-
-		await obj1.merge(obj2.hashGraph.getAllVertices());
-		expect(drp1.query_has(2)).toBe(false);
-	});
-
-	test("Accept vertex if creator has write permission", async () => {
-		/*
-		  ROOT -- V1:ADD(1) -- V2:GRANT(peer2) -- V3:ADD(4)
-		*/
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
-		const acl1 = obj1.acl as ObjectACL;
-		const acl2 = obj2.acl as ObjectACL;
-
-		drp1.add(1);
-		acl1.grant("peer2", ACLGroup.Writer);
-		expect(acl1.query_isAdmin("peer1")).toBe(true);
-
-		await obj2.merge(obj1.hashGraph.getAllVertices());
-		expect(drp2.query_has(1)).toBe(true);
-		expect(acl2.query_isWriter("peer2")).toBe(true);
-
-		drp2.add(4);
-		await obj1.merge(obj2.hashGraph.getAllVertices());
-		expect(drp1.query_has(4)).toBe(true);
-	});
-
-	test("Discard vertex if writer permission is revoked", async () => {
-		/*
-		                                              __ V4:ADD(1) --
-		                                             /                \
-		  ROOT -- V1:GRANT(peer2) -- V2:grant(peer3)                   V6:REVOKE(peer3) -- V7:ADD(4)
-		                                             \                /
-		                                              -- V5:ADD(2) --
-		*/
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
-		const drp3 = obj3.drp as SetDRP<number>;
-		const acl1 = obj1.acl as ObjectACL;
-
-		acl1.grant("peer2", ACLGroup.Writer);
-		acl1.grant("peer3", ACLGroup.Writer);
-		await obj2.merge(obj1.hashGraph.getAllVertices());
-		await obj3.merge(obj1.hashGraph.getAllVertices());
-
-		drp2.add(1);
-		drp3.add(2);
-		await obj1.merge(obj2.hashGraph.getAllVertices());
-		await obj1.merge(obj3.hashGraph.getAllVertices());
-		await obj2.merge(obj3.hashGraph.getAllVertices());
-		await obj3.merge(obj2.hashGraph.getAllVertices());
-		expect(drp1.query_has(1)).toBe(true);
-		expect(drp1.query_has(2)).toBe(true);
-
-		acl1.revoke("peer3", ACLGroup.Writer);
-		await obj3.merge(obj1.hashGraph.getAllVertices());
-		drp3.add(3);
-		await obj2.merge(obj3.hashGraph.getAllVertices());
-		expect(drp2.query_has(3)).toBe(false);
-
-		drp2.add(4);
-		await obj1.merge(obj2.hashGraph.getAllVertices());
-		await obj1.merge(obj3.hashGraph.getAllVertices());
-		expect(drp1.query_has(3)).toBe(false);
-		expect(drp1.query_has(4)).toBe(true);
-	});
-
-	test("Should grant admin permission to a peer", () => {
-		const acl1 = obj1.acl as ObjectACL;
-		const newAdminPeer1 = "newAdminPeer1";
-		acl1.grant("newAdminPeer1", ACLGroup.Admin);
-		expect(acl1.query_isAdmin(newAdminPeer1)).toBe(true);
-	});
-
-	test("Should use ACL on dependencies to determine if vertex is valid", async () => {
-		/*
-		  ROOT -- V1:ADD(1) -- V2:ADD(2) -- V3:GRANT(peer2)
-		  					\_ V4:ADD(3) (invalid)
-		*/
-		const acl = new ObjectACL({
-			admins: ["peer1"],
-		});
-		const obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
-		const obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
-
-		const drp1 = obj1.drp as SetDRP<number>;
-		const acl1 = obj1.acl as ObjectACL;
-
-		drp1.add(1);
-		const hash1 = obj1.hashGraph.getFrontier()[0];
-		await obj2.merge(obj1.hashGraph.getAllVertices());
-		drp1.add(2);
-		acl1.grant("peer2", ACLGroup.Writer);
-
-		const vertex = newVertex(
-			"peer2",
-			{ opType: "add", value: [3], drpType: DrpType.DRP },
-			[hash1],
-			Date.now(),
-			new Uint8Array()
->>>>>>> origin
-		);
+		//const vertex = newVertex(
+		//	"peer2",
+		//	{ opType: "add", value: [3], drpType: DrpType.DRP },
+		//	[hash1],
+		//	Date.now(),
+		//	new Uint8Array()
+		//);
 	});
 });
 
