@@ -31,8 +31,6 @@ import { validateVertexDependencies, validateVertexHash, validateVertexTimestamp
 function callDRP<T extends IDRP>(drp: T, caller: string, method: string, args: unknown[]): unknown | Promise<unknown> {
 	if (drp.context) drp.context.caller = caller;
 
-	console.log("drp", method, args);
-
 	return drp[method](...args);
 }
 
@@ -149,7 +147,6 @@ export class DRPVertexApplier<T extends IDRP> {
 			}
 
 			try {
-				console.log("-".repeat(100));
 				await this.appliesVertexPipeline.handle({ vertex: v, isACL: v.operation.drpType === DrpType.ACL });
 				newVertices.push(v);
 			} catch (e) {
@@ -191,12 +188,10 @@ export class DRPVertexApplier<T extends IDRP> {
 
 	private getLCA(operation: BaseOperation): HandlerReturn<PostLCAOperation> {
 		const { vertex } = operation;
-		console.log("getLCA");
 		return { stop: false, result: { ...operation, lca: this.hg.getLCA(vertex.dependencies) } };
 	}
 
 	private splitLCAOperation(operation: PostLCAOperation): HandlerReturn<PostSplitOperation> {
-		console.log("splitLCAOperation");
 		const {
 			lca: { linearizedVertices },
 		} = operation;
@@ -213,7 +208,6 @@ export class DRPVertexApplier<T extends IDRP> {
 			aclVertices,
 			isACL,
 		} = operation;
-		console.log("computeOperation", aclVertices, drpVertices);
 		const [drp, acl] = this.states.fromHash(lca);
 		applyVertices(acl, aclVertices);
 
@@ -240,7 +234,6 @@ export class DRPVertexApplier<T extends IDRP> {
 	}
 
 	private validateACL(operation: Operation2<T>): HandlerReturn<Operation2<T>> {
-		console.log("validateACL");
 		const {
 			acl,
 			vertex: { peerId },
@@ -274,7 +267,6 @@ export class DRPVertexApplier<T extends IDRP> {
 		}
 
 		return handlePromiseOrValue(callDRP(currentDRP, peerId, opType, value), (result) => {
-			console.log("applyFn result", result);
 			return { stop: false, result: { ...drpOperation, result, changed: false } };
 		});
 	}
@@ -291,8 +283,6 @@ export class DRPVertexApplier<T extends IDRP> {
 			return !deepEqual(current[key], currentDRP[key]);
 		});
 
-		console.log("equal", changed, operation);
-
 		return { stop: !changed, result: operation };
 	}
 
@@ -302,7 +292,6 @@ export class DRPVertexApplier<T extends IDRP> {
 			Object.assign(this._proxyDRP.proxy, currentDRP);
 		}
 		Object.assign(this._proxyACL.proxy, currentDRP);
-		console.log("assign", operation);
 		return { stop: false, result: operation };
 	}
 
@@ -321,27 +310,23 @@ export class DRPVertexApplier<T extends IDRP> {
 
 		this.states.setACL(hash, aclState);
 		this.states.setDRP(hash, drpState);
-		console.log("assignState", operation);
 		return { stop: false, result: operation };
 	}
 
 	private assignToHashGraph<Op extends Operation2<T>>(operation: Op): HandlerReturn<Op> {
 		const { vertex } = operation;
 		this.hg.addVertex(vertex);
-		console.log("assignToHashGraph", operation);
 		return { stop: false, result: operation };
 	}
 
 	private initializeFinalityStore<Op extends Operation2<T>>(operation: Op): HandlerReturn<Op> {
 		const { vertex, acl } = operation;
 		this.finalityStore.initializeState(vertex.hash, acl.query_getFinalitySigners());
-		console.log("initializeFinalityStore", operation);
 		return { stop: false, result: operation };
 	}
 
 	private notify(operation: PostOperation2<T>): HandlerReturn<PostOperation2<T>> {
 		this._notify("callFn", [operation.vertex]);
-		console.log("notify", operation);
 		return { stop: false, result: operation };
 	}
 }

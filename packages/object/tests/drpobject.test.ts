@@ -159,7 +159,6 @@ describe("Test for duplicate call issue", () => {
 
 		expect(obj.drp).toBeDefined();
 		const ret = obj.drp?.test();
-		console.log("ret", ret);
 		expect(ret).toBe(counter);
 	});
 });
@@ -396,7 +395,6 @@ describe("HashGraph hook tests", () => {
 		const newVertices: Vertex[] = [];
 
 		obj1.subscribe((_, origin, vertices) => {
-			console.log("origin", origin);
 			if (origin === "callFn") {
 				newVertices.push(...vertices);
 			}

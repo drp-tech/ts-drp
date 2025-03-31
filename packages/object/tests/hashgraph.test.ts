@@ -10,7 +10,6 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 import { ObjectSet } from "@ts-drp/utils";
-import { visualizeHashGraph } from "@ts-drp/utils/dist/src/debug/hashgraph-visualizer.js";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
@@ -288,17 +287,13 @@ describe("HashGraph for SetDRP tests", () => {
 		  ROOT -- V1:ADD(1) /
 		                    \__ V3:ADD(1)
 		*/
-		console.log("print1", visualizeHashGraph(hg1));
 		obj1.drp?.add(1);
 		await obj2.applyVertices(hg1.getAllVertices());
 		expect(obj1.drp?.query_has(1)).toBe(true);
 		obj1.drp?.delete(1);
 		obj2.drp?.add(1);
-		console.log("print2", visualizeHashGraph(hg1));
 		await obj1.applyVertices(hg2.getAllVertices());
 		await obj2.applyVertices(hg1.getAllVertices());
-		console.log("print3", visualizeHashGraph(hg1));
-		console.log(obj1.drp?.query_has(1));
 
 		// Adding 1 again does not change the state
 		expect(obj1.drp?.query_has(1)).toBe(false);
@@ -629,43 +624,42 @@ describe("Vertex state tests", () => {
 		// in above hashgraph, A represents obj1.drp?, B represents obj2.drp?, C represents drp3
 		obj1.drp?.add(1);
 		obj2.drp?.add(2);
-		//obj3.drp?.add(3);
+		obj3.drp?.add(3);
 
 		await obj1.applyVertices(hg2.getAllVertices());
-		//await obj3.applyVertices(hg2.getAllVertices());
+		await obj3.applyVertices(hg2.getAllVertices());
 
 		obj1.drp?.add(4);
-		//obj3.drp?.add(5);
+		obj3.drp?.add(5);
 		const hashA4 = hg1.getFrontier()[0];
-		//const hashC5 = hg3.getFrontier()[0];
+		const hashC5 = hg3.getFrontier()[0];
 
-		//await obj1.applyVertices(hg3.getAllVertices());
-		//await obj3.applyVertices(hg1.getAllVertices());
-		//obj1.drp?.add(6);
-		//const hashA6 = hg1.getFrontier()[0];
+		await obj1.applyVertices(hg3.getAllVertices());
+		await obj3.applyVertices(hg1.getAllVertices());
+		obj1.drp?.add(6);
+		const hashA6 = hg1.getFrontier()[0];
 
 		const drpState1 = state1.getDRP(hashA4);
-		console.log("drpState1", drpState1?.state, hashA4);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(false);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(true);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(false);
 
-		//const drpState2 = state1.getDRP(hashC5);
-		//expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(false);
-		//expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
-		//expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);
-		//expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(false);
-		//expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(true);
+		const drpState2 = state1.getDRP(hashC5);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(false);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(false);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(true);
 
-		//const drpState3 = state1.getDRP(hashA6);
-		//expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
-		//expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
-		//expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);
-		//expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(true);
-		//expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(true);
-		//expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(6)).toBe(true);
+		const drpState3 = state1.getDRP(hashA6);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(6)).toBe(true);
 	});
 });
 
