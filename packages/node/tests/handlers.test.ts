@@ -130,8 +130,8 @@ describe("Handle message correctly", () => {
 	});
 
 	test("should handle sync and fetch message correctly", async () => {
-		(drpObjectNode2.drp as SetDRP<number>).add(5);
-		(drpObjectNode2.drp as SetDRP<number>).add(10);
+		drpObjectNode2.drp?.add(5);
+		drpObjectNode2.drp?.add(10);
 		await raceEvent(node1, "drp:update");
 		expect(drpObjectNode1).toBeDefined();
 
