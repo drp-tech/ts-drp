@@ -3,7 +3,8 @@ import { DrpType } from "@ts-drp/types";
 import { validateVertex } from "@ts-drp/validation/vertex";
 import { beforeEach, describe, expect, test } from "vitest";
 
-import { DRPObject, newVertex, ObjectACL } from "../src/index.js";
+import { DRPObject, ObjectACL } from "../src/index.js";
+import { createVertex } from "../src/utils/createVertex.js";
 
 describe("Vertex validation tests", () => {
 	let obj1: DRPObject<SetDRP<number>>;
@@ -22,25 +23,25 @@ describe("Vertex validation tests", () => {
 	test("Should validate vertices with invalid dependencies", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		drp1.add(1);
-		const fakeRoot = newVertex(
+		const fakeRoot = createVertex(
 			"peer1",
 			{ opType: "root", value: null, drpType: DrpType.DRP },
 			[],
 			Date.now(),
 			new Uint8Array()
 		);
-		expect(validateVertex(fakeRoot, obj1.hashGraph, Date.now())).toStrictEqual({
+		expect(validateVertex(fakeRoot, obj1["hg"], Date.now())).toStrictEqual({
 			success: false,
 			error: new Error(`Vertex ${fakeRoot.hash} has no dependencies`),
 		});
-		const vertex = newVertex(
+		const vertex = createVertex(
 			"peer1",
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			[fakeRoot.hash],
 			Date.now(),
 			new Uint8Array()
 		);
-		expect(validateVertex(vertex, obj1.hashGraph, Date.now())).toStrictEqual({
+		expect(validateVertex(vertex, obj1["hg"], Date.now())).toStrictEqual({
 			success: false,
 			error: new Error(`Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}`),
 		});
@@ -51,14 +52,14 @@ describe("Vertex validation tests", () => {
 
 		drp1.add(1);
 
-		const vertex = newVertex(
+		const vertex = createVertex(
 			"peer1",
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
-			obj1.hashGraph.getFrontier(),
+			obj1["hg"].getFrontier(),
 			Number.POSITIVE_INFINITY,
 			new Uint8Array()
 		);
-		expect(validateVertex(vertex, obj1.hashGraph, Date.now())).toStrictEqual({
+		expect(validateVertex(vertex, obj1["hg"], Date.now())).toStrictEqual({
 			success: false,
 			error: new Error(`Vertex ${vertex.hash} has invalid timestamp`),
 		});
@@ -81,21 +82,21 @@ describe("Vertex validation tests", () => {
 		drp2.add(2);
 		drp3.add(3);
 
-		await obj1.merge(obj2.hashGraph.getAllVertices());
-		await obj1.merge(obj3.hashGraph.getAllVertices());
+		await obj1.merge(obj2.vertices);
+		await obj1.merge(obj3.vertices);
 
-		const vertex = newVertex(
+		const vertex = createVertex(
 			"peer1",
 			{
 				opType: "add",
 				value: [1],
 				drpType: DrpType.DRP,
 			},
-			obj1.hashGraph.getFrontier(),
+			obj1["hg"].getFrontier(),
 			1,
 			new Uint8Array()
 		);
-		expect(validateVertex(vertex, obj1.hashGraph, Date.now())).toStrictEqual({
+		expect(validateVertex(vertex, obj1["hg"], Date.now())).toStrictEqual({
 			success: false,
 			error: new Error(`Vertex ${vertex.hash} has invalid timestamp`),
 		});
