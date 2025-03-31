@@ -1,4 +1,5 @@
 import { SetDRP } from "@ts-drp/blueprints";
+import { ACLGroup } from "@ts-drp/types/dist/src/acl.js";
 import fs from "fs";
 import * as pprof from "pprof";
 
@@ -6,21 +7,23 @@ import { ObjectACL } from "../src/acl/index.js";
 import { DRPObject } from "../src/index.js";
 
 const acl = new ObjectACL({
-	admins: ["peer1", "peer1_1", "peer1_2", "peer1_3", "peer1_4", "peer1_5", "peer1_6", "peer1_7", "peer1_8", "peer1_9"],
+	admins: ["peer1_0"],
 });
 
 type DRPManipulationStrategy = (drp: SetDRP<number>, value: number) => void;
 
 const createWithStrategy = (
-	peerId: number,
+	nPID: number,
 	verticesPerDRP: number,
 	strategy: DRPManipulationStrategy
 ): DRPObject<SetDRP<number>> => {
+	const peerId = `peer1_${nPID}`;
 	const obj = new DRPObject({
-		peerId: `peer1_${peerId}`,
+		peerId,
 		acl,
 		drp: new SetDRP<number>(),
 	});
+	obj.acl.grant(peerId, ACLGroup.Writer);
 
 	if (!obj.drp) throw new Error("DRP is undefined");
 
