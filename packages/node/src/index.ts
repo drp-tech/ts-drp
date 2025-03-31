@@ -178,7 +178,7 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		await operations.fetchState(this, options.id, options.sync?.peerId);
 
 		// TODO: since when the interval can run this twice do we really want it to be
-		// ran while the other one might still be running?
+		// run while the other one might still be running?
 		const intervalFn = (interval: NodeJS.Timeout) => async (): Promise<void> => {
 			if (object.acl) {
 				await operations.syncObject(this, object.id, options.sync?.peerId);
