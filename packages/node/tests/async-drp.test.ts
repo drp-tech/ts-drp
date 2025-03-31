@@ -92,8 +92,12 @@ describe("Async DRP", () => {
 		const drp1 = drpObjectNode1.drp as AsyncCounterDRP;
 		const drp2 = drpObjectNode2.drp as AsyncCounterDRP;
 
-		const value1 = await drp1.increment();
-		await new Promise((resolve) => setTimeout(resolve, 2000));
+		const [value1, _] = await Promise.all([
+			drp1.increment(),
+			raceEvent(node2, NodeEventName.DRP_UPDATE, controller.signal, {
+				filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
+			}),
+		]);
 
 		expect(drp2.query_value()).toEqual(1);
 		expect(value1).toEqual(1);
