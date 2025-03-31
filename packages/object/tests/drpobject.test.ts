@@ -90,6 +90,11 @@ describe("Drp Object should be able to change state value object 1", () => {
 
 		expect(drpObject.vertices.length).toBe(2);
 	});
+
+	test("Test creating an object wo/ DRP", () => {
+		const obj = new DRPObject({ peerId: "" });
+		expect(obj).toBeDefined();
+	});
 });
 
 describe("Drp Object should be able to change state value", () => {

@@ -22,6 +22,7 @@ import {
 import { isPromise } from "@ts-drp/utils";
 import { type Deferred } from "@ts-drp/utils/promise/deferred";
 import { deserializeDRPState, serializeDRPState } from "@ts-drp/utils/serialization";
+import { MessageSchema } from "@ts-drp/validation/message";
 
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
@@ -61,12 +62,19 @@ const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
  * @param message
  */
 export async function handleMessage(node: DRPNode, message: Message): Promise<void> {
-	const handler = messageHandlers[message.type];
+	const validation = MessageSchema.safeParse(message);
+	if (!validation.success) {
+		log.error(`::messageHandler: Invalid message format ${validation.error.message}`);
+		return;
+	}
+	const validatedMessage = validation.data;
+
+	const handler = messageHandlers[validatedMessage.type];
 	if (!handler) {
 		log.error("::messageHandler: Invalid operation");
 		return;
 	}
-	const result = handler({ node, message });
+	const result = handler({ node, message: validatedMessage });
 	if (isPromise(result)) {
 		await result;
 	}

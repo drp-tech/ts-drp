@@ -143,7 +143,6 @@ export class DRPVertexApplier<T extends IDRP> {
 			}
 			if (v.operation.opType === "-1") continue;
 			if (this.hg.vertices.has(v.hash)) {
-				this.log.warn("Vertex already exists", v);
 				continue;
 			}
 

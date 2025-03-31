@@ -1,0 +1,49 @@
+{
+	"name": "@ts-drp/validation",
+	"version": "0.11.0",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/drp-tech/ts-drp.git"
+	},
+	"type": "module",
+	"types": "./dist/src/index.d.ts",
+	"files": [
+		"src",
+		"dist",
+		"!dist/test",
+		"!**/*.tsbuildinfo"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/src/index.d.ts",
+			"import": "./dist/src/index.js"
+		},
+		"./vertex": {
+			"types": "./dist/src/vertex.d.ts",
+			"import": "./dist/src/vertex.js"
+		},
+		"./message": {
+			"types": "./dist/src/schemas/message.d.ts",
+			"import": "./dist/src/schemas/message.js"
+		},
+		"./errors": {
+			"types": "./dist/src/errors.d.ts",
+			"import": "./dist/src/errors.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc -b tsconfig.build.json && node build.mjs",
+		"clean": "rm -rf dist/ node_modules/",
+		"prebuild": "node -p \"'export const VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
+		"prepack": "tsc -b",
+		"test": "vitest",
+		"typecheck": "tsc --noEmit",
+		"watch": "tsc -b -w"
+	},
+	"dependencies": {
+		"@ts-drp/types": "0.11.0",
+		"@ts-drp/utils": "0.11.0",
+		"zod": "^3.24.2"
+	}
+}

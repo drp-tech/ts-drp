@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { handlePromiseOrValue } from "@ts-drp/utils/dist/src/index.js";
+import { handlePromiseOrValue } from "@ts-drp/utils";
 
 import { Step, type StepOptions } from "./step.js";
 import { type PipelineStep } from "./types.js";
