@@ -1,6 +1,6 @@
 {
 	"name": "@ts-drp/tracer",
-	"version": "0.10.0",
+	"version": "0.11.0",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -40,8 +40,8 @@
 		"@opentelemetry/resources": "^2.0.0",
 		"@opentelemetry/sdk-trace-web": "^2.0.0",
 		"@opentelemetry/semantic-conventions": "1.28.0",
-		"@ts-drp/utils": "^0.10.0",
-		"@ts-drp/types": "^0.10.0",
+		"@ts-drp/utils": "^0.11.0",
+		"@ts-drp/types": "^0.11.0",
 		"loglevel": "^1.9.2",
 		"loglevel-plugin-prefix": "^0.8.4",
 		"object-inspect": "^1.13.3"

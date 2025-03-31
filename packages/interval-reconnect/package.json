@@ -1,6 +1,6 @@
 {
 	"name": "@ts-drp/interval-reconnect",
-	"version": "0.10.0",
+	"version": "0.11.0",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -30,9 +30,9 @@
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
-		"@ts-drp/interval-runner": "0.10.0",
-		"@ts-drp/logger": "0.10.0",
-		"@ts-drp/types": "0.10.0"
+		"@ts-drp/interval-runner": "0.11.0",
+		"@ts-drp/logger": "0.11.0",
+		"@ts-drp/types": "0.11.0"
 	},
 	"devDependencies": {
 		"@chainsafe/libp2p-gossipsub": "^14.1.0",

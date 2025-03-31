@@ -1,6 +1,6 @@
 {
 	"name": "@ts-drp/keychain",
-	"version": "0.10.0",
+	"version": "0.11.0",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -35,7 +35,7 @@
 		"@libp2p/interface": "^2.1.3",
 		"@noble/hashes": "^1.7.1",
 		"@noble/secp256k1": "^2.2.3",
-		"@ts-drp/types": "^0.10.0",
+		"@ts-drp/types": "^0.11.0",
 		"uint8arrays": "^5.1.0"
 	},
 	"devDependencies": {
