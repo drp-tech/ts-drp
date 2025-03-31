@@ -2,10 +2,10 @@ import { SetDRP } from "@ts-drp/blueprints";
 import { DrpType, type Hash, type IACL, type IDRP, SemanticsType } from "@ts-drp/types";
 import { bench, describe } from "vitest";
 
+import { DRPVertexApplier as DRPSubObject } from "../src/drp-applier.js";
 import { FinalityStore } from "../src/finality/index.js";
 import { HashGraph } from "../src/hashgraph/index.js";
 import { ObjectACL } from "../src/index.js";
-import { DRPVertexApplier as DRPSubObject } from "../src/drp-applier.js";
 import { DRPObjectStateManager } from "../src/state.js";
 const notify = (): void => {};
 

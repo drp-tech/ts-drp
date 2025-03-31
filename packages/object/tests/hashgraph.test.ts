@@ -242,7 +242,6 @@ describe("HashGraph construction tests", () => {
 describe("HashGraph for SetDRP tests", () => {
 	let hg1: HashGraph;
 	let hg2: HashGraph;
-	let state1: DRPObjectStateManager<SetDRP<number>>;
 	let state2: DRPObjectStateManager<SetDRP<number>>;
 	let obj1: DRPSubObject<SetDRP<number>>;
 	let obj2: DRPSubObject<SetDRP<number>>;
@@ -251,7 +250,7 @@ describe("HashGraph for SetDRP tests", () => {
 		vi.useFakeTimers();
 		hg1 = new HashGraph("peer1", undefined, undefined, SemanticsType.pair);
 		hg2 = new HashGraph("peer2", undefined, undefined, SemanticsType.pair);
-		[obj1, state1] = createDRPSubObject({
+		[obj1] = createDRPSubObject({
 			hg: hg1,
 			drp: new SetDRP<number>(),
 			admins: ["peer1", "peer2"],

@@ -413,11 +413,7 @@ export function signFinalityVertices<T extends IDRP>(
 	return obj.finalityStore.addSignatures(node.networkNode.peerId, attestations, false);
 }
 
-function generateAttestations<T extends IDRP>(
-	node: DRPNode,
-	object: IDRPObject<T>,
-	vertices: Vertex[]
-): Attestation[] {
+function generateAttestations<T extends IDRP>(node: DRPNode, object: IDRPObject<T>, vertices: Vertex[]): Attestation[] {
 	// Two condition:
 	// - The node can sign the vertex
 	// - The node hasn't signed for the vertex

@@ -18,11 +18,11 @@ import { createPipeline, type Pipeline } from "./pipeline/pipeline.js";
 import { type HandlerReturn } from "./pipeline/types.js";
 import {
 	type BaseOperation,
-	DRPProxy2,
+	DRPProxy,
 	type DRPProxyChainArgs,
-	type Operation2,
+	type Operation,
 	type PostLCAOperation,
-	type PostOperation2,
+	type PostOperation,
 	type PostSplitOperation,
 } from "./proxy/proxy.js";
 import { DRPObjectStateManager, stateFromDRP } from "./state.js";
@@ -78,10 +78,10 @@ export class DRPVertexApplier<T extends IDRP> {
 	protected readonly hg: IHashGraph;
 	protected readonly states: DRPObjectStateManager<T>;
 
-	private _proxyDRP?: DRPProxy2<T>;
-	private _proxyACL: DRPProxy2<IACL>;
+	private _proxyDRP?: DRPProxy<T>;
+	private _proxyACL: DRPProxy<IACL>;
 
-	private appliesVertexPipeline: Pipeline<BaseOperation, PostOperation2<T>>;
+	private appliesVertexPipeline: Pipeline<BaseOperation, PostOperation<T>>;
 	private finalityStore: FinalityStore;
 	private _notify: (origin: string, vertices: Vertex[]) => void;
 	private log: Logger;
@@ -118,9 +118,9 @@ export class DRPVertexApplier<T extends IDRP> {
 			.setNext(this.initializeFinalityStore.bind(this))
 			.setNext(this.assignToHashGraph.bind(this));
 
-		this._proxyACL = new DRPProxy2(acl, callFnPipeline, DrpType.ACL);
+		this._proxyACL = new DRPProxy(acl, callFnPipeline, DrpType.ACL);
 		if (drp) {
-			this._proxyDRP = new DRPProxy2(drp, callFnPipeline, DrpType.DRP);
+			this._proxyDRP = new DRPProxy(drp, callFnPipeline, DrpType.DRP);
 		}
 	}
 
@@ -141,6 +141,7 @@ export class DRPVertexApplier<T extends IDRP> {
 				this.log.warn("Vertex has no operation", v);
 				continue;
 			}
+			if (v.operation.opType === "-1") continue;
 			if (this.hg.vertices.has(v.hash)) {
 				this.log.warn("Vertex already exists", v);
 				continue;
@@ -201,7 +202,7 @@ export class DRPVertexApplier<T extends IDRP> {
 
 	private computeOperation(
 		operation: PostSplitOperation
-	): HandlerReturn<Operation2<T>> | Promise<HandlerReturn<Operation2<T>>> {
+	): HandlerReturn<Operation<T>> | Promise<HandlerReturn<Operation<T>>> {
 		const {
 			lca: { lca },
 			drpVertices,
@@ -233,7 +234,7 @@ export class DRPVertexApplier<T extends IDRP> {
 		});
 	}
 
-	private validateACL(operation: Operation2<T>): HandlerReturn<Operation2<T>> {
+	private validateACL(operation: Operation<T>): HandlerReturn<Operation<T>> {
 		const {
 			acl,
 			vertex: { peerId },
@@ -244,8 +245,8 @@ export class DRPVertexApplier<T extends IDRP> {
 	}
 
 	private applyFn(
-		drpOperation: Operation2<T>
-	): HandlerReturn<PostOperation2<T>> | Promise<HandlerReturn<PostOperation2<T>>> {
+		drpOperation: Operation<T>
+	): HandlerReturn<PostOperation<T>> | Promise<HandlerReturn<PostOperation<T>>> {
 		const {
 			currentDRP,
 			vertex: { peerId, operation },
@@ -271,7 +272,7 @@ export class DRPVertexApplier<T extends IDRP> {
 		});
 	}
 
-	private equal(operation: PostOperation2<T>): HandlerReturn<PostOperation2<T>> {
+	private equal(operation: PostOperation<T>): HandlerReturn<PostOperation<T>> {
 		const { acl, drp, currentDRP, isACL } = operation;
 		const current = isACL ? acl : drp;
 
@@ -286,7 +287,7 @@ export class DRPVertexApplier<T extends IDRP> {
 		return { stop: !changed, result: operation };
 	}
 
-	private assign<Op extends Operation2<T>>(operation: Op): HandlerReturn<Op> {
+	private assign<Op extends Operation<T>>(operation: Op): HandlerReturn<Op> {
 		const { isACL, currentDRP } = operation;
 		if (!isACL && this._proxyDRP) {
 			Object.assign(this._proxyDRP.proxy, currentDRP);
@@ -295,7 +296,7 @@ export class DRPVertexApplier<T extends IDRP> {
 		return { stop: false, result: operation };
 	}
 
-	private assignState<Op extends Operation2<T>>(operation: Op): HandlerReturn<Op> {
+	private assignState<Op extends Operation<T>>(operation: Op): HandlerReturn<Op> {
 		const {
 			isACL,
 			currentDRP,
@@ -313,19 +314,19 @@ export class DRPVertexApplier<T extends IDRP> {
 		return { stop: false, result: operation };
 	}
 
-	private assignToHashGraph<Op extends Operation2<T>>(operation: Op): HandlerReturn<Op> {
+	private assignToHashGraph<Op extends Operation<T>>(operation: Op): HandlerReturn<Op> {
 		const { vertex } = operation;
 		this.hg.addVertex(vertex);
 		return { stop: false, result: operation };
 	}
 
-	private initializeFinalityStore<Op extends Operation2<T>>(operation: Op): HandlerReturn<Op> {
+	private initializeFinalityStore<Op extends Operation<T>>(operation: Op): HandlerReturn<Op> {
 		const { vertex, acl } = operation;
 		this.finalityStore.initializeState(vertex.hash, acl.query_getFinalitySigners());
 		return { stop: false, result: operation };
 	}
 
-	private notify(operation: PostOperation2<T>): HandlerReturn<PostOperation2<T>> {
+	private notify(operation: PostOperation<T>): HandlerReturn<PostOperation<T>> {
 		this._notify("callFn", [operation.vertex]);
 		return { stop: false, result: operation };
 	}

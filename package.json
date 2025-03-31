@@ -42,13 +42,11 @@
 		"@esbuild-plugins/node-modules-polyfill": "^0.2.2",
 		"@types/node": "^22.5.4",
 		"esbuild": "^0.25.1",
-		"neverthrow": "^8.2.0",
 		"pascalcase": "^2.0.0",
 		"tsx": "4.19.1",
 		"typescript": "^5.7.3"
 	},
 	"devDependencies": {
-		"@bufferings/eslint-plugin-neverthrow": "^0.2.12",
 		"@eslint/js": "^9.18.0",
 		"@playwright/test": "^1.49.1",
 		"@release-it-plugins/workspaces": "^4.2.0",
@@ -59,7 +57,6 @@
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-import-resolver-typescript": "^4.2.0",
 		"eslint-plugin-import": "^2.31.0",
-		"eslint-plugin-neverthrow": "^1.1.4",
 		"eslint-plugin-prettier": "^5.2.3",
 		"eslint-plugin-unused-imports": "^4.1.4",
 		"eslint-plugin-vitest": "^0.5.4",

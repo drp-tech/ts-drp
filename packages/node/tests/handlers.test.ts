@@ -185,7 +185,7 @@ describe("Handle message correctly", () => {
 				peerId: node2.networkNode.peerId,
 			},
 		});
-		await new Promise((resolve) => setTimeout(resolve, 10000));
+		await new Promise((resolve) => setTimeout(resolve, 2000));
 		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(5);
 	}, 20000);
 
@@ -195,7 +195,7 @@ describe("Handle message correctly", () => {
 		const hash = drpObjectNode2.vertices[1].hash;
 		drpObjectNode2.drp?.add(6);
 		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
-		await new Promise((resolve) => setTimeout(resolve, 2000));
+		await new Promise((resolve) => setTimeout(resolve, 500));
 		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
 	});
 
