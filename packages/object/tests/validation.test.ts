@@ -31,7 +31,7 @@ describe("Vertex validation tests", () => {
 		);
 		expect(validateVertex(fakeRoot, obj1.hashGraph, Date.now())).toStrictEqual({
 			success: false,
-			error: `Vertex ${fakeRoot.hash} has no dependencies.`,
+			error: new Error(`Vertex ${fakeRoot.hash} has no dependencies`),
 		});
 		const vertex = newVertex(
 			"peer1",
@@ -42,7 +42,7 @@ describe("Vertex validation tests", () => {
 		);
 		expect(validateVertex(vertex, obj1.hashGraph, Date.now())).toStrictEqual({
 			success: false,
-			error: `Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}.`,
+			error: new Error(`Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}`),
 		});
 	});
 
@@ -60,7 +60,7 @@ describe("Vertex validation tests", () => {
 		);
 		expect(validateVertex(vertex, obj1.hashGraph, Date.now())).toStrictEqual({
 			success: false,
-			error: `Vertex ${vertex.hash} has invalid timestamp.`,
+			error: new Error(`Vertex ${vertex.hash} has invalid timestamp`),
 		});
 	});
 
@@ -97,7 +97,7 @@ describe("Vertex validation tests", () => {
 		);
 		expect(validateVertex(vertex, obj1.hashGraph, Date.now())).toStrictEqual({
 			success: false,
-			error: `Vertex ${vertex.hash} has invalid timestamp.`,
+			error: new Error(`Vertex ${vertex.hash} has invalid timestamp`),
 		});
 	});
 });

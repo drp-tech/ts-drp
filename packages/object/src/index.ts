@@ -321,7 +321,9 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 			try {
 				const validation = validateVertex(vertex, this.hashGraph, Date.now());
 				if (!validation.success) {
-					throw new Error(validation.error);
+					throw validation.error
+						? validation.error
+						: new Error(`Vertex validation unknown error for vertex ${vertex.hash}`);
 				}
 				const preComputeLca = this.computeLCA(vertex.dependencies);
 
