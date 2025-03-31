@@ -4,7 +4,7 @@ import { type IACL } from "./acl.js";
 import { type DRPIntervalDiscoveryOptions } from "./drp-interval-discovery.js";
 import { type DRPIntervalReconnectOptions } from "./drp-interval-reconnect.js";
 import { type IDRP } from "./drp.js";
-import { type IDRPObject } from "./index.js";
+import { type IDRPObject, type NodeEventName } from "./index.js";
 import { type KeychainOptions } from "./keychain.js";
 import { type LoggerOptions } from "./logger.js";
 import { type IMetrics } from "./metrics.js";
@@ -55,42 +55,42 @@ export interface NodeEvents {
 	/**
 	 * Emitted when a peer receives an fetch message
 	 */
-	"drp:fetch": CustomEvent<ObjectId>;
+	[NodeEventName.DRP_FETCH]: CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer responds to a fetch message
 	 */
-	"drp:fetch:response": CustomEvent<ObjectId>;
+	[NodeEventName.DRP_FETCH_RESPONSE]: CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer receives an update message
 	 */
-	"drp:update": CustomEvent<ObjectId>;
+	[NodeEventName.DRP_UPDATE]: CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer receives a sync message
 	 */
-	"drp:sync": CustomEvent<ObjectId>;
+	[NodeEventName.DRP_SYNC]: CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer receives a sync message with missing objects
 	 */
-	"drp:sync:missing": CustomEvent<ObjectId>;
+	[NodeEventName.DRP_SYNC_MISSING]: CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer accepts a sync message
 	 */
-	"drp:sync:accepted": CustomEvent<ObjectId>;
+	[NodeEventName.DRP_SYNC_ACCEPTED]: CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer rejects a sync message
 	 */
-	"drp:sync:rejected": CustomEvent<ObjectId>;
+	[NodeEventName.DRP_SYNC_REJECTED]: CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer receives an update attestation message
 	 */
-	"drp:attestation:update": CustomEvent<ObjectId>;
+	[NodeEventName.DRP_ATTESTATION_UPDATE]: CustomEvent<ObjectId>;
 }
 
 export interface IDRPNode extends TypedEventTarget<NodeEvents> {

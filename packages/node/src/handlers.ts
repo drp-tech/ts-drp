@@ -14,6 +14,7 @@ import {
 	type IDRPObject,
 	Message,
 	MessageType,
+	NodeEventName,
 	Sync,
 	SyncAccept,
 	Update,
@@ -98,7 +99,7 @@ function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandler
 		log.error("::fetchStateHandler: Error sending message", e);
 	});
 
-	node.safeDispatchEvent("drp:fetch", {
+	node.safeDispatchEvent(NodeEventName.DRP_FETCH, {
 		detail: {
 			id: drpObject.id,
 		},
@@ -146,7 +147,7 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 			fetchStateDeferredMap.get(object.id)?.resolve();
 			fetchStateDeferredMap.delete(object.id);
 		}
-		node.safeDispatchEvent("drp:fetch:response", {
+		node.safeDispatchEvent(NodeEventName.DRP_FETCH_RESPONSE, {
 			detail: {
 				id: object.id,
 			},
@@ -165,7 +166,7 @@ function attestationUpdateHandler({ node, message }: HandleParams): ReturnType<I
 
 	if (object.acl.query_isFinalitySigner(sender)) {
 		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
-		node.safeDispatchEvent("drp:attestation:update", {
+		node.safeDispatchEvent(NodeEventName.DRP_ATTESTATION_UPDATE, {
 			detail: {
 				id: object.id,
 			},
@@ -226,7 +227,7 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 
 	node.objectStore.put(object.id, object);
 
-	node.safeDispatchEvent("drp:update", {
+	node.safeDispatchEvent(NodeEventName.DRP_UPDATE, {
 		detail: {
 			id: object.id,
 		},
@@ -295,7 +296,7 @@ async function syncHandler({ node, message }: HandleParams): Promise<void> {
 		log.error("::syncHandler: Error sending message", e);
 	});
 
-	node.safeDispatchEvent("drp:sync", {
+	node.safeDispatchEvent(NodeEventName.DRP_SYNC, {
 		detail: {
 			id: object.id,
 		},
@@ -331,7 +332,7 @@ async function syncAcceptHandler({ node, message }: HandleParams): Promise<void>
 	await signGeneratedVertices(node, object.vertices);
 	signFinalityVertices(node, object, object.vertices);
 
-	node.safeDispatchEvent("drp:sync:accepted", {
+	node.safeDispatchEvent(NodeEventName.DRP_SYNC_ACCEPTED, {
 		detail: { id: object.id },
 	});
 
@@ -363,7 +364,7 @@ async function syncAcceptHandler({ node, message }: HandleParams): Promise<void>
 	node.networkNode.sendMessage(sender, messageSyncAccept).catch((e) => {
 		log.error("::syncAcceptHandler: Error sending message", e);
 	});
-	node.safeDispatchEvent("drp:sync:missing", {
+	node.safeDispatchEvent(NodeEventName.DRP_SYNC_MISSING, {
 		detail: { id: object.id },
 	});
 }

@@ -1,7 +1,7 @@
 import { type Connection, type IdentifyResult, type Libp2p } from "@libp2p/interface";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { AsyncCounterDRP } from "@ts-drp/test-utils";
-import { type DRPNodeConfig, type ObjectId } from "@ts-drp/types";
+import { type DRPNodeConfig, NodeEventName, type ObjectId } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
@@ -91,7 +91,7 @@ describe("Async DRP", () => {
 
 		await drp1.increment();
 
-		await raceEvent(node2, "drp:update", controller.signal, {
+		await raceEvent(node2, NodeEventName.DRP_UPDATE, controller.signal, {
 			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
 		});
 		expect(drp2.query_value()).toEqual(2);

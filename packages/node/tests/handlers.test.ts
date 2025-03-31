@@ -2,7 +2,7 @@ import type { Connection, IdentifyResult, Libp2p } from "@libp2p/interface";
 import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
-import { type DRPNetworkNodeConfig, DrpType, type ObjectId } from "@ts-drp/types";
+import { type DRPNetworkNodeConfig, DrpType, NodeEventName, type ObjectId } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterAll, beforeEach, describe, expect, test } from "vitest";
 
@@ -117,7 +117,7 @@ describe("Handle message correctly", () => {
 
 	test("should handle update message correctly", async () => {
 		drpObjectNode2.drp?.add(5);
-		await raceEvent(node1, "drp:update", controller.signal, {
+		await raceEvent(node1, NodeEventName.DRP_UPDATE, controller.signal, {
 			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
 		});
 		const expected_vertices = node1.objectStore.get(drpObjectNode2.id)?.vertices.map((vertex) => {
@@ -132,13 +132,13 @@ describe("Handle message correctly", () => {
 	test("should handle sync and fetch message correctly", async () => {
 		drpObjectNode2.drp?.add(5);
 		drpObjectNode2.drp?.add(10);
-		await raceEvent(node1, "drp:update");
+		await raceEvent(node1, NodeEventName.DRP_UPDATE);
 		expect(drpObjectNode1).toBeDefined();
 
 		drpObjectNode1?.drp?.add(1);
-		await raceEvent(node2, "drp:update");
+		await raceEvent(node2, NodeEventName.DRP_UPDATE);
 		drpObjectNode1?.drp?.add(2);
-		await raceEvent(node2, "drp:update");
+		await raceEvent(node2, NodeEventName.DRP_UPDATE);
 
 		expect(drpObjectNode1?.vertices.length).toBe(5);
 		expect(drpObjectNode2.vertices.length).toBe(5);
@@ -158,9 +158,9 @@ describe("Handle message correctly", () => {
 				peerId: node2.networkNode.peerId,
 			},
 		});
-		await raceEvent(node2, "drp:fetch");
-		await raceEvent(node3, "drp:fetch:response", controller.signal);
-		await raceEvent(node3, "drp:sync:accepted", controller.signal);
+		await raceEvent(node2, NodeEventName.DRP_FETCH);
+		await raceEvent(node3, NodeEventName.DRP_FETCH_RESPONSE, controller.signal);
+		await raceEvent(node3, NodeEventName.DRP_SYNC_ACCEPTED, controller.signal);
 		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(5);
 	}, 30_000); // 30 seconds
 
@@ -170,7 +170,7 @@ describe("Handle message correctly", () => {
 		const hash = drpObjectNode2.vertices[1].hash;
 		drpObjectNode2.drp?.add(6);
 		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
-		await raceEvent(node2, "drp:attestation:update", controller.signal, {
+		await raceEvent(node2, NodeEventName.DRP_ATTESTATION_UPDATE, controller.signal, {
 			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
 		});
 		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
