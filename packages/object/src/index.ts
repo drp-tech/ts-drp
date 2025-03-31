@@ -16,14 +16,14 @@ import {
 } from "@ts-drp/types";
 
 import { ObjectACL } from "./acl/index.js";
+import { DRPVertexApplier } from "./drp-applier.js";
 import { FinalityStore } from "./finality/index.js";
 import { HashGraph } from "./hashgraph/index.js";
-import { DRPVertexApplier } from "./object2.js";
 import { DRPObjectStateManager } from "./state.js";
 
 export * from "./acl/index.js";
 export * from "./hashgraph/index.js";
-export * from "./object2.js";
+export * from "./drp-applier.js";
 
 function defaultIDFromPeerID(peerId: string): string {
 	return bytesToHex(

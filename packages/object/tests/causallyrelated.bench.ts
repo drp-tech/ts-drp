@@ -5,7 +5,7 @@ import { bench, describe } from "vitest";
 import { FinalityStore } from "../src/finality/index.js";
 import { HashGraph } from "../src/hashgraph/index.js";
 import { ObjectACL } from "../src/index.js";
-import { DRPVertexApplier as DRPSubObject } from "../src/object2.js";
+import { DRPVertexApplier as DRPSubObject } from "../src/drp-applier.js";
 import { DRPObjectStateManager } from "../src/state.js";
 const notify = (): void => {};
 

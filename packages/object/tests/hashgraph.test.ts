@@ -13,10 +13,10 @@ import { ObjectSet } from "@ts-drp/utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
+import { DRPVertexApplier as DRPSubObject } from "../src/drp-applier.js";
 import { FinalityStore } from "../src/finality/index.js";
 import { HashGraph } from "../src/hashgraph/index.js";
 import { DRPObject } from "../src/index.js";
-import { DRPVertexApplier as DRPSubObject } from "../src/object2.js";
 import { DRPObjectStateManager } from "../src/state.js";
 import { createVertex } from "../src/utils/createVertex.js";
 import { validateVertexDependencies } from "../src/vertex-validation.js";
