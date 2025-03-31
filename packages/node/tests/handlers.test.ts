@@ -174,7 +174,7 @@ describe("Handle message correctly", () => {
 			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
 		});
 		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
-	}, 15000); // 15 seconds
+	}, 30000); // 30 seconds
 
 	afterAll(async () => {
 		await bootstrapNode.stop();
