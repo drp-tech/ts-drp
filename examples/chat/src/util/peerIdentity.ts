@@ -75,14 +75,14 @@ export function styleMessageElement(element: HTMLElement, peerId: string): void 
 	element.setAttribute("data-peer-color", identity.color);
 }
 
-export function shortenPeerId(peerId: string, length = 4): string {
-	if (peerId.length <= length * 2) return peerId;
-	return `${peerId.slice(0, length)}...${peerId.slice(-length)}`;
+export function shortenId(id: string, length = 4): string {
+	if (id.length <= length * 2 + 3) return id;
+	return `${id.slice(0, length)}...${id.slice(-length)}`;
 }
 
 export function formatPeerItem(peerId: string): HTMLSpanElement {
 	const identity = getIdentity(peerId);
-	const shortId = shortenPeerId(peerId);
+	const shortId = shortenId(peerId);
 	const displayName = `${identity.emoji} ${identity.name} #${identity.number}`;
 
 	const span = document.createElement("span");

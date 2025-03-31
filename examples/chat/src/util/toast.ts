@@ -1,3 +1,5 @@
+import DOMPurify from "dompurify";
+
 let container: HTMLDivElement;
 const toasts: Map<string, { element: HTMLDivElement; timeoutId?: NodeJS.Timeout }> = new Map();
 let counter = 0;
@@ -24,7 +26,7 @@ export function showToast(message: string, type: ToastType = ToastType.ERROR, du
 	toast.innerHTML = `
         <div class="toast-icon">${type === ToastType.ERROR ? "⚠️" : type === ToastType.SUCCESS ? "✅" : type === ToastType.INFO ? "ℹ️" : "⚠️"}</div>
         <div class="toast-content">
-            <p class="toast-message">${message}</p>
+            <p class="toast-message">${DOMPurify.sanitize(message)}</p>
         </div>
         <button class="toast-close" aria-label="Close">×</button>
     `;

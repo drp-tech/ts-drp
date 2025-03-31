@@ -4,7 +4,7 @@ import { DRP_DISCOVERY_TOPIC } from "@ts-drp/types";
 
 import { Chat } from "./objects/chat";
 import { setupCopyButton } from "./util/clipboard";
-import { createPeerNameElement, formatPeerItem, styleMessageElement } from "./util/peerIdentity";
+import { createPeerNameElement, formatPeerItem, shortenId, styleMessageElement } from "./util/peerIdentity";
 import { initializeToastContainer, showToast, ToastType } from "./util/toast";
 
 // Helper function to set up collapsible sections
@@ -135,7 +135,7 @@ const renderPeerId = (chatState: ChatStateManager): void => {
 const renderChatId = (chatState: ChatStateManager): void => {
 	if (!chatState.drp) return;
 
-	element_chatId.innerHTML = chatState.drp.id;
+	element_chatId.innerHTML = shortenId(chatState.drp.id);
 };
 
 const renderChat = (chatState: ChatStateManager): void => {

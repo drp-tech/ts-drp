@@ -45,7 +45,6 @@ h1 {
 .info-label {
     font-weight: bold;
     margin-right: 8px;
-    min-width: 120px;
 }
 
 .info-value {
@@ -254,6 +253,13 @@ button:hover {
         right: 0;
         padding: 10px;
     }
+
+    .toast-close {
+        padding: 4px;
+        width: auto;
+        min-width: unset;
+        flex-shrink: 0; /* Prevent the close button from shrinking */
+    }
 }
 
 .toast {
@@ -288,9 +294,26 @@ button:hover {
         }
     }
 
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
     .toast.removing {
-        transform: translateX(100%);
-        opacity: 0;
+        animation: slideOut 1s ease-out forwards;
+        position: absolute; /* Prevent other toasts from moving during animation */
+        right: 20px; /* Match container padding */
+    }
+
+    /* Add transition for other toasts when one is removed */
+    .toast-container:has(.toast.removing) .toast:not(.removing) {
+        transition: transform 1s ease-out;
     }
 }
 
@@ -307,9 +330,27 @@ button:hover {
         }
     }
 
+    @keyframes slideOut {
+        from {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+    }
+
     .toast.removing {
-        transform: translateY(-100%);
-        opacity: 0;
+        animation: slideOut 1s ease-out forwards;
+        position: absolute; /* Prevent other toasts from moving during animation */
+        left: 10px; /* Match container padding */
+        right: 10px;
+    }
+
+    /* Add transition for other toasts when one is removed */
+    .toast-container:has(.toast.removing) .toast:not(.removing) {
+        transition: transform 1s ease-out;
     }
 
     .toast {
@@ -341,6 +382,8 @@ button:hover {
     font-size: 18px;
     line-height: 1;
     transition: color 0.2s;
+    width: auto;
+    min-width: unset;
 }
 
 .toast-close:hover {
