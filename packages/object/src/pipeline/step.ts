@@ -33,7 +33,7 @@ export class Step<I, O> implements PipelineStep<I, O> {
 
 			return handlePromiseOrValue(pResult, ({ stop, result }) => {
 				if (stop) return { stop, result };
-
+				console.log("next", result);
 				return next._execute(result);
 			}) as HandlerReturn<O> | Promise<HandlerReturn<O>>;
 		}

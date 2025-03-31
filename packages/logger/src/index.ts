@@ -26,7 +26,7 @@ export class Logger {
 		for (const method of Object.keys(this.log)) {
 			const logMethod = this.log[method as keyof loglevel.Logger];
 			if (typeof logMethod === "function") {
-				this[method as string] = logMethod.callFnPipeline(this.log);
+				this[method as string] = logMethod.bind(this.log);
 			}
 		}
 	}

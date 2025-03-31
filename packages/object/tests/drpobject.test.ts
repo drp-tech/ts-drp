@@ -12,7 +12,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { DRPObject } from "../src/object2.js";
+import { DRPObject } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: ["peer1", "peer2", "peer3"],
@@ -159,6 +159,7 @@ describe("Test for duplicate call issue", () => {
 
 		expect(obj.drp).toBeDefined();
 		const ret = obj.drp?.test();
+		console.log("ret", ret);
 		expect(ret).toBe(counter);
 	});
 });

@@ -647,13 +647,13 @@ export class DrpRpcServiceClientImpl implements DrpRpcService {
   constructor(rpc: Rpc, opts?: { service?: string }) {
     this.service = opts?.service || DrpRpcServiceServiceName;
     this.rpc = rpc;
-    this.SubscribeDRP = this.SubscribeDRP.callFnPipeline(this);
-    this.UnsubscribeDRP = this.UnsubscribeDRP.callFnPipeline(this);
-    this.GetDRPHashGraph = this.GetDRPHashGraph.callFnPipeline(this);
-    this.SyncDRPObject = this.SyncDRPObject.callFnPipeline(this);
-    this.SendCustomMessage = this.SendCustomMessage.callFnPipeline(this);
-    this.SendGroupMessage = this.SendGroupMessage.callFnPipeline(this);
-    this.AddCustomGroup = this.AddCustomGroup.callFnPipeline(this);
+    this.SubscribeDRP = this.SubscribeDRP.bind(this);
+    this.UnsubscribeDRP = this.UnsubscribeDRP.bind(this);
+    this.GetDRPHashGraph = this.GetDRPHashGraph.bind(this);
+    this.SyncDRPObject = this.SyncDRPObject.bind(this);
+    this.SendCustomMessage = this.SendCustomMessage.bind(this);
+    this.SendGroupMessage = this.SendGroupMessage.bind(this);
+    this.AddCustomGroup = this.AddCustomGroup.bind(this);
   }
   SubscribeDRP(request: SubscribeDRPRequest): Promise<GenericRespone> {
     const data = SubscribeDRPRequest.encode(request).finish();

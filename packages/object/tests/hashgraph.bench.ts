@@ -2,7 +2,7 @@ import { MapDRP, SetDRP } from "@ts-drp/blueprints";
 import Benchmark from "benchmark";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { DRPObject } from "../src/object2.js";
+import { DRPObject } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: ["peer1", "peer2"],

@@ -28,7 +28,7 @@ export class Pipeline<I, O> {
 	}
 
 	handle(request: I): O | Promise<O> {
-		return handlePromiseOrValue(request, (pRequest) => this.firstHandler._execute(pRequest)) as O | Promise<O>;
+		return handlePromiseOrValue(this.firstHandler._execute(request), (pRequest) => pRequest.result) as O | Promise<O>;
 	}
 }
 

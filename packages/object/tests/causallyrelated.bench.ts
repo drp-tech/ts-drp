@@ -2,34 +2,36 @@ import { SetDRP } from "@ts-drp/blueprints";
 import { DrpType, type Hash, type IACL, type IDRP, SemanticsType } from "@ts-drp/types";
 import { bench, describe } from "vitest";
 
-import { ObjectACL } from "../src/acl/index.js";
 import { FinalityStore } from "../src/finality/index.js";
 import { HashGraph } from "../src/hashgraph/index.js";
-import { DRPSubObject } from "../src/object2.js";
-import { DRPObjectStateManager } from "../src/state.js";
+import { ObjectACL } from "../src/index.js";
+import { DRPObjectApplier as DRPSubObject } from "../src/object2.js";
+import { DRPObjectStateManager2 } from "../src/state.js";
 const notify = (): void => {};
 
 function createDRPSubObject<T extends IDRP>({
 	drp,
 	states,
 	hg,
-	localPeerID,
 	acl,
-	admins = [],
+	admins,
 }: {
 	drp: T;
-	states?: DRPObjectStateManager<T>;
+	states?: DRPObjectStateManager2<T>;
 	hg: HashGraph;
 	localPeerID: string;
 	acl?: IACL;
 	admins: string[];
 }): DRPSubObject<T> {
+	const acl2 = acl ?? new ObjectACL({ admins });
 	const options = {
 		type: DrpType.DRP,
 		finalityStore: new FinalityStore(),
-		aclStates: new DRPObjectStateManager(acl ?? new ObjectACL({ admins })),
+		acl: acl2,
+		states: states ?? new DRPObjectStateManager2(acl2, drp),
 	};
-	const obj = new DRPSubObject({ ...options, drp, hg, states, notify, localPeerID });
+
+	const obj = new DRPSubObject({ ...options, drp, hg, states, notify });
 	return obj;
 }
 
@@ -61,23 +63,23 @@ describe("AreCausallyDependent benchmark", async () => {
 	});
 
 	obj1.drp?.add(1);
-	await obj2.applies(hg.getAllVertices());
+	await obj2.applyVertices(hg.getAllVertices());
 
 	obj1.drp?.add(1);
 	obj1.drp?.delete(2);
 	obj2.drp?.delete(2);
 	obj2.drp?.add(2);
 
-	await obj3.applies(hg.getAllVertices());
+	await obj3.applyVertices(hg.getAllVertices());
 	obj3.drp?.add(3);
 	obj1.drp?.delete(1);
 
-	await obj1.applies(hg2.getAllVertices());
+	await obj1.applyVertices(hg2.getAllVertices());
 	obj1.drp?.delete(3);
 	obj2.drp?.delete(1);
 
-	await obj1.applies(hg2.getAllVertices());
-	await obj1.applies(hg3.getAllVertices());
+	await obj1.applyVertices(hg2.getAllVertices());
+	await obj1.applyVertices(hg3.getAllVertices());
 
 	const vertices = hg.getAllVertices();
 	for (let i = 0; i < samples; i++) {

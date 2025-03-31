@@ -69,7 +69,7 @@ export class DRPNode {
 				logConfig: this.config.log_config,
 			})
 		);
-		this.networkNode.subscribeToMessageQueue(this.dispatchMessage.callFnPipeline(this));
+		this.networkNode.subscribeToMessageQueue(this.dispatchMessage.bind(this));
 		this.messageQueueManager.subscribe(DISCOVERY_QUEUE_ID, (msg) => handleMessage(this, msg));
 		this._intervals.forEach((interval) => interval.start());
 	}

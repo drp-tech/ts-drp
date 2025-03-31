@@ -1,4 +1,14 @@
-import { DrpType, type IACL, type IDRP, type IHashGraph, type LoggerOptions, type Vertex } from "@ts-drp/types";
+import { Logger } from "@ts-drp/logger";
+import {
+	type ApplyResult,
+	DrpType,
+	type Hash,
+	type IACL,
+	type IDRP,
+	type IHashGraph,
+	type LoggerOptions,
+	type Vertex,
+} from "@ts-drp/types";
 import { handlePromiseOrValue, processSequentially2 } from "@ts-drp/utils";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
@@ -20,6 +30,8 @@ import { validateVertexDependencies, validateVertexHash, validateVertexTimestamp
 
 function callDRP<T extends IDRP>(drp: T, caller: string, method: string, args: unknown[]): unknown | Promise<unknown> {
 	if (drp.context) drp.context.caller = caller;
+
+	console.log("drp", method, args);
 
 	return drp[method](...args);
 }
@@ -54,66 +66,17 @@ function splitOperation(vertices: Vertex[]): [Vertex[], Vertex[]] {
 	return [drpVertices, aclVertices];
 }
 
-//interface Operation<T extends IDRP> {
-//	vertex: Vertex;
-//	// this is the same as the lca of ACLResult
-//	lca: LowestCommonAncestorResult;
-//	drpVertices: Vertex[];
-//	aclVertices: Vertex[];
-//	acl: IACL;
-//	drp?: T;
-//	/*
-//	 **	lcaWithDepsDRP is the DRP with the state of the lca with the dependencies applied
-//	 ** so it is the state of the object before the operation
-//	 */
-//	lcaWithDepsDRP: T;
-//	currentDRP: T;
-//}
-
-//interface OperationForACL<T extends IDRP> extends Operation<T> {
-//	drp?: IDRP;
-//}
-
-//interface DRPSubObjectOptions<T extends IDRP> extends BaseSubObjectOptions<T> {
-//	aclStates: DRPObjectStateManager<IACL>;
-//}
-
-//interface ACLSubObjectOptions<T extends IACL> extends BaseSubObjectOptions<T> {
-//	drpStates?: DRPObjectStateManager<IDRP>;
-//}
-
 interface BaseSubObjectOptions<T extends IDRP> {
 	drp?: T;
 	acl: IACL;
 	hg: IHashGraph;
-	type: DrpType;
-	localPeerID: string;
 	finalityStore: FinalityStore;
 	states?: DRPObjectStateManager2<T>;
 	logConfig?: LoggerOptions;
 	notify(origin: string, vertices: Vertex[]): void;
 }
 
-//interface SubObj3Options<T extends IDRP> {
-//	drp?: T;
-//	states?: DRPObjectStateManager2<T>;
-
-//	acl: IACL;
-//	hg: IHashGraph;
-//	type: DrpType;
-//	localPeerID: string;
-//	finalityStore: FinalityStore;
-//	logConfig?: LoggerOptions;
-//	notify(origin: string, vertices: Vertex[]): void;
-//}
-
-// DRPObject
-// DRPSubObject
-// DRPStateManager -> hold states of both drp and acl
-
-// one for drp --> this sometime it won't exist
-// one for acl
-export class DRPObjectOperation<T extends IDRP> {
+export class DRPObjectApplier<T extends IDRP> {
 	protected readonly hg: IHashGraph;
 	protected readonly states: DRPObjectStateManager2<T>;
 
@@ -123,12 +86,14 @@ export class DRPObjectOperation<T extends IDRP> {
 	private appliesVertexPipeline: Pipeline<BaseOperation, PostOperation2<T>>;
 	private finalityStore: FinalityStore;
 	private _notify: (origin: string, vertices: Vertex[]) => void;
+	private log: Logger;
 
-	constructor({ drp, acl, hg, states, finalityStore, notify }: BaseSubObjectOptions<T>) {
+	constructor({ drp, acl, hg, states, finalityStore, notify, logConfig }: BaseSubObjectOptions<T>) {
 		this.hg = hg;
 		this.states = states ?? new DRPObjectStateManager2(acl, drp);
 		this.finalityStore = finalityStore;
 		this._notify = notify;
+		this.log = new Logger("drp::object::operation", logConfig);
 
 		const callFnPipeline = createPipeline(this.createVertex.bind(this)) // this is there but not in applies
 			.setNext(this.validateVertex.bind(this))
@@ -150,9 +115,9 @@ export class DRPObjectOperation<T extends IDRP> {
 			.setNext(this.computeOperation.bind(this))
 			.setNext(this.validateACL.bind(this))
 			.setNext(this.applyFn.bind(this))
-			.setNext(this.initializeFinalityStore.bind(this))
 			.setNext(this.assign.bind(this))
 			.setNext(this.assignState.bind(this))
+			.setNext(this.initializeFinalityStore.bind(this))
 			.setNext(this.assignToHashGraph.bind(this));
 
 		this._proxyACL = new DRPProxy2(acl, callFnPipeline, DrpType.ACL);
@@ -169,10 +134,50 @@ export class DRPObjectOperation<T extends IDRP> {
 		return this._proxyACL.proxy;
 	}
 
+	async applyVertices(vertices: Vertex[]): Promise<ApplyResult> {
+		const missing: Hash[] = [];
+		const newVertices: Vertex[] = [];
+
+		for (const v of vertices) {
+			if (!v.operation) {
+				this.log.warn("Vertex has no operation", v);
+				continue;
+			}
+			if (this.hg.vertices.has(v.hash)) {
+				this.log.warn("Vertex already exists", v);
+				continue;
+			}
+
+			try {
+				console.log("-".repeat(100));
+				await this.appliesVertexPipeline.handle({ vertex: v, isACL: v.operation.drpType === DrpType.ACL });
+				newVertices.push(v);
+			} catch (e) {
+				this.log.error("Error applying vertex", e);
+				missing.push(v.hash);
+			}
+		}
+
+		const frontier = this.hg.getFrontier();
+		const lca = this.hg.getLCA(frontier);
+		const [drpVertices, aclVertices] = splitOperation(lca.linearizedVertices);
+
+		const [drp, acl] = this.states.fromHash(lca.lca);
+		await applyVertices(acl, aclVertices);
+		Object.assign(this.acl, acl);
+		if (drp && this.drp) {
+			await applyVertices(drp, drpVertices);
+			Object.assign(this.drp, drp);
+		}
+
+		this._notify("merge", newVertices);
+		return { applied: missing.length === 0, missing };
+	}
+
 	private createVertex({ prop: opType, args: value, type: drpType }: DRPProxyChainArgs): HandlerReturn<BaseOperation> {
 		return {
 			stop: false,
-			result: { vertex: this.hg.createVertex2({ drpType, opType, value }), isACL: drpType === DrpType.ACL },
+			result: { vertex: this.hg.createVertex({ drpType, opType, value }), isACL: drpType === DrpType.ACL },
 		};
 	}
 
@@ -186,14 +191,16 @@ export class DRPObjectOperation<T extends IDRP> {
 
 	private getLCA(operation: BaseOperation): HandlerReturn<PostLCAOperation> {
 		const { vertex } = operation;
+		console.log("getLCA");
 		return { stop: false, result: { ...operation, lca: this.hg.getLCA(vertex.dependencies) } };
 	}
 
 	private splitLCAOperation(operation: PostLCAOperation): HandlerReturn<PostSplitOperation> {
+		console.log("splitLCAOperation");
 		const {
 			lca: { linearizedVertices },
 		} = operation;
-		const [acl, drp] = splitOperation(linearizedVertices);
+		const [drp, acl] = splitOperation(linearizedVertices);
 		return { stop: false, result: { ...operation, aclVertices: acl, drpVertices: drp } };
 	}
 
@@ -206,6 +213,7 @@ export class DRPObjectOperation<T extends IDRP> {
 			aclVertices,
 			isACL,
 		} = operation;
+		console.log("computeOperation", aclVertices, drpVertices);
 		const [drp, acl] = this.states.fromHash(lca);
 		applyVertices(acl, aclVertices);
 
@@ -232,6 +240,7 @@ export class DRPObjectOperation<T extends IDRP> {
 	}
 
 	private validateACL(operation: Operation2<T>): HandlerReturn<Operation2<T>> {
+		console.log("validateACL");
 		const {
 			acl,
 			vertex: { peerId },
@@ -244,6 +253,7 @@ export class DRPObjectOperation<T extends IDRP> {
 	private applyFn(
 		drpOperation: Operation2<T>
 	): HandlerReturn<PostOperation2<T>> | Promise<HandlerReturn<PostOperation2<T>>> {
+		console.log("applyFn");
 		const {
 			currentDRP,
 			vertex: { peerId, operation },
@@ -253,18 +263,20 @@ export class DRPObjectOperation<T extends IDRP> {
 		if (!operation) throw new Error("Operation is undefined");
 
 		const { opType, value } = operation;
+		console.log("applyFn", currentDRP, operation, isACL, opType);
 
-		if (!currentDRP) return { stop: false, result: { ...drpOperation, result: undefined, changed: false } };
+		if (!currentDRP) return { stop: false, result: { ...drpOperation, result: undefined } };
 
 		if (isACL) {
 			// we know acl do not have async
 			return {
 				stop: false,
-				result: { ...drpOperation, result: callDRP(currentDRP, peerId, opType, value), changed: false },
+				result: { ...drpOperation, result: callDRP(currentDRP, peerId, opType, value) },
 			};
 		}
 
 		return handlePromiseOrValue(callDRP(currentDRP, peerId, opType, value), (result) => {
+			console.log("applyFn result", result);
 			return { stop: false, result: { ...drpOperation, result, changed: false } };
 		});
 	}
@@ -275,18 +287,24 @@ export class DRPObjectOperation<T extends IDRP> {
 
 		if (currentDRP === undefined || current === undefined) return { stop: false, result: operation };
 
-		operation.changed = Object.keys(current).some((key) => {
+		const changed = Object.keys(current).some((key) => {
 			if (key === "context") return false;
 
 			return !deepEqual(current[key], currentDRP[key]);
 		});
 
-		return { stop: false, result: operation };
+		console.log("equal", changed, operation);
+
+		return { stop: !changed, result: operation };
 	}
 
 	private assign<Op extends Operation2<T>>(operation: Op): HandlerReturn<Op> {
 		const { isACL, currentDRP } = operation;
-		Object.assign(isACL ? this._proxyACL : this._proxyDRP, currentDRP);
+		if (!isACL && this._proxyDRP) {
+			Object.assign(this._proxyDRP.proxy, currentDRP);
+		}
+		Object.assign(this._proxyACL.proxy, currentDRP);
+		console.log("assign", operation);
 		return { stop: false, result: operation };
 	}
 
@@ -299,25 +317,33 @@ export class DRPObjectOperation<T extends IDRP> {
 			vertex: { hash },
 		} = operation;
 
-		this.states.setACL(hash, stateFromDRP(isACL ? currentDRP : acl));
-		this.states.setDRP(hash, stateFromDRP(isACL ? currentDRP : drp));
+		const [aclState, drpState] = isACL
+			? [stateFromDRP(currentDRP), stateFromDRP(drp)]
+			: [stateFromDRP(acl), stateFromDRP(currentDRP)];
+
+		this.states.setACL(hash, aclState);
+		this.states.setDRP(hash, drpState);
+		console.log("assignState", operation);
 		return { stop: false, result: operation };
 	}
 
 	private assignToHashGraph<Op extends Operation2<T>>(operation: Op): HandlerReturn<Op> {
 		const { vertex } = operation;
 		this.hg.addVertex(vertex);
+		console.log("assignToHashGraph", operation);
 		return { stop: false, result: operation };
 	}
 
 	private initializeFinalityStore<Op extends Operation2<T>>(operation: Op): HandlerReturn<Op> {
 		const { vertex, acl } = operation;
 		this.finalityStore.initializeState(vertex.hash, acl.query_getFinalitySigners());
+		console.log("initializeFinalityStore", operation);
 		return { stop: false, result: operation };
 	}
 
 	private notify(operation: PostOperation2<T>): HandlerReturn<PostOperation2<T>> {
 		this._notify("callFn", [operation.vertex]);
+		console.log("notify", operation);
 		return { stop: false, result: operation };
 	}
 }

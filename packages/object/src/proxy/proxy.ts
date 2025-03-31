@@ -51,8 +51,6 @@ export interface Operation2<T extends IDRP> extends PostSplitOperation {
 
 export interface PostOperation2<T extends IDRP> extends Operation2<T> {
 	result: unknown;
-
-	changed: boolean;
 }
 
 export class DRPProxy<T extends object, BeforeChainOutput = unknown> {

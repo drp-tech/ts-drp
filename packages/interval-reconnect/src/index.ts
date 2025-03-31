@@ -37,7 +37,7 @@ export class DRPIntervalReconnectBootstrap implements IDRPIntervalReconnectBoots
 		this._logger = new Logger(`drp::reconnect::${opts.id}`, opts.logConfig);
 		this._intervalRunner = new IntervalRunner({
 			...opts,
-			fn: this._runDRPReconnect.callFnPipeline(this),
+			fn: this._runDRPReconnect.bind(this),
 			throwOnStop: false,
 		});
 		this.networkNode = opts.networkNode;

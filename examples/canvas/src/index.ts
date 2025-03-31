@@ -1,11 +1,11 @@
 import { DRPNode } from "@ts-drp/node";
-import type { DRPObject2 } from "@ts-drp/object";
+import { type DRPObject } from "@ts-drp/object";
 import { DRP_DISCOVERY_TOPIC } from "@ts-drp/types";
 
 import { Canvas } from "./objects/canvas";
 
 const node = new DRPNode();
-let drpObject: DRPObject2<Canvas>;
+let drpObject: DRPObject<Canvas>;
 let peers: string[] = [];
 let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
