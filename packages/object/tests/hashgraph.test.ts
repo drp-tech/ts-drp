@@ -17,8 +17,8 @@ import { ObjectACL } from "../src/acl/index.js";
 import { FinalityStore } from "../src/finality/index.js";
 import { HashGraph } from "../src/hashgraph/index.js";
 import { DRPObject } from "../src/index.js";
-import { DRPObjectApplier as DRPSubObject } from "../src/object2.js";
-import { DRPObjectStateManager2 } from "../src/state.js";
+import { DRPVertexApplier as DRPSubObject } from "../src/object2.js";
+import { DRPObjectStateManager } from "../src/state.js";
 import { createVertex } from "../src/utils/createVertex.js";
 import { validateVertexDependencies } from "../src/vertex-validation.js";
 
@@ -65,13 +65,13 @@ function createDRPSubObject<T extends IDRP>({
 	admins,
 }: {
 	drp: T;
-	states?: DRPObjectStateManager2<T>;
+	states?: DRPObjectStateManager<T>;
 	hg: HashGraph;
 	acl?: IACL;
 	admins: string[];
-}): [DRPSubObject<T>, DRPObjectStateManager2<T>] {
+}): [DRPSubObject<T>, DRPObjectStateManager<T>] {
 	const acl2 = acl ?? new ObjectACL({ admins });
-	const states2 = states ?? new DRPObjectStateManager2(acl2, drp);
+	const states2 = states ?? new DRPObjectStateManager(acl2, drp);
 	const options = {
 		type: DrpType.DRP,
 		finalityStore: new FinalityStore(),
@@ -243,8 +243,8 @@ describe("HashGraph construction tests", () => {
 describe("HashGraph for SetDRP tests", () => {
 	let hg1: HashGraph;
 	let hg2: HashGraph;
-	let state1: DRPObjectStateManager2<SetDRP<number>>;
-	let state2: DRPObjectStateManager2<SetDRP<number>>;
+	let state1: DRPObjectStateManager<SetDRP<number>>;
+	let state2: DRPObjectStateManager<SetDRP<number>>;
 	let obj1: DRPSubObject<SetDRP<number>>;
 	let obj2: DRPSubObject<SetDRP<number>>;
 
@@ -554,7 +554,7 @@ describe("Vertex state tests", () => {
 	let hg1: HashGraph;
 	let hg2: HashGraph;
 	let hg3: HashGraph;
-	let state1: DRPObjectStateManager2<SetDRP<number>>;
+	let state1: DRPObjectStateManager<SetDRP<number>>;
 
 	beforeEach(() => {
 		vi.useFakeTimers({ now: 0 });

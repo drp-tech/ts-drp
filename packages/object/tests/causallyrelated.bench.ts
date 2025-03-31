@@ -5,8 +5,8 @@ import { bench, describe } from "vitest";
 import { FinalityStore } from "../src/finality/index.js";
 import { HashGraph } from "../src/hashgraph/index.js";
 import { ObjectACL } from "../src/index.js";
-import { DRPObjectApplier as DRPSubObject } from "../src/object2.js";
-import { DRPObjectStateManager2 } from "../src/state.js";
+import { DRPVertexApplier as DRPSubObject } from "../src/object2.js";
+import { DRPObjectStateManager } from "../src/state.js";
 const notify = (): void => {};
 
 function createDRPSubObject<T extends IDRP>({
@@ -17,7 +17,7 @@ function createDRPSubObject<T extends IDRP>({
 	admins,
 }: {
 	drp: T;
-	states?: DRPObjectStateManager2<T>;
+	states?: DRPObjectStateManager<T>;
 	hg: HashGraph;
 	localPeerID: string;
 	acl?: IACL;
@@ -28,7 +28,7 @@ function createDRPSubObject<T extends IDRP>({
 		type: DrpType.DRP,
 		finalityStore: new FinalityStore(),
 		acl: acl2,
-		states: states ?? new DRPObjectStateManager2(acl2, drp),
+		states: states ?? new DRPObjectStateManager(acl2, drp),
 	};
 
 	const obj = new DRPSubObject({ ...options, drp, hg, states, notify });

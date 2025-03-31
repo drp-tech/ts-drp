@@ -18,8 +18,8 @@ import {
 import { ObjectACL } from "./acl/index.js";
 import { FinalityStore } from "./finality/index.js";
 import { HashGraph } from "./hashgraph/index.js";
-import { DRPObjectApplier } from "./object2.js";
-import { DRPObjectStateManager2 } from "./state.js";
+import { DRPVertexApplier } from "./object2.js";
+import { DRPObjectStateManager } from "./state.js";
 
 export * from "./acl/index.js";
 export * from "./hashgraph/index.js";
@@ -57,10 +57,8 @@ export class DRPObject<T extends IDRP> implements IDRPObject2<T> {
 	private readonly log: Logger;
 	private readonly hg: HashGraph;
 
-	//private _acl: ACLSubObject<IACL>;
-	//private _drp?: DRPSubObject<T>;
-	private _applier: DRPObjectApplier<T>;
-	private _states: DRPObjectStateManager2<T>;
+	private _applier: DRPVertexApplier<T>;
+	private _states: DRPObjectStateManager<T>;
 
 	private subscriptions: DRPObjectCallback2<T>[] = [];
 	private _finalityStore: FinalityStore;
@@ -84,8 +82,8 @@ export class DRPObject<T extends IDRP> implements IDRPObject2<T> {
 		);
 
 		this._finalityStore = new FinalityStore(config?.finality_config, config?.log_config);
-		this._states = new DRPObjectStateManager2(acl, drp);
-		this._applier = new DRPObjectApplier({
+		this._states = new DRPObjectStateManager(acl, drp);
+		this._applier = new DRPVertexApplier({
 			drp,
 			acl,
 			hg: this.hg,

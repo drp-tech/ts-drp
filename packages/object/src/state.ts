@@ -17,63 +17,6 @@ export class StateNotFoundError extends Error {
  * With the state this allow use to construct back the object in the same state it was with the given LCA
  */
 export class DRPObjectStateManager<T extends IDRP> {
-	private states: Map<Hash, DRPState>;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private emptyConstructor: { prototype: any };
-
-	constructor(drp: T) {
-		this.states = new Map();
-
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		this.emptyConstructor = drp.constructor as { prototype: any };
-
-		this.states = new Map([[HashGraph.rootHash, stateFromDRP(drp)]]);
-	}
-
-	get(hash: Hash): DRPState | undefined {
-		return this.states.get(hash);
-	}
-
-	set(hash: Hash, state: DRPState): void {
-		this.states.set(hash, state);
-	}
-
-	drpFromHash(hash: Hash): T {
-		const state = this.states.get(hash);
-		if (!state) {
-			throw new StateNotFoundError(`State ${hash} not found`);
-		}
-
-		const instance = this.createEmptyInstance();
-		this.applyState(instance, state);
-		return instance;
-	}
-
-	setState(hash: Hash, drp: T): DRPState {
-		const state = stateFromDRP(drp);
-		this.states.set(hash, state);
-		return state;
-	}
-
-	private createEmptyInstance(): T {
-		return Object.create(this.emptyConstructor.prototype);
-	}
-
-	private applyState(instance: T, state: DRPState): void {
-		for (const entry of state.state) {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- right fully so this is not a problem
-			(instance as any)[entry.key] = cloneDeep(entry.value);
-		}
-	}
-}
-
-/**
- * This class is used to manage the state of a DRPObject.
- *
- * It contains all the states attached to the corresponding LCA
- * With the state this allow use to construct back the object in the same state it was with the given LCA
- */
-export class DRPObjectStateManager2<T extends IDRP> {
 	private drpStates: Map<Hash, DRPState>;
 	private aclStates: Map<Hash, DRPState>;
 

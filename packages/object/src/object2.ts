@@ -25,7 +25,7 @@ import {
 	type PostOperation2,
 	type PostSplitOperation,
 } from "./proxy/proxy.js";
-import { DRPObjectStateManager2, stateFromDRP } from "./state.js";
+import { DRPObjectStateManager, stateFromDRP } from "./state.js";
 import { validateVertexDependencies, validateVertexHash, validateVertexTimestamp } from "./vertex-validation.js";
 
 function callDRP<T extends IDRP>(drp: T, caller: string, method: string, args: unknown[]): unknown | Promise<unknown> {
@@ -66,19 +66,19 @@ function splitOperation(vertices: Vertex[]): [Vertex[], Vertex[]] {
 	return [drpVertices, aclVertices];
 }
 
-interface BaseSubObjectOptions<T extends IDRP> {
+interface DRPVertexApplierOptions<T extends IDRP> {
 	drp?: T;
 	acl: IACL;
 	hg: IHashGraph;
 	finalityStore: FinalityStore;
-	states?: DRPObjectStateManager2<T>;
+	states?: DRPObjectStateManager<T>;
 	logConfig?: LoggerOptions;
 	notify(origin: string, vertices: Vertex[]): void;
 }
 
-export class DRPObjectApplier<T extends IDRP> {
+export class DRPVertexApplier<T extends IDRP> {
 	protected readonly hg: IHashGraph;
-	protected readonly states: DRPObjectStateManager2<T>;
+	protected readonly states: DRPObjectStateManager<T>;
 
 	private _proxyDRP?: DRPProxy2<T>;
 	private _proxyACL: DRPProxy2<IACL>;
@@ -88,9 +88,9 @@ export class DRPObjectApplier<T extends IDRP> {
 	private _notify: (origin: string, vertices: Vertex[]) => void;
 	private log: Logger;
 
-	constructor({ drp, acl, hg, states, finalityStore, notify, logConfig }: BaseSubObjectOptions<T>) {
+	constructor({ drp, acl, hg, states, finalityStore, notify, logConfig }: DRPVertexApplierOptions<T>) {
 		this.hg = hg;
-		this.states = states ?? new DRPObjectStateManager2(acl, drp);
+		this.states = states ?? new DRPObjectStateManager(acl, drp);
 		this.finalityStore = finalityStore;
 		this._notify = notify;
 		this.log = new Logger("drp::object::operation", logConfig);
@@ -253,7 +253,6 @@ export class DRPObjectApplier<T extends IDRP> {
 	private applyFn(
 		drpOperation: Operation2<T>
 	): HandlerReturn<PostOperation2<T>> | Promise<HandlerReturn<PostOperation2<T>>> {
-		console.log("applyFn");
 		const {
 			currentDRP,
 			vertex: { peerId, operation },
@@ -263,7 +262,6 @@ export class DRPObjectApplier<T extends IDRP> {
 		if (!operation) throw new Error("Operation is undefined");
 
 		const { opType, value } = operation;
-		console.log("applyFn", currentDRP, operation, isACL, opType);
 
 		if (!currentDRP) return { stop: false, result: { ...drpOperation, result: undefined } };
 
