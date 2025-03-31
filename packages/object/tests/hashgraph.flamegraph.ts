@@ -6,7 +6,7 @@ import { ObjectACL } from "../src/acl/index.js";
 import { DRPObject } from "../src/index.js";
 
 const acl = new ObjectACL({
-	admins: ["peer1"],
+	admins: ["peer1", "peer1_1", "peer1_2", "peer1_3", "peer1_4", "peer1_5", "peer1_6", "peer1_7", "peer1_8", "peer1_9"],
 });
 
 type DRPManipulationStrategy = (drp: SetDRP<number>, value: number) => void;
