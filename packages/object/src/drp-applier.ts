@@ -9,7 +9,7 @@ import {
 	type LoggerOptions,
 	type Vertex,
 } from "@ts-drp/types";
-import { handlePromiseOrValue, processSequentially2 } from "@ts-drp/utils";
+import { handlePromiseOrValue, processSequentially } from "@ts-drp/utils";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 
@@ -42,7 +42,7 @@ function applyVertex<T extends IDRP>(drp: T, v: Vertex): unknown | Promise<unkno
 }
 
 function applyVertices<T extends IDRP>(drp: T, vertices: Vertex[]): unknown | Promise<unknown> {
-	return processSequentially2(vertices, (drp, v) => applyVertex(drp, v), drp);
+	return processSequentially(vertices, (drp, v) => applyVertex(drp, v), drp);
 }
 
 function splitOperation(vertices: Vertex[]): [Vertex[], Vertex[]] {

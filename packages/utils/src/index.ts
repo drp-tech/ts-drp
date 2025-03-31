@@ -101,53 +101,6 @@ export function isAsyncGenerator(obj: unknown): obj is AsyncGenerator {
  */
 export function processSequentially<T, C>(
 	items: T[],
-	processFn: (item: T) => unknown | Promise<unknown>,
-	context: C
-): C | Promise<C> {
-	for (let i = 0; i < items.length; i++) {
-		const result = processFn(items[i]);
-
-		if (isPromise(result)) {
-			return processRemainingAsync(result, items, processFn, i + 1).then(() => context);
-		}
-	}
-
-	return context;
-}
-
-export function processSequentially3<T, R>(
-	items: T[],
-	processFn: (item: T, previousResult: R | undefined) => R | Promise<R>
-): R | undefined | Promise<R | undefined> {
-	let previousResult: R | undefined = undefined;
-	for (let i = 0; i < items.length; i++) {
-		const result = processFn(items[i], previousResult);
-
-		if (isPromise(result)) {
-			return processRemainingAsync3(result, items, processFn, i + 1);
-		}
-		previousResult = result;
-	}
-
-	return previousResult;
-}
-
-async function processRemainingAsync3<T, R>(
-	initialPromise: Promise<R>,
-	items: T[],
-	processFn: (item: T, previousResult: R) => R | Promise<R>,
-	startIndex: number
-): Promise<R> {
-	let promise = initialPromise;
-	for (let j = startIndex; j < items.length; j++) {
-		promise = promise.then((previousResult) => processFn(items[j], previousResult));
-	}
-
-	return promise;
-}
-
-export function processSequentially2<T, C>(
-	items: T[],
 	processFn: (context: C, item: T) => unknown | Promise<unknown>,
 	context: C
 ): C | Promise<C> {
@@ -155,14 +108,14 @@ export function processSequentially2<T, C>(
 		const result = processFn(context, items[i]);
 
 		if (isPromise(result)) {
-			return processRemainingAsync2(result, items, processFn, i + 1, context).then(() => context);
+			return processRemainingAsync(result, items, processFn, i + 1, context).then(() => context);
 		}
 	}
 
 	return context;
 }
 
-function processRemainingAsync2<T, C>(
+function processRemainingAsync<T, C>(
 	initialPromise: Promise<unknown>,
 	items: T[],
 	processFn: (context: C, item: T) => unknown | Promise<unknown>,
@@ -173,21 +126,6 @@ function processRemainingAsync2<T, C>(
 
 	for (let j = startIndex; j < items.length; j++) {
 		promise = promise.then(() => processFn(context, items[j]));
-	}
-
-	return promise;
-}
-
-function processRemainingAsync<T>(
-	initialPromise: Promise<unknown>,
-	items: T[],
-	processFn: (item: T) => unknown | Promise<unknown>,
-	startIndex: number
-): Promise<unknown> {
-	let promise = initialPromise;
-
-	for (let j = startIndex; j < items.length; j++) {
-		promise = promise.then(() => processFn(items[j]));
 	}
 
 	return promise;
