@@ -1,4 +1,4 @@
-import { MapConflictResolution, MapDRP, SetDRP } from "@ts-drp/blueprints/dist/src/index.js";
+import { MapConflictResolution, MapDRP, SetDRP } from "@ts-drp/blueprints";
 import { AsyncCounterDRP } from "@ts-drp/test-utils";
 import {
 	ACLGroup,

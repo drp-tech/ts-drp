@@ -1,4 +1,4 @@
-import { SetDRP } from "@ts-drp/blueprints/dist/src/index.js";
+import { SetDRP } from "@ts-drp/blueprints";
 import {
 	ACLGroup,
 	ActionType,
