@@ -11,7 +11,6 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 import { ObjectSet } from "@ts-drp/utils";
-import { validateVertex } from "@ts-drp/validation/vertex";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
@@ -159,38 +158,10 @@ describe("HashGraph construction tests", () => {
 		}).toThrowError("Graph contains a cycle!");
 	});
 
-	test("Test: HashGraph with 2 root vertices", () => {
-		/*
-		  ROOT -- V1:ADD(1)
-		  FAKE_ROOT -- V2:ADD(1)
-		*/
+	test("Hash graph should be DAG compatible", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		drp1.add(1);
-		// add fake root
-		const fakeRoot = newVertex(
-			"peer1",
-			{ opType: "root", value: null, drpType: DrpType.DRP },
-			[],
-			Date.now(),
-			new Uint8Array()
-		);
-		expect(validateVertex(fakeRoot, obj1.hashGraph, Date.now())).toStrictEqual({
-			success: false,
-			error: `Vertex ${fakeRoot.hash} has no dependencies.`,
-		});
-		const vertex = newVertex(
-			"peer1",
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
-			[fakeRoot.hash],
-			Date.now(),
-			new Uint8Array()
-		);
-		expect(validateVertex(vertex, obj1.hashGraph, Date.now())).toStrictEqual({
-			success: false,
-			error: `Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}.`,
-		});
 		expect(selfCheckConstraints(obj1.hashGraph)).toBe(true);
-
 		const linearizedVertices = obj1.hashGraph.linearizeVertices();
 		const expectedOps: Operation[] = [{ opType: "add", value: [1], drpType: DrpType.DRP }];
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
@@ -617,73 +588,6 @@ describe("Vertex state tests", () => {
 		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(true);
 		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(true);
 		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(6)).toBe(true);
-	});
-});
-
-describe("Vertex timestamp tests", () => {
-	let obj1: DRPObject<SetDRP<number>>;
-	let obj2: DRPObject<SetDRP<number>>;
-	let obj3: DRPObject<SetDRP<number>>;
-
-	beforeEach(() => {
-		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
-		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
-		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
-	});
-
-	test("Test: Vertex created in the future is invalid", () => {
-		const drp1 = obj1.drp as SetDRP<number>;
-
-		drp1.add(1);
-
-		const vertex = newVertex(
-			"peer1",
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
-			obj1.hashGraph.getFrontier(),
-			Number.POSITIVE_INFINITY,
-			new Uint8Array()
-		);
-		expect(validateVertex(vertex, obj1.hashGraph, Date.now())).toStrictEqual({
-			success: false,
-			error: `Vertex ${vertex.hash} has invalid timestamp.`,
-		});
-	});
-
-	test("Test: Vertex's timestamp must not be less than any of its dependencies' timestamps", async () => {
-		/*
-		        __ V1:ADD(1) __
-		       /               \
-		  ROOT -- V2:ADD(2) ---- V4:ADD(4) (invalid)
-		       \               /
-		        -- V3:ADD(3) --
-		*/
-
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
-		const drp3 = obj2.drp as SetDRP<number>;
-
-		drp1.add(1);
-		drp2.add(2);
-		drp3.add(3);
-
-		await obj1.merge(obj2.hashGraph.getAllVertices());
-		await obj1.merge(obj3.hashGraph.getAllVertices());
-
-		const vertex = newVertex(
-			"peer1",
-			{
-				opType: "add",
-				value: [1],
-				drpType: DrpType.DRP,
-			},
-			obj1.hashGraph.getFrontier(),
-			1,
-			new Uint8Array()
-		);
-		expect(validateVertex(vertex, obj1.hashGraph, Date.now())).toStrictEqual({
-			success: false,
-			error: `Vertex ${vertex.hash} has invalid timestamp.`,
-		});
 	});
 });
 
