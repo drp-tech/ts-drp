@@ -6,7 +6,7 @@ import {
 	type IHashGraph,
 	Operation,
 	SemanticsType,
-	type Vertex,
+	Vertex,
 } from "@ts-drp/types";
 import { beforeEach, describe, expect, test } from "vitest";
 
@@ -26,14 +26,14 @@ class MockHashGraph implements IHashGraph {
 		this.semanticsTypeDRP = semanticsTypeDRP;
 
 		// Initialize with root vertex
-		const rootVertex: Vertex = {
+		const rootVertex = Vertex.create({
 			hash: MockHashGraph.rootHash,
 			peerId: "",
 			operation: Operation.create({ drpType: "", opType: "NOP", value: null }),
 			dependencies: [],
 			timestamp: -1,
 			signature: new Uint8Array(),
-		};
+		});
 		this.vertices.set(MockHashGraph.rootHash, rootVertex);
 		this.frontier.push(MockHashGraph.rootHash);
 		this.forwardEdges.set(MockHashGraph.rootHash, []);
