@@ -1,4 +1,4 @@
-import { MessageType } from "@ts-drp/types/dist/src/index.js";
+import { Message, MessageType } from "@ts-drp/types";
 import { afterEach } from "node:test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -84,12 +84,12 @@ describe("Messages validation tests", () => {
 	});
 
 	test("Should not receive message from an empty sender", async () => {
-		const message = {
+		const message = Message.create({
 			sender: "",
 			type: MessageType.UNRECOGNIZED,
 			data: new Uint8Array(),
 			objectId: "object",
-		};
+		});
 
 		await handleMessage(node, message);
 		expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("::messageHandler: Invalid message format"));
@@ -97,36 +97,37 @@ describe("Messages validation tests", () => {
 	});
 
 	test("Should not receive message with invalid message type", async () => {
-		const message = {
+		const message = Message.create({
 			sender: "sender",
+			// @ts-expect-error -- invalid message type
 			type: 100,
 			data: new Uint8Array(),
 			objectId: "object",
-		};
+		});
 
 		await handleMessage(node, message);
 		expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("::messageHandler: Invalid message format"));
 	});
 
 	test("Should not receive message with an empty object id", async () => {
-		const message = {
+		const message = Message.create({
 			sender: "sender",
 			type: MessageType.UNRECOGNIZED,
 			data: new Uint8Array(),
 			objectId: "",
-		};
+		});
 		await handleMessage(node, message);
 		expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("::messageHandler: Invalid message format"));
 		expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("A valid object id must be provided"));
 	});
 
 	test("Should receive message with a valid message format", async () => {
-		const message = {
+		const message = Message.create({
 			sender: "sender",
 			type: MessageType.UNRECOGNIZED,
 			data: new Uint8Array(),
 			objectId: "object",
-		};
+		});
 		await handleMessage(node, message);
 		expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining("::messageHandler: Invalid message format"));
 	});
