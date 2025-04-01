@@ -159,6 +159,7 @@ describe("Handle message correctly", () => {
 
 		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(undefined);
 		const p5 = raceEvent(node2, NodeEventName.DRP_FETCH_STATE);
+		const p8 = raceEvent(node1, NodeEventName.DRP_FETCH_STATE);
 		const p6 = raceEvent(node3, NodeEventName.DRP_FETCH_STATE_RESPONSE, controller.signal);
 		const p7 = raceEvent(node3, NodeEventName.DRP_SYNC_ACCEPTED, controller.signal);
 		await Promise.all([
@@ -168,7 +169,7 @@ describe("Handle message correctly", () => {
 					peerId: node2.networkNode.peerId,
 				},
 			}),
-			p5,
+			Promise.race([p5, p8]),
 			p6,
 			p7,
 		]);
