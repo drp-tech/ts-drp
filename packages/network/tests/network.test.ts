@@ -1,6 +1,6 @@
 import { type GossipSub, type MeshPeer } from "@chainsafe/libp2p-gossipsub";
 import { type Connection, type IdentifyResult, type Libp2p, type SubscriptionChangeData } from "@libp2p/interface";
-import { type DRPNetworkNodeConfig, type DRPNodeConfig, type LoggerOptions } from "@ts-drp/types";
+import { type DRPNetworkNodeConfig, type DRPNodeConfig, type LoggerOptions, Message } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from "vitest";
 
@@ -91,12 +91,10 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			});
 		});
 
-		await node1.sendMessage(node2.peerId, {
-			sender: "",
-			type: 0,
-			data: new Uint8Array(Buffer.from(data)),
-			objectId: "",
-		});
+		await node1.sendMessage(
+			node2.peerId,
+			Message.create({ sender: "", type: 0, data: new Uint8Array(Buffer.from(data)), objectId: "" })
+		);
 
 		await messageProcessed;
 		expect(boolean).toBe(true);
@@ -130,12 +128,10 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		});
 
 		await Promise.all([graftPromise, subscriptionChange]);
-		await node1.broadcastMessage(group, {
-			sender: "",
-			type: 0,
-			data: new Uint8Array(Buffer.from(data)),
-			objectId: "",
-		});
+		await node1.broadcastMessage(
+			group,
+			Message.create({ sender: "", type: 0, data: new Uint8Array(Buffer.from(data)), objectId: "" })
+		);
 		await messageProcessed;
 
 		expect(boolean).toBe(true);
