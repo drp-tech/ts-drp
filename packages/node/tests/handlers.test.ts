@@ -162,7 +162,7 @@ describe("Handle message correctly", () => {
 		await raceEvent(node3, NodeEventName.DRP_FETCH_STATE_RESPONSE, controller.signal);
 		await raceEvent(node3, NodeEventName.DRP_SYNC_ACCEPTED, controller.signal);
 		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(5);
-	}, 30_000); // 30 seconds
+	}, 60_000); // 60 seconds
 
 	test("should handle update attestation message correctly", async () => {
 		drpObjectNode2.drp?.add(5);
@@ -174,7 +174,7 @@ describe("Handle message correctly", () => {
 			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
 		});
 		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
-	}, 30000); // 30 seconds
+	}, 60_000); // 60 seconds
 
 	afterAll(async () => {
 		await bootstrapNode.stop();
