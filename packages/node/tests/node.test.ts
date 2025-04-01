@@ -124,7 +124,6 @@ describe("DRPNode voting tests", () => {
 		obj1.drp?.add(1);
 
 		await obj2.merge(obj1.vertices);
-		console.log(obj2.vertices);
 		const V1 = obj2.vertices.find((v) => v.operation?.value && v.operation?.value[0] === 1) as Vertex;
 		expect(V1 !== undefined).toBe(true);
 
