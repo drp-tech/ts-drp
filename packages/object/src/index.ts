@@ -645,13 +645,13 @@ export function newVertex(
 	timestamp: number,
 	signature: Uint8Array
 ): Vertex {
-	const hash = computeHash(peerId, operation, dependencies, timestamp);
-	return Vertex.create({
-		hash,
+	const vertex = Vertex.create({
 		peerId,
 		operation,
 		dependencies,
 		timestamp,
 		signature,
 	});
+	vertex.hash = computeHash(vertex);
+	return vertex;
 }

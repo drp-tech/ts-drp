@@ -1,13 +1,13 @@
 import { bls } from "@chainsafe/bls/herumi";
 import { Logger } from "@ts-drp/logger";
-import type {
+import {
 	AggregatedAttestation,
-	Attestation,
-	FinalityConfig,
-	Hash,
-	IFinalityState,
-	IFinalityStore,
-	LoggerOptions,
+	type Attestation,
+	type FinalityConfig,
+	type Hash,
+	type IFinalityState,
+	type IFinalityStore,
+	type LoggerOptions,
 } from "@ts-drp/types";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
@@ -176,11 +176,11 @@ export class FinalityStore implements IFinalityStore {
 	getAttestation(hash: Hash): AggregatedAttestation | undefined {
 		const state = this.states.get(hash);
 		if (state !== undefined && state.signature !== undefined) {
-			return {
+			return AggregatedAttestation.create({
 				data: state.data,
 				aggregationBits: state.aggregation_bits.toBytes(),
 				signature: state.signature,
-			};
+			});
 		}
 	}
 

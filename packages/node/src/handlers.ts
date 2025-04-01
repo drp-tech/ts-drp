@@ -6,7 +6,7 @@ import { DRPIntervalDiscovery } from "@ts-drp/interval-discovery";
 import { HashGraph } from "@ts-drp/object";
 import {
 	type AggregatedAttestation,
-	type Attestation,
+	Attestation,
 	AttestationUpdate,
 	FetchState,
 	FetchStateResponse,
@@ -475,10 +475,12 @@ function generateAttestations<T extends IDRP>(node: DRPNode, object: IDRPObject<
 			object.finalityStore.canSign(node.networkNode.peerId, v.hash) &&
 			!object.finalityStore.signed(node.networkNode.peerId, v.hash)
 	);
-	return goodVertices.map((v) => ({
-		data: v.hash,
-		signature: node.keychain.signWithBls(v.hash),
-	}));
+	return goodVertices.map((v) =>
+		Attestation.create({
+			data: v.hash,
+			signature: node.keychain.signWithBls(v.hash),
+		})
+	);
 }
 
 function getAttestations<T extends IDRP>(object: IDRPObject<T>, vertices: Vertex[]): AggregatedAttestation[] {

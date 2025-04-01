@@ -1,7 +1,7 @@
 import { bls } from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
 import { Keychain } from "@ts-drp/keychain";
-import { type AggregatedAttestation, type Attestation } from "@ts-drp/types";
+import { AggregatedAttestation, type Attestation } from "@ts-drp/types";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { beforeEach, describe, expect, test } from "vitest";
 
@@ -140,11 +140,13 @@ describe("Tests for FinalityStore", () => {
 			const bits = new BitSet(N);
 			bits.set(i, true);
 
-			attestations.push({
-				data: "vertex1",
-				signature,
-				aggregationBits: bits.toBytes(),
-			});
+			attestations.push(
+				AggregatedAttestation.create({
+					data: "vertex1",
+					signature,
+					aggregationBits: bits.toBytes(),
+				})
+			);
 		}
 
 		// signatures for vertex2
@@ -155,19 +157,23 @@ describe("Tests for FinalityStore", () => {
 			bitset.set(i, true);
 		}
 		const aggregatedSignature = bls.aggregateSignatures(signatures);
-		attestations.push({
-			data: "vertex2",
-			signature: aggregatedSignature,
-			aggregationBits: bitset.toBytes(),
-		});
+		attestations.push(
+			AggregatedAttestation.create({
+				data: "vertex2",
+				signature: aggregatedSignature,
+				aggregationBits: bitset.toBytes(),
+			})
+		);
 
 		// signatures for vertex3
 		// invalid signature
-		attestations.push({
-			data: "vertex3",
-			signature: stores[0].signWithBls("vertex3"),
-			aggregationBits: new BitSet(N).toBytes(),
-		});
+		attestations.push(
+			AggregatedAttestation.create({
+				data: "vertex3",
+				signature: stores[0].signWithBls("vertex3"),
+				aggregationBits: new BitSet(N).toBytes(),
+			})
+		);
 
 		finalityStore.mergeSignatures(attestations);
 
