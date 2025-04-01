@@ -517,9 +517,9 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 	// get the map representing the state of the given DRP by mapping variable names to their corresponding values
 	private _getDRPState(drp: IDRP): DRPState {
 		const varNames: string[] = Object.keys(drp);
-		const drpState: DRPState = {
+		const drpState: DRPState = DRPState.create({
 			state: [],
-		};
+		});
 		for (const varName of varNames) {
 			drpState.state.push(
 				DRPStateEntry.create({

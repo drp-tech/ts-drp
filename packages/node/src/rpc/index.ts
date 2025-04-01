@@ -34,9 +34,9 @@ export function init(node: DRPNode, port: number = 6969): void {
 			returnCode = 1;
 		}
 
-		const response: GenericRespone = {
+		const response = GenericRespone.create({
 			returnCode,
-		};
+		});
 		callback(null, response);
 	}
 
