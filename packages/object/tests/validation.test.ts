@@ -1,7 +1,8 @@
 import { SetDRP } from "@ts-drp/blueprints";
 import { DrpType, Operation } from "@ts-drp/types";
 import { validateVertex } from "@ts-drp/validation/vertex";
-import { beforeEach, describe, expect, test } from "vitest";
+import { InvalidDependenciesError, InvalidTimestampError } from "@ts-drp/validation"
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { DRPObject, ObjectACL } from "../src/index.js";
 import { createVertex } from "../src/utils/createVertex.js";
@@ -15,9 +16,14 @@ describe("Vertex validation tests", () => {
 	});
 
 	beforeEach(() => {
+		vi.useFakeTimers({now:0});
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
 	});
 
 	test("Should validate vertices with invalid dependencies", () => {
@@ -32,7 +38,7 @@ describe("Vertex validation tests", () => {
 		);
 		expect(validateVertex(fakeRoot, obj1["hg"], Date.now())).toStrictEqual({
 			success: false,
-			error: new Error(`Vertex ${fakeRoot.hash} has no dependencies`),
+			error: new InvalidDependenciesError(`Vertex ${fakeRoot.hash} has no dependencies.`),
 		});
 		const vertex = createVertex(
 			"peer1",
@@ -43,7 +49,7 @@ describe("Vertex validation tests", () => {
 		);
 		expect(validateVertex(vertex, obj1["hg"], Date.now())).toStrictEqual({
 			success: false,
-			error: new Error(`Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}`),
+			error: new InvalidDependenciesError(`Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}.`),
 		});
 	});
 
@@ -61,7 +67,7 @@ describe("Vertex validation tests", () => {
 		);
 		expect(validateVertex(vertex, obj1["hg"], Date.now())).toStrictEqual({
 			success: false,
-			error: new Error(`Vertex ${vertex.hash} has invalid timestamp`),
+			error: new InvalidTimestampError(`Vertex ${vertex.hash} has invalid timestamp Infinity > 0`),
 		});
 	});
 
@@ -78,6 +84,7 @@ describe("Vertex validation tests", () => {
 		const drp2 = obj2.drp as SetDRP<number>;
 		const drp3 = obj2.drp as SetDRP<number>;
 
+		vi.advanceTimersByTime(1000);
 		drp1.add(1);
 		drp2.add(2);
 		drp3.add(3);
@@ -94,7 +101,7 @@ describe("Vertex validation tests", () => {
 		);
 		expect(validateVertex(vertex, obj1["hg"], Date.now())).toStrictEqual({
 			success: false,
-			error: new Error(`Vertex ${vertex.hash} has invalid timestamp`),
+			error: new InvalidTimestampError(`Vertex ${vertex.hash} has invalid timestamp 1000 > 1`),
 		});
 	});
 });

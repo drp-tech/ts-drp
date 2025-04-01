@@ -291,6 +291,7 @@ export class DRPVertexApplier<T extends IDRP> {
 		const { isACL, currentDRP } = operation;
 		if (!isACL && this._proxyDRP) {
 			Object.assign(this._proxyDRP.proxy, currentDRP);
+			return { stop: false, result: operation };
 		}
 		Object.assign(this._proxyACL.proxy, currentDRP);
 		return { stop: false, result: operation };
