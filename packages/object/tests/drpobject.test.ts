@@ -760,14 +760,6 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		expect(obj1.drp?.query_has(2)).toBe(true);
 	});
 
-	test("Discard vertex if creator does not have write permission", async () => {
-		obj1.drp?.add(1);
-		expect(() => obj2.drp?.add(2)).toThrowError();
-
-		await obj1.merge(obj2.vertices);
-		expect(obj1.drp?.query_has(2)).toBe(false);
-	});
-
 	test("Accept vertex if creator has write permission", async () => {
 		/*
 		  ROOT -- V1:ADD(1) -- V2:GRANT(peer2) -- V3:ADD(4)

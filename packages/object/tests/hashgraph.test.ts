@@ -218,7 +218,7 @@ describe("HashGraph for SetDRP tests", () => {
 	let obj2: DRPSubObject<SetDRP<number>>;
 
 	beforeEach(() => {
-		vi.useFakeTimers();
+		vi.useFakeTimers({ now: 0 });
 		hg1 = new HashGraph("peer1", undefined, undefined, SemanticsType.pair);
 		hg2 = new HashGraph("peer2", undefined, undefined, SemanticsType.pair);
 		[obj1] = createDRPSubObject({
@@ -665,14 +665,11 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 	});
 
 	test("Discard vertex if creator does not have write permission", async () => {
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
-
-		drp1.add(1);
-		drp2.add(2);
+		obj1.drp?.add(1);
+		expect(() => obj2.drp?.add(2)).toThrowError();
 
 		await obj1.merge(obj2.vertices);
-		expect(drp1.query_has(2)).toBe(false);
+		expect(obj1.drp?.query_has(2)).toBe(false);
 	});
 
 	test("Accept vertex if creator has write permission", async () => {
@@ -705,36 +702,33 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		                                             \                /
 		                                              -- V5:ADD(2) --
 		*/
-		const drp1 = obj1.drp as SetDRP<number>;
-		const drp2 = obj2.drp as SetDRP<number>;
-		const drp3 = obj3.drp as SetDRP<number>;
-		const acl1 = obj1.acl as ObjectACL;
 
-		acl1.grant("peer2", ACLGroup.Writer);
-		acl1.grant("peer3", ACLGroup.Writer);
+		obj1.acl.grant("peer2", ACLGroup.Writer);
+		obj1.acl.grant("peer3", ACLGroup.Writer);
+
 		await obj2.merge(obj1.vertices);
 		await obj3.merge(obj1.vertices);
 
-		drp2.add(1);
-		drp3.add(2);
+		obj2.drp?.add(1);
+		obj3.drp?.add(2);
 		await obj1.merge(obj2.vertices);
 		await obj1.merge(obj3.vertices);
 		await obj2.merge(obj3.vertices);
 		await obj3.merge(obj2.vertices);
-		expect(drp1.query_has(1)).toBe(true);
-		expect(drp1.query_has(2)).toBe(true);
+		expect(obj1.drp?.query_has(1)).toBe(true);
+		expect(obj1.drp?.query_has(2)).toBe(true);
 
-		acl1.revoke("peer3", ACLGroup.Writer);
+		obj1.acl.revoke("peer3", ACLGroup.Writer);
 		await obj3.merge(obj1.vertices);
-		drp3.add(3);
+		expect(() => obj3.drp?.add(3)).toThrowError();
 		await obj2.merge(obj3.vertices);
-		expect(drp2.query_has(3)).toBe(false);
+		expect(obj2.drp?.query_has(3)).toBe(false);
 
-		drp2.add(4);
+		obj2.drp?.add(4);
 		await obj1.merge(obj2.vertices);
 		await obj1.merge(obj3.vertices);
-		expect(drp1.query_has(3)).toBe(false);
-		expect(drp1.query_has(4)).toBe(true);
+		expect(obj1.drp?.query_has(3)).toBe(false);
+		expect(obj1.drp?.query_has(4)).toBe(true);
 	});
 
 	test("Should grant admin permission to a peer", () => {
