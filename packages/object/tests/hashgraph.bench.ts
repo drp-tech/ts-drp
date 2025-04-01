@@ -208,16 +208,3 @@ suite
 		console.log(`Fastest is ${this.filter("fastest").map("name")}`);
 	})
 	.run({ async: true });
-
-//	Create HashGraph with 1000 vertices1 x 12.90 ops/sec ±3.41% (37 runs sampled)
-//Create 2 DRP Objects 1000 vertices each) and Merge x 1.52 ops/sec ±0.84% (8 runs sampled)
-//Create a HashGraph with 1000 operations for set wins map 1000 x 10.85 ops/sec ±5.45% (32 runs sampled)
-//Create a HashGraph with 1000 operations for set wins map x 10.45 ops/sec ±5.06% (30 runs sampled)
-//Create a HashGraph with 1000 operations for set wins map and read them x 10.58 ops/sec ±9.07% (31 runs sampled)
-//Create a HashGraph with 1000 operations for set wins map and delete them x 5.52 ops/sec ±1.47% (18 runs sampled)
-//Create a HashGraph with 1000 operations for set wins map with random operations x 107 ops/sec ±4.95% (70 runs sampled)
-//Create 2 HashGraphs with 1000 operations each for set wins map and merge with random operations x 52.29 ops/sec ±5.06% (69 runs sampled)
-//Fastest is Create a HashGraph with 1000 operations for set wins map with random operations
-//Serialize 5 depth 5 breadth x 1.01 ops/sec ±1.55% (7 runs sampled)
-//Deserialize 5 depth 5 breadth x 1.89 ops/sec ±0.56% (9 runs sampled)
-//Fastest is Deserialize 5 depth 5 breadth

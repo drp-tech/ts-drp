@@ -84,11 +84,11 @@ function createDRPSubObject<T extends IDRP>({
 describe("HashGraph construction tests", () => {
 	let obj1: DRPObject<SetDRP<number>>;
 	let obj2: DRPObject<SetDRP<number>>;
-	const acl = new ObjectACL({
-		admins: ["peer1", "peer2"],
-	});
-
+	let acl: IACL;
 	beforeEach(() => {
+		acl = new ObjectACL({
+			admins: ["peer1", "peer2"],
+		});
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 
@@ -190,24 +190,24 @@ describe("HashGraph construction tests", () => {
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
 
-	//test("Root vertex drp state should not be modified", () => {
-	//	obj1.drp?.add(1);
-	//	obj1.drp?.add(2);
-	//	const rootDRPState = obj1.drpStates.get(HashGraph.rootHash);
-	//	expect(rootDRPState?.state.filter((e) => e.key === "_set")[0].value.size).toBe(0);
-	//	const frontierState = obj1.drpStates.get(obj1.hashGraph.getFrontier()[0]);
-	//	expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
-	//	expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
-	//});
+	test("Root vertex drp state should not be modified", () => {
+		obj1.drp?.add(1);
+		obj1.drp?.add(2);
+		const rootDRPState = obj1["_states"]["drpStates"].get(HashGraph.rootHash);
+		expect(rootDRPState?.state.filter((e) => e.key === "_set")[0].value.size).toBe(0);
+		const frontierState = obj1["_states"]["drpStates"].get(obj1["hg"].getFrontier()[0]);
+		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+	});
 
-	//test("Root vertex acl state should not be modified", () => {
-	//	obj1.acl.grant("peer2", ACLGroup.Writer);
-	//	expect(obj1.acl.query_isWriter("peer2")).toBe(true);
-	//	const rootACLState = obj1.aclStates.get(HashGraph.rootHash);
-	//	const authorizedPeers = rootACLState?.state.filter((e) => e.key === "_authorizedPeers")[0].value;
-	//	expect(authorizedPeers.get("peer1")?.permissions.has(ACLGroup.Admin)).toBe(true);
-	//	expect(authorizedPeers.get("peer2")).toBe(undefined);
-	//});
+	test("Root vertex acl state should not be modified", () => {
+		obj1.acl.grant("peer3", ACLGroup.Writer);
+		expect(obj1.acl.query_isWriter("peer3")).toBe(true);
+		const rootACLState = obj1["_states"]["aclStates"].get(HashGraph.rootHash);
+		const authorizedPeers = rootACLState?.state.filter((e) => e.key === "_authorizedPeers")[0].value;
+		expect(authorizedPeers.get("peer1")?.permissions.has(ACLGroup.Admin)).toBe(true);
+		expect(authorizedPeers.get("peer3")).toBe(undefined);
+	});
 });
 
 describe("HashGraph for SetDRP tests", () => {
@@ -465,56 +465,49 @@ describe("HashGraph for undefined operations tests", () => {
 	});
 });
 
-//describe("Hashgraph and DRPObject merge without DRP tests", () => {
-//	let obj1: DRPObject2<SetDRP<number>>;
-//	let obj2: DRPObject2<SetDRP<number>>;
-//	let obj3: DRPObject2<SetDRP<number>>;
-//	const acl = new ObjectACL({
-//		admins: ["peer1", "peer2"],
-//	});
+describe("Hashgraph and DRPObject merge without DRP tests", () => {
+	test("Test object3 merge", async () => {
+		const acl = new ObjectACL({
+			admins: ["peer1", "peer2"],
+		});
+		const obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		const obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
+		const obj3 = new DRPObject({ peerId: "peer3", acl });
+		// reproduce Test: Joao's latest brain teaser
+		/*
+		                     __ V2:ADD(2) -------------\
+		  ROOT -- V1:ADD(1) /                           \ V5:RM(2)
+		                    \__ V3:RM(2) -- V4:RM(2) --/
+		*/
 
-//	beforeAll(() => {
-//		obj1 = new DRPObject2({ peerId: "peer1", acl, drp: new SetDRP<number>() });
-//		obj2 = new DRPObject2({ peerId: "peer2", acl, drp: new SetDRP<number>() });
-//		obj3 = new DRPObject2({ peerId: "peer3", acl });
-//	});
+		obj1.drp?.add(1);
+		await obj2.merge(obj1.vertices);
 
-//	test("Test object3 merge", async () => {
-//		// reproduce Test: Joao's latest brain teaser
-//		/*
-//		                     __ V2:ADD(2) -------------\
-//		  ROOT -- V1:ADD(1) /                           \ V5:RM(2)
-//		                    \__ V3:RM(2) -- V4:RM(2) --/
-//		*/
+		obj1.drp?.add(2);
+		obj2.drp?.delete(2);
+		obj2.drp?.delete(2);
+		await obj1.merge(obj2.vertices);
+		await obj2.merge(obj1.vertices);
 
-//		obj1.drp?.add(1);
-//		await obj2.merge(obj1.vertices);
+		obj1.drp?.delete(2);
+		await obj2.merge(obj1.vertices);
 
-//		obj1.drp?.add(2);
-//		obj2.drp?.delete(2);
-//		obj2.drp?.delete(2);
-//		await obj1.merge(obj2.vertices);
-//		await obj2.merge(obj1.vertices);
+		expect(obj1.drp?.query_has(1)).toBe(true);
+		expect(obj1.drp?.query_has(2)).toBe(false);
+		expect(obj1.vertices).toEqual(obj2.vertices);
 
-//		obj1.drp?.delete(2);
-//		await obj2.merge(obj1.vertices);
+		const linearizedVertices = obj1["hg"].linearizeVertices();
+		const expectedOps: Operation[] = [
+			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
+			Operation.create({ opType: "add", value: [2], drpType: DrpType.DRP }),
+			Operation.create({ opType: "delete", value: [2], drpType: DrpType.DRP }),
+		];
+		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 
-//		expect(obj1.drp?.query_has(1)).toBe(true);
-//		expect(obj1.drp?.query_has(2)).toBe(false);
-//		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
-
-//		const linearizedVertices = obj1.hashGraph.linearizeVertices();
-//		const expectedOps: Operation[] = [
-//	Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
-//	Operation.create({ opType: "add", value: [2], drpType: DrpType.DRP }),
-//	Operation.create({ opType: "delete", value: [2], drpType: DrpType.DRP }),
-////		];
-//		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
-
-//		await obj3.merge(obj1.vertices);
-//		expect(obj3.hashGraph.vertices).toEqual(obj1.hashGraph.vertices);
-//	});
-//});
+		await obj3.merge(obj1.vertices);
+		expect(obj3.vertices).toEqual(obj1.vertices);
+	});
+});
 
 describe("Vertex state tests", () => {
 	let obj1: DRPSubObject<SetDRP<number>>;
@@ -753,18 +746,23 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		const acl1 = obj1.acl as ObjectACL;
 
 		drp1.add(1);
-		//const hash1 = obj1["hg"].getFrontier()[0];
+		const hash1 = obj1["hg"].getFrontier()[0];
 		await obj2.merge(obj1.vertices);
 		drp1.add(2);
 		acl1.grant("peer2", ACLGroup.Writer);
 
-		//const vertex = newVertex(
-		//	"peer2",
-		//	{ opType: "add", value: [3], drpType: DrpType.DRP },
-		//	[hash1],
-		//	Date.now(),
-		//	new Uint8Array()
-		//);
+		const vertex = createVertex(
+			"peer2",
+			{ opType: "add", value: [3], drpType: DrpType.DRP },
+			[hash1],
+			Date.now(),
+			new Uint8Array()
+		);
+
+		obj2["hg"].addVertex(vertex);
+
+		await obj1.merge(obj2.vertices);
+		expect(drp1.query_has(3)).toBe(false);
 	});
 });
 
