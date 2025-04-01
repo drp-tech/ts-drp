@@ -1,7 +1,6 @@
 import { SetDRP } from "@ts-drp/blueprints";
 import { DrpType, Operation } from "@ts-drp/types";
-import { validateVertex } from "@ts-drp/validation/vertex";
-import { InvalidDependenciesError, InvalidTimestampError } from "@ts-drp/validation"
+import { InvalidDependenciesError, InvalidTimestampError, validateVertex } from "@ts-drp/validation";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { DRPObject, ObjectACL } from "../src/index.js";
@@ -16,7 +15,7 @@ describe("Vertex validation tests", () => {
 	});
 
 	beforeEach(() => {
-		vi.useFakeTimers({now:0});
+		vi.useFakeTimers({ now: 0 });
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
