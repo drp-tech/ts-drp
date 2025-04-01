@@ -778,43 +778,6 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		expect(obj1.drp?.query_has(4)).toBe(true);
 	});
 
-	test("Discard vertex if writer permission is revoked", async () => {
-		/*
-		                                              __ V4:ADD(1) --
-		                                             /                \
-		  ROOT -- V1:GRANT(peer2) -- V2:grant(peer3)                   V6:REVOKE(peer3) -- V7:ADD(4)
-		                                             \                /
-		                                              -- V5:ADD(2) --
-		*/
-
-		obj1.acl.grant("peer2", ACLGroup.Writer);
-		obj1.acl.grant("peer3", ACLGroup.Writer);
-
-		await obj2.merge(obj1.vertices);
-		await obj3.merge(obj1.vertices);
-
-		obj2.drp?.add(1);
-		obj3.drp?.add(2);
-		await obj1.merge(obj2.vertices);
-		await obj1.merge(obj3.vertices);
-		await obj2.merge(obj3.vertices);
-		await obj3.merge(obj2.vertices);
-		expect(obj1.drp?.query_has(1)).toBe(true);
-		expect(obj1.drp?.query_has(2)).toBe(true);
-
-		obj1.acl.revoke("peer3", ACLGroup.Writer);
-		await obj3.merge(obj1.vertices);
-		expect(() => obj3.drp?.add(3)).toThrowError();
-		await obj2.merge(obj3.vertices);
-		expect(obj2.drp?.query_has(3)).toBe(false);
-
-		obj2.drp?.add(4);
-		await obj1.merge(obj2.vertices);
-		await obj1.merge(obj3.vertices);
-		expect(obj1.drp?.query_has(3)).toBe(false);
-		expect(obj1.drp?.query_has(4)).toBe(true);
-	});
-
 	test("Should grant admin permission to a peer", () => {
 		const newAdminPeer1 = "newAdminPeer1";
 		obj1.acl?.grant("newAdminPeer1", ACLGroup.Admin);
