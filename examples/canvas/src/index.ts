@@ -87,7 +87,7 @@ async function init(): Promise<void> {
 
 		createConnectHandlers();
 
-		// creator can sign for finality
+		// The object creator can sign for finality
 		if (node.keychain.blsPublicKey) {
 			drpObject.acl.setKey(node.keychain.blsPublicKey);
 		}
