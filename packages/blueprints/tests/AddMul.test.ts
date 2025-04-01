@@ -1,4 +1,4 @@
-import { ActionType, type Vertex } from "@ts-drp/types";
+import { ActionType, Operation, Vertex } from "@ts-drp/types";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { AddMulDRP } from "../src/AddMul/index.js";
@@ -100,54 +100,38 @@ describe("AddMulDRP tests", () => {
 	});
 
 	test("Test: resolveConflicts (Basic)", () => {
-		const vertex1 = {
+		const vertex1 = Vertex.create({
 			hash: "1",
 			peerId: "1",
-			operation: {
-				drpType: "DRP",
-				opType: "add",
-				value: [1],
-			},
+			operation: Operation.create({ drpType: "DRP", opType: "add", value: [1] }),
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		};
-		const vertex2 = {
+		});
+		const vertex2 = Vertex.create({
 			hash: "2",
 			peerId: "2",
-			operation: {
-				drpType: "DRP",
-				opType: "mul",
-				value: [2],
-			},
+			operation: Operation.create({ drpType: "DRP", opType: "mul", value: [2] }),
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		};
-		const vertex3 = {
+		});
+		const vertex3 = Vertex.create({
 			hash: "3",
 			peerId: "3",
-			operation: {
-				drpType: "DRP",
-				opType: "add",
-				value: [1],
-			},
+			operation: Operation.create({ drpType: "DRP", opType: "add", value: [1] }),
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		};
-		const vertex4 = {
+		});
+		const vertex4 = Vertex.create({
 			hash: "4",
 			peerId: "4",
-			operation: {
-				drpType: "DRP",
-				opType: "mul",
-				value: [1],
-			},
+			operation: Operation.create({ drpType: "DRP", opType: "mul", value: [1] }),
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		};
+		});
 
 		let action = drp.resolveConflicts([]);
 		expect(action).toEqual({ action: ActionType.Nop });
@@ -176,28 +160,10 @@ describe("AddMulDRP tests", () => {
 	});
 
 	test("Test: resolveConflicts (Weird inputs)", () => {
-		const vertex1: Vertex = {
-			hash: "1",
-			// @ts-expect-error - operation is missing
-			operation: {
-				opType: "add",
-			},
-		};
-		const vertex2: Vertex = {
-			hash: "2",
-			// @ts-expect-error - operation is missing
-			operation: {
-				opType: "mulx",
-			},
-		};
-		const vertex3: Vertex = {
-			// @ts-expect-error - operation is missing
-			operation: {
-				opType: "mul",
-			},
-		};
-		// @ts-expect-error - operation is missing
-		const vertex4: Vertex = {};
+		const vertex1 = Vertex.create({ hash: "1", operation: Operation.create({ opType: "add" }) });
+		const vertex2 = Vertex.create({ hash: "2", operation: Operation.create({ opType: "mulx" }) });
+		const vertex3 = Vertex.create({ operation: Operation.create({ opType: "mul" }) });
+		const vertex4 = Vertex.create({});
 
 		let action = drp.resolveConflicts([vertex1, vertex2]);
 		expect(action).toEqual({ action: ActionType.Nop });

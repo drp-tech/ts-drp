@@ -1,4 +1,4 @@
-import { ACLGroup, ActionType, DrpType } from "@ts-drp/types";
+import { ACLGroup, ActionType, DrpType, Operation, Vertex } from "@ts-drp/types";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
@@ -75,23 +75,23 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 
 	test("Resolve conflicts with setKey operation should always return ActionType.Nop", () => {
-		const vertex1 = {
+		const vertex1 = Vertex.create({
 			hash: "",
 			peerId: "peer1",
-			operation: { opType: "setKey", value: [], drpType: DrpType.ACL },
+			operation: Operation.create({ opType: "setKey", value: [], drpType: DrpType.ACL }),
 			dependencies: [],
 			signature: new Uint8Array(),
 			timestamp: 0,
-		};
+		});
 
-		const vertex2 = {
+		const vertex2 = Vertex.create({
 			hash: "",
 			peerId: "peer2",
-			operation: { opType: "revoke", value: [], drpType: DrpType.ACL },
+			operation: Operation.create({ opType: "revoke", value: [], drpType: DrpType.ACL }),
 			dependencies: [],
 			signature: new Uint8Array(),
 			timestamp: 0,
-		};
+		});
 
 		expect(acl.resolveConflicts([vertex1, vertex2]).action).toBe(ActionType.Nop);
 		expect(acl.resolveConflicts([vertex2, vertex1]).action).toBe(ActionType.Nop);
@@ -140,22 +140,22 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 
 	test("Resolve conflicts with RevokeWins", () => {
 		const vertices = [
-			{
+			Vertex.create({
 				hash: "",
 				peerId: "peer1",
-				operation: { opType: "grant", value: "peer3", drpType: DrpType.ACL },
+				operation: Operation.create({ opType: "grant", value: "peer3", drpType: DrpType.ACL }),
 				dependencies: [],
 				signature: new Uint8Array(),
 				timestamp: 0,
-			},
-			{
+			}),
+			Vertex.create({
 				hash: "",
 				peerId: "peer2",
-				operation: { opType: "revoke", value: "peer3", drpType: DrpType.ACL },
+				operation: Operation.create({ opType: "revoke", value: "peer3", drpType: DrpType.ACL }),
 				dependencies: [],
 				signature: new Uint8Array(),
 				timestamp: 0,
-			},
+			}),
 		];
 		const result = acl.resolveConflicts(vertices);
 		expect(result.action).toBe(ActionType.DropLeft);

@@ -5,11 +5,11 @@ import {
 	type IHashGraph,
 	type LoggerOptions,
 	type LowestCommonAncestorResult,
-	type Operation,
+	Operation,
 	type ResolveConflictFn,
 	type ResolveConflictsType,
 	SemanticsType,
-	type Vertex,
+	Vertex,
 } from "@ts-drp/types";
 import { ObjectSet } from "@ts-drp/utils";
 
@@ -69,18 +69,14 @@ export class HashGraph implements IHashGraph {
 		this.semanticsTypeDRP = semanticsTypeDRP;
 		this.log = new Logger("drp::hashgraph", logConfig);
 
-		const rootVertex: Vertex = {
+		const rootVertex = Vertex.create({
 			hash: HashGraph.rootHash,
 			peerId: "",
-			operation: {
-				drpType: "",
-				opType: OperationType.NOP,
-				value: null,
-			},
+			operation: Operation.create({ drpType: "", opType: OperationType.NOP }),
 			dependencies: [],
 			timestamp: -1,
 			signature: new Uint8Array(),
-		};
+		});
 		this.vertices.set(HashGraph.rootHash, rootVertex);
 		this.frontier.push(HashGraph.rootHash);
 		this.forwardEdges.set(HashGraph.rootHash, []);

@@ -6,9 +6,9 @@ import {
 	type Hash,
 	type IACL,
 	type IDRP,
-	type Operation,
+	Operation,
 	SemanticsType,
-	type Vertex,
+	Vertex,
 } from "@ts-drp/types";
 import { ObjectSet } from "@ts-drp/utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -134,9 +134,9 @@ describe("HashGraph construction tests", () => {
 
 		const linearizedVertices = hg2.linearizeVertices();
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual([
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
-			{ opType: "add", value: [2], drpType: DrpType.DRP },
-		] as Operation[]);
+			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
+			Operation.create({ opType: "add", value: [2], drpType: DrpType.DRP }),
+		]);
 	});
 
 	test("Test: Should detect cycle in topological sort", () => {
@@ -157,11 +157,7 @@ describe("HashGraph construction tests", () => {
 		const frontier = hashgraph.getFrontier();
 		const v1 = createVertex(
 			"",
-			{
-				opType: "test",
-				value: [1],
-				drpType: DrpType.DRP,
-			},
+			Operation.create({ opType: "test", value: [1], drpType: DrpType.DRP }),
 			frontier,
 			Date.now(),
 			new Uint8Array()
@@ -170,11 +166,7 @@ describe("HashGraph construction tests", () => {
 
 		const v2 = createVertex(
 			"",
-			{
-				opType: "test",
-				value: [2],
-				drpType: DrpType.DRP,
-			},
+			Operation.create({ opType: "test", value: [2], drpType: DrpType.DRP }),
 			[v1.hash],
 			Date.now(),
 			new Uint8Array()
@@ -194,7 +186,7 @@ describe("HashGraph construction tests", () => {
 		drp1.add(1);
 		expect(selfCheckConstraints(obj1["hg"])).toBe(true);
 		const linearizedVertices = obj1["hg"].linearizeVertices();
-		const expectedOps: Operation[] = [{ opType: "add", value: [1], drpType: DrpType.DRP }];
+		const expectedOps = [Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP })];
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
 
@@ -242,6 +234,10 @@ describe("HashGraph for SetDRP tests", () => {
 		});
 	});
 
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
 	test("Test: Add Two Vertices", () => {
 		/*
 		  ROOT -- ADD(1) -- delete(1)
@@ -253,8 +249,8 @@ describe("HashGraph for SetDRP tests", () => {
 
 		const linearizedVertices = hg1.linearizeVertices();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
-			{ opType: "delete", value: [1], drpType: DrpType.DRP },
+			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
+			Operation.create({ opType: "delete", value: [1], drpType: DrpType.DRP }),
 		];
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
@@ -279,8 +275,8 @@ describe("HashGraph for SetDRP tests", () => {
 
 		const linearizedVertices = hg1.linearizeVertices();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
-			{ opType: "delete", value: [1], drpType: DrpType.DRP },
+			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
+			Operation.create({ opType: "delete", value: [1], drpType: DrpType.DRP }),
 			// add
 		];
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
@@ -310,9 +306,9 @@ describe("HashGraph for SetDRP tests", () => {
 
 		const linearizedVertices = hg1.linearizeVertices();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
-			{ opType: "add", value: [2], drpType: DrpType.DRP },
-			{ opType: "delete", value: [1], drpType: DrpType.DRP },
+			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
+			Operation.create({ opType: "add", value: [2], drpType: DrpType.DRP }),
+			Operation.create({ opType: "delete", value: [1], drpType: DrpType.DRP }),
 		];
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
@@ -342,9 +338,9 @@ describe("HashGraph for SetDRP tests", () => {
 
 		const linearizedVertices = hg1.linearizeVertices();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
-			{ opType: "delete", value: [1], drpType: DrpType.DRP },
-			{ opType: "add", value: [10], drpType: DrpType.DRP },
+			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
+			Operation.create({ opType: "delete", value: [1], drpType: DrpType.DRP }),
+			Operation.create({ opType: "add", value: [10], drpType: DrpType.DRP }),
 		];
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
@@ -372,9 +368,9 @@ describe("HashGraph for SetDRP tests", () => {
 
 		const linearizedVertices = hg1.linearizeVertices();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
-			{ opType: "delete", value: [1], drpType: DrpType.DRP },
-			{ opType: "add", value: [2], drpType: DrpType.DRP },
+			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
+			Operation.create({ opType: "delete", value: [1], drpType: DrpType.DRP }),
+			Operation.create({ opType: "add", value: [2], drpType: DrpType.DRP }),
 		];
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
@@ -403,9 +399,9 @@ describe("HashGraph for SetDRP tests", () => {
 
 		const linearizedVertices = hg1.linearizeVertices();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
-			{ opType: "add", value: [2], drpType: DrpType.DRP },
-			{ opType: "delete", value: [2], drpType: DrpType.DRP },
+			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
+			Operation.create({ opType: "add", value: [2], drpType: DrpType.DRP }),
+			Operation.create({ opType: "delete", value: [2], drpType: DrpType.DRP }),
 		];
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
@@ -464,7 +460,7 @@ describe("HashGraph for undefined operations tests", () => {
 		const linearizedVertices = hg2.linearizeVertices();
 		// Should only have one, since we skipped the undefined operations
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual([
-			{ opType: "add", value: [2], drpType: DrpType.DRP },
+			Operation.create({ opType: "add", value: [2], drpType: DrpType.DRP }),
 		]);
 	});
 });
@@ -509,10 +505,10 @@ describe("HashGraph for undefined operations tests", () => {
 
 //		const linearizedVertices = obj1.hashGraph.linearizeVertices();
 //		const expectedOps: Operation[] = [
-//			{ opType: "add", value: [1], drpType: DrpType.DRP },
-//			{ opType: "add", value: [2], drpType: DrpType.DRP },
-//			{ opType: "delete", value: [2], drpType: DrpType.DRP },
-//		];
+//	Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
+//	Operation.create({ opType: "add", value: [2], drpType: DrpType.DRP }),
+//	Operation.create({ opType: "delete", value: [2], drpType: DrpType.DRP }),
+////		];
 //		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 
 //		await obj3.merge(obj1.vertices);
@@ -783,18 +779,16 @@ describe("Hash validation tests", () => {
 		const hg1 = new HashGraph("peer1");
 		const hg2 = new HashGraph("peer2");
 
-		hg1.addVertex({
-			hash: "hash",
-			peerId: "peer1",
-			operation: {
-				opType: "add",
-				value: ["value"],
-				drpType: DrpType.DRP,
-			},
-			dependencies: hg1.getFrontier(),
-			timestamp: Date.now(),
-			signature: new Uint8Array(),
-		});
+		hg1.addVertex(
+			Vertex.create({
+				hash: "hash",
+				peerId: "peer1",
+				operation: Operation.create({ opType: "add", value: ["value"], drpType: DrpType.DRP }),
+				dependencies: hg1.getFrontier(),
+				timestamp: Date.now(),
+				signature: new Uint8Array(),
+			})
+		);
 
 		expect(hg1.getAllVertices().length).toBe(2);
 		expect(hg2.getAllVertices().length).toBe(1);

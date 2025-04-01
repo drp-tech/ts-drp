@@ -1,5 +1,5 @@
 import { SetDRP } from "@ts-drp/blueprints";
-import { DrpType } from "@ts-drp/types";
+import { DrpType, Operation } from "@ts-drp/types";
 import { validateVertex } from "@ts-drp/validation/vertex";
 import { beforeEach, describe, expect, test } from "vitest";
 
@@ -25,7 +25,7 @@ describe("Vertex validation tests", () => {
 		drp1.add(1);
 		const fakeRoot = createVertex(
 			"peer1",
-			{ opType: "root", value: null, drpType: DrpType.DRP },
+			Operation.create({ opType: "root", value: null, drpType: DrpType.DRP }),
 			[],
 			Date.now(),
 			new Uint8Array()
@@ -36,7 +36,7 @@ describe("Vertex validation tests", () => {
 		});
 		const vertex = createVertex(
 			"peer1",
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
 			[fakeRoot.hash],
 			Date.now(),
 			new Uint8Array()
@@ -54,7 +54,7 @@ describe("Vertex validation tests", () => {
 
 		const vertex = createVertex(
 			"peer1",
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
 			obj1["hg"].getFrontier(),
 			Number.POSITIVE_INFINITY,
 			new Uint8Array()
@@ -87,11 +87,7 @@ describe("Vertex validation tests", () => {
 
 		const vertex = createVertex(
 			"peer1",
-			{
-				opType: "add",
-				value: [1],
-				drpType: DrpType.DRP,
-			},
+			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
 			obj1["hg"].getFrontier(),
 			1,
 			new Uint8Array()

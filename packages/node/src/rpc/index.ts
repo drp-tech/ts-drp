@@ -8,15 +8,15 @@ import { fileURLToPath } from "node:url";
 import { type DRPNode } from "../index.js";
 import { log } from "../logger.js";
 import { DrpRpcService } from "../proto/drp/node/v1/rpc_grpc_pb.js";
-import type {
-	AddCustomGroupRequest,
+import {
+	type AddCustomGroupRequest,
 	GenericRespone,
-	GetDRPHashGraphRequest,
+	type GetDRPHashGraphRequest,
 	GetDRPHashGraphResponse,
-	SendCustomMessageRequest,
-	SendGroupMessageRequest,
-	SubscribeDRPRequest,
-	UnsubscribeDRPRequest,
+	type SendCustomMessageRequest,
+	type SendGroupMessageRequest,
+	type SubscribeDRPRequest,
+	type UnsubscribeDRPRequest,
 } from "../proto/drp/node/v1/rpc_pb.js";
 
 export function init(node: DRPNode, port: number = 6969): void {
@@ -34,9 +34,9 @@ export function init(node: DRPNode, port: number = 6969): void {
 			returnCode = 1;
 		}
 
-		const response: GenericRespone = {
+		const response = GenericRespone.create({
 			returnCode,
-		};
+		});
 		callback(null, response);
 	}
 
@@ -52,9 +52,9 @@ export function init(node: DRPNode, port: number = 6969): void {
 			returnCode = 1;
 		}
 
-		const response: GenericRespone = {
+		const response = GenericRespone.create({
 			returnCode,
-		};
+		});
 		callback(null, response);
 	}
 
@@ -77,9 +77,9 @@ export function init(node: DRPNode, port: number = 6969): void {
 			log.error("::rpc::getDRPHashGraph: Error", e);
 		}
 
-		const response: GetDRPHashGraphResponse = {
+		const response = GetDRPHashGraphResponse.create({
 			verticesHashes: hashes,
-		};
+		});
 		callback(null, response);
 	}
 
@@ -95,9 +95,9 @@ export function init(node: DRPNode, port: number = 6969): void {
 			returnCode = 1;
 		}
 
-		const response: GenericRespone = {
+		const response = GenericRespone.create({
 			returnCode,
-		};
+		});
 		callback(null, response);
 	}
 
@@ -113,9 +113,9 @@ export function init(node: DRPNode, port: number = 6969): void {
 			returnCode = 1;
 		}
 
-		const response: GenericRespone = {
+		const response = GenericRespone.create({
 			returnCode,
-		};
+		});
 		callback(null, response);
 	}
 
@@ -131,9 +131,9 @@ export function init(node: DRPNode, port: number = 6969): void {
 			returnCode = 1;
 		}
 
-		const response: GenericRespone = {
+		const response = GenericRespone.create({
 			returnCode,
-		};
+		});
 		callback(null, response);
 	}
 
@@ -149,9 +149,9 @@ export function init(node: DRPNode, port: number = 6969): void {
 			returnCode = 1;
 		}
 
-		const response: GenericRespone = {
+		const response = GenericRespone.create({
 			returnCode,
-		};
+		});
 		callback(null, response);
 	}
 

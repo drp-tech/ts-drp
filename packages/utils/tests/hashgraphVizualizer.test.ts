@@ -5,9 +5,9 @@ import {
 	type IBitSet,
 	type IHashGraph,
 	type LowestCommonAncestorResult,
-	type Operation,
+	Operation,
 	SemanticsType,
-	type Vertex,
+	Vertex,
 } from "@ts-drp/types";
 import { beforeEach, describe, expect, test } from "vitest";
 
@@ -27,18 +27,14 @@ class MockHashGraph implements IHashGraph {
 		this.semanticsTypeDRP = semanticsTypeDRP;
 
 		// Initialize with root vertex
-		const rootVertex: Vertex = {
+		const rootVertex = Vertex.create({
 			hash: MockHashGraph.rootHash,
 			peerId: "",
-			operation: {
-				drpType: "",
-				opType: "NOP",
-				value: null,
-			},
+			operation: Operation.create({ drpType: "", opType: "NOP", value: null }),
 			dependencies: [],
 			timestamp: -1,
 			signature: new Uint8Array(),
-		};
+		});
 		this.vertices.set(MockHashGraph.rootHash, rootVertex);
 		this.frontier.push(MockHashGraph.rootHash);
 		this.forwardEdges.set(MockHashGraph.rootHash, []);
@@ -155,22 +151,14 @@ describe("hashGraphVizualizer tests", () => {
 	test("should visualize simple linear graph", () => {
 		// Create a simple chain: root -> v1 -> v2
 		const vertex1 = hashgraph.createVertex(
-			{
-				drpType: DrpType.DRP,
-				opType: "test",
-				value: [0],
-			},
+			Operation.create({ drpType: DrpType.DRP, opType: "test", value: [0] }),
 			[MockHashGraph.rootHash], // Explicitly depend on root
 			1
 		);
 		hashgraph.addVertex(vertex1);
 
 		const vertex2 = hashgraph.createVertex(
-			{
-				drpType: DrpType.DRP,
-				opType: "test",
-				value: [0],
-			},
+			Operation.create({ drpType: DrpType.DRP, opType: "test", value: [0] }),
 			[vertex1.hash], // Explicitly depend on v1
 			2
 		);
@@ -232,33 +220,21 @@ describe("hashGraphVizualizer tests", () => {
 
 		// First layer
 		const vertex1 = hashgraph.createVertex(
-			{
-				drpType: DrpType.DRP,
-				opType: "test",
-				value: [1],
-			},
+			Operation.create({ drpType: DrpType.DRP, opType: "test", value: [1] }),
 			[MockHashGraph.rootHash],
 			1
 		);
 		hashgraph.addVertex(vertex1);
 
 		const vertex2 = hashgraph.createVertex(
-			{
-				drpType: DrpType.DRP,
-				opType: "test",
-				value: [2],
-			},
+			Operation.create({ drpType: DrpType.DRP, opType: "test", value: [2] }),
 			[MockHashGraph.rootHash],
 			2
 		);
 		hashgraph.addVertex(vertex2);
 
 		const vertex3 = hashgraph.createVertex(
-			{
-				drpType: DrpType.DRP,
-				opType: "test",
-				value: [3],
-			},
+			Operation.create({ drpType: DrpType.DRP, opType: "test", value: [3] }),
 			[MockHashGraph.rootHash],
 			3
 		);
@@ -266,11 +242,7 @@ describe("hashGraphVizualizer tests", () => {
 
 		// Second layer
 		const vertex4 = hashgraph.createVertex(
-			{
-				drpType: DrpType.DRP,
-				opType: "test",
-				value: [4],
-			},
+			Operation.create({ drpType: DrpType.DRP, opType: "test", value: [4] }),
 			[vertex1.hash, vertex3.hash],
 			4
 		);
@@ -278,22 +250,14 @@ describe("hashGraphVizualizer tests", () => {
 
 		// Third layer
 		const vertex5 = hashgraph.createVertex(
-			{
-				drpType: DrpType.DRP,
-				opType: "test",
-				value: [5],
-			},
+			Operation.create({ drpType: DrpType.DRP, opType: "test", value: [5] }),
 			[vertex2.hash, vertex4.hash],
 			5
 		);
 		hashgraph.addVertex(vertex5);
 
 		const vertex6 = hashgraph.createVertex(
-			{
-				drpType: DrpType.DRP,
-				opType: "test",
-				value: [6],
-			},
+			Operation.create({ drpType: DrpType.DRP, opType: "test", value: [6] }),
 			[vertex3.hash, vertex4.hash],
 			6
 		);
@@ -400,44 +364,28 @@ describe("hashGraphVizualizer tests", () => {
 
 		// Create vertices
 		const vertex1 = hashgraph.createVertex(
-			{
-				drpType: DrpType.DRP,
-				opType: "test",
-				value: [1],
-			},
+			Operation.create({ drpType: DrpType.DRP, opType: "test", value: [1] }),
 			[MockHashGraph.rootHash],
 			1
 		);
 		hashgraph.addVertex(vertex1);
 
 		const vertex2 = hashgraph.createVertex(
-			{
-				drpType: DrpType.DRP,
-				opType: "test",
-				value: [2],
-			},
+			Operation.create({ drpType: DrpType.DRP, opType: "test", value: [2] }),
 			[vertex1.hash],
 			2
 		);
 		hashgraph.addVertex(vertex2);
 
 		const vertex4 = hashgraph.createVertex(
-			{
-				drpType: DrpType.DRP,
-				opType: "test",
-				value: [4],
-			},
+			Operation.create({ drpType: DrpType.DRP, opType: "test", value: [4] }),
 			[MockHashGraph.rootHash],
 			4
 		);
 		hashgraph.addVertex(vertex4);
 
 		const vertex3 = hashgraph.createVertex(
-			{
-				drpType: DrpType.DRP,
-				opType: "test",
-				value: [3],
-			},
+			Operation.create({ drpType: DrpType.DRP, opType: "test", value: [3] }),
 			[vertex2.hash],
 			3
 		);

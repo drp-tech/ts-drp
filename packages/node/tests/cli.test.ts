@@ -4,7 +4,7 @@ import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeAll, describe, expect, test } from "vitest";
 
-import { type GenericRespone, type SubscribeDRPRequest } from "../src/proto/drp/node/v1/rpc_pb.js";
+import { type GenericRespone, SubscribeDRPRequest } from "../src/proto/drp/node/v1/rpc_pb.js";
 import * as run from "../src/run.js";
 
 const protoPath = path.resolve(dirname(fileURLToPath(import.meta.url)), "../src/proto/drp/node/v1/rpc.proto");
@@ -23,9 +23,9 @@ describe("Run DRP with cli", () => {
 	});
 
 	test("test client subscribe drp", () => {
-		const request: SubscribeDRPRequest = {
+		const request = SubscribeDRPRequest.create({
 			drpId: "test-id",
-		};
+		});
 		client.SubscribeDRP(request, (error: grpc.ServiceError, response: GenericRespone) => {
 			expect(error).toBeNull();
 			console.log(response.returnCode);

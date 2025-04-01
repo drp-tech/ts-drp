@@ -6,7 +6,7 @@ import { DRPIntervalDiscovery } from "@ts-drp/interval-discovery";
 import { HashGraph } from "@ts-drp/object";
 import {
 	type AggregatedAttestation,
-	type Attestation,
+	Attestation,
 	AttestationUpdate,
 	FetchState,
 	FetchStateResponse,
@@ -475,10 +475,12 @@ function generateAttestations<T extends IDRP>(node: DRPNode, object: IDRPObject<
 			object.finalityStore.canSign(node.networkNode.peerId, v.hash) &&
 			!object.finalityStore.signed(node.networkNode.peerId, v.hash)
 	);
-	return goodVertices.map((v) => ({
-		data: v.hash,
-		signature: node.keychain.signWithBls(v.hash),
-	}));
+	return goodVertices.map((v) =>
+		Attestation.create({
+			data: v.hash,
+			signature: node.keychain.signWithBls(v.hash),
+		})
+	);
 }
 
 function getAttestations<T extends IDRP>(object: IDRPObject<T>, vertices: Vertex[]): AggregatedAttestation[] {
@@ -490,22 +492,7 @@ function getAttestations<T extends IDRP>(object: IDRPObject<T>, vertices: Vertex
 }
 
 export function verifyACLIncomingVertices(incomingVertices: Vertex[]): Vertex[] {
-	const vertices: Vertex[] = incomingVertices.map((vertex) => {
-		return {
-			hash: vertex.hash,
-			peerId: vertex.peerId,
-			operation: {
-				drpType: vertex.operation?.drpType ?? "",
-				opType: vertex.operation?.opType ?? "",
-				value: vertex.operation?.value,
-			},
-			dependencies: vertex.dependencies,
-			timestamp: vertex.timestamp,
-			signature: vertex.signature,
-		};
-	});
-
-	const verifiedVertices = vertices
+	const verifiedVertices = incomingVertices
 		.map((vertex) => {
 			if (vertex.signature.length === 0) {
 				return null;
