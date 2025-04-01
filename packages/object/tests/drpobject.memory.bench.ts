@@ -115,9 +115,4 @@ void (async (): Promise<void> => {
 		1000,
 		NUMBER_OF_ITERATIONS
 	);
-	await memoryBenchmarkForDrpObjectWithAddWinsSet(
-		`DRPObject memory benchmark with 10000 vertices`,
-		10000,
-		NUMBER_OF_ITERATIONS
-	);
 })();
