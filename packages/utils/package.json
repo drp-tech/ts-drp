@@ -55,9 +55,9 @@
 			"types": "./dist/src/serialization/index.d.ts",
 			"import": "./dist/src/serialization/index.js"
 		},
-		"./heap-snapshot": {
-			"types": "./dist/src/heap-snapshot/index.d.ts",
-			"import": "./dist/src/heap-snapshot/index.js"
+		"./memory-benchmark": {
+			"types": "./dist/src/memory-benchmark/index.d.ts",
+			"import": "./dist/src/memory-benchmark/index.js"
 		}
 	},
 	"scripts": {
