@@ -51,7 +51,6 @@ describe("Linearize correctly", () => {
 		);
 		const expectedOrder = [1, 0, 2, 3, 5, 4, 6, 7, 9, 8];
 		const receivedOrder = order.map((vertex) => vertex.operation?.value[0]);
-		console.log(receivedOrder);
 		expect(receivedOrder).toStrictEqual(expectedOrder);
 	});
 
