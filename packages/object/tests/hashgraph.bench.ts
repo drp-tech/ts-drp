@@ -6,6 +6,7 @@ import { DRPObject } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: ["peer1", "peer2"],
+	permissionless: true,
 });
 
 const NUMBER_OF_OPERATIONS = Number.parseInt(process.argv[2], 10) || 1000;
