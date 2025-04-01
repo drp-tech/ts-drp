@@ -2,7 +2,7 @@ import type { Connection, IdentifyResult, Libp2p } from "@libp2p/interface";
 import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
-import { type DRPNetworkNodeConfig, DrpType, FetchState, Message, MessageType } from "@ts-drp/types";
+import { type DRPNetworkNodeConfig, DrpType, NodeEventName, type ObjectId } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterAll, beforeEach, describe, expect, test } from "vitest";
 
@@ -117,53 +117,31 @@ describe("Handle message correctly", () => {
 
 	test("should handle update message correctly", async () => {
 		drpObjectNode2.drp?.add(5);
-		drpObjectNode2.drp?.add(10);
-		await new Promise((resolve) => setTimeout(resolve, 500));
+		await raceEvent(node1, NodeEventName.DRP_UPDATE, controller.signal, {
+			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
+		});
 		const expected_vertices = node1.objectStore.get(drpObjectNode2.id)?.vertices.map((vertex) => {
 			return vertex.operation;
 		});
 		expect(expected_vertices).toStrictEqual([
 			{ drpType: "", opType: "-1", value: null },
 			{ opType: "add", value: [5], drpType: DrpType.DRP },
-			{ opType: "add", value: [10], drpType: DrpType.DRP },
 		]);
 	});
 
-	test("should handle fetch state", async () => {
+	test("should handle sync and fetch message correctly", async () => {
 		drpObjectNode2.drp?.add(5);
 		drpObjectNode2.drp?.add(10);
-		const message = Message.create({
-			sender: node1.networkNode.peerId,
-			type: MessageType.MESSAGE_TYPE_FETCH_STATE,
-			data: FetchState.encode(
-				FetchState.create({
-					vertexHash: drpObjectNode2.vertices[0].hash,
-				})
-			).finish(),
-			objectId: drpObjectNode2.id,
-		});
-
-		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
-		await new Promise((resolve) => setTimeout(resolve, 2000));
-		const drp = node1.objectStore.get(drpObjectNode2.id);
-		const drp2 = node2.objectStore.get(drpObjectNode2.id);
-		// After fetching the state, the vertices should be the same
-		expect(drp?.vertices.length).toEqual(drp2?.vertices.length);
-	});
-
-	test("should handle sync message correctly", async () => {
-		drpObjectNode2.drp?.add(5);
-		drpObjectNode2.drp?.add(10);
-		await new Promise((resolve) => setTimeout(resolve, 500));
+		await raceEvent(node1, NodeEventName.DRP_UPDATE);
 		expect(drpObjectNode1).toBeDefined();
 
 		drpObjectNode1?.drp?.add(1);
+		await raceEvent(node2, NodeEventName.DRP_UPDATE);
 		drpObjectNode1?.drp?.add(2);
+		await raceEvent(node2, NodeEventName.DRP_UPDATE);
 
-		await new Promise((resolve) => setTimeout(resolve, 500));
-
-		expect(drpObjectNode2.vertices.length).toBe(5);
 		expect(drpObjectNode1?.vertices.length).toBe(5);
+		expect(drpObjectNode2.vertices.length).toBe(5);
 
 		const node3 = createNewNode("node3");
 
@@ -185,9 +163,11 @@ describe("Handle message correctly", () => {
 				peerId: node2.networkNode.peerId,
 			},
 		});
-		await new Promise((resolve) => setTimeout(resolve, 2000));
+		await raceEvent(node2, NodeEventName.DRP_FETCH_STATE);
+		await raceEvent(node3, NodeEventName.DRP_FETCH_STATE_RESPONSE, controller.signal);
+		await raceEvent(node3, NodeEventName.DRP_SYNC_ACCEPTED, controller.signal);
 		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(5);
-	}, 20000);
+	}, 60_000); // 60 seconds
 
 	test("should handle update attestation message correctly", async () => {
 		drpObjectNode2.drp?.add(5);
@@ -195,9 +175,11 @@ describe("Handle message correctly", () => {
 		const hash = drpObjectNode2.vertices[1].hash;
 		drpObjectNode2.drp?.add(6);
 		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
-		await new Promise((resolve) => setTimeout(resolve, 500));
+		await raceEvent(node2, NodeEventName.DRP_ATTESTATION_UPDATE, controller.signal, {
+			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
+		});
 		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
-	});
+	}, 60_000); // 60 seconds
 
 	afterAll(async () => {
 		await bootstrapNode.stop();

@@ -1,7 +1,7 @@
 import { type Connection, type IdentifyResult, type Libp2p } from "@libp2p/interface";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { AsyncCounterDRP } from "@ts-drp/test-utils";
-import { type DRPNodeConfig } from "@ts-drp/types";
+import { type DRPNodeConfig, NodeEventName, type ObjectId } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
@@ -61,6 +61,10 @@ describe("Async DRP", () => {
 				filter: (event: CustomEvent<Connection>) =>
 					event.detail.remotePeer.toString() === node2.networkNode.peerId && event.detail.limits === undefined,
 			}),
+			raceEvent(node2.networkNode["_node"] as Libp2p, "connection:open", undefined, {
+				filter: (event: CustomEvent<Connection>) =>
+					event.detail.remotePeer.toString() === node1.networkNode.peerId && event.detail.limits === undefined,
+			}),
 		]);
 	});
 
@@ -69,6 +73,8 @@ describe("Async DRP", () => {
 	});
 
 	test("async drp", async () => {
+		const controller = new AbortController();
+
 		const drpObjectNode1 = await node1.createObject({
 			drp: new AsyncCounterDRP(),
 		});
@@ -76,18 +82,33 @@ describe("Async DRP", () => {
 		const drpObjectNode2 = await node2.connectObject({
 			drp: new AsyncCounterDRP(),
 			id: drpObjectNode1.id,
+			sync: {
+				peerId: node1.networkNode.peerId,
+			},
 		});
+		await Promise.all([
+			raceEvent(node1, NodeEventName.DRP_FETCH_STATE),
+			raceEvent(node2, NodeEventName.DRP_FETCH_STATE_RESPONSE, controller.signal),
+		]);
 
 		const drp1 = drpObjectNode1.drp as AsyncCounterDRP;
 		const drp2 = drpObjectNode2.drp as AsyncCounterDRP;
 
-		const value1 = await drp1.increment();
-		await new Promise((resolve) => setTimeout(resolve, 2000));
+		const [value1, _] = await Promise.all([
+			drp1.increment(),
+			raceEvent(node2, NodeEventName.DRP_UPDATE, controller.signal, {
+				filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
+			}),
+		]);
+
 		expect(drp2.query_value()).toEqual(1);
 		expect(value1).toEqual(1);
 
 		await drp1.increment();
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+
+		await raceEvent(node2, NodeEventName.DRP_UPDATE, controller.signal, {
+			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
+		});
 		expect(drp2.query_value()).toEqual(2);
-	});
+	}, 30_000);
 });

@@ -1,3 +1,4 @@
+import { TypedEventEmitter } from "@libp2p/interface";
 import { createDRPDiscovery } from "@ts-drp/interval-discovery";
 import { createDRPReconnectBootstrap } from "@ts-drp/interval-reconnect";
 import { Keychain } from "@ts-drp/keychain";
@@ -9,12 +10,14 @@ import {
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
 	type IDRP,
+	type IDRPNode,
 	type IDRPObject,
 	type IntervalRunnerMap,
 	Message,
 	MessageType,
 	type NodeConnectObjectOptions,
 	type NodeCreateObjectOptions,
+	type NodeEvents,
 } from "@ts-drp/types";
 import { NodeConnectObjectOptionsSchema, NodeCreateObjectOptionsSchema } from "@ts-drp/validation";
 import { DRPValidationError } from "@ts-drp/validation/errors";
@@ -31,7 +34,7 @@ const DISCOVERY_MESSAGE_TYPES = [
 
 const DISCOVERY_QUEUE_ID = "discovery";
 
-export class DRPNode {
+export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 	config: DRPNodeConfig;
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
@@ -41,6 +44,7 @@ export class DRPNode {
 	private _intervals: Map<string, IntervalRunnerMap[keyof IntervalRunnerMap]> = new Map();
 
 	constructor(config?: DRPNodeConfig) {
+		super();
 		const newLogger = new Logger("drp::node", config?.log_config);
 		log.trace = newLogger.trace;
 		log.debug = newLogger.debug;
@@ -84,11 +88,11 @@ export class DRPNode {
 		this._intervals.forEach((interval) => interval.stop());
 	}
 
-	async restart(config?: DRPNodeConfig): Promise<void> {
+	async restart(): Promise<void> {
 		await this.stop();
 
 		// reassign the network node ? I think we might not need to do this
-		this.networkNode = new DRPNetworkNode(config ? config.network_config : this.config?.network_config);
+		this.networkNode = new DRPNetworkNode(this.config?.network_config);
 
 		await this.start();
 		log.info("::restart: Node restarted");
@@ -192,7 +196,7 @@ export class DRPNode {
 		await operations.fetchState(this, options.id, options.sync?.peerId);
 
 		// TODO: since when the interval can run this twice do we really want it to be
-		// runned while the other one might still be running?
+		// run while the other one might still be running?
 		const intervalFn = (interval: NodeJS.Timeout) => async (): Promise<void> => {
 			if (object.acl) {
 				await operations.syncObject(this, object.id, options.sync?.peerId);
