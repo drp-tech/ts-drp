@@ -10,6 +10,7 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 import { handlePromiseOrValue, processSequentially } from "@ts-drp/utils";
+import { validateVertex } from "@ts-drp/validation";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 
@@ -26,7 +27,6 @@ import {
 	type PostSplitOperation,
 } from "./proxy/proxy.js";
 import { DRPObjectStateManager, stateFromDRP } from "./state.js";
-import { validateVertexDependencies, validateVertexHash, validateVertexTimestamp } from "./vertex-validation.js";
 
 function callDRP<T extends IDRP>(drp: T, caller: string, method: string, args: unknown[]): unknown | Promise<unknown> {
 	if (drp.context) drp.context.caller = caller;
@@ -180,9 +180,10 @@ export class DRPVertexApplier<T extends IDRP> {
 
 	private validateVertex(operation: BaseOperation): HandlerReturn<BaseOperation> {
 		const { vertex } = operation;
-		validateVertexHash(vertex);
-		validateVertexDependencies(vertex, this.hg);
-		validateVertexTimestamp(vertex.timestamp, Date.now(), vertex.hash);
+		const result = validateVertex(vertex, this.hg, Date.now());
+		if (result.error) {
+			throw result.error;
+		}
 		return { stop: false, result: operation };
 	}
 
