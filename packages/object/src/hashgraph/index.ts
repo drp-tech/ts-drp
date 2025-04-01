@@ -96,13 +96,14 @@ export class HashGraph implements IHashGraph {
 	}
 
 	createVertex(operation: Operation, dependencies: Hash[], timestamp: number): Vertex {
-		return Vertex.create({
-			hash: computeHash(this.peerId, operation, dependencies, timestamp),
+		const vertex = Vertex.create({
 			peerId: this.peerId,
 			timestamp,
 			operation,
 			dependencies,
 		});
+		vertex.hash = computeHash(vertex);
+		return vertex;
 	}
 
 	// Add a new vertex to the hashgraph.

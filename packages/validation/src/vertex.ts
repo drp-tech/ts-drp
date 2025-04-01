@@ -7,7 +7,10 @@ export interface ValidationResult {
 }
 
 function validateVertexHash(vertex: Vertex): void {
-	const correctHash = computeHash(vertex.peerId, vertex.operation, vertex.dependencies, vertex.timestamp);
+	const hash = vertex.hash;
+	vertex.hash = "";
+	const correctHash = computeHash(vertex);
+	vertex.hash = hash;
 	if (vertex.hash !== correctHash) {
 		throw new Error(`Vertex ${vertex.hash} has invalid hash`);
 	}
