@@ -18,7 +18,6 @@
 		"composite": true,
 		"skipLibCheck": true,
 		"stripInternal": true,
-		"sourceMap": true,
 		"resolveJsonModule": true,
 		"paths": {
 			"@ts-drp/*": [
