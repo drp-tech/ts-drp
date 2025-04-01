@@ -4,11 +4,6 @@ import Benchmark from "benchmark";
 import { ObjectACL } from "../src/acl/index.js";
 import { DRPObject } from "../src/index.js";
 
-const acl = new ObjectACL({
-	admins: ["peer1", "peer2"],
-	permissionless: true,
-});
-
 const NUMBER_OF_OPERATIONS = Number.parseInt(process.argv[2], 10) || 1000;
 
 function benchmarkForAddWinSet(
