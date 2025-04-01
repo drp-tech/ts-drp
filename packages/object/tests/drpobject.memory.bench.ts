@@ -1,10 +1,14 @@
-import { HashGraph } from "@ts-drp/object";
-import { DrpType } from "@ts-drp/types";
+import { SetDRP } from "@ts-drp/blueprints";
 import { formatOutput, parseSnapshotFromFile } from "@ts-drp/utils/memory-benchmark";
 import { writeHeapSnapshot } from "v8";
 
-const NUMBER_OF_VERTICES = Number.parseInt(process.argv[2], 10) || 1000;
-const NUMBER_OF_ITERATIONS = Number.parseInt(process.argv[3], 10) || 5;
+import { DRPObject, ObjectACL } from "../src/index.js";
+
+const acl = new ObjectACL({
+	admins: ["peer1"],
+});
+
+const NUMBER_OF_ITERATIONS = Number.parseInt(process.argv[2], 10) || 5;
 
 // Define node structure type
 interface NodeInfo {
@@ -26,20 +30,13 @@ async function runMemoryBenchmark(numVertices: number): Promise<BenchmarkResult>
 	if (gc) gc();
 	const beforeSnapshotPath = writeHeapSnapshot();
 
-	const hashGraph = new HashGraph("peer1");
+	const obj = new DRPObject({
+		peerId: "peer1",
+		acl,
+		drp: new SetDRP<number>(),
+	});
 	for (let i = 0; i < numVertices; i++) {
-		hashGraph.addVertex({
-			hash: `hash${i}`,
-			dependencies: hashGraph.getFrontier(),
-			peerId: `peer${i % 10}`, // Reuse peer IDs to reduce unique strings
-			timestamp: Date.now(),
-			operation: {
-				drpType: DrpType.DRP,
-				opType: "add",
-				value: i,
-			},
-			signature: new Uint8Array(32),
-		});
+		obj.drp?.add(i);
 	}
 	if (gc) gc();
 	const afterSnapshotPath = writeHeapSnapshot();
@@ -88,7 +85,11 @@ async function runMemoryBenchmark(numVertices: number): Promise<BenchmarkResult>
 /**
  * Runs multiple iterations of the memory benchmark and calculates statistics
  */
-async function memoryBenchmarkForHashGraph(name: string, numVertices: number, iterations: number): Promise<void> {
+async function memoryBenchmarkForDrpObjectWithAddWinsSet(
+	name: string,
+	numVertices: number,
+	iterations: number
+): Promise<void> {
 	const results: BenchmarkResult[] = [];
 
 	for (let i = 0; i < iterations; i++) {
@@ -108,8 +109,15 @@ async function memoryBenchmarkForHashGraph(name: string, numVertices: number, it
 }
 
 // Run benchmark
-void memoryBenchmarkForHashGraph(
-	`HashGraph memory benchmark with ${NUMBER_OF_VERTICES} vertices`,
-	NUMBER_OF_VERTICES,
-	NUMBER_OF_ITERATIONS
-);
+void (async (): Promise<void> => {
+	await memoryBenchmarkForDrpObjectWithAddWinsSet(
+		`DRPObject memory benchmark with 1000 vertices`,
+		1000,
+		NUMBER_OF_ITERATIONS
+	);
+	await memoryBenchmarkForDrpObjectWithAddWinsSet(
+		`DRPObject memory benchmark with 10000 vertices`,
+		10000,
+		NUMBER_OF_ITERATIONS
+	);
+})();

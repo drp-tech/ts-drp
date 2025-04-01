@@ -3,8 +3,7 @@ import { DrpType } from "@ts-drp/types";
 import { formatOutput, parseSnapshotFromFile } from "@ts-drp/utils/memory-benchmark";
 import { writeHeapSnapshot } from "v8";
 
-const NUMBER_OF_VERTICES = Number.parseInt(process.argv[2], 10) || 1000;
-const NUMBER_OF_ITERATIONS = Number.parseInt(process.argv[3], 10) || 5;
+const NUMBER_OF_ITERATIONS = Number.parseInt(process.argv[2], 10) || 5;
 
 // Define node structure type
 interface NodeInfo {
@@ -108,8 +107,7 @@ async function memoryBenchmarkForHashGraph(name: string, numVertices: number, it
 }
 
 // Run benchmark
-void memoryBenchmarkForHashGraph(
-	`HashGraph memory benchmark with ${NUMBER_OF_VERTICES} vertices`,
-	NUMBER_OF_VERTICES,
-	NUMBER_OF_ITERATIONS
-);
+void (async (): Promise<void> => {
+	await memoryBenchmarkForHashGraph(`HashGraph memory benchmark with 1000 vertices`, 1000, NUMBER_OF_ITERATIONS);
+	await memoryBenchmarkForHashGraph(`HashGraph memory benchmark with 10000 vertices`, 10000, NUMBER_OF_ITERATIONS);
+})();
