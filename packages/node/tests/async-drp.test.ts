@@ -86,8 +86,10 @@ describe("Async DRP", () => {
 				peerId: node1.networkNode.peerId,
 			},
 		});
-		await raceEvent(node1, NodeEventName.DRP_FETCH);
-		await raceEvent(node2, NodeEventName.DRP_FETCH_RESPONSE, controller.signal);
+		await Promise.all([
+			raceEvent(node1, NodeEventName.DRP_FETCH_STATE),
+			raceEvent(node2, NodeEventName.DRP_FETCH_STATE_RESPONSE, controller.signal),
+		]);
 
 		const drp1 = drpObjectNode1.drp as AsyncCounterDRP;
 		const drp2 = drpObjectNode2.drp as AsyncCounterDRP;

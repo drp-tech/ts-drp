@@ -158,8 +158,8 @@ describe("Handle message correctly", () => {
 				peerId: node2.networkNode.peerId,
 			},
 		});
-		await raceEvent(node2, NodeEventName.DRP_FETCH);
-		await raceEvent(node3, NodeEventName.DRP_FETCH_RESPONSE, controller.signal);
+		await raceEvent(node2, NodeEventName.DRP_FETCH_STATE);
+		await raceEvent(node3, NodeEventName.DRP_FETCH_STATE_RESPONSE, controller.signal);
 		await raceEvent(node3, NodeEventName.DRP_SYNC_ACCEPTED, controller.signal);
 		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(5);
 	}, 30_000); // 30 seconds

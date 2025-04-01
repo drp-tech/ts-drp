@@ -99,7 +99,7 @@ function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandler
 		log.error("::fetchStateHandler: Error sending message", e);
 	});
 
-	node.safeDispatchEvent(NodeEventName.DRP_FETCH, {
+	node.safeDispatchEvent(NodeEventName.DRP_FETCH_STATE, {
 		detail: {
 			id: drpObject.id,
 		},
@@ -147,7 +147,7 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 			fetchStateDeferredMap.get(object.id)?.resolve();
 			fetchStateDeferredMap.delete(object.id);
 		}
-		node.safeDispatchEvent(NodeEventName.DRP_FETCH_RESPONSE, {
+		node.safeDispatchEvent(NodeEventName.DRP_FETCH_STATE_RESPONSE, {
 			detail: {
 				id: object.id,
 			},

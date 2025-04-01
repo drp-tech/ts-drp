@@ -55,12 +55,12 @@ export interface NodeEvents {
 	/**
 	 * Emitted when a peer receives an fetch message
 	 */
-	[NodeEventName.DRP_FETCH]: CustomEvent<ObjectId>;
+	[NodeEventName.DRP_FETCH_STATE]: CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer responds to a fetch message
 	 */
-	[NodeEventName.DRP_FETCH_RESPONSE]: CustomEvent<ObjectId>;
+	[NodeEventName.DRP_FETCH_STATE_RESPONSE]: CustomEvent<ObjectId>;
 
 	/**
 	 * Emitted when a peer receives an update message

@@ -4,8 +4,8 @@ export enum IntervalRunnerState {
 }
 
 export enum NodeEventName {
-	DRP_FETCH = "drp:fetch",
-	DRP_FETCH_RESPONSE = "drp:fetch:response",
+	DRP_FETCH_STATE = "drp:fetchState",
+	DRP_FETCH_STATE_RESPONSE = "drp:fetchState:response",
 	DRP_UPDATE = "drp:update",
 	DRP_SYNC = "drp:sync",
 	DRP_SYNC_MISSING = "drp:sync:missing",
