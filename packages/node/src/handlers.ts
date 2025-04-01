@@ -179,7 +179,6 @@ function attestationUpdateHandler({ node, message }: HandleParams): ReturnType<I
   operations array doesn't contain the full remote operations array
 */
 async function updateHandler({ node, message }: HandleParams): Promise<void> {
-	console.log("Got from update", message);
 	const { sender, data } = message;
 
 	const updateMessage = Update.decode(data);
@@ -396,8 +395,6 @@ export function drpObjectChangesHandler<T extends IDRP>(
 			const attestations = signFinalityVertices(node, obj, vertices);
 			node.objectStore.put(obj.id, obj);
 
-			console.log(node.networkNode.peerId, "Call this function");
-
 			signGeneratedVertices(node, vertices)
 				.then(() => {
 					// send vertices to the pubsub group
@@ -412,7 +409,6 @@ export function drpObjectChangesHandler<T extends IDRP>(
 						).finish(),
 						objectId: obj.id,
 					});
-					console.log("Call this function with message", message);
 					node.networkNode.broadcastMessage(obj.id, message).catch((e) => {
 						log.error("::drpObjectChangesHandler: Error broadcasting message", e);
 					});
