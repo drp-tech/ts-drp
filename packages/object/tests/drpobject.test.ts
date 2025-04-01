@@ -12,7 +12,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { DRPObject } from "../src/index.js";
+import { createObject, DRPObject } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: ["peer1", "peer2", "peer3"],
@@ -52,48 +52,9 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 		expect(obj.acl).toBeDefined();
 	});
 
-	//test("Test creating an object wo/ DRP", () => {
-	//	const obj = DRPObject.createObject({ peerId: "" });
-	//	expect(obj.drp).toBeUndefined();
-	//});
-});
-
-describe("Drp Object should be able to change state value object 1", () => {
-	let drpObject: DRPObject<SetDRP<number>>;
-
-	beforeEach(() => {
-		drpObject = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
-	});
-
-	it("should update ACL state keys when DRP state changes", () => {
-		// Add a value to the DRP set
-		drpObject.drp?.add(1);
-
-		// Get the ACL states and expected variable names
-		//const aclStates = drpObject.aclStates.values();
-		//const expectedKeys = Object.keys(drpObject.acl);
-
-		// Check that each state contains the expected keys
-		//for (const state of aclStates) {
-		//	const stateKeys = state.state.map((x) => x.key);
-		//	expect(stateKeys).toEqual(expectedKeys);
-		//}
-
-		//const drpStates = drpObject.drpStates.values();
-		//const expectedDrpKeys = Object.keys(drpObject.drp ?? {});
-
-		// Check that each state contains the expected keys
-		//for (const state of drpStates) {
-		//	const stateKeys = state.state.map((x) => x.key);
-		//	expect(stateKeys).toEqual(expectedDrpKeys);
-		//}
-
-		expect(drpObject.vertices.length).toBe(2);
-	});
-
 	test("Test creating an object wo/ DRP", () => {
-		const obj = new DRPObject({ peerId: "" });
-		expect(obj).toBeDefined();
+		const obj = createObject({ peerId: "" });
+		expect(obj.drp).toBeUndefined();
 	});
 });
 
@@ -109,28 +70,29 @@ describe("Drp Object should be able to change state value", () => {
 		drpObject.drp?.add(1);
 
 		// Get the ACL states and expected variable names
-		//const aclStates = drpObject.aclStates.values();
-		//const expectedKeys = Object.keys(drpObject.acl);
+		const aclStates = drpObject["_states"]["aclStates"].values();
+		const expectedKeys = Object.keys(drpObject.acl);
+
+		// Check that each state contains the expected keys
+		for (const state of aclStates) {
+			const stateKeys = state.state.map((x) => x.key);
+			expect(stateKeys).toEqual(expectedKeys);
+		}
+
+		const drpStates = drpObject["_states"]["drpStates"].values();
+		const expectedDrpKeys = Object.keys(drpObject.drp ?? {});
+
+		// Check that each state contains the expected keys
+		for (const state of drpStates) {
+			const stateKeys = state.state.map((x) => x.key);
+			expect(stateKeys).toEqual(expectedDrpKeys);
+		}
+
 		expect(drpObject.acl).toBeDefined();
 		expect(drpObject.drp).toBeDefined();
 		expect(drpObject.drp?.query_getValues()).toEqual([1]);
 
 		expect(drpObject.vertices.length).toBe(2);
-
-		//// Check that each state contains the expected keys
-		//for (const state of aclStates) {
-		//	const stateKeys = state.state.map((x) => x.key);
-		//	expect(stateKeys).toEqual(expectedKeys);
-		//}
-
-		//const drpStates = drpObject.drpStates.values();
-		//const expectedDrpKeys = Object.keys(drpObject.drp ?? {});
-
-		//// Check that each state contains the expected keys
-		//for (const state of drpStates) {
-		//	const stateKeys = state.state.map((x) => x.key);
-		//	expect(stateKeys).toEqual(expectedDrpKeys);
-		//}
 	});
 });
 
