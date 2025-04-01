@@ -102,6 +102,7 @@ function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandler
 	node.safeDispatchEvent(NodeEventName.DRP_FETCH_STATE, {
 		detail: {
 			id: drpObject.id,
+			fetchState,
 		},
 	});
 }
@@ -150,6 +151,7 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 		node.safeDispatchEvent(NodeEventName.DRP_FETCH_STATE_RESPONSE, {
 			detail: {
 				id: object.id,
+				fetchStateResponse,
 			},
 		});
 	}
@@ -230,6 +232,7 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 	node.safeDispatchEvent(NodeEventName.DRP_UPDATE, {
 		detail: {
 			id: object.id,
+			update: updateMessage,
 		},
 	});
 }
@@ -299,6 +302,8 @@ async function syncHandler({ node, message }: HandleParams): Promise<void> {
 	node.safeDispatchEvent(NodeEventName.DRP_SYNC, {
 		detail: {
 			id: object.id,
+			requested,
+			requesting,
 		},
 	});
 }
@@ -365,7 +370,11 @@ async function syncAcceptHandler({ node, message }: HandleParams): Promise<void>
 		log.error("::syncAcceptHandler: Error sending message", e);
 	});
 	node.safeDispatchEvent(NodeEventName.DRP_SYNC_MISSING, {
-		detail: { id: object.id },
+		detail: {
+			id: object.id,
+			requested,
+			requesting: [],
+		},
 	});
 }
 

@@ -4,7 +4,14 @@ import { type IACL } from "./acl.js";
 import { type DRPIntervalDiscoveryOptions } from "./drp-interval-discovery.js";
 import { type DRPIntervalReconnectOptions } from "./drp-interval-reconnect.js";
 import { type IDRP } from "./drp.js";
-import { type IDRPObject, type NodeEventName } from "./index.js";
+import {
+	type FetchState,
+	type FetchStateResponse,
+	type IDRPObject,
+	type NodeEventName,
+	type Update,
+	type Vertex,
+} from "./index.js";
 import { type KeychainOptions } from "./keychain.js";
 import { type LoggerOptions } from "./logger.js";
 import { type IMetrics } from "./metrics.js";
@@ -48,34 +55,70 @@ export interface PeerInfo {
 }
 
 export interface ObjectId {
+	/**
+	 * The identifier of the object
+	 */
 	id: string;
+}
+
+export interface FetchStateEvent extends ObjectId {
+	/**
+	 * The identifier of the remote peer
+	 */
+	fetchState: FetchState;
+}
+
+export interface FetchStateResponseEvent extends ObjectId {
+	/**
+	 * FetchStateResponse
+	 */
+	fetchStateResponse: FetchStateResponse;
+}
+
+export interface RequestSyncEvent extends ObjectId {
+	/**
+	 * Requested vertices
+	 */
+	requested: Vertex[];
+
+	/**
+	 * Requesting hash
+	 */
+	requesting: string[];
+}
+
+export interface UpdateObjectEvent extends ObjectId {
+	/**
+	 * Updated vertices
+	 */
+	update: Update;
 }
 
 export interface NodeEvents {
 	/**
 	 * Emitted when a peer receives an fetch message
 	 */
-	[NodeEventName.DRP_FETCH_STATE]: CustomEvent<ObjectId>;
+	[NodeEventName.DRP_FETCH_STATE]: CustomEvent<FetchStateEvent>;
 
 	/**
 	 * Emitted when a peer responds to a fetch message
 	 */
-	[NodeEventName.DRP_FETCH_STATE_RESPONSE]: CustomEvent<ObjectId>;
+	[NodeEventName.DRP_FETCH_STATE_RESPONSE]: CustomEvent<FetchStateResponseEvent>;
 
 	/**
 	 * Emitted when a peer receives an update message
 	 */
-	[NodeEventName.DRP_UPDATE]: CustomEvent<ObjectId>;
+	[NodeEventName.DRP_UPDATE]: CustomEvent<UpdateObjectEvent>;
 
 	/**
 	 * Emitted when a peer receives a sync message
 	 */
-	[NodeEventName.DRP_SYNC]: CustomEvent<ObjectId>;
+	[NodeEventName.DRP_SYNC]: CustomEvent<RequestSyncEvent>;
 
 	/**
 	 * Emitted when a peer receives a sync message with missing objects
 	 */
-	[NodeEventName.DRP_SYNC_MISSING]: CustomEvent<ObjectId>;
+	[NodeEventName.DRP_SYNC_MISSING]: CustomEvent<RequestSyncEvent>;
 
 	/**
 	 * Emitted when a peer accepts a sync message
