@@ -490,22 +490,7 @@ function getAttestations<T extends IDRP>(object: IDRPObject<T>, vertices: Vertex
 }
 
 export function verifyACLIncomingVertices(incomingVertices: Vertex[]): Vertex[] {
-	const vertices: Vertex[] = incomingVertices.map((vertex) => {
-		return {
-			hash: vertex.hash,
-			peerId: vertex.peerId,
-			operation: {
-				drpType: vertex.operation?.drpType ?? "",
-				opType: vertex.operation?.opType ?? "",
-				value: vertex.operation?.value,
-			},
-			dependencies: vertex.dependencies,
-			timestamp: vertex.timestamp,
-			signature: vertex.signature,
-		};
-	});
-
-	const verifiedVertices = vertices
+	const verifiedVertices = incomingVertices
 		.map((vertex) => {
 			if (vertex.signature.length === 0) {
 				return null;

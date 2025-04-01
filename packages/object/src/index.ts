@@ -17,8 +17,8 @@ import {
 	type LoggerOptions,
 	type LowestCommonAncestorResult,
 	type MergeResult,
-	type Operation,
-	type Vertex,
+	Operation,
+	Vertex,
 } from "@ts-drp/types";
 import { handlePromiseOrValue, isPromise, ObjectSet, processSequentially } from "@ts-drp/utils";
 import { computeHash } from "@ts-drp/utils/hash";
@@ -203,7 +203,7 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 			throw new Error("Hashgraph is undefined");
 		}
 
-		const operation: Operation = { drpType, opType: fn, value: args };
+		const operation = Operation.create({ drpType, opType: fn, value: args });
 		const contextWithoutInitialDRP = this._newOperationContext(operation);
 
 		return handlePromiseOrValue(contextWithoutInitialDRP.maybeInitialDRP, (drp) => {
@@ -646,12 +646,12 @@ export function newVertex(
 	signature: Uint8Array
 ): Vertex {
 	const hash = computeHash(peerId, operation, dependencies, timestamp);
-	return {
+	return Vertex.create({
 		hash,
 		peerId,
 		operation,
 		dependencies,
 		timestamp,
 		signature,
-	};
+	});
 }

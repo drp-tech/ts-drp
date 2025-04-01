@@ -1,4 +1,4 @@
-import { ActionType } from "@ts-drp/types";
+import { ActionType, Operation, Vertex } from "@ts-drp/types";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { MapDRP } from "../src/index.js";
@@ -74,96 +74,72 @@ describe("MapDRP tests", () => {
 	});
 
 	test("Should return no-op when resolve conflict between operations with different keys", () => {
-		const vertex0 = {
+		const vertex0 = Vertex.create({
 			hash: "hash1",
 			peerId: "peer1",
-			operation: {
-				drpType: "DRP",
-				opType: "set",
-				value: ["key1", "value1"],
-			},
+			operation: Operation.create({ drpType: "DRP", opType: "set", value: ["key1", "value1"] }),
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		};
+		});
 
-		const vertex1 = {
+		const vertex1 = Vertex.create({
 			hash: "hash2",
 			peerId: "peer2",
-			operation: {
-				drpType: "DRP",
-				opType: "set",
-				value: ["key2", "value2"],
-			},
+			operation: Operation.create({ drpType: "DRP", opType: "set", value: ["key2", "value2"] }),
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		};
+		});
 
 		let vertices = [vertex0, vertex1];
 		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
-		vertex0.operation.value[0] = "delete";
+		if (vertex0.operation) vertex0.operation.value[0] = "delete";
 		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
 		vertices = [vertex1, vertex0];
 		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
 	});
 
 	test("Should return no-op when resolve conflict between two delete operations", () => {
-		const vertex0 = {
+		const vertex0 = Vertex.create({
 			hash: "hash1",
 			peerId: "peer1",
-			operation: {
-				drpType: "DRP",
-				opType: "delete",
-				value: ["key1"],
-			},
+			operation: Operation.create({ drpType: "DRP", opType: "delete", value: ["key1"] }),
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		};
-		const vertex1 = {
+		});
+		const vertex1 = Vertex.create({
 			hash: "hash2",
 			peerId: "peer2",
-			operation: {
-				drpType: "DRP",
-				opType: "delete",
-				value: ["key2"],
-			},
+			operation: Operation.create({ drpType: "DRP", opType: "delete", value: ["key2"] }),
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		};
+		});
 
 		const vertices = [vertex0, vertex1];
 		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
 	});
 
 	test("Should drop operation with lower hash value when resolve conflict between two set operations", () => {
-		const vertex0 = {
+		const vertex0 = Vertex.create({
 			hash: "hash1",
 			peerId: "peer1",
-			operation: {
-				drpType: "DRP",
-				opType: "set",
-				value: ["key1", "value1"],
-			},
+			operation: Operation.create({ drpType: "DRP", opType: "set", value: ["key1", "value1"] }),
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		};
+		});
 
-		const vertex1 = {
+		const vertex1 = Vertex.create({
 			hash: "hash2",
 			peerId: "peer2",
-			operation: {
-				drpType: "DRP",
-				opType: "set",
-				value: ["key1", "value2"],
-			},
+			operation: Operation.create({ drpType: "DRP", opType: "set", value: ["key1", "value2"] }),
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		};
+		});
 
 		let vertices = [vertex0, vertex1];
 		expect(drp.resolveConflicts(vertices)).toEqual({
@@ -175,37 +151,29 @@ describe("MapDRP tests", () => {
 			action: ActionType.DropLeft,
 		});
 
-		vertex1.operation.value[1] = "value1";
+		if (vertex1.operation) vertex1.operation.value[1] = "value1";
 		vertices = [vertex0, vertex1];
 		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
 	});
 
 	test("Should drop delete operation when resolve conflict between set and delete operations", () => {
-		const vertex0 = {
+		const vertex0 = Vertex.create({
 			hash: "hash1",
 			peerId: "peer1",
-			operation: {
-				drpType: "DRP",
-				opType: "set",
-				value: ["key1", "value1"],
-			},
+			operation: Operation.create({ drpType: "DRP", opType: "set", value: ["key1", "value1"] }),
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		};
+		});
 
-		const vertex1 = {
+		const vertex1 = Vertex.create({
 			hash: "hash2",
 			peerId: "peer2",
-			operation: {
-				drpType: "DRP",
-				opType: "delete",
-				value: ["key1"],
-			},
+			operation: Operation.create({ drpType: "DRP", opType: "delete", value: ["key1"] }),
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		};
+		});
 
 		let vertices = [vertex0, vertex1];
 		expect(drp.resolveConflicts(vertices)).toEqual({

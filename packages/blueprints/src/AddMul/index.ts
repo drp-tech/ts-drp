@@ -32,12 +32,7 @@ export class AddMulDRP implements IDRP {
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
-		if (
-			vertices.length < 2 ||
-			vertices[0].hash === undefined ||
-			vertices[1].hash === undefined ||
-			vertices[0].hash === vertices[1].hash
-		) {
+		if (vertices.length < 2 || !vertices[0].hash || !vertices[1].hash || vertices[0].hash === vertices[1].hash) {
 			return { action: ActionType.Nop };
 		}
 

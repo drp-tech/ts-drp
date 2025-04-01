@@ -2,7 +2,7 @@ import type { Connection, IdentifyResult, Libp2p } from "@libp2p/interface";
 import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
-import { type DRPNetworkNodeConfig, DrpType, NodeEventName, type ObjectId } from "@ts-drp/types";
+import { type DRPNetworkNodeConfig, DrpType, NodeEventName, type ObjectId, Operation } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterAll, beforeEach, describe, expect, test } from "vitest";
 
@@ -121,12 +121,12 @@ describe("Handle message correctly", () => {
 		});
 		drpObjectNode2.drp?.add(5);
 		await p;
-		const expected_vertices = node1.objectStore.get(drpObjectNode2.id)?.vertices.map((vertex) => {
+		const expected_operations = node1.objectStore.get(drpObjectNode2.id)?.vertices.map((vertex) => {
 			return vertex.operation;
 		});
-		expect(expected_vertices).toStrictEqual([
-			{ drpType: "", opType: "-1", value: null },
-			{ opType: "add", value: [5], drpType: DrpType.DRP },
+		expect(expected_operations).toStrictEqual([
+			Operation.create({ drpType: "", opType: "-1" }),
+			Operation.create({ opType: "add", value: [5], drpType: DrpType.DRP }),
 		]);
 	});
 

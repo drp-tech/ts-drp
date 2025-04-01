@@ -1,4 +1,4 @@
-import { ActionType, DrpType, SemanticsType, type Vertex } from "@ts-drp/types";
+import { ActionType, DrpType, Operation, SemanticsType, type Vertex } from "@ts-drp/types";
 import { ObjectSet } from "@ts-drp/utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -8,8 +8,7 @@ import { linearizePairSemantics } from "../src/linearize/pairSemantics.js";
 
 describe("Linearize correctly", () => {
 	test("should linearize correctly with multiple semantics", () => {
-		vi.useFakeTimers();
-		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
+		vi.useFakeTimers({ now: 0 });
 		const hashgraph = new HashGraph(
 			"",
 			(_vertices: Vertex[]) => {
@@ -29,11 +28,7 @@ describe("Linearize correctly", () => {
 			hashgraph.addVertex(
 				newVertex(
 					"",
-					{
-						opType: "test",
-						value: [i],
-						drpType: DrpType.DRP,
-					},
+					Operation.create({ opType: "test", value: [i], drpType: DrpType.DRP }),
 					frontier,
 					Date.now(),
 					new Uint8Array()
@@ -42,11 +37,7 @@ describe("Linearize correctly", () => {
 			hashgraph.addVertex(
 				newVertex(
 					"",
-					{
-						opType: "test",
-						value: [i + 1],
-						drpType: DrpType.DRP,
-					},
+					Operation.create({ opType: "test", value: [i + 1], drpType: DrpType.DRP }),
 					frontier,
 					Date.now(),
 					new Uint8Array()
@@ -58,15 +49,14 @@ describe("Linearize correctly", () => {
 			HashGraph.rootHash,
 			new ObjectSet(hashgraph.getAllVertices().map((vertex) => vertex.hash))
 		);
-		const expectedOrder = [1, 0, 3, 2, 4, 5, 7, 6, 8, 9];
-		for (let i = 0; i < 10; i++) {
-			expect(order[i].operation?.value).toStrictEqual([expectedOrder[i]]);
-		}
+		const expectedOrder = [1, 0, 2, 3, 5, 4, 6, 7, 9, 8];
+		const receivedOrder = order.map((vertex) => vertex.operation?.value[0]);
+		console.log(receivedOrder);
+		expect(receivedOrder).toStrictEqual(expectedOrder);
 	});
 
 	test("should linearize correctly with pair semantics", () => {
-		vi.useFakeTimers();
-		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
+		vi.useFakeTimers({ now: 0 });
 		const hashgraph = new HashGraph(
 			"",
 			(_vertices: Vertex[]) => {
@@ -98,11 +88,7 @@ describe("Linearize correctly", () => {
 			hashgraph.addVertex(
 				newVertex(
 					"",
-					{
-						opType: "test",
-						value: [i],
-						drpType: DrpType.DRP,
-					},
+					Operation.create({ opType: "test", value: [i], drpType: DrpType.DRP }),
 					[frontier[0]],
 					Date.now(),
 					new Uint8Array()
@@ -111,11 +97,7 @@ describe("Linearize correctly", () => {
 			hashgraph.addVertex(
 				newVertex(
 					"",
-					{
-						opType: "test",
-						value: [i + 1],
-						drpType: DrpType.DRP,
-					},
+					Operation.create({ opType: "test", value: [i + 1], drpType: DrpType.DRP }),
 					[frontier[0]],
 					Date.now(),
 					new Uint8Array()
@@ -127,17 +109,15 @@ describe("Linearize correctly", () => {
 			HashGraph.rootHash,
 			new ObjectSet(hashgraph.getAllVertices().map((vertex) => vertex.hash))
 		);
-		const expectedOrder = [4, 0, 8, 2, 6];
-		for (let i = 0; i < 5; i++) {
-			expect(order[i].operation?.value).toStrictEqual([expectedOrder[i]]);
-		}
+		const expectedOrder = [4, 0, 2, 6, 8];
+		const receivedOrder = order.map((vertex) => vertex.operation?.value[0]);
+		expect(receivedOrder).toStrictEqual(expectedOrder);
 	});
 });
 
 describe("linearizeMultipleSemantics", () => {
 	beforeEach(() => {
-		vi.useFakeTimers();
-		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
+		vi.useFakeTimers({ now: 0 });
 	});
 
 	afterEach(() => {
@@ -161,11 +141,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.addVertex(
 			newVertex(
 				"",
-				{
-					opType: "set",
-					value: [1],
-					drpType: DrpType.DRP,
-				},
+				Operation.create({ opType: "set", value: [1], drpType: DrpType.DRP }),
 				hashGraph.getFrontier(),
 				Date.now(),
 				new Uint8Array()
@@ -175,11 +151,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.addVertex(
 			newVertex(
 				"",
-				{
-					opType: "set",
-					value: [2],
-					drpType: DrpType.DRP,
-				},
+				Operation.create({ opType: "set", value: [2], drpType: DrpType.DRP }),
 				hashGraph.getFrontier(),
 				Date.now(),
 				new Uint8Array()
@@ -213,11 +185,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.addVertex(
 			newVertex(
 				"",
-				{
-					opType: "set",
-					value: [1],
-					drpType: DrpType.DRP,
-				},
+				Operation.create({ opType: "set", value: [1], drpType: DrpType.DRP }),
 				frontier,
 				Date.now(),
 				new Uint8Array()
@@ -227,11 +195,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.addVertex(
 			newVertex(
 				"",
-				{
-					opType: "set",
-					value: [2],
-					drpType: DrpType.DRP,
-				},
+				Operation.create({ opType: "set", value: [2], drpType: DrpType.DRP }),
 				frontier,
 				Date.now(),
 				new Uint8Array()
@@ -241,11 +205,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.addVertex(
 			newVertex(
 				"",
-				{
-					opType: "set",
-					value: [3],
-					drpType: DrpType.DRP,
-				},
+				Operation.create({ opType: "set", value: [3], drpType: DrpType.DRP }),
 				frontier,
 				Date.now(),
 				new Uint8Array()
@@ -258,11 +218,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.addVertex(
 			newVertex(
 				"",
-				{
-					opType: "set",
-					value: [4],
-					drpType: DrpType.DRP,
-				},
+				Operation.create({ opType: "set", value: [4], drpType: DrpType.DRP }),
 				frontier,
 				Date.now(),
 				new Uint8Array()
@@ -271,11 +227,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.addVertex(
 			newVertex(
 				"",
-				{
-					opType: "set",
-					value: [5],
-					drpType: DrpType.DRP,
-				},
+				Operation.create({ opType: "set", value: [5], drpType: DrpType.DRP }),
 				frontier.filter((_, idx) => idx !== 0),
 				Date.now(),
 				new Uint8Array()
@@ -287,11 +239,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.addVertex(
 			newVertex(
 				"",
-				{
-					opType: "set",
-					value: [6],
-					drpType: DrpType.DRP,
-				},
+				Operation.create({ opType: "set", value: [6], drpType: DrpType.DRP }),
 				frontier,
 				Date.now(),
 				new Uint8Array()
@@ -302,7 +250,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.getAllVertices().forEach((vertex) => subgraph.add(vertex.hash));
 
 		const result = linearizeMultipleSemantics(hashGraph, origin, subgraph);
-		expect(result.map((vertex) => vertex.operation?.value)).toEqual([[3], [5], [6]]);
+		expect(result.map((vertex) => vertex.operation?.value)).toEqual([[1], [4], [6]]);
 	});
 
 	test("should handle operations with null values", () => {
@@ -322,11 +270,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.addVertex(
 			newVertex(
 				"",
-				{
-					opType: "set",
-					value: [1],
-					drpType: DrpType.DRP,
-				},
+				Operation.create({ opType: "set", value: [1], drpType: DrpType.DRP }),
 				hashGraph.getFrontier(),
 				Date.now(),
 				new Uint8Array()
@@ -336,11 +280,7 @@ describe("linearizeMultipleSemantics", () => {
 		hashGraph.addVertex(
 			newVertex(
 				"",
-				{
-					opType: "set",
-					value: [2],
-					drpType: DrpType.DRP,
-				},
+				Operation.create({ opType: "set", value: [2], drpType: DrpType.DRP }),
 				hashGraph.getFrontier(),
 				Date.now(),
 				new Uint8Array()
@@ -381,11 +321,7 @@ describe("linearizeMultipleSemantics", () => {
 			hashGraph.addVertex(
 				newVertex(
 					"",
-					{
-						opType: "test",
-						value: [i],
-						drpType: DrpType.DRP,
-					},
+					Operation.create({ opType: "test", value: [i], drpType: DrpType.DRP }),
 					frontier,
 					Date.now(),
 					new Uint8Array()
@@ -394,11 +330,7 @@ describe("linearizeMultipleSemantics", () => {
 			hashGraph.addVertex(
 				newVertex(
 					"",
-					{
-						opType: "test",
-						value: [i + 1],
-						drpType: DrpType.DRP,
-					},
+					Operation.create({ opType: "test", value: [i + 1], drpType: DrpType.DRP }),
 					frontier,
 					Date.now(),
 					new Uint8Array()

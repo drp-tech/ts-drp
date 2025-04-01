@@ -2,7 +2,7 @@ import { bls } from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
 import { Logger } from "@ts-drp/logger";
 import { DRPObject, ObjectACL } from "@ts-drp/object";
-import { ACLGroup, DrpType, type Vertex } from "@ts-drp/types";
+import { ACLGroup, DrpType, Operation, Vertex } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { signFinalityVertices, signGeneratedVertices, verifyACLIncomingVertices } from "../src/handlers.js";
@@ -17,18 +17,14 @@ describe("DPRNode with verify and sign signature", () => {
 
 	test("Node will not sign vertex if it is not the creator", async () => {
 		const vertices = [
-			{
+			Vertex.create({
 				hash: "hash",
 				peerId: "peerId",
-				operation: {
-					opType: "type",
-					value: ["value"],
-					drpType: DrpType.DRP,
-				},
+				operation: Operation.create({ opType: "type", value: ["value"], drpType: DrpType.DRP }),
 				dependencies: [],
 				timestamp: Date.now(),
 				signature: new Uint8Array(),
-			},
+			}),
 		];
 		await signGeneratedVertices(drpNode, vertices);
 		expect(vertices[0].signature.length).toBe(0);
@@ -36,18 +32,14 @@ describe("DPRNode with verify and sign signature", () => {
 
 	test("Node will sign vertex if it is the creator", async () => {
 		const vertices = [
-			{
+			Vertex.create({
 				hash: "hash",
 				peerId: drpNode.networkNode.peerId,
-				operation: {
-					opType: "add",
-					value: [1],
-					drpType: DrpType.DRP,
-				},
+				operation: Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
 				dependencies: [],
 				timestamp: Date.now(),
 				signature: new Uint8Array(),
-			},
+			}),
 		];
 		await signGeneratedVertices(drpNode, vertices);
 		expect(vertices[0].signature).not.toBe("");
@@ -56,18 +48,14 @@ describe("DPRNode with verify and sign signature", () => {
 
 	test("Verify incoming vertices", async () => {
 		const vertices = [
-			{
+			Vertex.create({
 				hash: "hash",
 				peerId: drpNode.networkNode.peerId,
-				operation: {
-					opType: "add",
-					value: [1],
-					drpType: DrpType.DRP,
-				},
+				operation: Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
 				dependencies: [],
 				timestamp: Date.now(),
 				signature: new Uint8Array(),
-			},
+			}),
 		];
 		await signGeneratedVertices(drpNode, vertices);
 		const verifiedVertices = verifyACLIncomingVertices(vertices);
@@ -76,18 +64,14 @@ describe("DPRNode with verify and sign signature", () => {
 
 	test("Ignore vertex if the signature is invalid", () => {
 		const vertices = [
-			{
+			Vertex.create({
 				hash: "hash",
 				peerId: drpNode.networkNode.peerId,
-				operation: {
-					opType: "add",
-					value: [1],
-					drpType: DrpType.DRP,
-				},
+				operation: Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
 				dependencies: [],
 				timestamp: Date.now(),
 				signature: new Uint8Array(),
-			},
+			}),
 		];
 		const verifiedVertices = verifyACLIncomingVertices(vertices);
 		expect(verifiedVertices.length).toBe(0);
@@ -140,8 +124,8 @@ describe("DRPNode voting tests", () => {
 		obj1.drp?.add(1);
 
 		await obj2.merge(obj1.vertices);
-
-		const V1 = obj2.vertices.find((v) => v.operation?.value !== null && v.operation?.value[0] === 1) as Vertex;
+		console.log(obj2.vertices);
+		const V1 = obj2.vertices.find((v) => v.operation?.value && v.operation?.value[0] === 1) as Vertex;
 		expect(V1 !== undefined).toBe(true);
 
 		signFinalityVertices(nodeB, obj2, [V1]);
@@ -167,7 +151,7 @@ describe("DRPNode voting tests", () => {
 		obj1.drp?.add(2);
 
 		await obj2.merge(obj1.vertices);
-		const V2 = obj2.vertices.find((v) => v.operation?.value !== null && v.operation?.value[0] === 2) as Vertex;
+		const V2 = obj2.vertices.find((v) => v.operation?.value && v.operation?.value[0] === 2) as Vertex;
 		expect(V2 !== undefined).toBe(true);
 
 		signFinalityVertices(nodeB, obj2, [V2]);
@@ -192,7 +176,7 @@ describe("DRPNode voting tests", () => {
 		obj1.drp?.add(1);
 
 		await obj2.merge(obj1.vertices);
-		const V1 = obj2.vertices.find((v) => v.operation?.value !== null && v.operation?.value[0] === 1) as Vertex;
+		const V1 = obj2.vertices.find((v) => v.operation?.value && v.operation?.value[0] === 1) as Vertex;
 		expect(V1 !== undefined).toBe(true);
 
 		signFinalityVertices(nodeA, obj2, [V1]);
