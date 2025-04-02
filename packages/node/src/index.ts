@@ -21,6 +21,7 @@ import {
 } from "@ts-drp/types";
 import { NodeConnectObjectOptionsSchema, NodeCreateObjectOptionsSchema } from "@ts-drp/validation";
 import { DRPValidationError } from "@ts-drp/validation/errors";
+import { AbortError } from "race-signal";
 
 import { drpObjectChangesHandler, handleMessage } from "./handlers.js";
 import { log } from "./logger.js";
@@ -194,7 +195,17 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		// start the interval discovery
 		this._createIntervalDiscovery(options.id);
 
-		await operations.fetchState(this, options.id, options.sync?.peerId);
+		const deferred = await operations.fetchState(this, options.id, options.sync?.peerId);
+		try {
+			await Promise.race([
+				deferred.promise,
+				new Promise((_, reject) => setTimeout(() => reject(new AbortError("Timeout")), 5000)),
+			]);
+		} catch (error) {
+			if (error instanceof AbortError) {
+				log.error("::connectObject: Fetch state timed out");
+			}
+		}
 
 		// TODO: since when the interval can run this twice do we really want it to be
 		// run while the other one might still be running?
