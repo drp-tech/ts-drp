@@ -11,7 +11,7 @@ export function setupCopyButton(): void {
 
 	// Function to handle copy
 	const copyToClipboard = async (): Promise<void> => {
-		const textToCopy = chatIdElement.textContent || "";
+		const textToCopy = chatIdElement.getAttribute("data-full-id") || "";
 
 		try {
 			await navigator.clipboard.writeText(textToCopy);

@@ -134,8 +134,9 @@ const renderPeerId = (chatState: ChatStateManager): void => {
 
 const renderChatId = (chatState: ChatStateManager): void => {
 	if (!chatState.drp) return;
-
-	element_chatId.innerHTML = shortenId(chatState.drp.id);
+	const shortenedId = shortenId(chatState.drp.id);
+	element_chatId.innerHTML = `<span>${shortenedId}</span>`;
+	element_chatId.setAttribute("data-full-id", chatState.drp.id);
 };
 
 const renderChat = (chatState: ChatStateManager): void => {
@@ -317,7 +318,14 @@ async function main(): Promise<void> {
 		}
 	};
 
-	button_create.addEventListener("click", () => void create());
+	button_create.addEventListener("click", () => {
+		if (room_input.value) {
+			void connect();
+		} else {
+			void create();
+		}
+		room_input.value = "";
+	});
 	button_connect.addEventListener("click", () => void connect());
 	button_send.addEventListener("click", () => void sendMessageListener());
 

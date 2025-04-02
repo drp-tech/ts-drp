@@ -89,8 +89,12 @@ export function formatPeerItem(peerId: string): HTMLSpanElement {
 	span.className = "peer-name";
 	span.style.setProperty("--peer-color", identity.color);
 	span.setAttribute("data-peer-color", identity.color);
-	span.innerHTML = `${displayName} (${shortId})&nbsp;
-            <span class="peer-id-tooltip">${peerId}</span>`;
+	span.textContent = `${displayName} (${shortId})`;
+	const peerIdTooltip = document.createElement("span");
+	peerIdTooltip.className = "peer-id-tooltip";
+	peerIdTooltip.textContent = peerId;
+	span.appendChild(peerIdTooltip);
+
 	span.addEventListener("click", () => {
 		void copyToClipboard(peerId);
 	});

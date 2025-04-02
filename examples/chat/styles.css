@@ -179,6 +179,7 @@ button:hover {
     cursor: help;
     position: relative;
     display: inline-block;
+    padding-right: 5px;
 }
 
 .peer-name .peer-id-tooltip {
@@ -257,11 +258,6 @@ button:hover {
 .info-value .peer-name:hover .peer-id-tooltip {
     visibility: visible;
     opacity: 1;
-}
-
-/* Optional: Add some spacing between peers in the list */
-.info-value br {
-    line-height: 1.8;
 }
 
 /* Toast Notifications */
