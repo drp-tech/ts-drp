@@ -182,8 +182,7 @@ describe("Handle message correctly", () => {
 			p7,
 		]);
 		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(5);
-	}, 20_000); // 10 seconds
-
+	}, 20_000); // 20 seconds
 	test("should handle update attestation message correctly", async () => {
 		const p = raceEvent(node2, NodeEventName.DRP_ATTESTATION_UPDATE, controller.signal, {
 			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
