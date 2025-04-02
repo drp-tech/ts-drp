@@ -227,9 +227,9 @@ describe("DRPNode with rpc", () => {
 	});
 
 	test("should run connectObject", async () => {
+		vi.useRealTimers();
 		const drpObjectConnected = await drpNode.connectObject({ id: drpObject.id, drp });
 		expect(drpObjectConnected.id).toEqual(drpObject.id);
-		vi.advanceTimersByTime(5000);
 		const object = drpNode.objectStore.get(drpObject.id);
 		expect(object).toBeDefined();
 	});
@@ -275,6 +275,7 @@ describe("DRPNode with rpc", () => {
 });
 
 describe("DRPObject connection tests", () => {
+	vi.useRealTimers();
 	vi.setConfig({ testTimeout: 15000, hookTimeout: 15000 });
 	const controller = new AbortController();
 	let node1: DRPNode;
@@ -392,5 +393,6 @@ describe("DRPObject connection tests", () => {
 		});
 
 		expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("::connectObject: Fetch state timed out"));
+		logSpy.mockRestore();
 	});
 });

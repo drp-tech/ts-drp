@@ -3,7 +3,7 @@ import { DRPNetworkNode } from "@ts-drp/network";
 import { AsyncCounterDRP } from "@ts-drp/test-utils";
 import { type DRPNodeConfig, NodeEventName, type ObjectId } from "@ts-drp/types";
 import { raceEvent } from "race-event";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { DRPNode } from "../src/index.js";
 
@@ -73,6 +73,7 @@ describe("Async DRP", () => {
 	});
 
 	test("async drp", async () => {
+		vi.useRealTimers();
 		const controller = new AbortController();
 
 		const drpObjectNode1 = await node1.createObject({
@@ -86,10 +87,6 @@ describe("Async DRP", () => {
 				peerId: node1.networkNode.peerId,
 			},
 		});
-		await Promise.all([
-			raceEvent(node1, NodeEventName.DRP_FETCH_STATE),
-			raceEvent(node2, NodeEventName.DRP_FETCH_STATE_RESPONSE, controller.signal),
-		]);
 
 		const drp1 = drpObjectNode1.drp as AsyncCounterDRP;
 		const drp2 = drpObjectNode2.drp as AsyncCounterDRP;
@@ -110,5 +107,5 @@ describe("Async DRP", () => {
 			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
 		});
 		expect(drp2.query_value()).toEqual(2);
-	}, 30_000);
+	});
 });

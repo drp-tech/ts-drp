@@ -77,6 +77,7 @@ describe("DRP Interval Discovery integration test", () => {
 	});
 
 	test("peer 1 can discover peer 3 topic", async () => {
+		vi.useRealTimers();
 		const node2GossipSub = node2.networkNode["_pubsub"] as GossipSub;
 
 		const filterGraft =

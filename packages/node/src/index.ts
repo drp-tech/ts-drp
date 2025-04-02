@@ -202,8 +202,10 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 				new Promise((_, reject) => setTimeout(() => reject(new AbortError("Timeout")), 5000)),
 			]);
 		} catch (error) {
-			if (error instanceof AbortError) {
+			if (error instanceof AbortError && error.message === "Timeout") {
 				log.error("::connectObject: Fetch state timed out");
+			} else {
+				throw error;
 			}
 		}
 
