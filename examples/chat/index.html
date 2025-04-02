@@ -5,6 +5,16 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>DRP - Chat</title>
 		<link rel="stylesheet" href="styles.css">
+		<script>
+			(function() {
+				const savedTheme = localStorage.getItem('theme');
+				const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+				
+				if (savedTheme === 'dark' || (!savedTheme && prefersDarkScheme.matches)) {
+					document.documentElement.setAttribute('data-theme', 'dark');
+				}
+			})();
+		</script>
 	</head>
 	<body>
 		<h1>DRP - Chat</h1>
