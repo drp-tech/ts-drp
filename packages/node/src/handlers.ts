@@ -21,7 +21,6 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 import { isPromise } from "@ts-drp/utils";
-import { type Deferred } from "@ts-drp/utils/promise/deferred";
 import { deserializeDRPState, serializeDRPState } from "@ts-drp/utils/serialization";
 import { MessageSchema } from "@ts-drp/validation/message";
 
@@ -36,10 +35,6 @@ interface HandleParams {
 interface IHandlerStrategy {
 	(handleParams: HandleParams): Promise<void> | void;
 }
-
-// Map of object id to deferred promise of fetch state
-// This is used to be able to wait for the fetch state to be resolved before subscribing to the object
-export const fetchStateDeferredMap = new Map<string, Deferred<void>>();
 
 const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
 	[MessageType.MESSAGE_TYPE_UNSPECIFIED]: undefined,
@@ -153,10 +148,6 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 			object.drpStates.set(fetchStateResponse.vertexHash, drpState);
 		}
 	} finally {
-		if (fetchStateDeferredMap.has(object.id)) {
-			fetchStateDeferredMap.get(object.id)?.resolve();
-			fetchStateDeferredMap.delete(object.id);
-		}
 		node.safeDispatchEvent(NodeEventName.DRP_FETCH_STATE_RESPONSE, {
 			detail: {
 				id: object.id,

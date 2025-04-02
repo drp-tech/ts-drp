@@ -9,6 +9,7 @@ import { DRPObject } from "@ts-drp/object";
 import {
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
+	type FetchStateResponseEvent,
 	type IDRP,
 	type IDRPNode,
 	type IDRPObject,
@@ -17,11 +18,12 @@ import {
 	MessageType,
 	type NodeConnectObjectOptions,
 	type NodeCreateObjectOptions,
+	NodeEventName,
 	type NodeEvents,
 } from "@ts-drp/types";
 import { NodeConnectObjectOptionsSchema, NodeCreateObjectOptionsSchema } from "@ts-drp/validation";
 import { DRPValidationError } from "@ts-drp/validation/errors";
-import { AbortError } from "race-signal";
+import { AbortError, raceEvent } from "race-event";
 
 import { drpObjectChangesHandler, handleMessage } from "./handlers.js";
 import { log } from "./logger.js";
@@ -195,18 +197,21 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		// start the interval discovery
 		this._createIntervalDiscovery(options.id);
 
-		const deferred = await operations.fetchState(this, options.id, options.sync?.peerId);
+		await operations.fetchState(this, options.id, options.sync?.peerId);
+		const controller = new AbortController();
+		const timeout = setTimeout(() => controller.abort(), 5000);
 		try {
-			await Promise.race([
-				deferred.promise,
-				new Promise((_, reject) => setTimeout(() => reject(new AbortError("Timeout")), 5000)),
-			]);
+			await raceEvent(this, NodeEventName.DRP_FETCH_STATE_RESPONSE, controller.signal, {
+				filter: (event: CustomEvent<FetchStateResponseEvent>) => event.detail.id === object.id,
+			});
 		} catch (error) {
-			if (error instanceof AbortError && error.message === "Timeout") {
+			if (error instanceof AbortError) {
 				log.error("::connectObject: Fetch state timed out");
 			} else {
 				throw error;
 			}
+		} finally {
+			clearTimeout(timeout);
 		}
 
 		// TODO: since when the interval can run this twice do we really want it to be

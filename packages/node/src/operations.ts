@@ -1,12 +1,10 @@
 import { HashGraph } from "@ts-drp/object";
 import { FetchState, type IDRP, type IDRPObject, Message, MessageType, Sync } from "@ts-drp/types";
-import { Deferred } from "@ts-drp/utils/promise/deferred";
 
-import { fetchStateDeferredMap } from "./handlers.js";
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
 
-export async function fetchState(node: DRPNode, objectId: string, peerId?: string): Promise<Deferred<void>> {
+export async function fetchState(node: DRPNode, objectId: string, peerId?: string): Promise<void> {
 	const data = FetchState.create({
 		vertexHash: HashGraph.rootHash,
 	});
@@ -22,10 +20,6 @@ export async function fetchState(node: DRPNode, objectId: string, peerId?: strin
 	} else {
 		await node.networkNode.sendMessage(peerId, message);
 	}
-
-	const deferred = new Deferred<void>();
-	fetchStateDeferredMap.set(objectId, deferred);
-	return deferred;
 }
 
 /**

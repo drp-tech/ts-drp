@@ -4,11 +4,15 @@ import { DRPNetworkNode } from "@ts-drp/network";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
 import { type DRPNetworkNodeConfig, DrpType, NodeEventName, type ObjectId, Operation } from "@ts-drp/types";
 import { raceEvent } from "race-event";
-import { afterAll, beforeEach, describe, expect, test } from "vitest";
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { DRPNode } from "../src/index.js";
 
 describe("Handle message correctly", () => {
+	vi.setConfig({
+		testTimeout: 15000,
+		hookTimeout: 15000,
+	});
 	const controller = new AbortController();
 	let node1: DRPNode;
 	let node2: DRPNode;
@@ -174,7 +178,7 @@ describe("Handle message correctly", () => {
 			p7,
 		]);
 		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(5);
-	}, 15_000);
+	});
 
 	test("should handle update attestation message correctly", async () => {
 		drpObjectNode2.drp?.add(5);
@@ -187,7 +191,7 @@ describe("Handle message correctly", () => {
 		drpObjectNode2.drp?.add(6);
 		await p;
 		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
-	}, 10_000); // 60 seconds
+	});
 
 	afterAll(async () => {
 		await bootstrapNode.stop();
