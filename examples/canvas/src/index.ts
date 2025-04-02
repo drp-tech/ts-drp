@@ -48,7 +48,7 @@ function createConnectHandlers(): void {
 		render();
 	});
 
-	node.objectStore.subscribe(drpObject.id, () => {
+	node.subscribe(drpObject.id, () => {
 		render();
 	});
 }

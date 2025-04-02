@@ -221,9 +221,9 @@ export class PrometheusMetricsRegister implements MetricsRegister {
 	}
 
 	/**
-	 * Create a new Histogram
-	 * @param config - The configuration for the Histogram
-	 * @returns A new Histogram
+	 * Create a new AvgMinMax
+	 * @param config - The configuration for the AvgMinMax
+	 * @returns A new AvgMinMax
 	 */
 	avgMinMax<Labels extends Record<string, string | number> = Record<string, never>>(
 		config: AvgMinMaxConfig<Labels>
