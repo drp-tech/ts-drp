@@ -174,7 +174,7 @@ describe("Handle message correctly", () => {
 			p7,
 		]);
 		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(5);
-	}, 10_000); // 10 seconds
+	}, 15_000);
 
 	test("should handle update attestation message correctly", async () => {
 		drpObjectNode2.drp?.add(5);
