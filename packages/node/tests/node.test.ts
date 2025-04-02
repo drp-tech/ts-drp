@@ -369,6 +369,9 @@ describe("DRPObject connection tests", () => {
 	test("Node should able to connect object and fetch states", async () => {
 		const obj1 = await node1.createObject({
 			drp: new SetDRP<number>(),
+			acl: new ObjectACL({
+				admins: [node1.networkNode.peerId, "fake-peer"],
+			}),
 		});
 		expect(obj1.acl.query_isAdmin(node1.networkNode.peerId)).toBe(true);
 
@@ -380,6 +383,7 @@ describe("DRPObject connection tests", () => {
 		});
 		expect(obj2.acl).toBeDefined();
 		expect(obj2.acl.query_isAdmin(node1.networkNode.peerId)).toBe(true);
+		expect(obj2.acl.query_isAdmin("fake-peer")).toBe(true);
 		expect(obj2.acl.query_isAdmin(node2.networkNode.peerId)).toBe(false);
 	});
 
