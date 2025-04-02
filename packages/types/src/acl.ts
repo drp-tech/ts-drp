@@ -44,23 +44,19 @@ export interface IACL extends IDRP {
 	permissionless: boolean;
 	/**
 	 * Grants a permission to a peer.
-	 *
 	 * @param peerId - The id of the peer.
 	 * @param group - The group to grant.
-	 * @param publicKey - The public key of the peer.
 	 */
 	grant(peerId: string, group: ACLGroup): void;
 	/**
 	 * Revokes a permission from a peer.
-	 *
 	 * @param peerId - The id of the peer.
 	 * @param group - The group to revoke.
 	 */
 	revoke(peerId: string, group: ACLGroup): void;
 	/**
 	 * Set the public key of a peer.
-	 *
-	 * @param key - The public key of the peer.
+	 * @param blsPublicKey - The public key of the peer.
 	 */
 	setKey(blsPublicKey: string): void;
 	/**
@@ -69,25 +65,21 @@ export interface IACL extends IDRP {
 	query_getFinalitySigners(): Map<string, string>;
 	/**
 	 * Checks if a peer is an admin.
-	 *
 	 * @param peerId - The id of the peer.
 	 */
 	query_isAdmin(peerId: string): boolean;
 	/**
 	 * Checks if a peer is a finality signer.
-	 *
 	 * @param peerId - The id of the peer.
 	 */
 	query_isFinalitySigner(peerId: string): boolean;
 	/**
 	 * Checks if a peer is a writer.
-	 *
 	 * @param peerId - The id of the peer.
 	 */
 	query_isWriter(peerId: string): boolean;
 	/**
 	 * Gets the public key of a peer.
-	 *
 	 * @param peerId - The id of the peer.
 	 */
 	query_getPeerKey(peerId: string): string | undefined;

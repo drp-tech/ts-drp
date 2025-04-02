@@ -19,6 +19,16 @@ function getPeerPermissions(params?: { blsPublicKey?: string; permissions?: Set<
 	};
 }
 
+export interface ObjectACLOptions {
+	admins: string[];
+	permissionless?: boolean;
+	conflictResolution?: ACLConflictResolution;
+}
+
+/**
+ * ObjectACL is a class that implements the IACL interface.
+ * It represents the ACL for an object in the system.
+ */
 export class ObjectACL implements IACL {
 	semanticsType = SemanticsType.pair;
 	context: DrpRuntimeContext = { caller: "" };
@@ -28,7 +38,11 @@ export class ObjectACL implements IACL {
 	private _conflictResolution: ACLConflictResolution;
 	private _authorizedPeers: Map<string, PeerPermissions>;
 
-	constructor(options: { admins: string[]; permissionless?: boolean; conflictResolution?: ACLConflictResolution }) {
+	/**
+	 * Creates a new ObjectACL instance.
+	 * @param options - The options for the ObjectACL.
+	 */
+	constructor(options: ObjectACLOptions) {
 		this.permissionless = options.permissionless ?? false;
 
 		const adminPermissions = new Set<ACLGroup>([ACLGroup.Admin, ACLGroup.Finality]);
@@ -42,6 +56,11 @@ export class ObjectACL implements IACL {
 		this._conflictResolution = options.conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
 
+	/**
+	 * Grants a peer permission to a group.
+	 * @param peerId - The ID of the peer to grant permission to.
+	 * @param group - The group to grant permission to.
+	 */
 	grant(peerId: string, group: ACLGroup): void {
 		if (!this.query_isAdmin(this.context.caller)) {
 			throw new Error("Only admin peers can grant permissions.");
@@ -70,6 +89,11 @@ export class ObjectACL implements IACL {
 		}
 	}
 
+	/**
+	 * Revokes a peer's permission from a group.
+	 * @param peerId - The ID of the peer to revoke permission from.
+	 * @param group - The group to revoke permission from.
+	 */
 	revoke(peerId: string, group: ACLGroup): void {
 		if (!this.query_isAdmin(this.context.caller)) {
 			throw new Error("Only admin peers can revoke permissions.");
@@ -93,6 +117,10 @@ export class ObjectACL implements IACL {
 		}
 	}
 
+	/**
+	 * Sets the BLS public key for a peer.
+	 * @param blsPublicKey - The BLS public key to set.
+	 */
 	setKey(blsPublicKey: string): void {
 		if (!this.query_isFinalitySigner(this.context.caller)) {
 			throw new Error("Only finality signers can set their BLS public key.");
@@ -106,6 +134,10 @@ export class ObjectACL implements IACL {
 		this._authorizedPeers.set(this.context.caller, peerPermissions);
 	}
 
+	/**
+	 * Returns a map of finality signers and their BLS public keys.
+	 * @returns A map of finality signers and their BLS public keys.
+	 */
 	query_getFinalitySigners(): Map<string, string> {
 		return new Map(
 			[...this._authorizedPeers.entries()]
@@ -114,22 +146,47 @@ export class ObjectACL implements IACL {
 		);
 	}
 
+	/**
+	 * Checks if a peer is an admin.
+	 * @param peerId - The ID of the peer to check.
+	 * @returns True if the peer is an admin, false otherwise.
+	 */
 	query_isAdmin(peerId: string): boolean {
 		return this._authorizedPeers.get(peerId)?.permissions.has(ACLGroup.Admin) ?? false;
 	}
 
+	/**
+	 * Checks if a peer is a finality signer.
+	 * @param peerId - The ID of the peer to check.
+	 * @returns True if the peer is a finality signer, false otherwise.
+	 */
 	query_isFinalitySigner(peerId: string): boolean {
 		return this._authorizedPeers.get(peerId)?.permissions.has(ACLGroup.Finality) ?? false;
 	}
 
+	/**
+	 * Checks if a peer is a writer.
+	 * @param peerId - The ID of the peer to check.
+	 * @returns True if the peer is a writer, false otherwise.
+	 */
 	query_isWriter(peerId: string): boolean {
 		return this.permissionless || (this._authorizedPeers.get(peerId)?.permissions.has(ACLGroup.Writer) ?? false);
 	}
 
+	/**
+	 * Returns the BLS public key for a peer.
+	 * @param peerId - The ID of the peer to get the BLS public key for.
+	 * @returns The BLS public key for the peer, or undefined if the peer is not authorized.
+	 */
 	query_getPeerKey(peerId: string): string | undefined {
 		return this._authorizedPeers.get(peerId)?.blsPublicKey;
 	}
 
+	/**
+	 * Resolves conflicts between two vertices.
+	 * @param vertices - The two vertices to resolve conflicts between.
+	 * @returns The action to take.
+	 */
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		if (!vertices[0].operation || !vertices[1].operation) return { action: ActionType.Nop };
 		if (vertices[0].operation.opType === "setKey" || vertices[1].operation.opType === "setKey") {

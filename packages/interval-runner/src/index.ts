@@ -9,6 +9,10 @@ import {
 } from "@ts-drp/types";
 import { isAsyncGenerator, isGenerator, isPromise } from "@ts-drp/utils";
 
+/**
+ * IntervalRunner is a class that runs a function at a given interval.
+ * @template Args - The arguments of the function
+ */
 export class IntervalRunner<Args extends unknown[] = []> implements IIntervalRunner<"interval:runner", Args> {
 	readonly type = "interval:runner";
 	readonly interval: number;
@@ -21,8 +25,8 @@ export class IntervalRunner<Args extends unknown[] = []> implements IIntervalRun
 	private _logger: Logger;
 
 	/**
-	 * @param interval - The interval in milliseconds
-	 * @param fn - The function to run when the interval is up and returns a boolean, true if the interval should continue, false if it should stop
+	 * Constructor for IntervalRunner
+	 * @param config - The configuration for the interval runner
 	 */
 	constructor(config: IntervalRunnerOptions) {
 		const defaultInterval = 10_000; // 10 seconds
@@ -130,6 +134,10 @@ export class IntervalRunner<Args extends unknown[] = []> implements IIntervalRun
 		}
 	}
 
+	/**
+	 * Get the state of the interval runner
+	 * @returns The state of the interval runner
+	 */
 	get state(): IntervalRunnerState {
 		return this._state === 1 ? IntervalRunnerState.Running : IntervalRunnerState.Stopped;
 	}

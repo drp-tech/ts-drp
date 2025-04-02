@@ -20,7 +20,6 @@ export interface DRPIntervalDiscoveryOptions extends Omit<IntervalRunnerOptions,
 /**
  * Enhanced DRP Discovery service using composition pattern
  * Implements IntervalRunnerInterface to maintain compatibility with IntervalRunner[] arrays
- * @interface IDRPIntervalDiscovery
  */
 export interface IDRPIntervalDiscovery extends IIntervalRunner<"interval:discovery"> {
 	/** Unique identifier for the object */
@@ -33,7 +32,7 @@ export interface IDRPIntervalDiscovery extends IIntervalRunner<"interval:discove
 	/**
 	 * Handles a discovery response from a peer
 	 * @param sender - The sender of the discovery response
-	 * @param data - The data of the discovery response
+	 * @param subscribers - The data of the discovery response
 	 */
 	handleDiscoveryResponse(sender: string, subscribers: Record<string, SubscriberInfo>): Promise<void>;
 }

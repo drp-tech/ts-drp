@@ -55,6 +55,8 @@ extensionCodec.register({
 /**
  * Main entry point for serialization.
  * Converts any value into a Uint8Array using Protocol Buffers.
+ * @param obj - The value to serialize
+ * @returns The serialized value
  */
 export function serializeValue(obj: unknown): Uint8Array {
 	return encode(obj, { extensionCodec });
@@ -63,11 +65,18 @@ export function serializeValue(obj: unknown): Uint8Array {
 /**
  * Main entry point for deserialization.
  * Converts a Uint8Array back into the original value structure.
+ * @param value - The value to deserialize
+ * @returns The deserialized value
  */
 export function deserializeValue(value: Uint8Array): unknown {
 	return decode(value, { extensionCodec });
 }
 
+/**
+ * Serializes a DRP state into a DRPStateOtherTheWire object.
+ * @param state - The DRP state to serialize
+ * @returns The serialized DRP state
+ */
 export function serializeDRPState(state?: DRPState): DRPStateOtherTheWire {
 	const drpState = DRPStateOtherTheWire.create();
 	for (const e of state?.state ?? []) {
@@ -80,6 +89,11 @@ export function serializeDRPState(state?: DRPState): DRPStateOtherTheWire {
 	return drpState;
 }
 
+/**
+ * Deserializes a DRPStateOtherTheWire object into a DRPState object.
+ * @param state - The DRP state to deserialize
+ * @returns The deserialized DRP state
+ */
 export function deserializeDRPState(state?: DRPStateOtherTheWire): DRPState {
 	const drpState = DRPState.create();
 

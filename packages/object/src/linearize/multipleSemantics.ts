@@ -3,6 +3,13 @@ import type { ObjectSet } from "@ts-drp/utils";
 
 import { type HashGraph } from "../hashgraph/index.js";
 
+/**
+ * Linearizes a hash graph using multiple semantics.
+ * @param hashGraph - The hash graph to linearize.
+ * @param origin - The origin hash.
+ * @param subgraph - The subgraph to linearize.
+ * @returns The linearized vertices.
+ */
 export function linearizeMultipleSemantics(hashGraph: HashGraph, origin: Hash, subgraph: ObjectSet<string>): Vertex[] {
 	const order = hashGraph.topologicalSort(true, origin, subgraph);
 	const result: Vertex[] = [];

@@ -121,7 +121,7 @@ describe("Handle message correctly", () => {
 		});
 		drpObjectNode2.drp?.add(5);
 		await p;
-		const expected_operations = node1.objectStore.get(drpObjectNode2.id)?.vertices.map((vertex) => {
+		const expected_operations = node1.get(drpObjectNode2.id)?.vertices.map((vertex) => {
 			return vertex.operation;
 		});
 		expect(expected_operations).toStrictEqual([
@@ -157,7 +157,7 @@ describe("Handle message correctly", () => {
 				event.detail.remotePeer.toString() === node2.networkNode.peerId && event.detail.limits === undefined,
 		});
 
-		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(undefined);
+		expect(node3.get(drpObjectNode2.id)?.vertices.length).toBe(undefined);
 		const p5 = raceEvent(node2, NodeEventName.DRP_FETCH_STATE);
 		const p8 = raceEvent(node1, NodeEventName.DRP_FETCH_STATE);
 		const p6 = raceEvent(node3, NodeEventName.DRP_FETCH_STATE_RESPONSE, controller.signal);
@@ -173,20 +173,20 @@ describe("Handle message correctly", () => {
 			p6,
 			p7,
 		]);
-		expect(node3.objectStore.get(drpObjectNode2.id)?.vertices.length).toBe(5);
+		expect(node3.get(drpObjectNode2.id)?.vertices.length).toBe(5);
 	}, 10_000); // 10 seconds
 
 	test("should handle update attestation message correctly", async () => {
 		drpObjectNode2.drp?.add(5);
 		drpObjectNode2.drp?.add(10);
 		const hash = drpObjectNode2.vertices[1].hash;
-		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
+		expect(node2.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
 		const p = raceEvent(node2, NodeEventName.DRP_ATTESTATION_UPDATE, controller.signal, {
 			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
 		});
 		drpObjectNode2.drp?.add(6);
 		await p;
-		expect(node2.objectStore.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
+		expect(node2.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
 	}, 10_000); // 60 seconds
 
 	afterAll(async () => {

@@ -32,6 +32,16 @@ function validateVertexTimestamp(a: number, b: number, hash: string): void {
 	}
 }
 
+/**
+ * Validates a vertex, three validation checks are performed:
+ * 1. The vertex hash is validated
+ * 2. The vertex dependencies are validated
+ * 3. The vertex timestamp is validated
+ * @param vertex - The vertex to validate
+ * @param hashGraph - The hash graph
+ * @param currentTimeStamp - The current timestamp
+ * @returns The validation result
+ */
 export function validateVertex(vertex: Vertex, hashGraph: IHashGraph, currentTimeStamp: number): ValidationResult {
 	try {
 		validateVertexHash(vertex);

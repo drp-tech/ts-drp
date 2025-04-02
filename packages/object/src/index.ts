@@ -52,6 +52,10 @@ interface OperationContext {
 	result: unknown;
 }
 
+/**
+ * A class that implements the DRPObjectBase interface and IDRPObject<T> interface.
+ * @template {IDRP} T - The type of the DRP object.
+ */
 export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 	id: string;
 	vertices: Vertex[] = [];
@@ -67,6 +71,10 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 	finalityStore: FinalityStore;
 	subscriptions: DRPObjectCallback<T>[] = [];
 
+	/**
+	 * Creates a new DRPObject instance.
+	 * @param options - The options for the DRPObject.
+	 */
 	constructor(options: DRPObjectOptions<T>) {
 		log = new Logger("drp::object", options.config?.log_config);
 		this.id =
@@ -123,6 +131,11 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
+	/**
+	 * Creates a new DRPObject instance.
+	 * @param options - The options for the DRPObject.
+	 * @returns The new DRPObject instance.
+	 */
 	static createObject<T extends IDRP>(options: CreateObjectOptions<T>): DRPObject<T> {
 		const aclObj = new ObjectACL({
 			admins: [],
@@ -142,7 +155,11 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 		return object;
 	}
 
-	// This function is black magic, it allows us to intercept calls to the DRP object
+	/**
+	 * Intercepts calls to the DRP object.
+	 * @param vertexType - The type of the DRP object.
+	 * @returns The proxy handler.
+	 */
 	proxyDRPHandler<T extends object>(vertexType: DrpType): ProxyHandler<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const obj = this;
@@ -301,7 +318,6 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 	 * Merges the vertices into the hashgraph
 	 * Returns a tuple with a boolean indicating if there were
 	 * missing vertices and an array with the missing vertices
-	 *
 	 * @param vertices - The vertices to merge
 	 * @returns A tuple with a boolean indicating if there were missing vertices and an array with the missing vertices
 	 */
@@ -364,6 +380,10 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 		return [missing.length === 0, missing];
 	}
 
+	/**
+	 * Subscribes to the DRPObject.
+	 * @param callback - The callback to subscribe to the DRPObject.
+	 */
 	subscribe(callback: DRPObjectCallback<T>): void {
 		this.subscriptions.push(callback);
 	}
@@ -638,6 +658,15 @@ export class DRPObject<T extends IDRP> implements DRPObjectBase, IDRPObject<T> {
 	}
 }
 
+/**
+ * Creates a new vertex.
+ * @param peerId - The peer ID.
+ * @param operation - The operation.
+ * @param dependencies - The dependencies.
+ * @param timestamp - The timestamp.
+ * @param signature - The signature.
+ * @returns The new vertex.
+ */
 export function newVertex(
 	peerId: string,
 	operation: Operation,

@@ -9,6 +9,7 @@ import { DRPObject } from "@ts-drp/object";
 import {
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
+	type DRPObjectSubscribeCallback,
 	type IDRP,
 	type IDRPNode,
 	type IDRPObject,
@@ -34,15 +35,22 @@ const DISCOVERY_MESSAGE_TYPES = [
 
 const DISCOVERY_QUEUE_ID = "discovery";
 
+/**
+ * A DRP node.
+ */
 export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 	config: DRPNodeConfig;
-	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
 	keychain: Keychain;
 	messageQueueManager: MessageQueueManager<Message>;
 
+	#objectStore: DRPObjectStore;
 	private _intervals: Map<string, IntervalRunnerMap[keyof IntervalRunnerMap]> = new Map();
 
+	/**
+	 * Create a new DRP node.
+	 * @param config - The configuration for the node.
+	 */
 	constructor(config?: DRPNodeConfig) {
 		super();
 		const newLogger = new Logger("drp::node", config?.log_config);
@@ -52,7 +60,7 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		log.warn = newLogger.warn;
 		log.error = newLogger.error;
 		this.networkNode = new DRPNetworkNode(config?.network_config);
-		this.objectStore = new DRPObjectStore();
+		this.#objectStore = new DRPObjectStore();
 		this.keychain = new Keychain(config?.keychain_config);
 		this.config = {
 			...config,
@@ -65,6 +73,9 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		});
 	}
 
+	/**
+	 * Start the node.
+	 */
 	async start(): Promise<void> {
 		await this.keychain.start();
 		await this.networkNode.start(this.keychain.secp256k1PrivateKey);
@@ -82,12 +93,18 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		this._intervals.forEach((interval) => interval.start());
 	}
 
+	/**
+	 * Stop the node.
+	 */
 	async stop(): Promise<void> {
 		await this.networkNode.stop();
 		void this.messageQueueManager.closeAll();
 		this._intervals.forEach((interval) => interval.stop());
 	}
 
+	/**
+	 * Restart the node.
+	 */
 	async restart(): Promise<void> {
 		await this.stop();
 
@@ -98,6 +115,10 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		log.info("::restart: Node restarted");
 	}
 
+	/**
+	 * Dispatch a message.
+	 * @param msg - The message to dispatch.
+	 */
 	async dispatchMessage(msg: Message): Promise<void> {
 		if (DISCOVERY_MESSAGE_TYPES.includes(msg.type)) {
 			await this.messageQueueManager.enqueue(DISCOVERY_QUEUE_ID, msg);
@@ -107,10 +128,19 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		await this.messageQueueManager.enqueue(msg.objectId, msg);
 	}
 
+	/**
+	 * Add a custom group.
+	 * @param group - The group to add.
+	 */
 	addCustomGroup(group: string): void {
 		this.networkNode.subscribe(group);
 	}
 
+	/**
+	 * Send a message to a group.
+	 * @param group - The group to send the message to.
+	 * @param data - The data to send.
+	 */
 	async sendGroupMessage(group: string, data: Uint8Array): Promise<void> {
 		const message = Message.create({
 			sender: this.networkNode.peerId,
@@ -120,6 +150,11 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		await this.networkNode.broadcastMessage(group, message);
 	}
 
+	/**
+	 * Send a message to a peer.
+	 * @param peerId - The peer to send the message to.
+	 * @param data - The data to send.
+	 */
 	async sendCustomMessage(peerId: string, data: Uint8Array): Promise<void> {
 		const message = Message.create({
 			sender: this.networkNode.peerId,
@@ -129,6 +164,38 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		await this.networkNode.sendMessage(peerId, message);
 	}
 
+	/**
+	 * Get an object by id
+	 * @param id The id of the object
+	 * @returns The object, or undefined if it does not exist
+	 */
+	get<T extends IDRP>(id: string): IDRPObject<T> | undefined {
+		return this.#objectStore.get(id);
+	}
+
+	/**
+	 * Put an object into the store.
+	 * @param id The id of the object
+	 * @param object The object
+	 */
+	put<T extends IDRP>(id: string, object: IDRPObject<T>): void {
+		this.#objectStore.put(id, object);
+	}
+
+	/**
+	 * Subscribe to an object.
+	 * @param id The id of the object
+	 * @param callback The callback to call when the object changes
+	 */
+	subscribe<T extends IDRP>(id: string, callback: DRPObjectSubscribeCallback<T>): void {
+		this.#objectStore.subscribe(id, callback);
+	}
+
+	/**
+	 * Create an object.
+	 * @param options - The options for the object.
+	 * @returns The created object.
+	 */
 	async createObject<T extends IDRP>(options: NodeCreateObjectOptions<T>): Promise<DRPObject<T>> {
 		if (this.networkNode.peerId === "") {
 			throw new Error("Node not started");
@@ -150,7 +217,7 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		});
 
 		// put the object in the object store
-		this.objectStore.put(object.id, object);
+		this.#objectStore.put(object.id, object);
 
 		// subscribe to the object
 		this.subscribeObject(object);
@@ -166,9 +233,8 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 
 	/**
 	 * Connect to an existing object
-	 * @param options.id - The object ID
-	 * @param options.drp - The DRP instance. It can be undefined where we just want the HG state
-	 * @param options.sync.peerId - The peer ID to sync with
+	 * @param options - The options for the object.
+	 * @returns The connected object.
 	 */
 	async connectObject<T extends IDRP>(options: NodeConnectObjectOptions<T>): Promise<IDRPObject<T>> {
 		if (this.networkNode.peerId === "") {
@@ -187,7 +253,7 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		});
 
 		// put the object in the object store
-		this.objectStore.put(object.id, object);
+		this.#objectStore.put(object.id, object);
 
 		this.subscribeObject(object);
 
@@ -211,6 +277,10 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		return object;
 	}
 
+	/**
+	 * Subscribe to an object.
+	 * @param object - The object to subscribe to.
+	 */
 	subscribeObject<T extends IDRP>(object: DRPObject<T>): void {
 		// subscribe to the object
 		object.subscribe((obj, originFn, vertices) => drpObjectChangesHandler(this, obj, originFn, vertices));
@@ -220,13 +290,23 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		this.messageQueueManager.subscribe(object.id, (msg) => handleMessage(this, msg));
 	}
 
+	/**
+	 * Unsubscribe from an object.
+	 * @param id - The object ID.
+	 * @param purge - Whether to purge the object.
+	 */
 	unsubscribeObject(id: string, purge?: boolean): void {
 		this.networkNode.unsubscribe(id);
-		if (purge) this.objectStore.remove(id);
+		if (purge) this.#objectStore.remove(id);
 		this.networkNode.removeTopicScoreParams(id);
 		this.messageQueueManager.close(id);
 	}
 
+	/**
+	 * Sync an object.
+	 * @param id - The object ID.
+	 * @param peerId - The peer ID to sync with.
+	 */
 	async syncObject(id: string, peerId?: string): Promise<void> {
 		await operations.syncObject(this, id, peerId);
 	}
@@ -248,6 +328,11 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		interval.start();
 	}
 
+	/**
+	 * Handle a discovery response.
+	 * @param sender - The sender of the message.
+	 * @param message - The message to handle.
+	 */
 	async handleDiscoveryResponse(sender: string, message: Message): Promise<void> {
 		const response = DRPDiscoveryResponse.decode(message.data);
 		const objectId = message.objectId;

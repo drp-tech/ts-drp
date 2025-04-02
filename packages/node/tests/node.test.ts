@@ -226,7 +226,7 @@ describe("DRPNode with rpc", () => {
 		const drpObjectConnected = await drpNode.connectObject({ id: drpObject.id, drp });
 		expect(drpObjectConnected.id).toEqual(drpObject.id);
 		vi.advanceTimersByTime(5000);
-		const object = drpNode.objectStore.get(drpObject.id);
+		const object = drpNode.get(drpObject.id);
 		expect(object).toBeDefined();
 	});
 
@@ -237,7 +237,7 @@ describe("DRPNode with rpc", () => {
 
 	test("should run unsubscribeObject with purge", () => {
 		drpNode.unsubscribeObject(drpObject.id, true);
-		const store = drpNode.objectStore.get(drpObject.id);
+		const store = drpNode.get(drpObject.id);
 		expect(store).toBeUndefined();
 	});
 
@@ -248,24 +248,5 @@ describe("DRPNode with rpc", () => {
 	test("should run node restart", async () => {
 		await drpNode.restart();
 		expect(mockLogger.info).toHaveBeenCalledWith("::restart: Node restarted");
-	});
-
-	test("Should subscribe to object", () => {
-		drpNode.objectStore.subscribe(drpObject.id, () => {
-			mockLogger.info("::subscribe: Subscribed to object");
-		});
-		const _subscriptions = drpNode.objectStore["_subscriptions"];
-		expect(_subscriptions.has(drpObject.id)).toBe(true);
-	});
-
-	test("Should unsubscribe to object", () => {
-		const callBack = (): void => {
-			mockLogger.info("::unsubscribe: Unsubscribed to object");
-		};
-		drpNode.objectStore.subscribe(drpObject.id, callBack);
-		drpNode.objectStore.unsubscribe(drpObject.id, callBack);
-		const _subscriptions = drpNode.objectStore["_subscriptions"];
-		const expectedCallback = _subscriptions.get(drpObject.id)?.find((x) => x === callBack);
-		expect(expectedCallback).toBeUndefined();
 	});
 });

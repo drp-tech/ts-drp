@@ -6,6 +6,11 @@ export interface ChannelOptions {
 	logOptions?: LoggerOptions;
 }
 
+/**
+ * Channel is a class that implements a simple message queue.
+ * It provides methods to send and receive messages.
+ * @template T - The type of messages that the channel will handle
+ */
 export class Channel<T> {
 	private readonly values: Array<T> = [];
 	private readonly sends: Array<{ value: T; signal: Deferred<void> }> = [];
@@ -14,6 +19,10 @@ export class Channel<T> {
 	private readonly logger: Logger;
 	private isClosed: boolean = false;
 
+	/**
+	 * Constructor for Channel
+	 * @param options - The options for the channel
+	 */
 	constructor(options: ChannelOptions = {}) {
 		this.options = {
 			capacity: options.capacity ?? 1000,
@@ -24,6 +33,10 @@ export class Channel<T> {
 		this.logger = new Logger("drp::channel", this.options.logOptions);
 	}
 
+	/**
+	 * Send a message to the channel
+	 * @param value - The value to send to the channel
+	 */
 	async send(value: T): Promise<void> {
 		if (this.isClosed) {
 			throw new Error("Channel is closed");
@@ -54,6 +67,10 @@ export class Channel<T> {
 		await signal.promise;
 	}
 
+	/**
+	 * Receive a message from the channel
+	 * @returns The value received from the channel
+	 */
 	async receive(): Promise<T> {
 		// if channel is closed and no more messages, throw
 		if (this.isClosed && this.values.length === 0 && this.sends.length === 0) {
@@ -90,6 +107,9 @@ export class Channel<T> {
 		return signal.promise;
 	}
 
+	/**
+	 * Close the channel
+	 */
 	close(): void {
 		this.isClosed = true;
 		// Reject all pending receives
@@ -101,6 +121,9 @@ export class Channel<T> {
 		}
 	}
 
+	/**
+	 * Start the channel
+	 */
 	start(): void {
 		if (this.isClosed) {
 			this.logger.warn("Channel is closed");

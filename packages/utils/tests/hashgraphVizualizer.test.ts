@@ -1,13 +1,4 @@
-import {
-	ActionType,
-	DrpType,
-	type Hash,
-	type IBitSet,
-	type IHashGraph,
-	Operation,
-	SemanticsType,
-	Vertex,
-} from "@ts-drp/types";
+import { ActionType, DrpType, type Hash, type IHashGraph, Operation, SemanticsType, Vertex } from "@ts-drp/types";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { HashGraphVisualizer } from "../src/debug/hashgraph-visualizer.js";
@@ -103,9 +94,6 @@ class MockHashGraph implements IHashGraph {
 	swapReachablePredecessors(): void {}
 	areCausallyRelatedUsingBFS(): boolean {
 		return false;
-	}
-	getReachablePredecessors(): IBitSet | undefined {
-		return undefined;
 	}
 	getCurrentBitsetSize(): number {
 		return 0;

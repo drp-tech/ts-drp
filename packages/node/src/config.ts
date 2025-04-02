@@ -7,6 +7,11 @@ function parseCommaSeparatedValue(value: string | undefined): string[] | undefin
 	return value === "" ? [] : value.split(",");
 }
 
+/**
+ * Load the configuration for the DRP node.
+ * @param configPath - The path to the configuration file.
+ * @returns The configuration for the DRP node.
+ */
 export function loadConfig(configPath?: string | undefined): DRPNodeConfig | undefined {
 	let config: DRPNodeConfig | undefined;
 

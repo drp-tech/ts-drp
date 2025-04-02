@@ -25,6 +25,8 @@ export {
 	SyncReject,
 	DRPDiscovery,
 	DRPDiscoveryResponse,
+	DRPDiscoveryResponse_Subscribers,
+	DRPDiscoveryResponse_SubscribersEntry,
 } from "./proto/drp/v1/messages_pb.js";
 
 export * from "./acl.js";

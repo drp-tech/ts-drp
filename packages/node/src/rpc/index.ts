@@ -19,6 +19,11 @@ import {
 	type UnsubscribeDRPRequest,
 } from "../proto/drp/node/v1/rpc_pb.js";
 
+/**
+ * Initialize the RPC server.
+ * @param node - The DRP node.
+ * @param port - The port to run the server on.
+ */
 export function init(node: DRPNode, port: number = 6969): void {
 	async function subscribeDRP(
 		call: ServerUnaryCall<SubscribeDRPRequest, GenericRespone>,
@@ -64,7 +69,7 @@ export function init(node: DRPNode, port: number = 6969): void {
 	): void {
 		const hashes: string[] = [];
 		try {
-			const object = node.objectStore.get(call.request.drpId);
+			const object = node.get(call.request.drpId);
 			if (!object) throw Error("drp not found");
 			if (!object.hashGraph) throw Error("hashgraph not found");
 			for (const v of object.hashGraph.getAllVertices()) {
