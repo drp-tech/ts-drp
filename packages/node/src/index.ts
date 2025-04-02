@@ -21,6 +21,7 @@ import {
 	NodeEventName,
 	type NodeEvents,
 } from "@ts-drp/types";
+import { timeoutSignal } from "@ts-drp/utils/promise/timeout";
 import { NodeConnectObjectOptionsSchema, NodeCreateObjectOptionsSchema } from "@ts-drp/validation";
 import { DRPValidationError } from "@ts-drp/validation/errors";
 import { AbortError, raceEvent } from "race-event";
@@ -198,10 +199,9 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		this._createIntervalDiscovery(options.id);
 
 		await operations.fetchState(this, options.id, options.sync?.peerId);
-		const controller = new AbortController();
-		const timeout = setTimeout(() => controller.abort(), 5000);
+		const { signal, cleanup } = timeoutSignal(5000);
 		try {
-			await raceEvent(this, NodeEventName.DRP_FETCH_STATE_RESPONSE, controller.signal, {
+			await raceEvent(this, NodeEventName.DRP_FETCH_STATE_RESPONSE, signal, {
 				filter: (event: CustomEvent<FetchStateResponseEvent>) => event.detail.id === object.id,
 			});
 		} catch (error) {
@@ -211,7 +211,7 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 				throw error;
 			}
 		} finally {
-			clearTimeout(timeout);
+			cleanup();
 		}
 
 		// TODO: since when the interval can run this twice do we really want it to be
