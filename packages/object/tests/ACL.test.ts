@@ -2,6 +2,7 @@ import { ACLGroup, ActionType, DrpType, Operation, Vertex } from "@ts-drp/types"
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
+import { createPermissionlessACL } from "../src/index.js";
 
 describe("AccessControl tests with RevokeWins resolution", () => {
 	let acl: ObjectACL;
@@ -163,39 +164,29 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 });
 
 describe("AccessControl tests with permissionless", () => {
-	let acl: ObjectACL;
-
-	beforeEach(() => {
-		acl = new ObjectACL({
-			admins: ["peer1"],
-			permissionless: true,
-		});
-	});
-
-	test("Admin nodes should have admin privileges", () => {
+	test.concurrent("Admin nodes should have admin privileges", () => {
+		const acl = createPermissionlessACL(["peer1"]);
 		expect(acl.query_isAdmin("peer1")).toBe(true);
 	});
 
-	test("Should admin cannot grant write permissions", () => {
+	test.concurrent("Should admin cannot grant write permissions", () => {
+		const acl = createPermissionlessACL(["peer1"]);
 		acl.context = { caller: "peer1" };
 		expect(() => {
 			acl.grant("peer3", ACLGroup.Writer);
 		}).toThrow("Cannot grant write permissions to a peer in permissionless mode.");
 	});
 
-	test("Should not update other admin permissions", () => {
-		const acl1 = new ObjectACL({
-			admins: ["peer1", "peer2"],
-			permissionless: true,
-		});
+	test.concurrent("Should not update other admin permissions", () => {
+		const acl = createPermissionlessACL(["peer1", "peer2"]);
 
-		acl1.permissionless = false;
-		expect(acl1.query_isWriter("peer1")).toBe(false);
-		expect(acl1.query_isWriter("peer2")).toBe(false);
+		acl.permissionless = false;
+		expect(acl.query_isWriter("peer1")).toBe(false);
+		expect(acl.query_isWriter("peer2")).toBe(false);
 
-		acl1.context = { caller: "peer1" };
-		acl1.grant("peer2", ACLGroup.Writer);
-		expect(acl1.query_isWriter("peer1")).toBe(false);
-		expect(acl1.query_isWriter("peer2")).toBe(true);
+		acl.context = { caller: "peer1" };
+		acl.grant("peer2", ACLGroup.Writer);
+		expect(acl.query_isWriter("peer1")).toBe(false);
+		expect(acl.query_isWriter("peer2")).toBe(true);
 	});
 });

@@ -64,6 +64,7 @@ export class DRPProxy<T extends IDRP> {
 	 * @param target - The target object this proxy is associated with
 	 * @param pipeline - The pipeline of steps to be executed
 	 * @param type - The type of the proxy
+	 */
 	constructor(target: T, pipeline: Pipeline<DRPProxyChainArgs, PostOperation<IDRP>>, type: DrpType) {
 		this.type = type;
 		this.target = target;
