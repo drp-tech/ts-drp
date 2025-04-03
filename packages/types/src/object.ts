@@ -46,7 +46,7 @@ export interface IDRPObject<T extends IDRP> extends DRPObjectBase {
 	acl: IACL;
 
 	/**
-	 * The original ACL of the DRP object.
+	 * The DRP of the DRP object.
 	 */
 	drp?: T;
 
