@@ -35,7 +35,6 @@ function defaultIDFromPeerID(peerId: string): string {
 	);
 }
 
-function defaultACL(peerId: string): IACL {
 export function defaultACL(admins: string | string[]): IACL {
 	return new ObjectACL({
 		admins: Array.isArray(admins) ? admins : [admins],
