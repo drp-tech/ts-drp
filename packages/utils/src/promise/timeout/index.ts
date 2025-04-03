@@ -24,6 +24,5 @@ export function timeoutSignal(ms: number): { signal: AbortSignal; cleanup(): voi
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), ms);
 	const cleanup = (): void => clearTimeout(timeout);
-	controller.signal.addEventListener("abort", cleanup);
 	return { signal: controller.signal, cleanup };
 }
