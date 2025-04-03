@@ -2,7 +2,6 @@ import {
 	ActionType,
 	DrpType,
 	type Hash,
-	type IBitSet,
 	type IHashGraph,
 	type LowestCommonAncestorResult,
 	Operation,
@@ -111,9 +110,6 @@ class MockHashGraph implements IHashGraph {
 	swapReachablePredecessors(): void {}
 	areCausallyRelatedUsingBFS(): boolean {
 		return false;
-	}
-	getReachablePredecessors(): IBitSet | undefined {
-		return undefined;
 	}
 	getCurrentBitsetSize(): number {
 		return 0;

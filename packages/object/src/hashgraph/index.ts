@@ -28,6 +28,9 @@ export type VertexDistance = {
 	closestDependency?: Hash;
 };
 
+/**
+ * Implementation of the hashgraph data structure.
+ */
 export class HashGraph implements IHashGraph {
 	peerId: string;
 	semanticsTypeDRP?: SemanticsType;
@@ -54,6 +57,14 @@ export class HashGraph implements IHashGraph {
 	// We start with a bitset of size 1, and double it every time we reach the limit
 	private currentBitsetSize = 1;
 
+	/**
+	 * Creates a new hashgraph.
+	 * @param peerId - The peer ID.
+	 * @param resolveConflictsACL - The resolve conflicts ACL.
+	 * @param resolveConflictsDRP - The resolve conflicts DRP.
+	 * @param semanticsTypeDRP - The semantics type DRP.
+	 * @param logConfig - The log config.
+	 */
 	constructor(
 		peerId: string,
 		resolveConflictsACL: ResolveConflictFn = this.resolveConflictsACL,
@@ -61,14 +72,6 @@ export class HashGraph implements IHashGraph {
 		semanticsTypeDRP?: SemanticsType,
 		logConfig?: LoggerOptions
 	) {
-		this.peerId = peerId;
-
-		this.resolveConflictsACL = resolveConflictsACL;
-		this.resolveConflictsDRP = resolveConflictsDRP;
-
-		this.semanticsTypeDRP = semanticsTypeDRP;
-		this.log = new Logger("drp::hashgraph", logConfig);
-
 		const rootVertex = Vertex.create({
 			hash: HashGraph.rootHash,
 			peerId: "",
@@ -77,21 +80,40 @@ export class HashGraph implements IHashGraph {
 			timestamp: -1,
 			signature: new Uint8Array(),
 		});
+
+		this.log = new Logger("drp::hashgraph", logConfig);
+		this.peerId = peerId;
+		this.semanticsTypeDRP = semanticsTypeDRP;
+		this.resolveConflictsACL = resolveConflictsACL;
+		this.resolveConflictsDRP = resolveConflictsDRP;
 		this.vertices.set(HashGraph.rootHash, rootVertex);
 		this.frontier.push(HashGraph.rootHash);
 		this.forwardEdges.set(HashGraph.rootHash, []);
-		this.vertexDistances.set(HashGraph.rootHash, {
-			distance: 0,
-		});
+		this.vertexDistances.set(HashGraph.rootHash, { distance: 0 });
 	}
 
+	/**
+	 * Resolves conflicts between two vertices.
+	 * @param _ - The vertices to resolve conflicts between.
+	 * @returns The resolve conflicts type.
+	 */
 	resolveConflictsDRP(_: Vertex[]): ResolveConflictsType {
 		return { action: ActionType.Nop };
 	}
+	/**
+	 * Resolves conflicts between two vertices.
+	 * @param _ - The vertices to resolve conflicts between.
+	 * @returns The resolve conflicts type.
+	 */
 	resolveConflictsACL(_: Vertex[]): ResolveConflictsType {
 		return { action: ActionType.Nop };
 	}
 
+	/**
+	 * Resolves conflicts between two vertices.
+	 * @param vertices - The vertices to resolve conflicts between.
+	 * @returns The resolve conflicts type.
+	 */
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		if (vertices[0].operation?.drpType === "ACL") {
 			return this.resolveConflictsACL(vertices);
@@ -99,6 +121,13 @@ export class HashGraph implements IHashGraph {
 		return this.resolveConflictsDRP(vertices);
 	}
 
+	/**
+	 * Creates a new vertex.
+	 * @param operation - The operation.
+	 * @param [dependencies=this.getFrontier()] - The dependencies.
+	 * @param [timestamp=Date.now()] - The timestamp.
+	 * @returns The new vertex.
+	 */
 	createVertex(
 		operation: Operation,
 		dependencies: Hash[] = this.getFrontier(),
@@ -108,6 +137,10 @@ export class HashGraph implements IHashGraph {
 	}
 
 	// Add a new vertex to the hashgraph.
+	/**
+	 * Adds a new vertex to the hashgraph.
+	 * @param vertex - The vertex to add.
+	 */
 	addVertex(vertex: Vertex): void {
 		if (vertex.dependencies.length === 0) {
 			throw new Error("Vertex has no dependencies");
@@ -142,6 +175,12 @@ export class HashGraph implements IHashGraph {
 		this.arePredecessorsFresh = false;
 	}
 
+	/**
+	 * Topologically sorts the vertices in the whole hashgraph or the past of a given vertex.
+	 * @param origin - The origin hash.
+	 * @param subgraph - The subgraph.
+	 * @returns The topologically sorted vertices.
+	 */
 	dfsTopologicalSortIterative(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
 		const visited = new ObjectSet<Hash>();
 		const result: Hash[] = Array(subgraph.size);
@@ -181,6 +220,13 @@ export class HashGraph implements IHashGraph {
 	}
 
 	/* Topologically sort the vertices in the whole hashgraph or the past of a given vertex. */
+	/**
+	 * Topologically sorts the vertices in the whole hashgraph or the past of a given vertex.
+	 * @param updateBitsets - Whether to update the bitsets.
+	 * @param origin - The origin hash.
+	 * @param subgraph - The subgraph.
+	 * @returns The topologically sorted vertices.
+	 */
 	topologicalSort(
 		updateBitsets = false,
 		origin: Hash = HashGraph.rootHash,
@@ -221,6 +267,12 @@ export class HashGraph implements IHashGraph {
 		return { lca, linearizedVertices };
 	}
 
+	/**
+	 * Linearizes the vertices.
+	 * @param origin - The origin hash.
+	 * @param subgraph - The subgraph.
+	 * @returns The linearized vertices.
+	 */
 	linearizeVertices(
 		origin: Hash = HashGraph.rootHash,
 		subgraph: ObjectSet<string> = new ObjectSet(this.vertices.keys())
@@ -235,6 +287,12 @@ export class HashGraph implements IHashGraph {
 		}
 	}
 
+	/**
+	 * Finds the lowest common ancestor of multiple vertices.
+	 * @param hashes - The hashes of the vertices.
+	 * @param visited - The visited vertices.
+	 * @returns The lowest common ancestor.
+	 */
 	lowestCommonAncestorMultipleVertices(hashes: Hash[], visited: ObjectSet<Hash>): Hash {
 		if (hashes.length === 0) {
 			throw new Error("Vertex dependencies are empty");
@@ -317,6 +375,12 @@ export class HashGraph implements IHashGraph {
 		return currentHash1;
 	}
 
+	/**
+	 * Checks if two vertices are causally related using bitsets.
+	 * @param hash1 - The first hash.
+	 * @param hash2 - The second hash.
+	 * @returns True if the vertices are causally related, false otherwise.
+	 */
 	areCausallyRelatedUsingBitsets(hash1: Hash, hash2: Hash): boolean {
 		if (!this.arePredecessorsFresh) {
 			this.topologicalSort(true);
@@ -326,6 +390,11 @@ export class HashGraph implements IHashGraph {
 		return test1 || test2;
 	}
 
+	/**
+	 * Swaps the reachable predecessors of two vertices.
+	 * @param hash1 - The first hash.
+	 * @param hash2 - The second hash.
+	 */
 	swapReachablePredecessors(hash1: Hash, hash2: Hash): void {
 		const reachable1 = this.reachablePredecessors.get(hash1);
 		const reachable2 = this.reachablePredecessors.get(hash2);
@@ -366,30 +435,54 @@ export class HashGraph implements IHashGraph {
 		return false;
 	}
 
+	/**
+	 * Checks if two vertices are causally related using BFS.
+	 * @param hash1 - The first hash.
+	 * @param hash2 - The second hash.
+	 * @returns True if the vertices are causally related, false otherwise.
+	 */
 	areCausallyRelatedUsingBFS(hash1: Hash, hash2: Hash): boolean {
 		return this._areCausallyRelatedUsingBFS(hash1, hash2) || this._areCausallyRelatedUsingBFS(hash2, hash1);
 	}
 
+	/**
+	 * Gets the frontier.
+	 * @returns The frontier.
+	 */
 	getFrontier(): Hash[] {
 		return Array.from(this.frontier);
 	}
 
+	/**
+	 * Gets the dependencies of a vertex.
+	 * @param vertexHash - The vertex hash.
+	 * @returns The dependencies.
+	 */
 	getDependencies(vertexHash: Hash): Hash[] {
 		return Array.from(this.vertices.get(vertexHash)?.dependencies || []);
 	}
 
+	/**
+	 * Gets a vertex by hash.
+	 * @param hash - The hash.
+	 * @returns The vertex.
+	 */
 	getVertex(hash: Hash): Vertex | undefined {
 		return this.vertices.get(hash);
 	}
 
+	/**
+	 * Gets all vertices.
+	 * @returns The vertices.
+	 */
 	getAllVertices(): Vertex[] {
 		return Array.from(this.vertices.values());
 	}
 
-	getReachablePredecessors(hash: Hash): BitSet | undefined {
-		return this.reachablePredecessors.get(hash);
-	}
-
+	/**
+	 * Gets the current bitset size.
+	 * @returns The current bitset size.
+	 */
 	getCurrentBitsetSize(): number {
 		return this.currentBitsetSize;
 	}

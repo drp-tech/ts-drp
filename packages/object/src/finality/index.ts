@@ -15,6 +15,10 @@ import { BitSet } from "../hashgraph/bitset.js";
 
 const DEFAULT_FINALITY_THRESHOLD = 0.51;
 
+/**
+ * FinalityState is a class that implements the IFinalityState interface.
+ * It represents the state of a vertex in the finality store.
+ */
 export class FinalityState implements IFinalityState {
 	data: string;
 	signerCredentials: string[];
@@ -23,6 +27,11 @@ export class FinalityState implements IFinalityState {
 	signature?: Uint8Array;
 	numberOfSignatures: number;
 
+	/**
+	 * Creates a new FinalityState instance.
+	 * @param hash - The hash of the vertex.
+	 * @param signers - The signers of the vertex.
+	 */
 	constructor(hash: Hash, signers: Map<string, string>) {
 		this.data = hash;
 
@@ -39,6 +48,12 @@ export class FinalityState implements IFinalityState {
 		this.numberOfSignatures = 0;
 	}
 
+	/**
+	 * Adds a signature to the vertex.
+	 * @param peerId - The peer ID of the signer.
+	 * @param signature - The signature to add.
+	 * @param verify - Whether to verify the signature.
+	 */
 	addSignature(peerId: string, signature: Uint8Array, verify = true): void {
 		const index = this.signerIndices.get(peerId);
 		if (index === undefined) {
@@ -72,6 +87,10 @@ export class FinalityState implements IFinalityState {
 		this.numberOfSignatures++;
 	}
 
+	/**
+	 * Merges an attestation into the current state.
+	 * @param attestation - The attestation to merge.
+	 */
 	merge(attestation: AggregatedAttestation): void {
 		if (this.data !== attestation.data) {
 			throw new Error("Hash mismatch");
@@ -100,12 +119,20 @@ export class FinalityState implements IFinalityState {
 	}
 }
 
+/**
+ * Manages the finality states of vertices.
+ */
 export class FinalityStore implements IFinalityStore {
 	states: Map<string, FinalityState>;
 	finalityThreshold: number;
 
 	private log: Logger;
 
+	/**
+	 * Creates a new FinalityStore instance.
+	 * @param config @default undefined - The finality configuration.
+	 * @param logConfig @default undefined - The logger configuration.
+	 */
 	constructor(config?: FinalityConfig, logConfig?: LoggerOptions) {
 		this.states = new Map();
 		this.finalityThreshold = config?.finality_threshold ?? DEFAULT_FINALITY_THRESHOLD;
@@ -113,13 +140,22 @@ export class FinalityStore implements IFinalityStore {
 		this.log = new Logger("drp::finality", logConfig);
 	}
 
+	/**
+	 * Initializes a new state for a vertex.
+	 * @param hash - The hash of the vertex.
+	 * @param signers - The signers of the vertex.
+	 */
 	initializeState(hash: Hash, signers: Map<string, string>): void {
 		if (!this.states.has(hash)) {
 			this.states.set(hash, new FinalityState(hash, signers));
 		}
 	}
 
-	// returns the number of signatures required for the vertex to be finalized
+	/**
+	 * Returns the number of signatures required for finality.
+	 * @param hash - The hash of the vertex.
+	 * @returns The quorum.
+	 */
 	getQuorum(hash: Hash): number | undefined {
 		const state = this.states.get(hash);
 		if (state === undefined) {
@@ -128,12 +164,20 @@ export class FinalityStore implements IFinalityStore {
 		return Math.ceil(state.signerCredentials.length * this.finalityThreshold);
 	}
 
-	// returns the number of signatures for the vertex
+	/**
+	 * Returns the current number of signatures.
+	 * @param hash - The hash of the vertex.
+	 * @returns The number of signatures.
+	 */
 	getNumberOfSignatures(hash: Hash): number | undefined {
 		return this.states.get(hash)?.numberOfSignatures;
 	}
 
-	// returns true if the vertex is finalized
+	/**
+	 * Checks if a vertex has reached finality.
+	 * @param hash - The hash of the vertex.
+	 * @returns Whether the vertex has reached finality.
+	 */
 	isFinalized(hash: Hash): boolean | undefined {
 		const numberOfSignatures = this.getNumberOfSignatures(hash);
 		const quorum = this.getQuorum(hash);
@@ -142,12 +186,22 @@ export class FinalityStore implements IFinalityStore {
 		}
 	}
 
-	// returns true if the specified peerId can sign the vertex
+	/**
+	 * Checks if a peer can sign a vertex.
+	 * @param peerId - The peer ID of the signer.
+	 * @param hash - The hash of the vertex.
+	 * @returns Whether the peer can sign the vertex.
+	 */
 	canSign(peerId: string, hash: Hash): boolean | undefined {
 		return this.states.get(hash)?.signerIndices.has(peerId);
 	}
 
-	// returns true if the specified peerId has signed on the vertex
+	/**
+	 * Checks if a peer has signed a vertex.
+	 * @param peerId - The peer ID of the signer.
+	 * @param hash - The hash of the vertex.
+	 * @returns Whether the peer has signed the vertex.
+	 */
 	signed(peerId: string, hash: Hash): boolean | undefined {
 		const state = this.states.get(hash);
 		if (state !== undefined) {
@@ -158,7 +212,13 @@ export class FinalityStore implements IFinalityStore {
 		}
 	}
 
-	// add signatures to the vertex
+	/**
+	 * Adds signatures to vertices.
+	 * @param peerId - The peer ID of the signer.
+	 * @param attestations - The attestations to add.
+	 * @param verify @default true - Whether to verify the signatures.
+	 * @returns The added attestations.
+	 */
 	addSignatures(peerId: string, attestations: Attestation[], verify = true): Attestation[] {
 		const added = [];
 		for (const attestation of attestations) {
@@ -172,7 +232,11 @@ export class FinalityStore implements IFinalityStore {
 		return added;
 	}
 
-	// returns the attestations for the vertex
+	/**
+	 * Retrieves the attestation for a vertex.
+	 * @param hash - The hash of the vertex.
+	 * @returns The attestation.
+	 */
 	getAttestation(hash: Hash): AggregatedAttestation | undefined {
 		const state = this.states.get(hash);
 		if (state !== undefined && state.signature !== undefined) {
@@ -184,7 +248,10 @@ export class FinalityStore implements IFinalityStore {
 		}
 	}
 
-	// merge multiple signatures
+	/**
+	 * Merges multiple signatures into their respective states.
+	 * @param attestations - The attestations to merge.
+	 */
 	mergeSignatures(attestations: AggregatedAttestation[]): void {
 		for (const attestation of attestations) {
 			try {

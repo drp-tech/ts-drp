@@ -256,7 +256,7 @@ function createConnectHandlers(chatState: ChatStateManager): void {
 		renderChat(chatState);
 	});
 
-	node.objectStore.subscribe(chatState.drp.id, () => {
+	node.subscribe(chatState.drp.id, () => {
 		renderChat(chatState);
 	});
 }

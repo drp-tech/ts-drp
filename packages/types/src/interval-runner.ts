@@ -1,7 +1,7 @@
 import { type IntervalRunnerState } from "./enum.js";
 import { type LoggerOptions } from "./logger.js";
 
-type AnyFnCallback<T, Args extends unknown[] = []> =
+export type AnyFnCallback<T, Args extends unknown[] = []> =
 	| (() => T)
 	| ((...args: Args) => T)
 	| (() => Promise<T>)
@@ -21,7 +21,6 @@ export interface IntervalRunnerOptions {
 	/**
 	 * If true, the interval runner will throw an error if it is stopped
 	 * while running.
-	 *
 	 * @default true
 	 */
 	throwOnStop?: boolean;
@@ -45,7 +44,6 @@ export interface IIntervalRunner<Type extends string, Args extends unknown[] = [
 
 	/**
 	 * Start the interval runner
-	 *
 	 * @param args - The arguments to pass to the function
 	 */
 	start(args?: Args): void;

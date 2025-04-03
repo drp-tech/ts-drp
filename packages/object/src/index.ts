@@ -35,6 +35,11 @@ function defaultIDFromPeerID(peerId: string): string {
 	);
 }
 
+/**
+ * Creates a permissionless ACL.
+ * @param admins - The admins of the ACL.
+ * @returns The permissionless ACL.
+ */
 export function createPermissionlessACL(admins: string | string[] = []): IACL {
 	return new ObjectACL({
 		admins: Array.isArray(admins) ? admins : [admins],
@@ -42,6 +47,11 @@ export function createPermissionlessACL(admins: string | string[] = []): IACL {
 	});
 }
 
+/**
+ * Creates a DRPObject.
+ * @param options - The options for the DRPObject.
+ * @returns The DRPObject.
+ */
 export function createObject<T extends IDRP>(options: CreateObjectOptions<T>): IDRPObject<T> {
 	const acl = createPermissionlessACL();
 
@@ -49,6 +59,10 @@ export function createObject<T extends IDRP>(options: CreateObjectOptions<T>): I
 	return object;
 }
 
+/**
+ * A DRPObject.
+ * @template T - The type of the DRPObject.
+ */
 export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 	readonly id: string;
 	private readonly log: Logger;
@@ -60,6 +74,15 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 	private subscriptions: DRPObjectCallback<T>[] = [];
 	private _finalityStore: FinalityStore;
 
+	/**
+	 * Creates a DRPObject.
+	 * @param options - The options for the DRPObject.
+	 * @param options.peerId - The peer ID of the DRPObject.
+	 * @param options.id - The ID of the DRPObject.
+	 * @param options.acl - The ACL of the DRPObject.
+	 * @param options.drp - The DRP of the DRPObject.
+	 * @param options.config - The config of the DRPObject.
+	 */
 	constructor({
 		peerId,
 		id = defaultIDFromPeerID(peerId),
@@ -90,43 +113,89 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 		});
 	}
 
+	/**
+	 * Gets the DRP of the DRPObject.
+	 * @returns The DRP of the DRPObject.
+	 */
 	get drp(): T | undefined {
 		return this._applier.drp;
 	}
 
+	/**
+	 * Gets the ACL of the DRPObject.
+	 * @returns The ACL of the DRPObject.
+	 */
 	get acl(): IACL {
 		return this._applier.acl;
 	}
 
+	/**
+	 * Gets all the vertices of the DRPObject.
+	 * @returns The vertices of the DRPObject.
+	 */
 	get vertices(): Vertex[] {
 		return this.hg.getAllVertices();
 	}
 
+	/**
+	 * Gets the finality store of the DRPObject.
+	 * @returns The finality store of the DRPObject.
+	 */
 	get finalityStore(): IFinalityStore {
 		return this._finalityStore;
 	}
 
+	/**
+	 * Gets the ACL and DRP states of a vertex.
+	 * @param vertexHash - The hash of the vertex.
+	 * @returns The ACL and DRP states of the vertex.
+	 */
 	getStates(vertexHash: string): [DRPState | undefined, DRPState | undefined] {
 		return [this._states.getACL(vertexHash), this._states.getDRP(vertexHash)];
 	}
 
+	/**
+	 * Sets the ACL state of a vertex.
+	 * @param vertexHash - The hash of the vertex.
+	 * @param aclState - The ACL state of the vertex.
+	 */
 	setACLState(vertexHash: string, aclState: DRPState): void {
 		this._states.setACL(vertexHash, aclState);
 	}
 
+	/**
+	 * Sets the DRP state of a vertex.
+	 * @param vertexHash - The hash of the vertex.
+	 * @param drpState - The DRP state of the vertex.
+	 */
 	setDRPState(vertexHash: string, drpState: DRPState): void {
 		this._states.setDRP(vertexHash, drpState);
 	}
 
+	/**
+	 * Applies a list of vertices to the DRPObject.
+	 * @param vertices - The vertices to apply.
+	 * @returns The result of the application.
+	 */
 	async applyVertices(vertices: Vertex[]): Promise<ApplyResult> {
 		return this._applier.applyVertices(vertices);
 	}
 
+	/**
+	 * @deprecated Use applyVertices instead
+	 * Merges a list of vertices to the DRPObject.
+	 * @param vertices - The vertices to merge.
+	 * @returns The result of the merge.
+	 */
 	async merge(vertices: Vertex[]): Promise<MergeResult> {
 		const { applied, missing } = await this._applier.applyVertices(vertices);
 		return [applied, missing];
 	}
 
+	/**
+	 * Subscribes to the DRPObject.
+	 * @param callback - The callback to subscribe to the DRPObject.
+	 */
 	subscribe(callback: DRPObjectCallback<T>): void {
 		this.subscriptions.push(callback);
 	}

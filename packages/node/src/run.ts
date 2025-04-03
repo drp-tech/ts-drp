@@ -5,6 +5,10 @@ import { loadConfig } from "./config.js";
 import { DRPNode } from "./index.js";
 import { init as rpc_init } from "./rpc/index.js";
 
+/**
+ * Run the DRP node.
+ * @param port - The port to run the node on.
+ */
 export const run = async (port: number = 6969): Promise<void> => {
 	program.parse(process.argv);
 	const opts = program.opts();

@@ -59,8 +59,8 @@ const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
 
 /**
  * Handle message and run the handler
- * @param node
- * @param message
+ * @param node - The DRP node instance handling the request
+ * @param message - The incoming message
  */
 export async function handleMessage(node: DRPNode, message: Message): Promise<void> {
 	const validation = MessageSchema.safeParse(message);
@@ -84,7 +84,7 @@ export async function handleMessage(node: DRPNode, message: Message): Promise<vo
 function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
 	const { data, sender } = message;
 	const fetchState = FetchState.decode(data);
-	const drpObject = node.objectStore.get(message.objectId);
+	const drpObject = node.get(message.objectId);
 	if (!drpObject) {
 		log.error("::fetchStateHandler: Object not found");
 		return;
@@ -121,7 +121,7 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 	if (!fetchStateResponse.drpState && !fetchStateResponse.aclState) {
 		log.error("::fetchStateResponseHandler: No state found");
 	}
-	const object = node.objectStore.get(message.objectId);
+	const object = node.get(message.objectId);
 	if (!object) {
 		log.error("::fetchStateResponseHandler: Object not found");
 		return;
@@ -140,7 +140,7 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 			for (const e of state.state) {
 				object.acl[e.key] = e.value;
 			}
-			node.objectStore.put(object.id, object);
+			node.put(object.id, object);
 			return;
 		}
 
@@ -167,7 +167,7 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 function attestationUpdateHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
 	const { data, sender } = message;
 	const attestationUpdate = AttestationUpdate.decode(data);
-	const object = node.objectStore.get(message.objectId);
+	const object = node.get(message.objectId);
 	if (!object) {
 		log.error("::attestationUpdateHandler: Object not found");
 		return;
@@ -191,7 +191,7 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 	const { sender, data } = message;
 
 	const updateMessage = Update.decode(data);
-	const object = node.objectStore.get(message.objectId);
+	const object = node.get(message.objectId);
 	if (!object) {
 		log.error("::updateHandler: Object not found");
 		return;
@@ -234,7 +234,7 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
 		}
 	}
 
-	node.objectStore.put(object.id, object);
+	node.put(object.id, object);
 
 	node.safeDispatchEvent(NodeEventName.DRP_UPDATE, {
 		detail: {
@@ -250,22 +250,20 @@ async function updateHandler({ node, message }: HandleParams): Promise<void> {
  * 1. Verifying the sync request and checking if the object exists
  * 2. Comparing vertex hashes between local and remote states
  * 3. Preparing and sending a sync accept response with:
- *    - Vertices that the remote node is missing
- *    - Vertices that the local node is requesting
- *    - Relevant attestations for the vertices being sent
- *
- * @param {HandleParams} params - The handler parameters containing:
- * @param {DRPNode} params.node - The DRP node instance handling the request
- * @param {Message} params.message - The incoming sync message containing vertex hashes
- * @param {Stream} params.stream - The network stream for direct communication
- * @returns {Promise<void>} A promise that resolves when the sync response is sent
+ * - Vertices that the remote node is missing
+ * - Vertices that the local node is requesting
+ * - Relevant attestations for the vertices being sent
+ * @param params - The handler parameters containing:
+ * @param params.node - The DRP node instance handling the request
+ * @param params.message - The incoming sync message containing vertex hashes
+ * @returns A promise that resolves when the sync response is sent
  * @throws {Error} If the stream is undefined or if the object is not found
  */
 async function syncHandler({ node, message }: HandleParams): Promise<void> {
 	const { sender, data } = message;
 	// (might send reject) <- TODO: when should we reject?
 	const syncMessage = Sync.decode(data);
-	const object = node.objectStore.get(message.objectId);
+	const object = node.get(message.objectId);
 	if (!object) {
 		log.error("::syncHandler: Object not found");
 		return;
@@ -322,7 +320,7 @@ async function syncHandler({ node, message }: HandleParams): Promise<void> {
 async function syncAcceptHandler({ node, message }: HandleParams): Promise<void> {
 	const { data, sender } = message;
 	const syncAcceptMessage = SyncAccept.decode(data);
-	const object = node.objectStore.get(message.objectId);
+	const object = node.get(message.objectId);
 	if (!object) {
 		log.error("::syncAcceptHandler: Object not found");
 		return;
@@ -338,7 +336,7 @@ async function syncAcceptHandler({ node, message }: HandleParams): Promise<void>
 	if (verifiedVertices.length !== 0) {
 		await object.merge(verifiedVertices);
 		object.finalityStore.mergeSignatures(syncAcceptMessage.attestations);
-		node.objectStore.put(object.id, object);
+		node.put(object.id, object);
 	}
 
 	await signGeneratedVertices(node, object.vertices);
@@ -397,6 +395,13 @@ function syncRejectHandler(_handleParams: HandleParams): ReturnType<IHandlerStra
 	// - Do nothing
 }
 
+/**
+ * Handle changes to an object.
+ * @param node - The DRP node instance handling the request
+ * @param obj - The object that changed
+ * @param originFn - The function that caused the change
+ * @param vertices - The vertices that caused the change
+ */
 export function drpObjectChangesHandler<T extends IDRP>(
 	node: DRPNode,
 	obj: IDRPObject<T>,
@@ -405,11 +410,11 @@ export function drpObjectChangesHandler<T extends IDRP>(
 ): void {
 	switch (originFn) {
 		case "merge":
-			node.objectStore.put(obj.id, obj);
+			node.put(obj.id, obj);
 			break;
 		case "callFn": {
 			const attestations = signFinalityVertices(node, obj, vertices);
-			node.objectStore.put(obj.id, obj);
+			node.put(obj.id, obj);
 
 			signGeneratedVertices(node, vertices)
 				.then(() => {
@@ -439,6 +444,11 @@ export function drpObjectChangesHandler<T extends IDRP>(
 	}
 }
 
+/**
+ * Sign generated vertices.
+ * @param node - The DRP node instance handling the request
+ * @param vertices - The vertices to sign
+ */
 export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]): Promise<void> {
 	const signPromises = vertices.map(async (vertex) => {
 		if (vertex.peerId !== node.networkNode.peerId || vertex.signature.length !== 0) {
@@ -454,7 +464,13 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]): 
 	await Promise.all(signPromises);
 }
 
-// Signs the vertices. Returns the added attestations
+/**
+ * Sign vertices for finality.
+ * @param node - The DRP node instance handling the request
+ * @param obj - The object that changed
+ * @param vertices - The vertices to sign
+ * @returns The added attestations
+ */
 export function signFinalityVertices<T extends IDRP>(
 	node: DRPNode,
 	obj: IDRPObject<T>,
@@ -489,6 +505,11 @@ function getAttestations<T extends IDRP>(object: IDRPObject<T>, vertices: Vertex
 	);
 }
 
+/**
+ * Verify incoming vertices.
+ * @param incomingVertices - The incoming vertices to verify
+ * @returns The verified vertices
+ */
 export function verifyACLIncomingVertices(incomingVertices: Vertex[]): Vertex[] {
 	const verifiedVertices = incomingVertices
 		.map((vertex) => {

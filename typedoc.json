@@ -1,5 +1,20 @@
 {
-	"entryPoints": ["packages/*"],
+	"highlightLanguages": [
+		"bash",
+		"console",
+		"css",
+		"html",
+		"javascript",
+		"json",
+		"jsonc",
+		"json5",
+		"tsx",
+		"typescript",
+		"mermaid"
+	],
+	"entryPoints": [
+		"packages/*"
+	],
 	"entryPointStrategy": "packages",
 	"includeVersion": true,
 	"name": "Distributed Real-Time Programs",

@@ -23,10 +23,20 @@ import * as lp from "it-length-prefixed";
 import map from "it-map";
 import { pipe } from "it-pipe";
 
+/**
+ * Convert a Uint8Array to a stream.
+ * @param stream - The stream to write to.
+ * @param input - The Uint8Array to write.
+ */
 export async function uint8ArrayToStream(stream: Stream, input: Uint8Array): Promise<void> {
 	await pipe(input, (source) => lp.encode([source]), stream.sink);
 }
 
+/**
+ * Convert a stream to a Uint8Array.
+ * @param stream - The stream to read from.
+ * @returns The Uint8Array.
+ */
 export async function streamToUint8Array(stream: Stream): Promise<Uint8Array> {
 	return pipe(
 		stream.source,

@@ -1,0 +1,12 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "includeVersion": true,
+    "entryPoints": [
+        "src/index.ts",
+        "src/hash/index.ts",
+        "src/debug/index.ts",
+        "src/promise/deferred/index.ts",
+        "src/serialization/index.ts",
+    ],
+    "readme": "README.md"
+}

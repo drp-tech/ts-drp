@@ -4,6 +4,9 @@ import { handlePromiseOrValue } from "@ts-drp/utils";
 
 import { Channel } from "./channel.js";
 
+/**
+ * A message queue.
+ */
 export class MessageQueue<T> implements IMessageQueue<T> {
 	private readonly options: Required<IMessageQueueOptions>;
 	private channel: Channel<T>;
@@ -14,6 +17,10 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 	private fanoutLoopStarted: boolean = false;
 	private logger: Logger;
 
+	/**
+	 * Create a new message queue.
+	 * @param options The options for the message queue.
+	 */
 	constructor(options: IMessageQueueOptions = { id: "default" }) {
 		this.options = this.getOptions(options);
 		this.channel = new Channel<T>({ capacity: this.options.maxSize });
@@ -30,6 +37,10 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 		};
 	}
 
+	/**
+	 * Enqueue a new message.
+	 * @param message The message to enqueue.
+	 */
 	async enqueue(message: T): Promise<void> {
 		if (!this.isActive) {
 			throw new Error("Message queue is closed");
@@ -40,6 +51,7 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 	/**
 	 * Register a subscriber's handler.
 	 * The handler will be called for every message enqueued.
+	 * @param handler - The handler to register.
 	 */
 	subscribe(handler: IMessageQueueHandler<T>): void {
 		this.subscribers.push(handler);
@@ -79,6 +91,9 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 		}
 	}
 
+	/**
+	 * Close the message queue.
+	 */
 	close(): void {
 		if (!this.isActive) {
 			this.logger.warn("Message queue is already closed");
@@ -88,6 +103,9 @@ export class MessageQueue<T> implements IMessageQueue<T> {
 		this.channel.close();
 	}
 
+	/**
+	 * Start the message queue.
+	 */
 	start(): void {
 		if (this.isActive) {
 			this.logger.warn("Message queue is already started");

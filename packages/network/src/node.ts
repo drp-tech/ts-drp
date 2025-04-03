@@ -37,7 +37,7 @@ import {
 import { createLibp2p, type Libp2p, type ServiceFactoryMap } from "libp2p";
 import { isBrowser, isWebWorker } from "wherearewe";
 
-import { PrometheusMetricsRegister } from "./metrics/prometheus.js";
+import { createMetricsRegister, type PrometheusMetricsRegister } from "./metrics/prometheus.js";
 import { streamToUint8Array, uint8ArrayToStream } from "./stream.js";
 
 export * from "./stream.js";
@@ -53,6 +53,10 @@ type PeerDiscoveryFunction =
 	| ((components: PubSubPeerDiscoveryComponents) => PeerDiscovery)
 	| ((components: BootstrapComponents) => PeerDiscovery);
 
+/**
+ * The DRPNetworkNode class is the main class for the DRP network.
+ * It handles the creation and management of the libp2p node, pubsub, and message queue.
+ */
 export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
@@ -63,6 +67,10 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 
 	peerId = "";
 
+	/**
+	 * Constructor for the DRPNetworkNode class.
+	 * @param config - The configuration for the node.
+	 */
 	constructor(config?: DRPNetworkNodeConfig) {
 		if (config?.browser_metrics && !isBrowser && !isWebWorker) {
 			throw new Error("Browser metrics are only supported in a browser or web worker");
@@ -74,6 +82,10 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		this._bootstrapNodesList = this._config?.bootstrap_peers ? this._config.bootstrap_peers : BOOTSTRAP_NODES;
 	}
 
+	/**
+	 * Start the node.
+	 * @param rawPrivateKey - The raw private key to use.
+	 */
 	async start(rawPrivateKey?: Uint8Array): Promise<void> {
 		if (this._node?.status === "started") throw new Error("Node already started");
 
@@ -190,6 +202,9 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		this._messageQueue.start();
 	}
 
+	/**
+	 * Stop the node.
+	 */
 	async stop(): Promise<void> {
 		if (this._node?.status === IntervalRunnerState.Stopped) throw new Error("Node not started");
 		await this._node?.stop();
@@ -197,12 +212,22 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		this._metrics?.stop();
 	}
 
+	/**
+	 * Restart the node.
+	 * @param config - The configuration to use.
+	 * @param rawPrivateKey - The raw private key to use.
+	 */
 	async restart(config?: DRPNetworkNodeConfig, rawPrivateKey?: Uint8Array): Promise<void> {
 		await this.stop();
 		if (config) this._config = config;
 		await this.start(rawPrivateKey);
 	}
 
+	/**
+	 * Check if the node is dialable.
+	 * @param callback - The callback to call if the node is dialable.
+	 * @returns True if the node is dialable, false otherwise.
+	 */
 	async isDialable(callback?: () => void | Promise<void>): Promise<boolean> {
 		let dialable = await this._node?.isDialable(this._node.getMultiaddrs());
 		if (!callback) return dialable ?? false;
@@ -253,7 +278,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 
 		if (this._config?.pubsub?.prometheus_metrics) {
 			const pushgatewayUrl = this._config?.pubsub?.pushgateway_url ?? "http://localhost:9091";
-			this._metrics = new PrometheusMetricsRegister(pushgatewayUrl);
+			this._metrics = createMetricsRegister(pushgatewayUrl);
 			baseConfig.metricsRegister = this._metrics;
 			baseConfig.metricsTopicStrToLabel = new Map();
 		}
@@ -277,16 +302,29 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		});
 	}
 
+	/**
+	 * Change the topic score params.
+	 * @param topic - The topic to change the score params for.
+	 * @param params - The new score params.
+	 */
 	changeTopicScoreParams(topic: string, params: TopicScoreParams): void {
 		if (!this._pubsub) return;
 		this._pubsub.score.params.topics[topic] = params;
 	}
 
+	/**
+	 * Remove a topic score params.
+	 * @param topic - The topic to remove the score params from.
+	 */
 	removeTopicScoreParams(topic: string): void {
 		if (!this._pubsub) return;
 		delete this._pubsub.score.params.topics[topic];
 	}
 
+	/**
+	 * Subscribe to a topic.
+	 * @param topic - The topic to subscribe to.
+	 */
 	subscribe(topic: string): void {
 		if (!this._node) {
 			log.error("::subscribe: Node not initialized, please run .start()");
@@ -301,6 +339,10 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		}
 	}
 
+	/**
+	 * Unsubscribe from a topic.
+	 * @param topic - The topic to unsubscribe from.
+	 */
 	unsubscribe(topic: string): void {
 		if (!this._node) {
 			log.error("::unsubscribe: Node not initialized, please run .start()");
@@ -327,9 +369,8 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	}
 
 	/**
-	 * @description Dial a peer with a peerId, multiaddr or array of multiaddrs it also handles the case where the caller
+	 * Dial a peer with a peerId, multiaddr or array of multiaddrs it also handles the case where the caller
 	 * do something bad like passing multiaddrs that as different PeerIds
-	 *
 	 * @param peerId - The peerId, multiaddr or array of multiaddrs to dial
 	 * @returns The connection or undefined if no connection was made
 	 */
@@ -345,6 +386,9 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		return Promise.race(Object.values(addrsPerPeerId).map((addrs) => this._node?.dial(addrs)));
 	}
 
+	/**
+	 * Connect to the bootstrap nodes.
+	 */
 	async connectToBootstraps(): Promise<void> {
 		try {
 			await this.safeDial(this._bootstrapNodesList);
@@ -354,6 +398,10 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		}
 	}
 
+	/**
+	 * Connect to a peer.
+	 * @param addr - The multiaddr to connect to.
+	 */
 	async connect(addr: MultiaddrInput | MultiaddrInput[]): Promise<void> {
 		try {
 			const multiaddrs = Array.isArray(addr) ? addr.map(multiaddr) : [multiaddr(addr)];
@@ -364,6 +412,10 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		}
 	}
 
+	/**
+	 * Disconnect from a peer.
+	 * @param peerId - The peer ID to disconnect from.
+	 */
 	async disconnect(peerId: string): Promise<void> {
 		try {
 			await this._node?.hangUp(multiaddr(`/p2p/${peerId}`));
@@ -373,6 +425,11 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		}
 	}
 
+	/**
+	 * Get the multiaddrs of a peer.
+	 * @param peerId - The peer ID to get the multiaddrs from.
+	 * @returns The multiaddrs of the peer.
+	 */
 	async getPeerMultiaddrs(peerId: PeerId | string): Promise<Address[]> {
 		const peerIdObj: PeerId = typeof peerId === "string" ? peerIdFromString(peerId) : peerId;
 
@@ -381,30 +438,56 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		return peer.addresses;
 	}
 
+	/**
+	 * Get the bootstrap nodes.
+	 * @returns The bootstrap nodes.
+	 */
 	getBootstrapNodes(): string[] {
 		return this._bootstrapNodesList;
 	}
 
+	/**
+	 * Get the subscribed topics.
+	 * @returns The subscribed topics.
+	 */
 	getSubscribedTopics(): string[] {
 		return this._pubsub?.getTopics() ?? [];
 	}
 
+	/**
+	 * Get the multiaddrs of the node.
+	 * @returns The multiaddrs of the node.
+	 */
 	getMultiaddrs(): string[] {
 		return this._node?.getMultiaddrs().map((addr) => addr.toString()) ?? [];
 	}
 
+	/**
+	 * Get all peers.
+	 * @returns The peers.
+	 */
 	getAllPeers(): string[] {
 		const peers = this._node?.getPeers();
 		if (!peers) return [];
 		return peers.map((peer) => peer.toString());
 	}
 
+	/**
+	 * Get the peers in a group.
+	 * @param group - The group to get the peers from.
+	 * @returns The peers in the group.
+	 */
 	getGroupPeers(group: string): string[] {
 		const peers = this._pubsub?.getSubscribers(group);
 		if (!peers) return [];
 		return peers.map((peer) => peer.toString());
 	}
 
+	/**
+	 * Broadcast a message to a topic.
+	 * @param topic - The topic to broadcast the message to.
+	 * @param message - The message to broadcast.
+	 */
 	async broadcastMessage(topic: string, message: Message): Promise<void> {
 		try {
 			const messageBuffer = Message.encode(message).finish();
@@ -416,6 +499,11 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		}
 	}
 
+	/**
+	 * Send a message to a peer.
+	 * @param peerId - The peer ID to send the message to.
+	 * @param message - The message to send.
+	 */
 	async sendMessage(peerId: string, message: Message): Promise<void> {
 		try {
 			const connection = await this.safeDial([multiaddr(`/p2p/${peerId}`)]);
@@ -427,6 +515,11 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		}
 	}
 
+	/**
+	 * Send a message to a random peer in a group.
+	 * @param group - The group to send the message to.
+	 * @param message - The message to send.
+	 */
 	async sendGroupMessageRandomPeer(group: string, message: Message): Promise<void> {
 		try {
 			const peers = this._pubsub?.getSubscribers(group);
@@ -469,6 +562,10 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		});
 	}
 
+	/**
+	 * Subscribe to the message queue.
+	 * @param handler - The handler to subscribe to the message queue.
+	 */
 	subscribeToMessageQueue(handler: IMessageQueueHandler<Message>): void {
 		this._messageQueue.subscribe(handler);
 	}

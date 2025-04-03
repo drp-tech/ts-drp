@@ -5,11 +5,20 @@ import { MessageQueue } from "./message-queue.js";
 
 export const GENERAL_QUEUE_ID = "general";
 
+/**
+ * MessageQueueManager is a class that manages a collection of MessageQueue instances.
+ * It provides methods to enqueue messages, subscribe to queues, and close queues.
+ * @template T - The type of messages that the queue will handle
+ */
 export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 	private readonly options: Required<IMessageQueueManagerOptions>;
 	private queues: Map<string, MessageQueue<T>>;
 	private logger: Logger;
 
+	/**
+	 * Constructor for MessageQueueManager
+	 * @param options - The options for the message queue manager
+	 */
 	constructor(options: IMessageQueueManagerOptions = {}) {
 		this.options = this.getOptions(options);
 		this.queues = new Map();
@@ -35,6 +44,11 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 		return queue;
 	}
 
+	/**
+	 * Enqueue a message to a specific queue
+	 * @param queueId - The id of the queue to enqueue the message to
+	 * @param message - The message to enqueue
+	 */
 	async enqueue(queueId: string, message: T): Promise<void> {
 		if (queueId === "") {
 			queueId = GENERAL_QUEUE_ID;
@@ -48,6 +62,11 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 		this.logger.trace(`queue manager::enqueued message ${message} to ${queueId}`);
 	}
 
+	/**
+	 * Subscribe to a specific queue
+	 * @param queueId - The id of the queue to subscribe to
+	 * @param handler - The handler to apply to each message received
+	 */
 	subscribe(queueId: string, handler: IMessageQueueHandler<T>): void {
 		if (queueId === "") {
 			queueId = GENERAL_QUEUE_ID;
@@ -63,6 +82,10 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 		this.logger.info(`queue manager::subscribed to ${queueId}`);
 	}
 
+	/**
+	 * Close a specific queue
+	 * @param queueId - The id of the queue to close
+	 */
 	close(queueId: string): void {
 		if (queueId === "") {
 			queueId = GENERAL_QUEUE_ID;
@@ -74,6 +97,9 @@ export class MessageQueueManager<T> implements IMessageQueueManager<T> {
 		queue.close();
 	}
 
+	/**
+	 * Close all queues
+	 */
 	closeAll(): void {
 		for (const queue of this.queues.values()) {
 			queue.close();

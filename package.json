@@ -57,6 +57,7 @@
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-import-resolver-typescript": "^4.2.0",
 		"eslint-plugin-import": "^2.31.0",
+		"eslint-plugin-jsdoc": "^50.6.9",
 		"eslint-plugin-prettier": "^5.2.3",
 		"eslint-plugin-unused-imports": "^4.1.4",
 		"eslint-plugin-vitest": "^0.5.4",

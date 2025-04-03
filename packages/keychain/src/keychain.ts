@@ -12,6 +12,10 @@ export interface KeychainConfig {
 	private_key_seed?: string;
 }
 
+/**
+ * Keychain is a class that provides a keychain for the DRPNode.
+ * It provides methods to sign data with BLS and Secp256k1.
+ */
 export class Keychain {
 	private _config?: KeychainConfig;
 	// if you are to change the private key type, you need to change the peerId's of the bootstrap nodes
@@ -19,10 +23,17 @@ export class Keychain {
 	private _secp256k1PrivateKey?: Secp256k1PrivateKey;
 	private _blsPrivateKey?: BlsSecretKey;
 
+	/**
+	 * Constructor for Keychain
+	 * @param config - The configuration for the keychain
+	 */
 	constructor(config?: KeychainConfig) {
 		this._config = config;
 	}
 
+	/**
+	 * Start the keychain
+	 */
 	async start(): Promise<void> {
 		if (this._config?.private_key_seed) {
 			const seed = sha512.create().update(this._config.private_key_seed).digest();
@@ -37,6 +48,11 @@ export class Keychain {
 		}
 	}
 
+	/**
+	 * Sign data with BLS
+	 * @param data - The data to sign
+	 * @returns The signature
+	 */
 	signWithBls(data: string): Uint8Array {
 		if (!this._blsPrivateKey) {
 			throw new Error("Private key not found");
@@ -45,6 +61,11 @@ export class Keychain {
 		return this._blsPrivateKey.sign(uint8ArrayFromString(data)).toBytes();
 	}
 
+	/**
+	 * Sign data with Secp256k1
+	 * @param data - The data to sign
+	 * @returns The signature
+	 */
 	async signWithSecp256k1(data: string): Promise<Uint8Array> {
 		if (!this._secp256k1PrivateKey) {
 			throw new Error("Private key not found");
@@ -65,6 +86,10 @@ export class Keychain {
 		return fullSignature;
 	}
 
+	/**
+	 * Get the Secp256k1 public key
+	 * @returns The public key
+	 */
 	get secp256k1PublicKey(): string {
 		if (!this._secp256k1PrivateKey) {
 			throw new Error("Secp256k1 private key not found");
@@ -72,6 +97,10 @@ export class Keychain {
 		return uint8ArrayToString(this._secp256k1PrivateKey.publicKey.raw, "base64");
 	}
 
+	/**
+	 * Get the BLS public key
+	 * @returns The public key
+	 */
 	get blsPublicKey(): string {
 		if (!this._blsPrivateKey) {
 			throw new Error("BLS private key not found");
@@ -79,6 +108,10 @@ export class Keychain {
 		return uint8ArrayToString(this._blsPrivateKey?.toPublicKey().toBytes(), "base64");
 	}
 
+	/**
+	 * Get the Secp256k1 private key
+	 * @returns The private key
+	 */
 	get secp256k1PrivateKey(): Uint8Array {
 		if (!this._secp256k1PrivateKey) {
 			throw new Error("Private key not found");

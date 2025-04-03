@@ -1,4 +1,3 @@
-import { type IBitSet } from "./bitset.js";
 import { type LowestCommonAncestorResult } from "./object.js";
 import { type Vertex_Operation as Operation, type Vertex } from "./proto/drp/v1/object_pb.js";
 
@@ -74,6 +73,5 @@ export interface IHashGraph {
 	getVertex(hash: Hash): Vertex | undefined;
 	getLCA(dependencies: Hash[]): LowestCommonAncestorResult;
 	getAllVertices(): Vertex[];
-	getReachablePredecessors(hash: Hash): IBitSet | undefined;
 	getCurrentBitsetSize(): number;
 }
