@@ -1,7 +1,7 @@
 import { bls } from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
 import { Logger } from "@ts-drp/logger";
-import { DRPObject, ObjectACL } from "@ts-drp/object";
+import { createACL, DRPObject } from "@ts-drp/object";
 import { ACLGroup, DrpType, Operation, Vertex } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -92,9 +92,7 @@ describe("DRPNode voting tests", () => {
 	});
 
 	beforeEach(() => {
-		const acl = new ObjectACL({
-			admins: [nodeA.networkNode.peerId],
-		});
+		const acl = createACL({ admins: [nodeA.networkNode.peerId] });
 
 		obj1 = new DRPObject({
 			peerId: nodeA.networkNode.peerId,
@@ -220,9 +218,7 @@ describe("DRPNode with rpc", () => {
 	});
 	beforeEach(() => {
 		drp = new SetDRP();
-		const acl = new ObjectACL({
-			admins: [drpNode.networkNode.peerId],
-		});
+		const acl = createACL({ admins: [drpNode.networkNode.peerId] });
 		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
 		drpObject.acl.setKey(drpNode.keychain.blsPublicKey);
 	});

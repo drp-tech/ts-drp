@@ -11,12 +11,10 @@ import {
 } from "@ts-drp/types";
 import { afterEach, beforeEach, describe, expect, it, test, vi } from "vitest";
 
-import { ObjectACL } from "../src/acl/index.js";
+import { createACL } from "../src/acl/index.js";
 import { createObject, DRPObject } from "../src/index.js";
 
-const acl = new ObjectACL({
-	admins: ["peer1", "peer2", "peer3"],
-});
+const acl = createACL({ admins: ["peer1", "peer2", "peer3"] });
 
 class SetDRPWithContext<T> implements IDRP {
 	semanticsType = SemanticsType.pair;
@@ -469,17 +467,17 @@ describe("ACL admin permission tests", () => {
 	beforeEach(() => {
 		obj1 = new DRPObject({
 			peerId: "peer1",
-			acl: new ObjectACL({ admins: ["peer1"] }),
+			acl: createACL({ admins: ["peer1"] }),
 			drp: new SetDRP<number>(),
 		});
 		obj2 = new DRPObject({
 			peerId: "peer2",
-			acl: new ObjectACL({ admins: ["peer1", "peer2"] }),
+			acl: createACL({ admins: ["peer1", "peer2"] }),
 			drp: new SetDRP<number>(),
 		});
 		obj3 = new DRPObject({
 			peerId: "peer3",
-			acl: new ObjectACL({ admins: ["peer1"] }),
+			acl: createACL({ admins: ["peer1"] }),
 			drp: new SetDRP<number>(),
 		});
 	});
@@ -703,7 +701,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 	let obj3: DRPObject<SetDRP<number>>;
 
 	beforeEach(async () => {
-		const acl = new ObjectACL({ admins: ["peer1"] });
+		const acl = createACL({ admins: ["peer1"] });
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
@@ -774,9 +772,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		  ROOT -- V1:ADD(1) -- V2:ADD(2) -- V3:GRANT(peer2)
 		  					\_ V4:ADD(3) (invalid)
 		*/
-		const acl = new ObjectACL({
-			admins: ["peer1"],
-		});
+		const acl = createACL({ admins: ["peer1"] });
 
 		const obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		const obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });

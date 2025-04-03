@@ -13,7 +13,7 @@ import {
 import { ObjectSet } from "@ts-drp/utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { createACL, ObjectACL } from "../src/acl/index.js";
+import { createACL, type ObjectACL } from "../src/acl/index.js";
 import { HashGraph } from "../src/hashgraph/index.js";
 import { createDRPVertexApplier, DRPObject, type DRPVertexApplier } from "../src/index.js";
 import { type DRPObjectStateManager } from "../src/state.js";
@@ -409,9 +409,7 @@ describe("HashGraph for undefined operations tests", () => {
 
 describe("Hashgraph and DRPObject merge without DRP tests", () => {
 	test("Test object3 merge", async () => {
-		const acl = new ObjectACL({
-			admins: ["peer1", "peer2"],
-		});
+		const acl = createACL({ admins: ["peer1", "peer2"] });
 		const obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		const obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		const obj3 = new DRPObject({ peerId: "peer3", acl });
@@ -568,7 +566,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 	let obj3: DRPObject<SetDRP<number>>;
 
 	beforeEach(async () => {
-		const acl = new ObjectACL({ admins: ["peer1"] });
+		const acl = createACL({ admins: ["peer1"] });
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
@@ -668,9 +666,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		  ROOT -- V1:ADD(1) -- V2:ADD(2) -- V3:GRANT(peer2)
 		  					\_ V4:ADD(3) (invalid)
 		*/
-		const acl = new ObjectACL({
-			admins: ["peer1"],
-		});
+		const acl = createACL({ admins: ["peer1"] });
 		const obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		const obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 

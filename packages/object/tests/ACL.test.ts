@@ -1,16 +1,13 @@
-import { ACLGroup, ActionType, DrpType, Operation, Vertex } from "@ts-drp/types";
+import { ACLGroup, ActionType, DrpType, type IACL, Operation, Vertex } from "@ts-drp/types";
 import { beforeEach, describe, expect, test } from "vitest";
 
-import { ObjectACL } from "../src/acl/index.js";
-import { createPermissionlessACL } from "../src/index.js";
+import { createACL, createPermissionlessACL } from "../src/index.js";
 
 describe("AccessControl tests with RevokeWins resolution", () => {
-	let acl: ObjectACL;
+	let acl: IACL;
 
 	beforeEach(() => {
-		acl = new ObjectACL({
-			admins: ["peer1"],
-		});
+		acl = createACL({ admins: ["peer1"] });
 	});
 
 	test("Admin nodes should have admin privileges", () => {
@@ -94,8 +91,8 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 			timestamp: 0,
 		});
 
-		expect(acl.resolveConflicts([vertex1, vertex2]).action).toBe(ActionType.Nop);
-		expect(acl.resolveConflicts([vertex2, vertex1]).action).toBe(ActionType.Nop);
+		expect(acl.resolveConflicts?.([vertex1, vertex2]).action).toBe(ActionType.Nop);
+		expect(acl.resolveConflicts?.([vertex2, vertex1]).action).toBe(ActionType.Nop);
 	});
 
 	test("Should grant finality permission to a new finality", () => {
@@ -158,8 +155,8 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 				timestamp: 0,
 			}),
 		];
-		const result = acl.resolveConflicts(vertices);
-		expect(result.action).toBe(ActionType.DropLeft);
+		const result = acl.resolveConflicts?.(vertices);
+		expect(result?.action).toBe(ActionType.DropLeft);
 	});
 });
 

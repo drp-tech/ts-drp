@@ -20,7 +20,7 @@ function getPeerPermissions(params?: { blsPublicKey?: string; permissions?: Set<
 }
 
 export interface ObjectACLOptions {
-	admins: string[] | string;
+	admins?: string[] | string;
 	permissionless?: boolean;
 	conflictResolution?: ACLConflictResolution;
 }
@@ -39,7 +39,7 @@ export function createPermissionlessACL(admins: string | string[] = []): IACL {
  * @param options - The options for the ACL
  * @returns The ACL
  */
-export function createACL(options: ObjectACLOptions): IACL {
+export function createACL(options: ObjectACLOptions = { admins: [] }): IACL {
 	return new ObjectACL(options);
 }
 

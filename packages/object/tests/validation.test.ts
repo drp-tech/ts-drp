@@ -3,16 +3,14 @@ import { DrpType, Operation } from "@ts-drp/types";
 import { InvalidDependenciesError, InvalidTimestampError, validateVertex } from "@ts-drp/validation";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { DRPObject, ObjectACL } from "../src/index.js";
+import { createACL, DRPObject } from "../src/index.js";
 import { createVertex } from "../src/utils/createVertex.js";
 
 describe("Vertex validation tests", () => {
 	let obj1: DRPObject<SetDRP<number>>;
 	let obj2: DRPObject<SetDRP<number>>;
 	let obj3: DRPObject<SetDRP<number>>;
-	const acl = new ObjectACL({
-		admins: ["peer1", "peer2", "peer3"],
-	});
+	const acl = createACL({ admins: ["peer1", "peer2", "peer3"] });
 
 	beforeEach(() => {
 		vi.useFakeTimers({ now: 0 });
