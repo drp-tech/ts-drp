@@ -35,6 +35,7 @@ import {
 	Message,
 } from "@ts-drp/types";
 import { createLibp2p, type Libp2p, type ServiceFactoryMap } from "libp2p";
+import { isBrowser, isWebWorker } from "wherearewe";
 
 import { PrometheusMetricsRegister } from "./metrics/prometheus.js";
 import { streamToUint8Array, uint8ArrayToStream } from "./stream.js";
@@ -63,6 +64,10 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	peerId = "";
 
 	constructor(config?: DRPNetworkNodeConfig) {
+		if (config?.browser_metrics && !isBrowser && !isWebWorker) {
+			throw new Error("Browser metrics are only supported in a browser or web worker");
+		}
+
 		this._config = config;
 		log = new Logger("drp::network", config?.log_config);
 		this._messageQueue = new MessageQueue<Message>({ id: "network", logConfig: config?.log_config });

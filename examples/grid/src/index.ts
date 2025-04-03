@@ -102,6 +102,11 @@ function run(metrics?: IMetrics): void {
 		});
 		gridState.gridDRP = gridState.drpObject.drp;
 		createConnectHandlers();
+
+		// The object creator can sign for finality
+		if (gridState.node?.keychain.blsPublicKey) {
+			gridState.drpObject.acl.setKey(gridState.node?.keychain.blsPublicKey);
+		}
 		addUser();
 		render();
 	};
