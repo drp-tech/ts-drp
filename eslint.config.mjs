@@ -1,6 +1,7 @@
 import eslint from "@eslint/js";
 import tsparser from "@typescript-eslint/parser";
 import importPlugin from "eslint-plugin-import";
+import jsdoc from "eslint-plugin-jsdoc";
 import prettier from "eslint-plugin-prettier";
 import unusedImports from "eslint-plugin-unused-imports";
 import vitest from "eslint-plugin-vitest";
@@ -28,12 +29,14 @@ const config = tsLintConfig(
 			"**/*.log",
 			"**/*_pb.js",
 			"**/*_pb.ts",
+			"eslint.config.mjs",
 		],
 	},
 	eslint.configs.recommended,
 	configs.strict,
 	importPlugin.flatConfigs.recommended,
 	importPlugin.flatConfigs.typescript,
+	jsdoc.configs["flat/recommended-typescript"],
 	{
 		settings: {
 			"import/resolver": {
@@ -45,6 +48,7 @@ const config = tsLintConfig(
 			"prettier": prettier,
 			"unused-imports": unusedImports,
 			"vitest": vitest,
+			jsdoc,
 		},
 		languageOptions: {
 			parser: tsparser,
@@ -121,6 +125,20 @@ const config = tsLintConfig(
 			"import/no-duplicates": "error",
 			"import/no-named-default": "error",
 			"import/no-webpack-loader-syntax": "error",
+			"jsdoc/require-jsdoc": [
+				"warn",
+				{
+					require: {
+						ArrowFunctionExpression: true,
+						ClassDeclaration: true,
+						ClassExpression: true,
+						FunctionDeclaration: true,
+						FunctionExpression: true,
+						MethodDefinition: true,
+					},
+					publicOnly:true, 
+				},
+			]
 		},
 	}
 );

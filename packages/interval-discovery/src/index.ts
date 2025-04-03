@@ -39,6 +39,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 
 	/**
 	 * Creates a new DRP Discovery instance
+	 * @param opts - The configuration for the discovery
 	 */
 	constructor(opts: DRPIntervalDiscoveryOptions) {
 		this.networkNode = opts.networkNode;
@@ -51,12 +52,17 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 		});
 	}
 
+	/**
+	 * Get the id of the interval runner
+	 * @returns The id of the interval runner
+	 */
 	get id(): string {
 		return this._intervalRunner.id;
 	}
 
 	/**
 	 * Runs a single discovery cycle to find and connect with peers
+	 * @returns True if the discovery should continue, false if it should stop
 	 */
 	private async _runDRPDiscovery(): Promise<boolean> {
 		// Early exit if we already have peers
@@ -81,6 +87,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 
 	/**
 	 * Checks if we have any peers for this object ID
+	 * @returns True if we have peers, false otherwise
 	 */
 	private _hasPeers(): boolean {
 		return this.networkNode.getGroupPeers(this.id).length > 0;
@@ -88,6 +95,8 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 
 	/**
 	 * Checks if the search has exceeded the maximum duration
+	 * @param searchStartTime - The start time of the search
+	 * @returns True if the search has exceeded the maximum duration, false otherwise
 	 */
 	private _isSearchTimedOut(searchStartTime: number): boolean {
 		const elapsed = Date.now() - searchStartTime;
@@ -129,7 +138,8 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 	}
 
 	/**
-	 * Returns the current state of the discovery process
+	 * Get the state of the discovery process
+	 * @returns The state of the discovery process
 	 */
 	get state(): IntervalRunnerState {
 		return this._intervalRunner.state;
@@ -137,9 +147,8 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 
 	/**
 	 * Handles incoming discovery response messages
-	 *
 	 * @param sender - The sender of the discovery response
-	 * @param data - The data of the discovery response
+	 * @param subscribers - The subscribers of the discovery response
 	 */
 	async handleDiscoveryResponse(sender: string, subscribers: Record<string, SubscriberInfo>): Promise<void> {
 		this._logger.info("Received discovery response from", sender);
@@ -149,6 +158,7 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 
 	/**
 	 * Connects to peers from a discovery response
+	 * @param subscribers - The subscribers of the discovery response
 	 */
 	private async _connectToDiscoveredPeers(subscribers: Record<string, SubscriberInfo>): Promise<void> {
 		const selfId = this.networkNode.peerId.toString();
@@ -168,9 +178,8 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 
 	/**
 	 * Static handler for incoming discovery requests
-	 *
 	 * @param sender - The sender of the discovery request
-	 * @param data - The data of the discovery request
+	 * @param message - The message of the discovery request
 	 * @param networkNode - The network node instance
 	 */
 	static async handleDiscoveryRequest(sender: string, message: Message, networkNode: DRPNetworkNode): Promise<void> {
@@ -198,6 +207,10 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 
 	/**
 	 * Collects connection information for a list of peers
+	 * @param peers - The peers to collect information for
+	 * @param networkNode - The network node instance
+	 * @param logger - The logger instance
+	 * @returns A record of peers and their subscriber information
 	 */
 	private static async _collectPeerInfo(
 		peers: string[],
@@ -222,6 +235,10 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 
 	/**
 	 * Sends a discovery response to a specific peer
+	 * @param recipient - The recipient of the discovery response
+	 * @param networkNode - The network node instance
+	 * @param subscribers - The subscribers of the discovery response
+	 * @param objectId - The object ID of the discovery response
 	 */
 	private static async _sendDiscoveryResponse(
 		recipient: string,
@@ -248,6 +265,8 @@ export class DRPIntervalDiscovery implements IDRPIntervalDiscovery {
 /**
  * Factory function for creating DRPDiscovery instances
  * Returns an instance that implements IntervalRunnerInterface
+ * @param opts - The configuration for the discovery
+ * @returns A new DRPDiscovery instance
  */
 export function createDRPDiscovery(opts: DRPIntervalDiscoveryOptions): DRPIntervalDiscovery {
 	return new DRPIntervalDiscovery(opts);

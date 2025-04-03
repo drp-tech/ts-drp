@@ -1,6 +1,10 @@
 import { type ResolveConflictsType, type SemanticsType } from "./hashgraph.js";
 import { type Vertex } from "./proto/drp/v1/object_pb.js";
 
+export interface ResolveConflictFn {
+	(vertices: Vertex[]): ResolveConflictsType;
+}
+
 /**
  * The type of the DRP object.
  */
@@ -36,7 +40,6 @@ export interface IDRP {
 	context?: DrpRuntimeContext;
 	/**
 	 * The resolve conflicts function of the DRP.
-	 *
 	 * @param vertices - The vertices to resolve conflicts from.
 	 */
 	resolveConflicts?(vertices: Vertex[]): ResolveConflictsType;

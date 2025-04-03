@@ -27,14 +27,19 @@ export type EnableTracingOptions = {
 	};
 };
 
+/**
+ * Enables tracing with the given options.
+ * @param opts - The options for enabling tracing.
+ */
 export const enableTracing = (opts: EnableTracingOptions = {}): void => {
 	enabled = true;
 	initContextManager();
 	initProvider(opts.provider);
 };
 
-// disableTracing should reset the tracer, provider, and exporter
-// there for testing purposes
+/**
+ * Disables tracing by resetting the tracer, provider, and exporter.
+ */
 export const disableTracing = (): void => {
 	enabled = false;
 	provider = undefined;
@@ -135,14 +140,28 @@ function wrapAsyncGenerator<T>(gen: AsyncGenerator<T>, span: Span): AsyncGenerat
 	return wrapped;
 }
 
+/**
+ * A class that implements the IMetrics interface using OpenTelemetry.
+ */
 export class OpentelemetryMetrics implements IMetrics {
 	private tracer: OtTracer | undefined;
 
+	/**
+	 * Creates a new OpentelemetryMetrics instance.
+	 * @param tracerName - The name of the tracer.
+	 */
 	constructor(tracerName: string) {
 		if (!provider) return;
 		this.tracer = provider.getTracer(tracerName);
 	}
 
+	/**
+	 * Traces a function.
+	 * @param name - The name of the function.
+	 * @param fn - The function to trace.
+	 * @param setAttributes - The attributes to set on the span.
+	 * @returns - The traced function.
+	 */
 	public traceFunc<Args extends unknown[], Return>(
 		name: string,
 		fn: (...args: Args) => Return,
@@ -225,6 +244,9 @@ const initProvider = (opts: EnableTracingOptions["provider"]): void => {
 	provider.register();
 };
 
+/**
+ * Flushes the provider.
+ */
 export const flush = async (): Promise<void> => {
 	await provider?.forceFlush();
 };

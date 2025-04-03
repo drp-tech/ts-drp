@@ -4,6 +4,12 @@ import { FetchState, type IDRP, type IDRPObject, Message, MessageType, Sync } fr
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
 
+/**
+ * Fetches the state of an object.
+ * @param node - The node.
+ * @param objectId - The object ID.
+ * @param peerId - The peer ID.
+ */
 export async function fetchState(node: DRPNode, objectId: string, peerId?: string): Promise<void> {
 	const data = FetchState.create({
 		vertexHash: HashGraph.rootHash,
@@ -23,10 +29,13 @@ export async function fetchState(node: DRPNode, objectId: string, peerId?: strin
 }
 
 /**
- *  data: { vertex_hashes: string[] }
+ * Syncs an object.
+ * @param node - The node.
+ * @param objectId - The object ID.
+ * @param peerId - The peer ID.
  */
 export async function syncObject<T extends IDRP>(node: DRPNode, objectId: string, peerId?: string): Promise<void> {
-	const object: IDRPObject<T> | undefined = node.objectStore.get(objectId);
+	const object: IDRPObject<T> | undefined = node.get(objectId);
 	if (!object) {
 		log.error("::syncObject: Object not found");
 		return;

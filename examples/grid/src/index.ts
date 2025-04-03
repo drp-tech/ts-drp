@@ -8,6 +8,10 @@ import { enableUIControls, render, renderInfo } from "./render";
 import { gridState } from "./state";
 import { getColorForPeerId } from "./util/color";
 
+/**
+ * Get the network config from the environment variables
+ * @returns The network config
+ */
 export function getNetworkConfigFromEnv(): DRPNodeConfig {
 	const { bootstrapPeers, discoveryInterval, enablePrometheusMetrics } = env;
 
@@ -83,7 +87,7 @@ function createConnectHandlers(): void {
 		render();
 	});
 
-	node.objectStore.subscribe(objectId, () => {
+	node.subscribe(objectId, () => {
 		render();
 	});
 }
@@ -102,6 +106,11 @@ function run(metrics?: IMetrics): void {
 		});
 		gridState.gridDRP = gridState.drpObject.drp;
 		createConnectHandlers();
+
+		// The object creator can sign for finality
+		if (gridState.node?.keychain.blsPublicKey) {
+			gridState.drpObject.acl.setKey(gridState.node?.keychain.blsPublicKey);
+		}
 		addUser();
 		render();
 	};

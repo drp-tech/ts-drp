@@ -6,7 +6,7 @@ import PromHistogram from "prom-client/lib/histogram";
 import Pushgateway from "prom-client/lib/pushgateway";
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
-import { PrometheusMetricsRegister } from "../src/metrics/prometheus.js";
+import { createMetricsRegister, type PrometheusMetricsRegister } from "../src/metrics/prometheus.js";
 
 vi.mock("prom-client/lib/registry", () => ({
 	globalRegistry: {},
@@ -44,16 +44,11 @@ describe("PrometheusMetricsRegister", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		vi.useFakeTimers();
-		metricsRegister = new PrometheusMetricsRegister(pushgatewayUrl);
+		metricsRegister = createMetricsRegister(pushgatewayUrl);
 	});
 
 	afterEach(() => {
 		vi.useRealTimers();
-	});
-
-	it("should create a new instance", () => {
-		expect(metricsRegister).toBeInstanceOf(PrometheusMetricsRegister);
-		expect(Pushgateway).toHaveBeenCalledWith(pushgatewayUrl, {}, expect.anything());
 	});
 
 	describe("gauge", () => {

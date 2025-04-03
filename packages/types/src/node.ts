@@ -136,6 +136,11 @@ export interface NodeEvents {
 	[NodeEventName.DRP_ATTESTATION_UPDATE]: CustomEvent<ObjectId>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface DRPObjectSubscribeCallback<T extends IDRP = any> {
+	(objectId: string, object: IDRPObject<T>): void;
+}
+
 export interface IDRPNode extends TypedEventTarget<NodeEvents> {
 	/**
 	 * The configuration of the node
@@ -168,4 +173,24 @@ export interface IDRPNode extends TypedEventTarget<NodeEvents> {
 	 * @param options
 	 */
 	createObject<T extends IDRP>(options: NodeCreateObjectOptions<T>): Promise<IDRPObject<T>>;
+
+	/**
+	 * Get an object by id
+	 * @param id The id of the object
+	 */
+	get<T extends IDRP>(id: string): IDRPObject<T> | undefined;
+
+	/**
+	 * Connect to an object
+	 * @param id The id of the object
+	 * @param object The object
+	 */
+	put<T extends IDRP>(id: string, object: IDRPObject<T>): void;
+
+	/**
+	 * Subscribe to an object
+	 * @param id The id of the object
+	 * @param callback The callback to call when the object changes
+	 */
+	subscribe<T extends IDRP>(id: string, callback: DRPObjectSubscribeCallback<T>): void;
 }

@@ -39,7 +39,6 @@ export class HashGraphVisualizer {
 	/**
 	 * Performs a topological sort on the graph in a layered manner
 	 * Returns nodes in order where each node appears after all its dependencies
-	 *
 	 * @param edges - Array of edges representing dependencies between nodes
 	 * @returns Array of node IDs in topologically sorted order
 	 */
@@ -85,7 +84,6 @@ export class HashGraphVisualizer {
 	 * Assigns layer numbers to nodes based on their dependencies
 	 * Uses topologically sorted nodes to assign layers in a single pass
 	 * Each node's layer will be one more than its highest dependency
-	 *
 	 * @param edges - Array of all edges
 	 * @param sortedNodes - Array of node IDs in topological order
 	 * @returns Map of node IDs to their assigned layer numbers
@@ -117,7 +115,6 @@ export class HashGraphVisualizer {
 	/**
 	 * Calculates x,y coordinates for each node based on its layer
 	 * Arranges nodes in each layer horizontally with padding
-	 *
 	 * @param layers - Map of node IDs to their layer numbers
 	 * @returns Map of node IDs to their position and display information
 	 */
@@ -152,7 +149,6 @@ export class HashGraphVisualizer {
 	/**
 	 * Generates shapes representing edges between nodes
 	 * Creates vertical lines, horizontal lines, and arrows to show dependencies
-	 *
 	 * @param edges - Array of edges to visualize
 	 * @param nodes - Map of node positions
 	 * @returns Array of shapes representing the edges
@@ -200,7 +196,6 @@ export class HashGraphVisualizer {
 	/**
 	 * Renders the graph visualization as ASCII art
 	 * Draws nodes as boxes and connects them with lines and arrows
-	 *
 	 * @param nodes - Map of node positions and display information
 	 * @param edges - Array of shapes representing edges
 	 * @returns String containing the ASCII art visualization
@@ -269,8 +264,8 @@ export class HashGraphVisualizer {
 	/**
 	 * Main entry point for visualizing a HashGraph
 	 * Processes the graph structure and outputs an ASCII visualization
-	 *
 	 * @param hashGraph - The HashGraph to visualize
+	 * @returns String containing the ASCII art visualization
 	 */
 	public stringify(hashGraph: IHashGraph): string {
 		const nodes = new Set<string>();

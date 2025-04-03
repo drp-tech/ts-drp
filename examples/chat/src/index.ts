@@ -3,6 +3,45 @@ import type { IDRPObject } from "@ts-drp/types";
 import { DRP_DISCOVERY_TOPIC } from "@ts-drp/types";
 
 import { Chat } from "./objects/chat";
+import { setupCopyButton } from "./util/clipboard";
+import { createPeerNameElement, formatPeerItem, shortenId, styleMessageElement } from "./util/peerIdentity";
+import { initializeToastContainer, showToast, ToastType } from "./util/toast";
+
+// Helper function to set up collapsible sections
+function setupCollapsibleSections(): void {
+	const infoToggle = document.getElementById("infoToggle");
+	const infoContainer = document.querySelector(".info-container");
+
+	if (infoToggle && infoContainer) {
+		const toggleText = infoToggle.querySelector(".toggle-text");
+
+		infoToggle.addEventListener("click", () => {
+			infoContainer.classList.toggle("expanded");
+
+			// Update toggle button text
+			if (toggleText instanceof HTMLElement) {
+				if (infoContainer.classList.contains("expanded")) {
+					toggleText.textContent = "Hide Connection Info";
+				} else {
+					toggleText.textContent = "Show Connection Info";
+				}
+			}
+		});
+
+		// Check if we need to initialize the expanded state based on screen size
+		const updateExpandedState = (): void => {
+			if (window.innerWidth > 767) {
+				infoContainer.classList.add("expanded");
+			} else {
+				infoContainer.classList.remove("expanded");
+			}
+		};
+
+		// Run initially and on resize
+		updateExpandedState();
+		window.addEventListener("resize", updateExpandedState);
+	}
+}
 
 class ChatStateManager {
 	_node: DRPNode;
@@ -50,6 +89,7 @@ class ChatStateManager {
 	}
 
 	get objectPeers(): string[] {
+		if (!this._drpObject) return [];
 		try {
 			return this._node.networkNode.getGroupPeers(this.drp.id);
 		} catch (e) {
@@ -67,25 +107,36 @@ const element_chatId = <HTMLDivElement>document.getElementById("chatId");
 const element_chat = <HTMLDivElement>document.getElementById("chat");
 
 const renderPeers = (chatState: ChatStateManager): void => {
-	element_peers.innerHTML = `[${chatState.peers.join(", ")}]`;
+	element_peers.innerHTML = "";
+	chatState.peers.forEach((peerId) => {
+		element_peers.appendChild(formatPeerItem(peerId));
+	});
 };
 
 const renderDiscoveryPeers = (chatState: ChatStateManager): void => {
-	element_discoveryPeers.innerHTML = `[${chatState.discoveryPeers.join(", ")}]`;
+	element_discoveryPeers.innerHTML = "";
+	chatState.discoveryPeers.forEach((peerId) => {
+		element_discoveryPeers.appendChild(formatPeerItem(peerId));
+	});
 };
 
 const renderObjectPeers = (chatState: ChatStateManager): void => {
-	element_objectPeers.innerHTML = `[${chatState.objectPeers.join(", ")}]`;
+	element_objectPeers.innerHTML = "";
+	chatState.objectPeers.forEach((peerId) => {
+		element_objectPeers.appendChild(formatPeerItem(peerId));
+	});
 };
 
 const renderPeerId = (chatState: ChatStateManager): void => {
-	element_peerId.innerHTML = chatState.node.networkNode.peerId;
+	element_peerId.innerHTML = "";
+	element_peerId.appendChild(formatPeerItem(chatState.node.networkNode.peerId));
 };
 
 const renderChatId = (chatState: ChatStateManager): void => {
 	if (!chatState.drp) return;
-
-	element_chatId.innerHTML = chatState.drp.id;
+	const shortenedId = shortenId(chatState.drp.id);
+	element_chatId.innerHTML = `<span>${shortenedId}</span>`;
+	element_chatId.setAttribute("data-full-id", chatState.drp.id);
 };
 
 const renderChat = (chatState: ChatStateManager): void => {
@@ -147,7 +198,7 @@ const renderChat = (chatState: ChatStateManager): void => {
 			// Create sender element
 			const senderDiv = document.createElement("div");
 			senderDiv.className = "message-sender";
-			senderDiv.textContent = parsedMessage.isSelf ? "You" : `From: ${parsedMessage.peerId}`;
+			senderDiv.appendChild(createPeerNameElement(parsedMessage.peerId));
 
 			// Create content element
 			const contentDiv = document.createElement("div");
@@ -158,6 +209,9 @@ const renderChat = (chatState: ChatStateManager): void => {
 			messageDiv.appendChild(timestampDiv);
 			messageDiv.appendChild(senderDiv);
 			messageDiv.appendChild(contentDiv);
+
+			// Style the message with the peer's color
+			styleMessageElement(messageDiv, parsedMessage.peerId);
 		} else {
 			// Fallback if message format doesn't match
 			messageDiv.textContent = parsedMessage.original;
@@ -183,13 +237,16 @@ const render = (chatState: ChatStateManager): void => {
 function sendMessage(message: string, chatState: ChatStateManager): void {
 	const timestamp: string = Date.now().toString();
 	if (!chatState.drp.drp) {
-		console.error("Chat DRP not initialized");
-		alert("Please create or join a chat room first");
+		showToast("Please create or join a chat room first", ToastType.ERROR, 5000);
 		return;
 	}
 
-	chatState.chat.addMessage(timestamp, message, chatState.node.networkNode.peerId);
-	render(chatState);
+	try {
+		chatState.chat.addMessage(timestamp, message, chatState.node.networkNode.peerId);
+		render(chatState);
+	} catch (error) {
+		showToast(error instanceof Error ? error.message : "Failed to send message", ToastType.ERROR, 5000);
+	}
 }
 
 function createConnectHandlers(chatState: ChatStateManager): void {
@@ -199,7 +256,7 @@ function createConnectHandlers(chatState: ChatStateManager): void {
 		renderChat(chatState);
 	});
 
-	node.objectStore.subscribe(chatState.drp.id, () => {
+	node.subscribe(chatState.drp.id, () => {
 		renderChat(chatState);
 	});
 }
@@ -213,6 +270,10 @@ const message_input: HTMLInputElement = <HTMLInputElement>document.getElementByI
 async function main(): Promise<void> {
 	const chatState = new ChatStateManager();
 	await chatState.node.start();
+	initializeToastContainer();
+	setupCopyButton();
+	setupCollapsibleSections(); // Initialize collapsible sections
+
 	// 1st render
 	render(chatState);
 
@@ -223,34 +284,53 @@ async function main(): Promise<void> {
 	const create = async (): Promise<void> => {
 		chatState._drpObject = await chatState.node.createObject({ drp: new Chat() });
 		createConnectHandlers(chatState);
+
+		// The object creator can sign for finality
+		if (chatState.node?.keychain.blsPublicKey) {
+			chatState.drp.acl.setKey(chatState.node?.keychain.blsPublicKey);
+		}
 		render(chatState);
 	};
 
 	const connect = async (): Promise<void> => {
 		const objectId = room_input.value;
 		if (!objectId) {
-			alert("Please enter a room id");
+			showToast("Please enter a room ID", ToastType.ERROR, 5000);
 			return;
 		}
 
-		chatState._drpObject = await chatState.node.connectObject({ id: objectId, drp: new Chat() });
-		createConnectHandlers(chatState);
-		render(chatState);
+		try {
+			chatState._drpObject = await chatState.node.connectObject({ id: objectId, drp: new Chat() });
+			createConnectHandlers(chatState);
+			render(chatState);
+		} catch (error) {
+			showToast(error instanceof Error ? error.message : "Failed to connect to room", ToastType.ERROR, 5000);
+		}
 	};
 
 	const sendMessageListener = (): void => {
 		const message: string = message_input.value;
 		message_input.value = "";
 		if (!message) {
-			console.error("Tried sending an empty message");
-			alert("Please enter a message");
+			showToast("Please enter a message", ToastType.ERROR, 5000);
 			return;
 		}
-		sendMessage(message, chatState);
-		// Auto-scrolling is now handled in the renderChat function
+
+		try {
+			sendMessage(message, chatState);
+		} catch (error) {
+			showToast(error instanceof Error ? error.message : "Failed to send message", ToastType.ERROR, 5000);
+		}
 	};
 
-	button_create.addEventListener("click", () => void create());
+	button_create.addEventListener("click", () => {
+		if (room_input.value) {
+			void connect();
+		} else {
+			void create();
+		}
+		room_input.value = "";
+	});
 	button_connect.addEventListener("click", () => void connect());
 	button_send.addEventListener("click", () => void sendMessageListener());
 

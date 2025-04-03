@@ -170,10 +170,19 @@ export class PrometheusMetricsRegister implements MetricsRegister {
 	private pushgateway: TypePromPushgateway<"text/plain; version=0.0.4; charset=utf-8">;
 	private interval: NodeJS.Timeout | undefined;
 
+	/**
+	 * Constructor for PrometheusMetricsRegister
+	 * @param pushgatewayUrl - The URL of the Pushgateway
+	 */
 	constructor(pushgatewayUrl: string) {
 		this.pushgateway = new PromPushgateway(pushgatewayUrl, {}, globalRegistry);
 	}
 
+	/**
+	 * Start the metrics register
+	 * @param jobName - The job name under which to push the metrics
+	 * @param interval - The interval at which to push the metrics
+	 */
 	start(jobName: string, interval: number): void {
 		this.interval = setInterval(() => {
 			this.pushMetrics(jobName).catch((e) => {
@@ -182,22 +191,40 @@ export class PrometheusMetricsRegister implements MetricsRegister {
 		}, interval);
 	}
 
+	/**
+	 * Stop the metrics register
+	 */
 	stop(): void {
 		if (this.interval) clearInterval(this.interval);
 	}
 
+	/**
+	 * Create a new Gauge
+	 * @param config - The configuration for the Gauge
+	 * @returns A new Gauge
+	 */
 	gauge<Labels extends Record<string, string | number> = Record<string, never>>(
 		config: GaugeConfig<Labels>
 	): Gauge<Labels> {
 		return new PrometheusGauge<Labels>(config);
 	}
 
+	/**
+	 * Create a new Histogram
+	 * @param config - The configuration for the Histogram
+	 * @returns A new Histogram
+	 */
 	histogram<Labels extends Record<string, string | number> = Record<string, never>>(
 		config: HistogramConfig<Labels>
 	): Histogram<Labels> {
 		return new PrometheusHistogram<Labels>(config);
 	}
 
+	/**
+	 * Create a new AvgMinMax
+	 * @param config - The configuration for the AvgMinMax
+	 * @returns A new AvgMinMax
+	 */
 	avgMinMax<Labels extends Record<string, string | number> = Record<string, never>>(
 		config: AvgMinMaxConfig<Labels>
 	): AvgMinMax<Labels> {
@@ -206,7 +233,6 @@ export class PrometheusMetricsRegister implements MetricsRegister {
 
 	/**
 	 * Push metrics to the configured Pushgateway.
-	 *
 	 * @param jobName - The job name under which to push the metrics.
 	 */
 	async pushMetrics(jobName: string): Promise<void> {
@@ -216,4 +242,13 @@ export class PrometheusMetricsRegister implements MetricsRegister {
 			console.error("Error pushing metrics", e);
 		}
 	}
+}
+
+/**
+ * Create a new PrometheusMetricsRegister.
+ * @param pushgatewayUrl - The URL of the Pushgateway.
+ * @returns A new PrometheusMetricsRegister.
+ */
+export function createMetricsRegister(pushgatewayUrl: string): PrometheusMetricsRegister {
+	return new PrometheusMetricsRegister(pushgatewayUrl);
 }

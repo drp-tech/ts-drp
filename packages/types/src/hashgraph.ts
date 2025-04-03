@@ -1,4 +1,3 @@
-import { type IBitSet } from "./bitset.js";
 import { type Vertex_Operation as Operation, type Vertex } from "./proto/drp/v1/object_pb.js";
 
 export type Hash = string;
@@ -72,6 +71,5 @@ export interface IHashGraph {
 	getDependencies(vertexHash: Hash): Hash[];
 	getVertex(hash: Hash): Vertex | undefined;
 	getAllVertices(): Vertex[];
-	getReachablePredecessors(hash: Hash): IBitSet | undefined;
 	getCurrentBitsetSize(): number;
 }

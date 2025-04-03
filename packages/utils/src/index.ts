@@ -1,10 +1,8 @@
 /**
  * Checks if a value is a Promise.
- *
  * @template T - The type of value that the Promise resolves to
- * @param {unknown} obj - The value to check
- * @returns {boolean} True if the value is a Promise, false otherwise
- *
+ * @param obj - The value to check
+ * @returns True if the value is a Promise, false otherwise
  * @example
  * ```ts
  * isPromise(Promise.resolve(42)) // returns true
@@ -20,10 +18,8 @@ export function isPromise<T>(obj: unknown): obj is Promise<T> {
 /**
  * Checks if a value is a Generator object.
  * Note: This checks for Generator instances, not generator functions.
- *
- * @param {unknown} obj - The value to check
- * @returns {boolean} True if the value is a Generator, false otherwise
- *
+ * @param obj - The value to check
+ * @returns True if the value is a Generator, false otherwise
  * @example
  * ```ts
  * function* gen() { yield 1; }
@@ -44,10 +40,8 @@ export function isGenerator(obj: unknown): obj is Generator {
 /**
  * Checks if a value is an AsyncGenerator object.
  * Note: This checks for AsyncGenerator instances, not async generator functions.
- *
- * @param {unknown} obj - The value to check
- * @returns {boolean} True if the value is an AsyncGenerator, false otherwise
- *
+ * @param obj - The value to check
+ * @returns True if the value is an AsyncGenerator, false otherwise
  * @example
  * ```ts
  * async function* asyncGen() { yield 1; }
@@ -69,14 +63,12 @@ export function isAsyncGenerator(obj: unknown): obj is AsyncGenerator {
  * Processes items sequentially, applying the given function to each item.
  * If any operation returns a Promise, switches to async mode and returns a Promise.
  * Otherwise, processes synchronously and returns the context directly.
- *
  * @template T - The type of items to process
  * @template C - The type of the context object
- * @param {T[]} items - The array of items to process
- * @param {(item: T) => unknown | Promise<unknown>} processFn - Function to apply to each item
- * @param {C} context - Context object that will be returned
- * @returns {C | Promise<C>} The context directly if all operations were synchronous, otherwise a Promise of the context
- *
+ * @param items - The array of items to process
+ * @param processFn - Function to apply to each item
+ * @param context - Context object that will be returned
+ * @returns The context directly if all operations were synchronous, otherwise a Promise of the context
  * @example
  * ```ts
  * // Synchronous processing
@@ -115,6 +107,14 @@ export function processSequentially<T, C>(
 	return context;
 }
 
+/**
+ * Processes remaining items asynchronously, applying the given function to each item.
+ * @param initialPromise - The initial Promise to process
+ * @param items - The array of items to process
+ * @param processFn - Function to apply to each item
+ * @param startIndex - The index to start processing from
+ * @returns A Promise that resolves when all items have been processed
+ */
 function processRemainingAsync<T>(
 	initialPromise: Promise<unknown>,
 	items: T[],
@@ -134,13 +134,11 @@ function processRemainingAsync<T>(
  * Handles a value that might be a Promise, applying a transformation function.
  * If the value is a Promise, the function is applied to the resolved value.
  * If the value is not a Promise, the function is applied directly.
- *
  * @template T - The type of the input value
  * @template R - The type of the transformed value
- * @param {T | Promise<T>} value - The value or Promise to process
- * @param {(value: T) => R} fn - Function to apply to the (possibly resolved) value
- * @returns {R | Promise<R>} Either the direct result or a Promise resolving to the result
- *
+ * @param value - The value or Promise to process
+ * @param fn - Function to apply to the (possibly resolved) value
+ * @returns Either the direct result or a Promise resolving to the result
  * @example
  * ```ts
  * // Synchronous usage
