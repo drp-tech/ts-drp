@@ -35,7 +35,7 @@ function defaultIDFromPeerID(peerId: string): string {
 	);
 }
 
-export function defaultACL(admins: string | string[]): IACL {
+export function defaultACL(admins: string | string[] = []): IACL {
 	return new ObjectACL({
 		admins: Array.isArray(admins) ? admins : [admins],
 		permissionless: true,
@@ -43,10 +43,7 @@ export function defaultACL(admins: string | string[]): IACL {
 }
 
 export function createObject<T extends IDRP>(options: CreateObjectOptions<T>): IDRPObject<T> {
-	const acl = new ObjectACL({
-		admins: [],
-		permissionless: true,
-	});
+	const acl = defaultACL();
 
 	const object = new DRPObject<T>({ ...options, config: { log_config: options.log_config }, acl });
 	return object;
