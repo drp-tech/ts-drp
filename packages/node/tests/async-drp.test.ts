@@ -3,7 +3,7 @@ import { DRPNetworkNode } from "@ts-drp/network";
 import { AsyncCounterDRP } from "@ts-drp/test-utils";
 import { type DRPNodeConfig, NodeEventName, type ObjectId } from "@ts-drp/types";
 import { raceEvent } from "race-event";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { DRPNode } from "../src/index.js";
 
