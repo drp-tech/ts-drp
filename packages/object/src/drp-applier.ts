@@ -260,7 +260,7 @@ export class DRPVertexApplier<T extends IDRP> {
 		if (!currentDRP) return { stop: false, result: { ...drpOperation, result: undefined } };
 
 		if (isACL) {
-			// we know acl do not have async
+			// ACL does not have async functions
 			return {
 				stop: false,
 				result: { ...drpOperation, result: callDRP(currentDRP, peerId, opType, value) },
