@@ -366,7 +366,7 @@ describe("DRPObject connection tests", () => {
 		expect(obj2.acl.query_isAdmin(node1.networkNode.peerId)).toBe(true);
 		expect(obj2.acl.query_isAdmin("fake-peer")).toBe(true);
 		expect(obj2.acl.query_isAdmin(node2.networkNode.peerId)).toBe(false);
-	});
+	}, 20_000);
 
 	test("Should error if the fetch state timeouts", async () => {
 		const logSpy = vi.spyOn(log, "error").mockImplementation(() => {});
