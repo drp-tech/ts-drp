@@ -467,7 +467,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]): 
 }
 
 /**
- * Sign finality vertices.
+ * Sign vertices for finality.
  * @param node - The DRP node instance handling the request
  * @param obj - The object that changed
  * @param vertices - The vertices to sign
