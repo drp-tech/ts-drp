@@ -1,7 +1,6 @@
 import { MapDRP, SetDRP } from "@ts-drp/blueprints";
 import Benchmark from "benchmark";
 
-import { ObjectACL } from "../src/acl/index.js";
 import { createPermissionlessACL, DRPObject } from "../src/index.js";
 
 const NUMBER_OF_OPERATIONS = Number.parseInt(process.argv[2], 10) || 1000;
@@ -59,10 +58,7 @@ benchmarkForAddWinSet(
 );
 
 suite.add("Create a HashGraph with 1000 operations for set wins map 1000", () => {
-	const acl = new ObjectACL({
-		admins: ["peer1", "peer2"],
-		permissionless: true,
-	});
+	const acl = createPermissionlessACL(["peer1", "peer2"]);
 	const object = new DRPObject({
 		peerId: "peer1",
 		acl,
@@ -74,10 +70,7 @@ suite.add("Create a HashGraph with 1000 operations for set wins map 1000", () =>
 });
 
 suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map`, () => {
-	const acl = new ObjectACL({
-		admins: ["peer1", "peer2"],
-		permissionless: true,
-	});
+	const acl = createPermissionlessACL(["peer1", "peer2"]);
 	const object = new DRPObject({
 		peerId: "peer1",
 		acl,
@@ -89,10 +82,7 @@ suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wi
 });
 
 suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map and read them`, () => {
-	const acl = new ObjectACL({
-		admins: ["peer1", "peer2"],
-		permissionless: true,
-	});
+	const acl = createPermissionlessACL(["peer1", "peer2"]);
 	const object = new DRPObject({
 		peerId: "peer1",
 		acl,
@@ -107,10 +97,7 @@ suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wi
 	}
 });
 suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map and delete them`, () => {
-	const acl = new ObjectACL({
-		admins: ["peer1", "peer2"],
-		permissionless: true,
-	});
+	const acl = createPermissionlessACL(["peer1", "peer2"]);
 	const object = new DRPObject({
 		peerId: "peer1",
 		acl,
@@ -126,10 +113,7 @@ suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wi
 });
 
 suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map with random operations`, () => {
-	const acl = new ObjectACL({
-		admins: ["peer1", "peer2"],
-		permissionless: true,
-	});
+	const acl = createPermissionlessACL(["peer1", "peer2"]);
 	const object = new DRPObject({
 		peerId: "peer1",
 		acl,
