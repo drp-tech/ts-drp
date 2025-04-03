@@ -2,6 +2,7 @@ import { Logger } from "@ts-drp/logger";
 import {
 	type ApplyResult,
 	DrpType,
+	type FinalityConfig,
 	type Hash,
 	type IACL,
 	type IDRP,
@@ -14,7 +15,9 @@ import { validateVertex } from "@ts-drp/validation";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 
-import { type FinalityStore } from "./finality/index.js";
+import { createACL, type ObjectACLOptions } from "./acl/index.js";
+import { FinalityStore } from "./finality/index.js";
+import { HashGraph } from "./hashgraph/index.js";
 import { createPipeline, type Pipeline } from "./pipeline/pipeline.js";
 import { type HandlerReturn } from "./pipeline/types.js";
 import {
@@ -64,14 +67,74 @@ function splitOperation(vertices: Vertex[]): [Vertex[], Vertex[]] {
 	return [drpVertices, aclVertices];
 }
 
-interface DRPVertexApplierOptions<T extends IDRP> {
+interface DRPVertexApplierBase<T extends IDRP> {
 	drp?: T;
 	acl: IACL;
 	hg: IHashGraph;
 	finalityStore: FinalityStore;
-	states?: DRPObjectStateManager<T>;
+	states: DRPObjectStateManager<T>;
 	logConfig?: LoggerOptions;
+	finalityConfig?: FinalityConfig;
 	notify(origin: string, vertices: Vertex[]): void;
+}
+
+interface DRPVertexApplierWithACL<T extends IDRP> extends Partial<DRPVertexApplierBase<T>> {
+	acl: IACL;
+	peerId?: string;
+}
+
+interface DRPVertexApplierWithACLOptions<T extends IDRP> extends Partial<DRPVertexApplierBase<T>> {
+	aclOptions: ObjectACLOptions;
+	peerId?: string;
+}
+
+export type DRPVertexApplierOptions<T extends IDRP> = DRPVertexApplierWithACL<T> | DRPVertexApplierWithACLOptions<T>;
+
+function hasAcl<T extends IDRP>(options: DRPVertexApplierOptions<T>): options is DRPVertexApplierWithACL<T> {
+	return "acl" in options;
+}
+
+type PeerIdOnly<T extends IDRP> = (DRPVertexApplierWithACL<T> | DRPVertexApplierWithACLOptions<T>) & {
+	peerId: string;
+};
+
+function hasPeerIdAndNoHG<T extends IDRP>(options: DRPVertexApplierOptions<T>): options is PeerIdOnly<T> {
+	return options.peerId !== undefined && options.hg === undefined && options.peerId !== "";
+}
+
+/**
+ * Creates a DRPVertexApplier
+ * @param options - The options for the DRPVertexApplier
+ * @returns The DRPVertexApplier
+ */
+export function createDRPVertexApplier<T extends IDRP>(
+	options: DRPVertexApplierOptions<T>
+): [DRPVertexApplier<T>, DRPObjectStateManager<T>, IHashGraph] {
+	const acl = hasAcl(options) ? options.acl : createACL(options.aclOptions);
+	const states = options.states ?? new DRPObjectStateManager(acl, options.drp);
+	const finalityStore = options.finalityStore ?? new FinalityStore(options.finalityConfig, options.logConfig);
+
+	const hg = hasPeerIdAndNoHG(options)
+		? new HashGraph(
+				options.peerId,
+				acl.resolveConflicts?.bind(acl),
+				options.drp?.resolveConflicts?.bind(options.drp),
+				options.drp?.semanticsType
+			)
+		: options.hg;
+
+	if (hg === undefined) throw new Error("hg and peerId are undefined");
+
+	const obj = new DRPVertexApplier({
+		...options,
+		hg,
+		acl,
+		states,
+		finalityStore,
+		notify: options.notify ?? ((): void => {}),
+	});
+
+	return [obj, states, hg];
 }
 
 /**
@@ -101,9 +164,9 @@ export class DRPVertexApplier<T extends IDRP> {
 	 * @param options.notify - The notify function
 	 * @param options.logConfig - The log config
 	 */
-	constructor({ drp, acl, hg, states, finalityStore, notify, logConfig }: DRPVertexApplierOptions<T>) {
+	constructor({ drp, acl, hg, states, finalityStore, notify, logConfig }: DRPVertexApplierBase<T>) {
 		this.hg = hg;
-		this.states = states ?? new DRPObjectStateManager(acl, drp);
+		this.states = states;
 		this.finalityStore = finalityStore;
 		this._notify = notify;
 		this.log = new Logger("drp::object::operation", logConfig);

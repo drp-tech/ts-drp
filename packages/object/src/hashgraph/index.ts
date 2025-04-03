@@ -181,7 +181,7 @@ export class HashGraph implements IHashGraph {
 	 * @param subgraph - The subgraph.
 	 * @returns The topologically sorted vertices.
 	 */
-	dfsTopologicalSortIterative(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
+	dfsTopologicalSortIterative(origin: Hash, subgraph: Set<Hash>): Hash[] {
 		const visited = new ObjectSet<Hash>();
 		const result: Hash[] = Array(subgraph.size);
 		const stack: Hash[] = Array(subgraph.size);
@@ -219,7 +219,6 @@ export class HashGraph implements IHashGraph {
 		return result;
 	}
 
-	/* Topologically sort the vertices in the whole hashgraph or the past of a given vertex. */
 	/**
 	 * Topologically sorts the vertices in the whole hashgraph or the past of a given vertex.
 	 * @param updateBitsets - Whether to update the bitsets.
@@ -230,7 +229,7 @@ export class HashGraph implements IHashGraph {
 	topologicalSort(
 		updateBitsets = false,
 		origin: Hash = HashGraph.rootHash,
-		subgraph: ObjectSet<Hash> = new ObjectSet(this.vertices.keys())
+		subgraph: Set<Hash> = new ObjectSet(this.vertices.keys())
 	): Hash[] {
 		const result = this.dfsTopologicalSortIterative(origin, subgraph);
 		if (!updateBitsets) return result;
@@ -280,7 +279,7 @@ export class HashGraph implements IHashGraph {
 	 */
 	linearizeVertices(
 		origin: Hash = HashGraph.rootHash,
-		subgraph: ObjectSet<string> = new ObjectSet(this.vertices.keys())
+		subgraph: Set<string> = new ObjectSet(this.vertices.keys())
 	): Vertex[] {
 		switch (this.semanticsTypeDRP) {
 			case SemanticsType.pair:

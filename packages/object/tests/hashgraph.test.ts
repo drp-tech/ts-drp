@@ -5,7 +5,7 @@ import {
 	DrpType,
 	type Hash,
 	type IACL,
-	type IDRP,
+	type IHashGraph,
 	Operation,
 	SemanticsType,
 	Vertex,
@@ -13,12 +13,10 @@ import {
 import { ObjectSet } from "@ts-drp/utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { ObjectACL } from "../src/acl/index.js";
-import { DRPVertexApplier as DRPSubObject } from "../src/drp-applier.js";
-import { FinalityStore } from "../src/finality/index.js";
+import { createACL, ObjectACL } from "../src/acl/index.js";
 import { HashGraph } from "../src/hashgraph/index.js";
-import { DRPObject } from "../src/index.js";
-import { DRPObjectStateManager } from "../src/state.js";
+import { createDRPVertexApplier, DRPObject, type DRPVertexApplier } from "../src/index.js";
+import { type DRPObjectStateManager } from "../src/state.js";
 import { createVertex } from "../src/utils/createVertex.js";
 
 function selfCheckConstraints(hg: HashGraph): boolean {
@@ -53,42 +51,12 @@ function selfCheckConstraints(hg: HashGraph): boolean {
 	}
 	return true;
 }
-
-const notify = (): void => {};
-
-function createDRPSubObject<T extends IDRP>({
-	drp,
-	states,
-	hg,
-	acl,
-	admins,
-}: {
-	drp: T;
-	states?: DRPObjectStateManager<T>;
-	hg: HashGraph;
-	acl?: IACL;
-	admins: string[];
-}): [DRPSubObject<T>, DRPObjectStateManager<T>] {
-	const acl2 = acl ?? new ObjectACL({ admins });
-	const states2 = states ?? new DRPObjectStateManager(acl2, drp);
-	const options = {
-		type: DrpType.DRP,
-		finalityStore: new FinalityStore(),
-		acl: acl2,
-		states: states2,
-	};
-
-	const obj = new DRPSubObject({ ...options, drp, hg, states: states2, notify });
-	return [obj, states2];
-}
 describe("HashGraph construction tests", () => {
 	let obj1: DRPObject<SetDRP<number>>;
 	let obj2: DRPObject<SetDRP<number>>;
 	let acl: IACL;
 	beforeEach(() => {
-		acl = new ObjectACL({
-			admins: ["peer1", "peer2"],
-		});
+		acl = createACL({ admins: ["peer1", "peer2"] });
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 
@@ -211,26 +179,22 @@ describe("HashGraph construction tests", () => {
 });
 
 describe("HashGraph for SetDRP tests", () => {
-	let hg1: HashGraph;
-	let hg2: HashGraph;
-	let state2: DRPObjectStateManager<SetDRP<number>>;
-	let obj1: DRPSubObject<SetDRP<number>>;
-	let obj2: DRPSubObject<SetDRP<number>>;
+	let hg1: IHashGraph;
+	let hg2: IHashGraph;
+	let obj1: DRPVertexApplier<SetDRP<number>>;
+	let obj2: DRPVertexApplier<SetDRP<number>>;
 
 	beforeEach(() => {
 		vi.useFakeTimers({ now: 0 });
-		hg1 = new HashGraph("peer1", undefined, undefined, SemanticsType.pair);
-		hg2 = new HashGraph("peer2", undefined, undefined, SemanticsType.pair);
-		[obj1] = createDRPSubObject({
-			hg: hg1,
+		[obj1, , hg1] = createDRPVertexApplier({
+			peerId: "peer1",
 			drp: new SetDRP<number>(),
-			admins: ["peer1", "peer2"],
+			aclOptions: { admins: ["peer1", "peer2"] },
 		});
-		[obj2, state2] = createDRPSubObject({
-			hg: hg2,
-			states: state2,
+		[obj2, , hg2] = createDRPVertexApplier({
+			peerId: "peer2",
 			drp: new SetDRP<number>(),
-			admins: ["peer1", "peer2"],
+			aclOptions: { admins: ["peer1", "peer2"] },
 		});
 	});
 
@@ -435,18 +399,15 @@ describe("HashGraph for SetDRP tests", () => {
 
 describe("HashGraph for undefined operations tests", () => {
 	test("Test: merge should skip undefined operations", async () => {
-		const hg1 = new HashGraph("peer1", undefined, undefined, SemanticsType.pair);
-		const hg2 = new HashGraph("peer2", undefined, undefined, SemanticsType.pair);
-
-		const [obj1] = createDRPSubObject({
-			hg: hg1,
+		const [obj1, , hg1] = createDRPVertexApplier({
+			peerId: "peer1",
 			drp: new SetDRP<number>(),
-			admins: ["peer1", "peer2"],
+			aclOptions: { admins: ["peer1", "peer2"] },
 		});
-		const [obj2] = createDRPSubObject({
-			hg: hg2,
+		const [obj2, , hg2] = createDRPVertexApplier({
+			peerId: "peer2",
 			drp: new SetDRP<number>(),
-			admins: ["peer1", "peer2"],
+			aclOptions: { admins: ["peer1", "peer2"] },
 		});
 
 		obj1.drp?.add(1);
@@ -510,40 +471,30 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 });
 
 describe("Vertex state tests", () => {
-	let obj1: DRPSubObject<SetDRP<number>>;
-	let obj2: DRPSubObject<SetDRP<number>>;
-	let obj3: DRPSubObject<SetDRP<number>>;
-	let hg1: HashGraph;
-	let hg2: HashGraph;
-	let hg3: HashGraph;
+	let obj1: DRPVertexApplier<SetDRP<number>>;
+	let obj2: DRPVertexApplier<SetDRP<number>>;
+	let obj3: DRPVertexApplier<SetDRP<number>>;
+	let hg1: IHashGraph;
+	let hg2: IHashGraph;
+	let hg3: IHashGraph;
 	let state1: DRPObjectStateManager<SetDRP<number>>;
 
 	beforeEach(() => {
 		vi.useFakeTimers({ now: 0 });
-		hg1 = new HashGraph("peer1", undefined, undefined, SemanticsType.pair);
-		hg2 = new HashGraph("peer2", undefined, undefined, SemanticsType.pair);
-		hg3 = new HashGraph("peer3", undefined, undefined, SemanticsType.pair);
-		const options = {
-			type: DrpType.DRP,
-			finalityStore: new FinalityStore(),
-		};
-		[obj1, state1] = createDRPSubObject({
+		[obj1, state1, hg1] = createDRPVertexApplier({
+			peerId: "peer1",
 			drp: new SetDRP<number>(),
-			hg: hg1,
-			...options,
-			admins: ["peer1", "peer2", "peer3"],
+			aclOptions: { admins: ["peer1", "peer2", "peer3"] },
 		});
-		[obj2] = createDRPSubObject({
-			...options,
+		[obj2, , hg2] = createDRPVertexApplier({
+			peerId: "peer2",
 			drp: new SetDRP<number>(),
-			hg: hg2,
-			admins: ["peer1", "peer2", "peer3"],
+			aclOptions: { admins: ["peer1", "peer2", "peer3"] },
 		});
-		[obj3] = createDRPSubObject({
-			...options,
+		[obj3, , hg3] = createDRPVertexApplier({
+			peerId: "peer3",
 			drp: new SetDRP<number>(),
-			hg: hg3,
-			admins: ["peer1", "peer2", "peer3"],
+			aclOptions: { admins: ["peer1", "peer2", "peer3"] },
 		});
 	});
 

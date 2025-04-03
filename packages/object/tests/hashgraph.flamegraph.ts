@@ -3,9 +3,9 @@ import { ACLGroup } from "@ts-drp/types/dist/src/acl.js";
 import fs from "fs";
 import * as pprof from "pprof";
 
-import { createPermissionlessACL, DRPObject } from "../src/index.js";
+import { createACL, DRPObject } from "../src/index.js";
 
-const acl = createPermissionlessACL(["peer1_0"]);
+const acl = createACL({ admins: ["peer1_0"] });
 type DRPManipulationStrategy = (drp: SetDRP<number>, value: number) => void;
 
 const createWithStrategy = (

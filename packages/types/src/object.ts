@@ -103,8 +103,6 @@ export interface IDRPObject<T extends IDRP> extends DRPObjectBase {
 	merge(vertices: Vertex[]): Promise<MergeResult>;
 }
 
-//export type DRPObjectCallback<T extends IDRP> = (object: IDRPObject<T>, origin: string, vertices: Vertex[]) => void;
-
 export interface ConnectObjectOptions<T extends IDRP> {
 	peerId?: string;
 	id?: string;

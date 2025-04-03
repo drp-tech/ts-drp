@@ -16,10 +16,10 @@ import {
 } from "@ts-drp/types";
 
 import { createPermissionlessACL } from "./acl/index.js";
-import { DRPVertexApplier } from "./drp-applier.js";
+import { createDRPVertexApplier, type DRPVertexApplier } from "./drp-applier.js";
 import { FinalityStore } from "./finality/index.js";
 import { HashGraph } from "./hashgraph/index.js";
-import { DRPObjectStateManager } from "./state.js";
+import { type DRPObjectStateManager } from "./state.js";
 
 export * from "./acl/index.js";
 export * from "./hashgraph/index.js";
@@ -90,14 +90,14 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 		);
 
 		this._finalityStore = new FinalityStore(config?.finality_config, config?.log_config);
-		this._states = new DRPObjectStateManager(acl, drp);
-		this._applier = new DRPVertexApplier({
+		[this._applier, this._states] = createDRPVertexApplier({
 			drp,
 			acl,
 			hg: this.hg,
-			states: this._states,
 			finalityStore: this._finalityStore,
 			notify: this._notify.bind(this),
+			finalityConfig: config?.finality_config,
+			logConfig: config?.log_config,
 		});
 	}
 
