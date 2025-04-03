@@ -1,7 +1,7 @@
 import { ActionType, type IDRP, type ResolveConflictsType, SemanticsType, type Vertex } from "@ts-drp/types";
 
 /**
- * AddMulDRP is a class that implements an add and multiply operation.
+ * AddMulDRP is a register class that implements an add and multiply operation.
  */
 export class AddMulDRP implements IDRP {
 	semanticsType = SemanticsType.pair;
