@@ -61,7 +61,12 @@ export class ObjectACL implements IACL {
 	 * @param options - The options for the ObjectACL.
 	 */
 	constructor(options: ObjectACLOptions = { admins: [] }) {
-		const admins: string[] = Array.isArray(options.admins) ? options.admins : [options.admins];
+		const admins: string[] = Array.isArray(options.admins)
+			? options.admins
+			: options.admins != null
+				? [options.admins]
+				: [];
+
 		this.permissionless = options.permissionless ?? false;
 
 		const adminPermissions = new Set<ACLGroup>([ACLGroup.Admin, ACLGroup.Finality]);
