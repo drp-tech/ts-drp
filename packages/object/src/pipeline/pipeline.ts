@@ -1,14 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { handlePromiseOrValue } from "@ts-drp/utils";
 
 import { Step, type StepOptions } from "./step.js";
 import { type PipelineStep } from "./types.js";
 
 export class Pipeline<I, O> {
-	private firstHandler: PipelineStep<I, any>;
-	private lastHandler: PipelineStep<any, O>;
+	private firstHandler: PipelineStep<I, unknown>;
+	private lastHandler: PipelineStep<unknown, O>;
 
-	constructor(firstHandler: PipelineStep<I, any>, lastHandler: PipelineStep<any, O>) {
+	constructor(firstHandler: PipelineStep<I, unknown>, lastHandler: PipelineStep<unknown, O>) {
 		this.firstHandler = firstHandler;
 		this.lastHandler = lastHandler;
 	}
