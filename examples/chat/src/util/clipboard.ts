@@ -1,5 +1,8 @@
 import { showToast, ToastType } from "./toast";
 
+/**
+ * Setup the copy button
+ */
 export function setupCopyButton(): void {
 	const copyButton = document.getElementById("copyButton") as HTMLButtonElement;
 	const chatIdElement = document.getElementById("chatId") as HTMLDivElement;
@@ -49,6 +52,10 @@ export function setupCopyButton(): void {
 	observer.observe(chatIdElement, { childList: true });
 }
 
+/**
+ * Copy to clipboard
+ * @param text - The text to copy
+ */
 export async function copyToClipboard(text: string): Promise<void> {
 	try {
 		await navigator.clipboard.writeText(text);

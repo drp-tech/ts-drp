@@ -11,6 +11,9 @@ export enum ToastType {
 	WARNING = "warning",
 }
 
+/**
+ * Initialize the toast container
+ */
 export function initializeToastContainer(): void {
 	if (!container) {
 		container = document.createElement("div");
@@ -19,6 +22,12 @@ export function initializeToastContainer(): void {
 	}
 }
 
+/**
+ * Show a toast
+ * @param message - The message to show
+ * @param type - The type of toast
+ * @param duration - The duration of the toast
+ */
 export function showToast(message: string, type: ToastType = ToastType.ERROR, duration = 5000): void {
 	const id = `toast-${++counter}`;
 	const toast = document.createElement("div");

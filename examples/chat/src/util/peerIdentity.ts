@@ -32,6 +32,11 @@ const maxAnimalsOfOneKind = 100;
 
 const identities: Map<string, { name: string; emoji: string; color: string; number: number }> = new Map();
 
+/**
+ * Get the identity of a peer
+ * @param peerId - The peer id
+ * @returns The identity of the peer
+ */
 export function getIdentity(peerId: string): { name: string; emoji: string; color: string; number: number } {
 	if (!identities.has(peerId)) {
 		let numberHash = hashCode(peerId);
@@ -49,6 +54,11 @@ export function getIdentity(peerId: string): { name: string; emoji: string; colo
 	return identities.get(peerId) ?? { name: "", emoji: "", color: "", number: 0 };
 }
 
+/**
+ * Create a peer name element
+ * @param peerId - The peer id
+ * @returns The peer name element
+ */
 export function createPeerNameElement(peerId: string): HTMLSpanElement {
 	const identity = getIdentity(peerId);
 	const container = document.createElement("span");
@@ -69,17 +79,33 @@ export function createPeerNameElement(peerId: string): HTMLSpanElement {
 	return container;
 }
 
+/**
+ * Style a message element
+ * @param element - The message element
+ * @param peerId - The peer id
+ */
 export function styleMessageElement(element: HTMLElement, peerId: string): void {
 	const identity = getIdentity(peerId);
 	element.style.setProperty("--peer-color", identity.color);
 	element.setAttribute("data-peer-color", identity.color);
 }
 
+/**
+ * Shorten an id
+ * @param id - The id to shorten
+ * @param length - The length of the shortened id
+ * @returns The shortened id
+ */
 export function shortenId(id: string, length = 4): string {
 	if (id.length <= length * 2 + 3) return id;
 	return `${id.slice(0, length)}...${id.slice(-length)}`;
 }
 
+/**
+ * Format a peer item
+ * @param peerId - The peer id
+ * @returns The formatted peer item
+ */
 export function formatPeerItem(peerId: string): HTMLSpanElement {
 	const identity = getIdentity(peerId);
 	const shortId = shortenId(peerId);

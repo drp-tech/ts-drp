@@ -10,14 +10,12 @@ const objectPeersSelector = "#objectPeers";
 
 /**
  * Monitors a file for matches of a search pattern until the desired number of matches is found
- *
  * @example
  * // Match string pattern
  * await chackFileUntilMatches("test.log", () => "Server started");
  *
  * // Match regex pattern (including multiline)
  * await chackFileUntilMatches("test.log", () => /Error:\n.*at .*\/s);
- *
  * @param filePath - Path to the file to monitor
  * @param searchPattern - String or RegExp to match against file content
  * @returns Promise that resolves when the required matches are found
