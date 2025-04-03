@@ -267,9 +267,10 @@ export class DRPVertexApplier<T extends IDRP> {
 			};
 		}
 
-		return handlePromiseOrValue(callDRP(currentDRP, peerId, opType, value), (result) => {
-			return { stop: false, result: { ...drpOperation, result, changed: false } };
-		});
+		return handlePromiseOrValue(
+			callDRP(currentDRP, peerId, opType, value),
+			(result): HandlerReturn<PostOperation<T>> => ({ stop: false, result: { ...drpOperation, result } })
+		);
 	}
 
 	private equal(operation: PostOperation<T>): HandlerReturn<PostOperation<T>> {
