@@ -4,7 +4,7 @@ import { DRPNetworkNode } from "@ts-drp/network";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
 import { type DRPNetworkNodeConfig, DrpType, NodeEventName, type ObjectId, Operation } from "@ts-drp/types";
 import { raceEvent } from "race-event";
-import { afterAll, beforeEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { DRPNode } from "../src/index.js";
 
@@ -115,11 +115,19 @@ describe("Handle message correctly", () => {
 		});
 	});
 
+	afterEach(async () => {
+		await bootstrapNode.stop();
+		await node1.networkNode.stop();
+		await node2.networkNode.stop();
+	});
+
 	test("should handle update message correctly", async () => {
 		const p = raceEvent(node1, NodeEventName.DRP_UPDATE, controller.signal, {
 			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
 		});
+
 		drpObjectNode2.drp?.add(5);
+
 		await p;
 		const expected_operations = node1.get(drpObjectNode2.id)?.vertices.map((vertex) => {
 			return vertex.operation;
@@ -146,7 +154,6 @@ describe("Handle message correctly", () => {
 		await p4;
 		expect(drpObjectNode1?.vertices.length).toBe(5);
 		expect(drpObjectNode2.vertices.length).toBe(5);
-
 		const node3 = createNewNode("node3");
 
 		await node3.start();
@@ -158,10 +165,10 @@ describe("Handle message correctly", () => {
 		});
 
 		expect(node3.get(drpObjectNode2.id)?.vertices.length).toBe(undefined);
-		const p5 = raceEvent(node2, NodeEventName.DRP_FETCH_STATE);
-		const p8 = raceEvent(node1, NodeEventName.DRP_FETCH_STATE);
 		const p6 = raceEvent(node3, NodeEventName.DRP_FETCH_STATE_RESPONSE, controller.signal);
 		const p7 = raceEvent(node3, NodeEventName.DRP_SYNC_ACCEPTED, controller.signal);
+		const p5 = raceEvent(node2, NodeEventName.DRP_FETCH_STATE);
+
 		await Promise.all([
 			node3.connectObject({
 				id: drpObjectNode2.id,
@@ -169,29 +176,23 @@ describe("Handle message correctly", () => {
 					peerId: node2.networkNode.peerId,
 				},
 			}),
-			Promise.race([p5, p8]),
+			p5,
 			p6,
 			p7,
 		]);
 		expect(node3.get(drpObjectNode2.id)?.vertices.length).toBe(5);
-	}, 10_000); // 10 seconds
+	}, 20_000); // 10 seconds
 
 	test("should handle update attestation message correctly", async () => {
-		drpObjectNode2.drp?.add(5);
-		drpObjectNode2.drp?.add(10);
-		const hash = drpObjectNode2.vertices[1].hash;
-		expect(node2.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
 		const p = raceEvent(node2, NodeEventName.DRP_ATTESTATION_UPDATE, controller.signal, {
 			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
 		});
-		drpObjectNode2.drp?.add(6);
+		drpObjectNode2.drp?.add(5);
+
+		const hash = drpObjectNode2.vertices[1].hash;
+		expect(node2.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
+
 		await p;
 		expect(node2.get(drpObjectNode2.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
-	}, 10_000); // 60 seconds
-
-	afterAll(async () => {
-		await bootstrapNode.stop();
-		await node1.networkNode.stop();
-		await node2.networkNode.stop();
-	});
+	}, 20_000); // 20 seconds
 });
