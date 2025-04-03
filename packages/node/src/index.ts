@@ -5,7 +5,7 @@ import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
 import { MessageQueueManager } from "@ts-drp/message-queue";
 import { DRPNetworkNode } from "@ts-drp/network";
-import { DRPObject } from "@ts-drp/object";
+import { DRPObject, HashGraph } from "@ts-drp/object";
 import {
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
@@ -202,7 +202,8 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		const { signal, cleanup } = timeoutSignal(5000);
 		try {
 			await raceEvent(this, NodeEventName.DRP_FETCH_STATE_RESPONSE, signal, {
-				filter: (event: CustomEvent<FetchStateResponseEvent>) => event.detail.id === object.id,
+				filter: (event: CustomEvent<FetchStateResponseEvent>) =>
+					event.detail.id === object.id && event.detail.fetchStateResponse.vertexHash === HashGraph.rootHash,
 			});
 		} catch (error) {
 			if (error instanceof AbortError) {
