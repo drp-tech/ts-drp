@@ -256,7 +256,6 @@ describe("DRPNode with rpc", () => {
 });
 
 describe("DRPObject connection tests", () => {
-	vi.useRealTimers();
 	vi.setConfig({ testTimeout: 15000, hookTimeout: 15000 });
 	const controller = new AbortController();
 	let node1: DRPNode;
