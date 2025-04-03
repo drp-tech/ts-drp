@@ -8,7 +8,7 @@ import {
 } from "@ts-drp/types";
 
 /**
- * DRPIntervalReconnectBootstrap is a class that implements a reconnect bootstrap for the DRP network.
+ * DRPIntervalReconnectBootstrap is a class that implements interval bootstrap reconnecting for the DRP network node.
  * It provides methods to start and stop the reconnect bootstrap.
  */
 export class DRPIntervalReconnectBootstrap implements IDRPIntervalReconnectBootstrap {
