@@ -13,7 +13,7 @@ export interface KeychainConfig {
 }
 
 /**
- * Keychain is a class that provides a keychain for the application.
+ * Keychain is a class that provides a keychain for the DRPNode.
  * It provides methods to sign data with BLS and Secp256k1.
  */
 export class Keychain {
