@@ -73,7 +73,6 @@ describe("Async DRP", () => {
 	});
 
 	test("async drp", async () => {
-		vi.useRealTimers();
 		const controller = new AbortController();
 
 		const drpObjectNode1 = await node1.createObject({
