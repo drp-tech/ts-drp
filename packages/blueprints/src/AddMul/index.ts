@@ -10,7 +10,7 @@ export class AddMulDRP implements IDRP {
 
 	/**
 	 * Constructor for AddMulDRP
-	 * @param initialValue - The initial value for the add and multiply operation
+	 * @param initialValue - The initial value for the register
 	 */
 	constructor(initialValue?: number) {
 		if (typeof initialValue === "number") {
