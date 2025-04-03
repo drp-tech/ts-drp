@@ -86,6 +86,11 @@ async function init(): Promise<void> {
 		drpObject = await node.createObject({ drp: new Canvas(5, 10) });
 
 		createConnectHandlers();
+
+		// The object creator can sign for finality
+		if (node.keychain.blsPublicKey) {
+			drpObject.acl.setKey(node.keychain.blsPublicKey);
+		}
 		render();
 	};
 
