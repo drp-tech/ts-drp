@@ -3,8 +3,9 @@ import { ACLGroup } from "@ts-drp/types";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { createACL } from "../src/acl/index.js";
+import { createDRPVertexApplier } from "../src/drp-applier.js";
 import { HashGraph } from "../src/hashgraph/index.js";
-import { createDRPVertexApplier, DRPObject } from "../src/index.js";
+import { DRPObject } from "../src/index.js";
 
 describe("HashGraph construction tests", () => {
 	beforeEach(() => {
@@ -48,17 +49,17 @@ describe("HashGraph construction tests", () => {
 
 		const vertices = hg.topologicalSort();
 
-		const drpState1 = state.getDRP(vertices[1]);
+		const drpState1 = state.getDRPState(vertices[1]);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(false);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(false);
 
-		const drpState2 = state.getDRP(vertices[2]);
+		const drpState2 = state.getDRPState(vertices[2]);
 		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
 		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
 		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(false);
 
-		const drpState3 = state.getDRP(vertices[3]);
+		const drpState3 = state.getDRPState(vertices[3]);
 		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
 		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
 		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);

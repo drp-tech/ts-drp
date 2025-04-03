@@ -14,10 +14,10 @@ import { ObjectSet } from "@ts-drp/utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { createACL, type ObjectACL } from "../src/acl/index.js";
-import { HashGraph } from "../src/hashgraph/index.js";
-import { createDRPVertexApplier, DRPObject, type DRPVertexApplier } from "../src/index.js";
+import { createDRPVertexApplier, type DRPVertexApplier } from "../src/drp-applier.js";
+import { createVertex, HashGraph } from "../src/hashgraph/index.js";
+import { DRPObject } from "../src/index.js";
 import { type DRPObjectStateManager } from "../src/state.js";
-import { createVertex } from "../src/utils/createVertex.js";
 
 function selfCheckConstraints(hg: HashGraph): boolean {
 	const degree = new Map<Hash, number>();
@@ -493,17 +493,17 @@ describe("Vertex state tests", () => {
 
 		const vertices = hg1.topologicalSort();
 
-		const drpState1 = state1.getDRP(vertices[1]);
+		const drpState1 = state1.getDRPState(vertices[1]);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(false);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(false);
 
-		const drpState2 = state1.getDRP(vertices[2]);
+		const drpState2 = state1.getDRPState(vertices[2]);
 		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
 		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
 		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(false);
 
-		const drpState3 = state1.getDRP(vertices[3]);
+		const drpState3 = state1.getDRPState(vertices[3]);
 		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
 		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
 		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);
@@ -536,21 +536,21 @@ describe("Vertex state tests", () => {
 		obj1.drp?.add(6);
 		const hashA6 = hg1.getFrontier()[0];
 
-		const drpState1 = state1.getDRP(hashA4);
+		const drpState1 = state1.getDRPState(hashA4);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(false);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(true);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(false);
 
-		const drpState2 = state1.getDRP(hashC5);
+		const drpState2 = state1.getDRPState(hashC5);
 		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(false);
 		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
 		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);
 		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(false);
 		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(true);
 
-		const drpState3 = state1.getDRP(hashA6);
+		const drpState3 = state1.getDRPState(hashA6);
 		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
 		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
 		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);

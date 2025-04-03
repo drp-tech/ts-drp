@@ -53,7 +53,7 @@ export class DRPObjectStateManager<T extends IDRP> {
 	 * @param hash - The hash of the state to get
 	 * @returns The DRP state for the given hash
 	 */
-	getDRP(hash: Hash): DRPState | undefined {
+	getDRPState(hash: Hash): DRPState | undefined {
 		return this.drpStates.get(hash);
 	}
 
@@ -62,7 +62,7 @@ export class DRPObjectStateManager<T extends IDRP> {
 	 * @param hash - The hash of the state to set
 	 * @param state - The DRP state to set
 	 */
-	setDRP(hash: Hash, state: DRPState): void {
+	setDRPState(hash: Hash, state: DRPState): void {
 		this.drpStates.set(hash, state);
 	}
 
@@ -71,7 +71,7 @@ export class DRPObjectStateManager<T extends IDRP> {
 	 * @param hash - The hash of the state to get
 	 * @returns The ACL state for the given hash
 	 */
-	getACL(hash: Hash): DRPState | undefined {
+	getACLState(hash: Hash): DRPState | undefined {
 		return this.aclStates.get(hash);
 	}
 
@@ -80,7 +80,7 @@ export class DRPObjectStateManager<T extends IDRP> {
 	 * @param hash - The hash of the state to set
 	 * @param state - The ACL state to set
 	 */
-	setACL(hash: Hash, state: DRPState): void {
+	setACLState(hash: Hash, state: DRPState): void {
 		this.aclStates.set(hash, state);
 	}
 

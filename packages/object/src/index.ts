@@ -23,7 +23,6 @@ import { type DRPObjectStateManager } from "./state.js";
 
 export * from "./acl/index.js";
 export * from "./hashgraph/index.js";
-export * from "./drp-applier.js";
 
 function defaultIDFromPeerID(peerId: string): string {
 	return bytesToHex(
@@ -139,7 +138,7 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 	 * @returns The ACL and DRP states of the vertex.
 	 */
 	getStates(vertexHash: string): [DRPState | undefined, DRPState | undefined] {
-		return [this._states.getACL(vertexHash), this._states.getDRP(vertexHash)];
+		return [this._states.getACLState(vertexHash), this._states.getDRPState(vertexHash)];
 	}
 
 	/**
@@ -148,7 +147,7 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 	 * @param aclState - The ACL state of the vertex.
 	 */
 	setACLState(vertexHash: string, aclState: DRPState): void {
-		this._states.setACL(vertexHash, aclState);
+		this._states.setACLState(vertexHash, aclState);
 	}
 
 	/**
@@ -157,7 +156,7 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 	 * @param drpState - The DRP state of the vertex.
 	 */
 	setDRPState(vertexHash: string, drpState: DRPState): void {
-		this._states.setDRP(vertexHash, drpState);
+		this._states.setDRPState(vertexHash, drpState);
 	}
 
 	/**

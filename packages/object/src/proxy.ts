@@ -1,7 +1,8 @@
-import { type DrpType, type IACL, type IDRP, type LowestCommonAncestorResult, type Vertex } from "@ts-drp/types";
+import { type DrpType, type IDRP } from "@ts-drp/types";
 import { handlePromiseOrValue } from "@ts-drp/utils";
 
-import { type Pipeline } from "../pipeline/pipeline.js";
+import { type PostOperation } from "./operation.js";
+import { type Pipeline } from "./pipeline/pipeline.js";
 
 export interface DRPProxyBeforeChainArgs {
 	prop: string;
@@ -13,45 +14,6 @@ export interface DRPProxyChainArgs {
 	args: unknown[];
 	type: DrpType;
 }
-
-export interface BaseOperation {
-	/**
-	 * the type of the operation
-	 */
-	isACL: boolean;
-
-	/**
-	 * the vertex that is being applied
-	 */
-	vertex: Vertex;
-}
-
-export interface PostLCAOperation extends BaseOperation {
-	/**
-	 * the lca of the vertex
-	 */
-	lca: LowestCommonAncestorResult;
-}
-
-export interface PostSplitOperation extends PostLCAOperation {
-	drpVertices: Vertex[];
-	aclVertices: Vertex[];
-}
-
-export interface Operation<T extends IDRP> extends PostSplitOperation {
-	acl: IACL;
-	drp?: T;
-
-	/**
-	 * the current state of the drp this is cloned from the drp if we are treating a drp operation
-	 */
-	currentDRP?: T | IACL;
-}
-
-export interface PostOperation<T extends IDRP> extends Operation<T> {
-	result: unknown;
-}
-
 /**
  * A proxy for a DRP object
  * @template T - The type of the DRP object

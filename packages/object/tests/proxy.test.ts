@@ -9,8 +9,9 @@ import {
 } from "@ts-drp/types";
 import { describe, expect, it } from "vitest";
 
+import { type PostOperation } from "../src/operation.js";
 import { createPipeline } from "../src/pipeline/pipeline.js";
-import { DRPProxy, type DRPProxyChainArgs, type PostOperation } from "../src/proxy/proxy.js";
+import { DRPProxy, type DRPProxyChainArgs } from "../src/proxy.js";
 
 describe("DRPProxy", () => {
 	// Mock types and interfaces
@@ -69,7 +70,7 @@ describe("DRPProxy", () => {
 		result: {
 			isACL: false,
 			vertex: mockVertex,
-			lca: { lca: "test-lca", linearizedVertices: [] },
+			lcaResult: { lca: "test-lca", linearizedVertices: [] },
 			drpVertices: [mockVertex],
 			aclVertices: [mockVertex],
 			acl: mockACL,

@@ -3,8 +3,7 @@ import { DrpType, Operation } from "@ts-drp/types";
 import { InvalidDependenciesError, InvalidTimestampError, validateVertex } from "@ts-drp/validation";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { createACL, DRPObject } from "../src/index.js";
-import { createVertex } from "../src/utils/createVertex.js";
+import { createACL, createVertex, DRPObject } from "../src/index.js";
 
 describe("Vertex validation tests", () => {
 	let obj1: DRPObject<SetDRP<number>>;

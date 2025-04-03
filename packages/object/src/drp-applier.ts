@@ -18,54 +18,17 @@ import { deepEqual } from "fast-equals";
 import { createACL, type ObjectACLOptions } from "./acl/index.js";
 import { FinalityStore } from "./finality/index.js";
 import { HashGraph } from "./hashgraph/index.js";
-import { createPipeline, type Pipeline } from "./pipeline/pipeline.js";
-import { type HandlerReturn } from "./pipeline/types.js";
 import {
 	type BaseOperation,
-	DRPProxy,
-	type DRPProxyChainArgs,
 	type Operation,
 	type PostLCAOperation,
 	type PostOperation,
 	type PostSplitOperation,
-} from "./proxy/proxy.js";
+} from "./operation.js";
+import { createPipeline, type Pipeline } from "./pipeline/pipeline.js";
+import { type HandlerReturn } from "./pipeline/types.js";
+import { DRPProxy, type DRPProxyChainArgs } from "./proxy.js";
 import { DRPObjectStateManager, stateFromDRP } from "./state.js";
-
-function callDRP<T extends IDRP>(drp: T, caller: string, method: string, args: unknown[]): unknown | Promise<unknown> {
-	if (drp.context) drp.context.caller = caller;
-
-	return drp[method](...args);
-}
-
-function applyVertex<T extends IDRP>(drp: T, v: Vertex): unknown | Promise<unknown> {
-	const { operation, peerId } = v;
-	if (!operation) throw new Error("Operation is undefined");
-
-	return callDRP(drp, peerId, operation.opType, operation.value);
-}
-
-function applyVertices<T extends IDRP>(drp: T, vertices: Vertex[]): unknown | Promise<unknown> {
-	return processSequentially(vertices, (drp, v) => applyVertex(drp, v), drp);
-}
-
-function splitOperation(vertices: Vertex[]): [Vertex[], Vertex[]] {
-	const drpVertices: Vertex[] = [];
-	const aclVertices: Vertex[] = [];
-
-	for (const v of vertices) {
-		if (!v.operation) {
-			continue;
-		}
-
-		if (v.operation?.drpType === DrpType.DRP) {
-			drpVertices.push(v);
-			continue;
-		}
-		aclVertices.push(v);
-	}
-
-	return [drpVertices, aclVertices];
-}
 
 interface DRPVertexApplierBase<T extends IDRP> {
 	drp?: T;
@@ -88,61 +51,18 @@ interface DRPVertexApplierWithACLOptions<T extends IDRP> extends Partial<DRPVert
 	peerId?: string;
 }
 
-export type DRPVertexApplierOptions<T extends IDRP> = DRPVertexApplierWithACL<T> | DRPVertexApplierWithACLOptions<T>;
-
-function hasAcl<T extends IDRP>(options: DRPVertexApplierOptions<T>): options is DRPVertexApplierWithACL<T> {
-	return "acl" in options;
-}
+type DRPVertexApplierOptions<T extends IDRP> = DRPVertexApplierWithACL<T> | DRPVertexApplierWithACLOptions<T>;
 
 type PeerIdOnly<T extends IDRP> = (DRPVertexApplierWithACL<T> | DRPVertexApplierWithACLOptions<T>) & {
 	peerId: string;
 };
-
-function hasPeerIdAndNoHG<T extends IDRP>(options: DRPVertexApplierOptions<T>): options is PeerIdOnly<T> {
-	return options.peerId !== undefined && options.hg === undefined && options.peerId !== "";
-}
-
-/**
- * Creates a DRPVertexApplier
- * @param options - The options for the DRPVertexApplier
- * @returns The DRPVertexApplier
- */
-export function createDRPVertexApplier<T extends IDRP>(
-	options: DRPVertexApplierOptions<T>
-): [DRPVertexApplier<T>, DRPObjectStateManager<T>, IHashGraph] {
-	const acl = hasAcl(options) ? options.acl : createACL(options.aclOptions);
-	const states = options.states ?? new DRPObjectStateManager(acl, options.drp);
-	const finalityStore = options.finalityStore ?? new FinalityStore(options.finalityConfig, options.logConfig);
-
-	const hg = hasPeerIdAndNoHG(options)
-		? new HashGraph(
-				options.peerId,
-				acl.resolveConflicts?.bind(acl),
-				options.drp?.resolveConflicts?.bind(options.drp),
-				options.drp?.semanticsType
-			)
-		: options.hg;
-
-	if (hg === undefined) throw new Error("hg and peerId are undefined");
-
-	const obj = new DRPVertexApplier({
-		...options,
-		hg,
-		acl,
-		states,
-		finalityStore,
-		notify: options.notify ?? ((): void => {}),
-	});
-
-	return [obj, states, hg];
-}
 
 /**
  * Applies vertices to the hash graph
  * @template T - The type of the DRP object
  */
 export class DRPVertexApplier<T extends IDRP> {
-	protected readonly hg: IHashGraph;
+	protected readonly hashgraph: IHashGraph;
 	protected readonly states: DRPObjectStateManager<T>;
 
 	private _proxyDRP?: DRPProxy<T>;
@@ -165,7 +85,7 @@ export class DRPVertexApplier<T extends IDRP> {
 	 * @param options.logConfig - The log config
 	 */
 	constructor({ drp, acl, hg, states, finalityStore, notify, logConfig }: DRPVertexApplierBase<T>) {
-		this.hg = hg;
+		this.hashgraph = hg;
 		this.states = states;
 		this.finalityStore = finalityStore;
 		this._notify = notify;
@@ -176,12 +96,12 @@ export class DRPVertexApplier<T extends IDRP> {
 			.setNext(this.getLCA.bind(this))
 			.setNext(this.splitLCAOperation.bind(this))
 			.setNext(this.computeOperation.bind(this))
-			.setNext(this.validateACL.bind(this))
+			.setNext(this.validateWriterPermission.bind(this))
 			.setNext(this.applyFn.bind(this))
 			.setNext(this.equal.bind(this)) // this is there but not in applies
 			.setNext(this.assign.bind(this))
 			.setNext(this.assignState.bind(this))
-			.setNext(this.assignToHashGraph.bind(this))
+			.setNext(this.addVertexToHashgraph.bind(this))
 			.setNext(this.initializeFinalityStore.bind(this))
 			.setNext(this.notify.bind(this)); // this is there but not in applies
 
@@ -189,12 +109,11 @@ export class DRPVertexApplier<T extends IDRP> {
 			.setNext(this.getLCA.bind(this))
 			.setNext(this.splitLCAOperation.bind(this))
 			.setNext(this.computeOperation.bind(this))
-			.setNext(this.validateACL.bind(this))
+			.setNext(this.validateWriterPermission.bind(this))
 			.setNext(this.applyFn.bind(this))
-			.setNext(this.assign.bind(this))
 			.setNext(this.assignState.bind(this))
 			.setNext(this.initializeFinalityStore.bind(this))
-			.setNext(this.assignToHashGraph.bind(this));
+			.setNext(this.addVertexToHashgraph.bind(this));
 
 		this._proxyACL = new DRPProxy(acl, callFnPipeline, DrpType.ACL);
 		if (drp) {
@@ -227,27 +146,27 @@ export class DRPVertexApplier<T extends IDRP> {
 		const missing: Hash[] = [];
 		const newVertices: Vertex[] = [];
 
-		for (const v of vertices) {
-			if (!v.operation) {
-				this.log.warn("Vertex has no operation", v);
+		for (const vertex of vertices) {
+			if (!vertex.operation) {
+				this.log.warn("Vertex has no operation", vertex);
 				continue;
 			}
-			if (v.operation.opType === "-1") continue;
-			if (this.hg.vertices.has(v.hash)) {
+			if (vertex.operation.opType === "-1") continue;
+			if (this.hashgraph.vertices.has(vertex.hash)) {
 				continue;
 			}
 
 			try {
-				await this.appliesVertexPipeline.execute({ vertex: v, isACL: v.operation.drpType === DrpType.ACL });
-				newVertices.push(v);
+				await this.appliesVertexPipeline.execute({ vertex: vertex, isACL: vertex.operation.drpType === DrpType.ACL });
+				newVertices.push(vertex);
 			} catch (e) {
 				this.log.error("Error applying vertex", e);
-				missing.push(v.hash);
+				missing.push(vertex.hash);
 			}
 		}
 
-		const frontier = this.hg.getFrontier();
-		const lca = this.hg.getLCA(frontier);
+		const frontier = this.hashgraph.getFrontier();
+		const lca = this.hashgraph.getLCA(frontier);
 		const [drpVertices, aclVertices] = splitOperation(lca.linearizedVertices);
 
 		const [drp, acl] = this.states.fromHash(lca.lca);
@@ -265,13 +184,13 @@ export class DRPVertexApplier<T extends IDRP> {
 	private createVertex({ prop: opType, args: value, type: drpType }: DRPProxyChainArgs): HandlerReturn<BaseOperation> {
 		return {
 			stop: false,
-			result: { vertex: this.hg.createVertex({ drpType, opType, value }), isACL: drpType === DrpType.ACL },
+			result: { vertex: this.hashgraph.createVertex({ drpType, opType, value }), isACL: drpType === DrpType.ACL },
 		};
 	}
 
 	private validateVertex(operation: BaseOperation): HandlerReturn<BaseOperation> {
 		const { vertex } = operation;
-		const result = validateVertex(vertex, this.hg, Date.now());
+		const result = validateVertex(vertex, this.hashgraph, Date.now());
 		if (result.error) {
 			throw result.error;
 		}
@@ -280,12 +199,12 @@ export class DRPVertexApplier<T extends IDRP> {
 
 	private getLCA(operation: BaseOperation): HandlerReturn<PostLCAOperation> {
 		const { vertex } = operation;
-		return { stop: false, result: { ...operation, lca: this.hg.getLCA(vertex.dependencies) } };
+		return { stop: false, result: { ...operation, lcaResult: this.hashgraph.getLCA(vertex.dependencies) } };
 	}
 
 	private splitLCAOperation(operation: PostLCAOperation): HandlerReturn<PostSplitOperation> {
 		const {
-			lca: { linearizedVertices },
+			lcaResult: { linearizedVertices },
 		} = operation;
 		const [drp, acl] = splitOperation(linearizedVertices);
 		return { stop: false, result: { ...operation, aclVertices: acl, drpVertices: drp } };
@@ -295,7 +214,7 @@ export class DRPVertexApplier<T extends IDRP> {
 		operation: PostSplitOperation
 	): HandlerReturn<Operation<T>> | Promise<HandlerReturn<Operation<T>>> {
 		const {
-			lca: { lca },
+			lcaResult: { lca },
 			drpVertices,
 			aclVertices,
 			isACL,
@@ -325,7 +244,7 @@ export class DRPVertexApplier<T extends IDRP> {
 		});
 	}
 
-	private validateACL(operation: Operation<T>): HandlerReturn<Operation<T>> {
+	private validateWriterPermission(operation: Operation<T>): HandlerReturn<Operation<T>> {
 		const {
 			acl,
 			vertex: { peerId },
@@ -366,14 +285,14 @@ export class DRPVertexApplier<T extends IDRP> {
 
 	private equal(operation: PostOperation<T>): HandlerReturn<PostOperation<T>> {
 		const { acl, drp, currentDRP, isACL } = operation;
-		const current = isACL ? acl : drp;
+		const oldDRP = isACL ? acl : drp;
 
-		if (currentDRP === undefined || current === undefined) return { stop: false, result: operation };
+		if (currentDRP === undefined || oldDRP === undefined) return { stop: false, result: operation };
 
-		const changed = Object.keys(current).some((key) => {
+		const changed = Object.keys(oldDRP).some((key) => {
 			if (key === "context") return false;
 
-			return !deepEqual(current[key], currentDRP[key]);
+			return !deepEqual(oldDRP[key], currentDRP[key]);
 		});
 
 		return { stop: !changed, result: operation };
@@ -402,14 +321,14 @@ export class DRPVertexApplier<T extends IDRP> {
 			? [stateFromDRP(currentDRP), stateFromDRP(drp)]
 			: [stateFromDRP(acl), stateFromDRP(currentDRP)];
 
-		this.states.setACL(hash, aclState);
-		this.states.setDRP(hash, drpState);
+		this.states.setACLState(hash, aclState);
+		this.states.setDRPState(hash, drpState);
 		return { stop: false, result: operation };
 	}
 
-	private assignToHashGraph<Op extends Operation<T>>(operation: Op): HandlerReturn<Op> {
+	private addVertexToHashgraph<Op extends Operation<T>>(operation: Op): HandlerReturn<Op> {
 		const { vertex } = operation;
-		this.hg.addVertex(vertex);
+		this.hashgraph.addVertex(vertex);
 		return { stop: false, result: operation };
 	}
 
@@ -423,4 +342,83 @@ export class DRPVertexApplier<T extends IDRP> {
 		this._notify("callFn", [operation.vertex]);
 		return { stop: false, result: operation };
 	}
+}
+
+/**
+ * Creates a DRPVertexApplier
+ * @param options - The options for the DRPVertexApplier
+ * @returns The DRPVertexApplier
+ */
+export function createDRPVertexApplier<T extends IDRP>(
+	options: DRPVertexApplierOptions<T>
+): [DRPVertexApplier<T>, DRPObjectStateManager<T>, IHashGraph] {
+	const acl = hasAcl(options) ? options.acl : createACL(options.aclOptions);
+	const states = options.states ?? new DRPObjectStateManager(acl, options.drp);
+	const finalityStore = options.finalityStore ?? new FinalityStore(options.finalityConfig, options.logConfig);
+
+	const hashgraph = hasPeerIdAndNoHG(options)
+		? new HashGraph(
+				options.peerId,
+				acl.resolveConflicts?.bind(acl),
+				options.drp?.resolveConflicts?.bind(options.drp),
+				options.drp?.semanticsType
+			)
+		: options.hg;
+
+	if (hashgraph === undefined) throw new Error("hg and peerId are undefined");
+
+	const obj = new DRPVertexApplier({
+		...options,
+		hg: hashgraph,
+		acl,
+		states,
+		finalityStore,
+		notify: options.notify ?? ((): void => {}),
+	});
+
+	return [obj, states, hashgraph];
+}
+
+function hasAcl<T extends IDRP>(options: DRPVertexApplierOptions<T>): options is DRPVertexApplierWithACL<T> {
+	return "acl" in options;
+}
+
+function hasPeerIdAndNoHG<T extends IDRP>(options: DRPVertexApplierOptions<T>): options is PeerIdOnly<T> {
+	return options.peerId !== undefined && options.hg === undefined && options.peerId !== "";
+}
+
+function callDRP<T extends IDRP>(drp: T, caller: string, method: string, args: unknown[]): unknown | Promise<unknown> {
+	if (drp.context) drp.context.caller = caller;
+
+	return drp[method](...args);
+}
+
+function applyVertex<T extends IDRP>(drp: T, v: Vertex): unknown | Promise<unknown> {
+	const { operation, peerId } = v;
+	if (!operation) throw new Error("Operation is undefined");
+
+	return callDRP(drp, peerId, operation.opType, operation.value);
+}
+
+function applyVertices<T extends IDRP>(drp: T, vertices: Vertex[]): unknown | Promise<unknown> {
+	return processSequentially(vertices, (drp, v) => applyVertex(drp, v), drp);
+}
+
+function splitOperation(vertices: Vertex[]): [Vertex[], Vertex[]] {
+	const drpVertices: Vertex[] = [];
+	const aclVertices: Vertex[] = [];
+
+	for (const v of vertices) {
+		if (!v.operation) {
+			continue;
+		}
+
+		if (v.operation?.drpType === DrpType.DRP) {
+			drpVertices.push(v);
+			continue;
+		}
+		aclVertices.push(v);
+	}
+
+	return [drpVertices, aclVertices];
 }

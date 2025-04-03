@@ -12,11 +12,11 @@ import {
 	Vertex,
 } from "@ts-drp/types";
 import { ObjectSet } from "@ts-drp/utils";
+import { computeHash } from "@ts-drp/utils/hash";
 
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../linearize/pairSemantics.js";
-import { createVertex } from "../utils/createVertex.js";
 
 export enum OperationType {
 	// TODO: rename this and make it part of action type this is the init action for the object
@@ -27,6 +27,26 @@ export type VertexDistance = {
 	distance: number;
 	closestDependency?: Hash;
 };
+
+/**
+ * Creates a new vertex
+ * @param peerId - The peer id of the vertex
+ * @param operation - The operation of the vertex
+ * @param dependencies - The dependencies of the vertex
+ * @param timestamp - The timestamp of the vertex
+ * @param signature - The signature of the vertex
+ * @returns The new vertex
+ */
+export function createVertex(
+	peerId: string,
+	operation: Operation,
+	dependencies: Hash[],
+	timestamp: number,
+	signature?: Uint8Array
+): Vertex {
+	const hash = computeHash(peerId, operation, dependencies, timestamp);
+	return Vertex.create({ hash, peerId, operation, dependencies, timestamp, signature });
+}
 
 /**
  * Implementation of the hashgraph data structure.
@@ -142,10 +162,6 @@ export class HashGraph implements IHashGraph {
 	 * @param vertex - The vertex to add.
 	 */
 	addVertex(vertex: Vertex): void {
-		if (vertex.dependencies.length === 0) {
-			throw new Error("Vertex has no dependencies");
-		}
-
 		this.vertices.set(vertex.hash, vertex);
 		this.frontier.push(vertex.hash);
 		// Update forward edges
