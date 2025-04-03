@@ -70,6 +70,14 @@ class MockHashGraph implements IHashGraph {
 		};
 	}
 
+	linearizeVertices(_origin?: Hash, _subgraph?: Set<string>): Vertex[] {
+		return [];
+	}
+
+	topologicalSort(_updateBitsets?: boolean, _origin?: Hash, _subgraph?: Set<Hash>): Hash[] {
+		return [];
+	}
+
 	addVertex(vertex: Vertex): void {
 		this.vertices.set(vertex.hash, vertex);
 		this.frontier.push(vertex.hash);
