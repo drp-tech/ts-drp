@@ -15,7 +15,7 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 
-import { ObjectACL } from "./acl/index.js";
+import { createPermissionlessACL } from "./acl/index.js";
 import { DRPVertexApplier } from "./drp-applier.js";
 import { FinalityStore } from "./finality/index.js";
 import { HashGraph } from "./hashgraph/index.js";
@@ -33,18 +33,6 @@ function defaultIDFromPeerID(peerId: string): string {
 			.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
 			.digest()
 	);
-}
-
-/**
- * Creates a permissionless ACL.
- * @param admins - The admins of the ACL.
- * @returns The permissionless ACL.
- */
-export function createPermissionlessACL(admins: string | string[] = []): IACL {
-	return new ObjectACL({
-		admins: Array.isArray(admins) ? admins : [admins],
-		permissionless: true,
-	});
 }
 
 /**
