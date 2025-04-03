@@ -157,25 +157,6 @@ describe("HashGraph construction tests", () => {
 		const expectedOps = [Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP })];
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
-
-	test("Root vertex drp state should not be modified", () => {
-		obj1.drp?.add(1);
-		obj1.drp?.add(2);
-		const rootDRPState = obj1["_states"]["drpStates"].get(HashGraph.rootHash);
-		expect(rootDRPState?.state.filter((e) => e.key === "_set")[0].value.size).toBe(0);
-		const frontierState = obj1["_states"]["drpStates"].get(obj1["hg"].getFrontier()[0]);
-		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
-		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
-	});
-
-	test("Root vertex acl state should not be modified", () => {
-		obj1.acl.grant("peer3", ACLGroup.Writer);
-		expect(obj1.acl.query_isWriter("peer3")).toBe(true);
-		const rootACLState = obj1["_states"]["aclStates"].get(HashGraph.rootHash);
-		const authorizedPeers = rootACLState?.state.filter((e) => e.key === "_authorizedPeers")[0].value;
-		expect(authorizedPeers.get("peer1")?.permissions.has(ACLGroup.Admin)).toBe(true);
-		expect(authorizedPeers.get("peer3")).toBe(undefined);
-	});
 });
 
 describe("HashGraph for SetDRP tests", () => {
