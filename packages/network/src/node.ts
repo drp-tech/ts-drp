@@ -65,7 +65,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 
 	constructor(config?: DRPNetworkNodeConfig) {
 		if (config?.browser_metrics && !isBrowser && !isWebWorker) {
-			throw new Error("Browser metrics are not supported in the browser or web worker");
+			throw new Error("Browser metrics are only supported in a browser or web worker");
 		}
 
 		this._config = config;
