@@ -172,20 +172,14 @@ suite.add(
 				}
 			}
 		}
-		const acl = new ObjectACL({
-			admins: ["peer1", "peer2"],
-			permissionless: true,
-		});
+		const acl = createPermissionlessACL(["peer1", "peer2"]);
 		const object1 = new DRPObject({
 			peerId: "peer1",
 			acl,
 			drp: new MapDRP<number, number>(),
 		});
 		initialize(object1.drp);
-		const acl2 = new ObjectACL({
-			admins: ["peer1", "peer2"],
-			permissionless: true,
-		});
+		const acl2 = createPermissionlessACL(["peer1", "peer2"]);
 		const object2 = new DRPObject({
 			peerId: "peer2",
 			acl: acl2,
