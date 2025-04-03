@@ -87,7 +87,7 @@ export class DRPObjectStateManager<T extends IDRP> {
 
 	private applyState(instance: T | IACL, state: DRPState): void {
 		for (const entry of state.state) {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- right fully so this is not a problem
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- rightfully so this is not a problem
 			(instance as any)[entry.key] = cloneDeep(entry.value);
 		}
 	}
