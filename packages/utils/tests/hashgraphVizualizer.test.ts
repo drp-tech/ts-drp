@@ -64,18 +64,6 @@ class MockHashGraph implements IHashGraph {
 		};
 	}
 
-	createVertex2(operation: Operation): Vertex {
-		const hash = `v${Date.now()}`;
-		return {
-			hash,
-			peerId: this.peerId,
-			operation,
-			dependencies: this.getFrontier(),
-			timestamp: Date.now(),
-			signature: new Uint8Array(),
-		};
-	}
-
 	getLCA(_: Hash[]): LowestCommonAncestorResult {
 		return {
 			lca: MockHashGraph.rootHash,
