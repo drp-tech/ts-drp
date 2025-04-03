@@ -9,8 +9,8 @@ import { DRPObject, HashGraph } from "@ts-drp/object";
 import {
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
-	type FetchStateResponseEvent,
 	type DRPObjectSubscribeCallback,
+	type FetchStateResponseEvent,
 	type IDRP,
 	type IDRPNode,
 	type IDRPObject,

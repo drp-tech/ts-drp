@@ -3,15 +3,11 @@
  *
  * This utility is useful for race-based async control flows where you want to
  * abort a pending operation if it takes too long.
- *
- * @param {number} ms - Timeout duration in milliseconds before the signal is aborted.
- * @returns {{
- *   signal: AbortSignal;
- *   cleanup: () => void;
- * }} An object containing:
+ * @param ms - Timeout duration in milliseconds before the signal is aborted.
+ * @returns
+ *  An object containing:
  *   - `signal`: The AbortSignal to use in an async operation.
  *   - `cleanup`: A function to cancel the timeout early if the operation completes in time.
- *
  * @example
  * const { signal, cleanup } = timeoutSignal(5000);
  * try {
