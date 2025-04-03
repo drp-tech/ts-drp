@@ -138,8 +138,6 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 			const state = aclState;
 			object.setACLState(fetchStateResponse.vertexHash, state);
 			for (const e of state.state) {
-				// TODO: seems useless
-				//if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value;
 				object.acl[e.key] = e.value;
 			}
 			node.objectStore.put(object.id, object);
