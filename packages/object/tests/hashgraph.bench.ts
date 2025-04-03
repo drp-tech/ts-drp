@@ -2,7 +2,7 @@ import { MapDRP, SetDRP } from "@ts-drp/blueprints";
 import Benchmark from "benchmark";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { defaultACL, DRPObject } from "../src/index.js";
+import { createPermissionlessACL, DRPObject } from "../src/index.js";
 
 const NUMBER_OF_OPERATIONS = Number.parseInt(process.argv[2], 10) || 1000;
 
@@ -16,7 +16,7 @@ function benchmarkForAddWinSet(
 		const objects: DRPObject<SetDRP<number>>[] = [];
 		const admins = Array.from({ length: numDRPs }, (_, i) => `peer${i + 1}`);
 		for (let i = 0; i < numDRPs; i++) {
-			const acl = defaultACL(admins);
+			const acl = createPermissionlessACL(admins);
 			const obj = new DRPObject({
 				peerId: admins[i],
 				acl,
