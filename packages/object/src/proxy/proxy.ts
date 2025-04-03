@@ -52,6 +52,10 @@ export interface PostOperation<T extends IDRP> extends Operation<T> {
 	result: unknown;
 }
 
+/**
+ * A proxy for a DRP object
+ * @template T - The type of the DRP object
+ */
 export class DRPProxy<T extends IDRP> {
 	private pipeline: Pipeline<DRPProxyChainArgs, PostOperation<IDRP>>;
 
@@ -74,6 +78,7 @@ export class DRPProxy<T extends IDRP> {
 
 	/**
 	 * Create the proxy that intercepts method calls
+	 * @returns The proxy
 	 */
 	createProxy(): T {
 		const handler: ProxyHandler<T> = {
@@ -93,7 +98,7 @@ export class DRPProxy<T extends IDRP> {
 
 				// Return wrapped function
 				return (...args: unknown[]) => {
-					const operation = this.pipeline.handle({ prop, args, type: this.type });
+					const operation = this.pipeline.execute({ prop, args, type: this.type });
 
 					return handlePromiseOrValue(operation, (postOperation) => postOperation.result);
 				};
@@ -103,6 +108,10 @@ export class DRPProxy<T extends IDRP> {
 		return new Proxy(this.target, handler);
 	}
 
+	/**
+	 * Get the proxy
+	 * @returns The proxy
+	 */
 	get proxy(): T {
 		return this._proxy;
 	}

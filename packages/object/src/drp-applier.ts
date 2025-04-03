@@ -74,6 +74,10 @@ interface DRPVertexApplierOptions<T extends IDRP> {
 	notify(origin: string, vertices: Vertex[]): void;
 }
 
+/**
+ * Applies vertices to the hash graph
+ * @template T - The type of the DRP object
+ */
 export class DRPVertexApplier<T extends IDRP> {
 	protected readonly hg: IHashGraph;
 	protected readonly states: DRPObjectStateManager<T>;
@@ -86,6 +90,17 @@ export class DRPVertexApplier<T extends IDRP> {
 	private _notify: (origin: string, vertices: Vertex[]) => void;
 	private log: Logger;
 
+	/**
+	 * Creates a new DRPVertexApplier
+	 * @param options - The options for the DRPVertexApplier
+	 * @param options.drp - The DRP object
+	 * @param options.acl - The ACL object
+	 * @param options.hg - The hash graph
+	 * @param options.states - The state manager for the DRP object. If not provided, a new one will be created.
+	 * @param options.finalityStore - The finality store
+	 * @param options.notify - The notify function
+	 * @param options.logConfig - The log config
+	 */
 	constructor({ drp, acl, hg, states, finalityStore, notify, logConfig }: DRPVertexApplierOptions<T>) {
 		this.hg = hg;
 		this.states = states ?? new DRPObjectStateManager(acl, drp);
@@ -124,14 +139,27 @@ export class DRPVertexApplier<T extends IDRP> {
 		}
 	}
 
+	/**
+	 * Get the DRP object
+	 * @returns The DRP object
+	 */
 	get drp(): T | undefined {
 		return this._proxyDRP?.proxy;
 	}
 
+	/**
+	 * Get the ACL object
+	 * @returns The ACL object
+	 */
 	get acl(): IACL {
 		return this._proxyACL.proxy;
 	}
 
+	/**
+	 * Apply the vertices to the hash graph
+	 * @param vertices - The vertices to apply
+	 * @returns The result of the apply
+	 */
 	async applyVertices(vertices: Vertex[]): Promise<ApplyResult> {
 		const missing: Hash[] = [];
 		const newVertices: Vertex[] = [];
@@ -147,7 +175,7 @@ export class DRPVertexApplier<T extends IDRP> {
 			}
 
 			try {
-				await this.appliesVertexPipeline.handle({ vertex: v, isACL: v.operation.drpType === DrpType.ACL });
+				await this.appliesVertexPipeline.execute({ vertex: v, isACL: v.operation.drpType === DrpType.ACL });
 				newVertices.push(v);
 			} catch (e) {
 				this.log.error("Error applying vertex", e);

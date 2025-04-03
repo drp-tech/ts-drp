@@ -7,6 +7,9 @@ const formatPeerId = (id: string): string => {
 	return `${id.slice(0, 4)}...${id.slice(-4)}`;
 };
 
+/**
+ * Render the info
+ */
 export function renderInfo(): void {
 	renderPeerId();
 	renderPeers();
@@ -118,6 +121,9 @@ const renderPeerId = (): void => {
 	};
 };
 
+/**
+ * Render the grid
+ */
 export const render = (): void => {
 	if (gridState.drpObject) {
 		const gridIdTextElement = <HTMLSpanElement>document.getElementById("gridIdText");
@@ -218,6 +224,9 @@ export const render = (): void => {
 	}
 };
 
+/**
+ * Enable the UI controls
+ */
 export function enableUIControls(): void {
 	const loadingMessage = document.getElementById("loadingMessage");
 	if (loadingMessage) {

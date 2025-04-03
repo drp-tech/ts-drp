@@ -62,49 +62,43 @@ export interface IDRPObject<T extends IDRP> extends DRPObjectBase {
 
 	/**
 	 * Get the drp state and the acl state for a given vertex hash.
-	 *
-	 * @param {string} vertexHash - The hash of the vertex to get the state for.
-	 * @returns {Array<DRPState | undefined, DRPState | undefined>} The drp state and the acl state for the given vertex hash.
+	 * @param vertexHash - The hash of the vertex to get the state for.
+	 * @returns The drp state and the acl state for the given vertex hash.
 	 */
 	getStates(vertexHash: string): [DRPState | undefined, DRPState | undefined];
 
 	/**
 	 * Set the acl state for a given vertex hash.
-	 *
-	 * @param {string} vertexHash - The hash of the vertex to set the state for.
-	 * @param {DRPState} aclState - The acl state to set for the given vertex hash.
+	 * @param vertexHash - The hash of the vertex to set the state for.
+	 * @param aclState - The acl state to set for the given vertex hash.
 	 */
 	setACLState(vertexHash: string, aclState: DRPState): void;
 
 	/**
 	 * Set the drp state for a given vertex hash.
-	 *
-	 * @param {string} vertexHash - The hash of the vertex to set the state for.
-	 * @param {DRPState} drpState - The drp state to set for the given vertex hash.
+	 * @param vertexHash - The hash of the vertex to set the state for.
+	 * @param drpState - The drp state to set for the given vertex hash.
 	 */
 	setDRPState(vertexHash: string, drpState: DRPState): void;
 
 	/**
 	 * Subscribe to the DRP object.
-	 *
-	 * @param {DRPObjectCallback<T>} callback - The callback to call when the DRP object changes.
+	 * @param callback - The callback to call when the DRP object changes.
 	 */
 	subscribe(callback: DRPObjectCallback<T>): void;
 
 	/**
 	 * Apply the vertices to the DRP object.
-	 *
-	 * @param {Vertex[]} vertices - The vertices to apply to the DRP object.
-	 * @returns {Promise<ApplyResult>} The result of the apply.
+	 * @param vertices - The vertices to apply to the DRP object.
+	 * @returns The result of the apply.
 	 */
 	applyVertices(vertices: Vertex[]): Promise<ApplyResult>;
 
 	/**
 	 * @deprecated Use applyVertices instead
 	 * Merge the vertices into the DRP object.
-	 *
-	 * @param {Vertex[]} vertices - The vertices to merge into the DRP object.
-	 * @returns {Promise<MergeResult>} The result of the merge.
+	 * @param vertices - The vertices to merge into the DRP object.
+	 * @returns The result of the merge.
 	 */
 	merge(vertices: Vertex[]): Promise<MergeResult>;
 }

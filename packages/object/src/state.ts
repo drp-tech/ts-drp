@@ -3,7 +3,13 @@ import { cloneDeep } from "es-toolkit";
 
 import { HashGraph } from "./hashgraph/index.js";
 
+/**
+ * A custom error class for when a state is not found
+ */
 export class StateNotFoundError extends Error {
+	/**
+	 * @param message - The message of the error
+	 */
 	constructor(message: string = "DRPState not found") {
 		super(message);
 		this.name = "DRPStateNotFoundError";
@@ -25,6 +31,10 @@ export class DRPObjectStateManager<T extends IDRP> {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private aclConstructor: { prototype: any };
 
+	/**
+	 * @param acl - The ACL of the DRPObject
+	 * @param drp - The DRP of the DRPObject
+	 */
 	constructor(acl: IACL, drp?: T) {
 		this.drpStates = new Map();
 		this.aclStates = new Map();
@@ -38,22 +48,47 @@ export class DRPObjectStateManager<T extends IDRP> {
 		this.aclStates.set(HashGraph.rootHash, stateFromDRP(acl));
 	}
 
+	/**
+	 * Get the DRP state for a given hash
+	 * @param hash - The hash of the state to get
+	 * @returns The DRP state for the given hash
+	 */
 	getDRP(hash: Hash): DRPState | undefined {
 		return this.drpStates.get(hash);
 	}
 
+	/**
+	 * Set the DRP state for a given hash
+	 * @param hash - The hash of the state to set
+	 * @param state - The DRP state to set
+	 */
 	setDRP(hash: Hash, state: DRPState): void {
 		this.drpStates.set(hash, state);
 	}
 
+	/**
+	 * Get the ACL state for a given hash
+	 * @param hash - The hash of the state to get
+	 * @returns The ACL state for the given hash
+	 */
 	getACL(hash: Hash): DRPState | undefined {
 		return this.aclStates.get(hash);
 	}
 
+	/**
+	 * Set the ACL state for a given hash
+	 * @param hash - The hash of the state to set
+	 * @param state - The ACL state to set
+	 */
 	setACL(hash: Hash, state: DRPState): void {
 		this.aclStates.set(hash, state);
 	}
 
+	/**
+	 * Get the DRP and ACL for a given hash
+	 * @param hash - The hash of the state to get
+	 * @returns The DRP and ACL for the given hash
+	 */
 	fromHash(hash: Hash): [T | undefined, IACL] {
 		if (!this.aclConstructor) {
 			throw new Error("ACL constructor not set");
@@ -77,6 +112,11 @@ export class DRPObjectStateManager<T extends IDRP> {
 		return [undefined, acl];
 	}
 
+	/**
+	 * Get the ACL for a given hash
+	 * @param hash - The hash of the state to get
+	 * @returns The ACL for the given hash
+	 */
 	fromHashACL(hash: Hash): IACL {
 		const state = this.aclStates.get(hash);
 		if (!state) {
@@ -93,6 +133,11 @@ export class DRPObjectStateManager<T extends IDRP> {
 	}
 }
 
+/**
+ * Convert a DRP object to a DRP state
+ * @param drp - The DRP object to convert
+ * @returns The DRP state
+ */
 export function stateFromDRP(drp: IDRP | undefined): DRPState {
 	const state = DRPState.create();
 	if (!drp) return state;

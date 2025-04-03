@@ -124,8 +124,8 @@ export class HashGraph implements IHashGraph {
 	/**
 	 * Creates a new vertex.
 	 * @param operation - The operation.
-	 * @param [dependencies=this.getFrontier()] - The dependencies.
-	 * @param [timestamp=Date.now()] - The timestamp.
+	 * @param dependencies - The dependencies of the vertex. If not provided, the frontier will be used.
+	 * @param timestamp - The timestamp. If not provided, the current time will be used.
 	 * @returns The new vertex.
 	 */
 	createVertex(
@@ -257,6 +257,11 @@ export class HashGraph implements IHashGraph {
 		return result;
 	}
 
+	/**
+	 * Gets the lowest common ancestor of the dependencies.
+	 * @param dependencies - The dependencies of the vertex.
+	 * @returns The lowest common ancestor.
+	 */
 	getLCA(dependencies: Hash[]): LowestCommonAncestorResult {
 		const isSingleDependency = dependencies.length === 1;
 		if (isSingleDependency) return { lca: dependencies[0], linearizedVertices: [] };
