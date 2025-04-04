@@ -4,6 +4,7 @@ import {
 	type Hash,
 	type IHashGraph,
 	type LoggerOptions,
+	type LowestCommonAncestorResult,
 	Operation,
 	type ResolveConflictFn,
 	type ResolveConflictsType,
@@ -26,6 +27,26 @@ export type VertexDistance = {
 	distance: number;
 	closestDependency?: Hash;
 };
+
+/**
+ * Creates a new vertex
+ * @param peerId - The peer id of the vertex
+ * @param operation - The operation of the vertex
+ * @param dependencies - The dependencies of the vertex
+ * @param timestamp - The timestamp of the vertex
+ * @param signature - The signature of the vertex
+ * @returns The new vertex
+ */
+export function createVertex(
+	peerId: string,
+	operation: Operation,
+	dependencies: Hash[],
+	timestamp: number,
+	signature?: Uint8Array
+): Vertex {
+	const hash = computeHash(peerId, operation, dependencies, timestamp);
+	return Vertex.create({ hash, peerId, operation, dependencies, timestamp, signature });
+}
 
 /**
  * Implementation of the hashgraph data structure.
@@ -71,12 +92,6 @@ export class HashGraph implements IHashGraph {
 		semanticsTypeDRP?: SemanticsType,
 		logConfig?: LoggerOptions
 	) {
-		this.peerId = peerId;
-		this.resolveConflictsACL = resolveConflictsACL;
-		this.resolveConflictsDRP = resolveConflictsDRP;
-		this.semanticsTypeDRP = semanticsTypeDRP;
-		this.log = new Logger("drp::hashgraph", logConfig);
-
 		const rootVertex = Vertex.create({
 			hash: HashGraph.rootHash,
 			peerId: "",
@@ -85,12 +100,16 @@ export class HashGraph implements IHashGraph {
 			timestamp: -1,
 			signature: new Uint8Array(),
 		});
+
+		this.log = new Logger("drp::hashgraph", logConfig);
+		this.peerId = peerId;
+		this.semanticsTypeDRP = semanticsTypeDRP;
+		this.resolveConflictsACL = resolveConflictsACL;
+		this.resolveConflictsDRP = resolveConflictsDRP;
 		this.vertices.set(HashGraph.rootHash, rootVertex);
 		this.frontier.push(HashGraph.rootHash);
 		this.forwardEdges.set(HashGraph.rootHash, []);
-		this.vertexDistances.set(HashGraph.rootHash, {
-			distance: 0,
-		});
+		this.vertexDistances.set(HashGraph.rootHash, { distance: 0 });
 	}
 
 	/**
@@ -125,18 +144,16 @@ export class HashGraph implements IHashGraph {
 	/**
 	 * Creates a new vertex.
 	 * @param operation - The operation.
-	 * @param dependencies - The dependencies.
-	 * @param timestamp - The timestamp.
+	 * @param dependencies - The dependencies of the vertex. If not provided, the frontier will be used.
+	 * @param timestamp - The timestamp. If not provided, the current time will be used.
 	 * @returns The new vertex.
 	 */
-	createVertex(operation: Operation, dependencies: Hash[], timestamp: number): Vertex {
-		return Vertex.create({
-			hash: computeHash(this.peerId, operation, dependencies, timestamp),
-			peerId: this.peerId,
-			timestamp,
-			operation,
-			dependencies,
-		});
+	createVertex(
+		operation: Operation,
+		dependencies: Hash[] = this.getFrontier(),
+		timestamp: number = Date.now()
+	): Vertex {
+		return createVertex(this.peerId, operation, dependencies, timestamp);
 	}
 
 	// Add a new vertex to the hashgraph.
@@ -180,7 +197,7 @@ export class HashGraph implements IHashGraph {
 	 * @param subgraph - The subgraph.
 	 * @returns The topologically sorted vertices.
 	 */
-	dfsTopologicalSortIterative(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
+	dfsTopologicalSortIterative(origin: Hash, subgraph: Set<Hash>): Hash[] {
 		const visited = new ObjectSet<Hash>();
 		const result: Hash[] = Array(subgraph.size);
 		const stack: Hash[] = Array(subgraph.size);
@@ -218,7 +235,6 @@ export class HashGraph implements IHashGraph {
 		return result;
 	}
 
-	/* Topologically sort the vertices in the whole hashgraph or the past of a given vertex. */
 	/**
 	 * Topologically sorts the vertices in the whole hashgraph or the past of a given vertex.
 	 * @param updateBitsets - Whether to update the bitsets.
@@ -229,7 +245,7 @@ export class HashGraph implements IHashGraph {
 	topologicalSort(
 		updateBitsets = false,
 		origin: Hash = HashGraph.rootHash,
-		subgraph: ObjectSet<Hash> = new ObjectSet(this.vertices.keys())
+		subgraph: Set<Hash> = new ObjectSet(this.vertices.keys())
 	): Hash[] {
 		const result = this.dfsTopologicalSortIterative(origin, subgraph);
 		if (!updateBitsets) return result;
@@ -257,6 +273,21 @@ export class HashGraph implements IHashGraph {
 	}
 
 	/**
+	 * Gets the lowest common ancestor of the dependencies.
+	 * @param dependencies - The dependencies of the vertex.
+	 * @returns The lowest common ancestor.
+	 */
+	getLCA(dependencies: Hash[]): LowestCommonAncestorResult {
+		const isSingleDependency = dependencies.length === 1;
+		if (isSingleDependency) return { lca: dependencies[0], linearizedVertices: [] };
+
+		const subgraph: ObjectSet<Hash> = new ObjectSet();
+		const lca = this.lowestCommonAncestorMultipleVertices(dependencies, subgraph);
+		const linearizedVertices = this.linearizeVertices(lca, subgraph);
+		return { lca, linearizedVertices };
+	}
+
+	/**
 	 * Linearizes the vertices.
 	 * @param origin - The origin hash.
 	 * @param subgraph - The subgraph.
@@ -264,7 +295,7 @@ export class HashGraph implements IHashGraph {
 	 */
 	linearizeVertices(
 		origin: Hash = HashGraph.rootHash,
-		subgraph: ObjectSet<string> = new ObjectSet(this.vertices.keys())
+		subgraph: Set<string> = new ObjectSet(this.vertices.keys())
 	): Vertex[] {
 		switch (this.semanticsTypeDRP) {
 			case SemanticsType.pair:

@@ -285,3 +285,14 @@ export class HashGraphVisualizer {
 		return this.render(positionedNodes, edgeShapes);
 	}
 }
+
+/**
+ * Visualizes a HashGraph structure in ASCII art format
+ * Renders nodes as boxes connected by lines and arrows
+ * @param hashGraph - The HashGraph to visualize
+ * @returns String containing the ASCII art visualization
+ */
+export function visualizeHashGraph(hashGraph: IHashGraph): string {
+	const viz = new HashGraphVisualizer();
+	return viz.stringify(hashGraph);
+}

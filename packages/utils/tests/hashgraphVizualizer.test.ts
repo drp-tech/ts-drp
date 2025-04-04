@@ -1,4 +1,13 @@
-import { ActionType, DrpType, type Hash, type IHashGraph, Operation, SemanticsType, Vertex } from "@ts-drp/types";
+import {
+	ActionType,
+	DrpType,
+	type Hash,
+	type IHashGraph,
+	type LowestCommonAncestorResult,
+	Operation,
+	SemanticsType,
+	Vertex,
+} from "@ts-drp/types";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { HashGraphVisualizer } from "../src/debug/hashgraph-visualizer.js";
@@ -52,6 +61,21 @@ class MockHashGraph implements IHashGraph {
 			timestamp,
 			signature: new Uint8Array(),
 		};
+	}
+
+	getLCA(_: Hash[]): LowestCommonAncestorResult {
+		return {
+			lca: MockHashGraph.rootHash,
+			linearizedVertices: [],
+		};
+	}
+
+	linearizeVertices(_origin?: Hash, _subgraph?: Set<string>): Vertex[] {
+		return [];
+	}
+
+	topologicalSort(_updateBitsets?: boolean, _origin?: Hash, _subgraph?: Set<Hash>): Hash[] {
+		return [];
 	}
 
 	addVertex(vertex: Vertex): void {

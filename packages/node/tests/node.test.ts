@@ -1,7 +1,7 @@
 import { bls } from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
 import { Logger } from "@ts-drp/logger";
-import { DRPObject, ObjectACL } from "@ts-drp/object";
+import { createACL, DRPObject } from "@ts-drp/object";
 import { ACLGroup, DrpType, Operation, Vertex } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -92,9 +92,7 @@ describe("DRPNode voting tests", () => {
 	});
 
 	beforeEach(() => {
-		const acl = new ObjectACL({
-			admins: [nodeA.networkNode.peerId],
-		});
+		const acl = createACL({ admins: [nodeA.networkNode.peerId] });
 
 		obj1 = new DRPObject({
 			peerId: nodeA.networkNode.peerId,
@@ -105,7 +103,7 @@ describe("DRPNode voting tests", () => {
 
 		obj2 = new DRPObject({
 			peerId: nodeB.networkNode.peerId,
-			acl: obj1.acl,
+			acl,
 			drp: new SetDRP(),
 		});
 	});
@@ -116,9 +114,12 @@ describe("DRPNode voting tests", () => {
 		*/
 
 		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Finality);
-
+		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Admin);
+		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Writer);
 		await obj2.merge(obj1.vertices);
+
 		obj2.acl.setKey(nodeB.keychain.blsPublicKey);
+		await obj1.merge(obj2.vertices);
 
 		await obj1.merge(obj2.vertices);
 		obj1.drp?.add(1);
@@ -140,6 +141,7 @@ describe("DRPNode voting tests", () => {
 		*/
 
 		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Finality);
+		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Writer);
 
 		await obj2.merge(obj1.vertices);
 		obj2.acl.setKey(nodeB.keychain.blsPublicKey);
@@ -167,6 +169,7 @@ describe("DRPNode voting tests", () => {
 		*/
 
 		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Finality);
+		obj1.acl.grant(nodeB.networkNode.peerId, ACLGroup.Writer);
 
 		await obj2.merge(obj1.vertices);
 		obj2.acl.setKey(nodeB.keychain.blsPublicKey);
@@ -215,9 +218,7 @@ describe("DRPNode with rpc", () => {
 	});
 	beforeEach(() => {
 		drp = new SetDRP();
-		const acl = new ObjectACL({
-			admins: [drpNode.networkNode.peerId],
-		});
+		const acl = createACL({ admins: [drpNode.networkNode.peerId] });
 		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
 		drpObject.acl.setKey(drpNode.keychain.blsPublicKey);
 	});

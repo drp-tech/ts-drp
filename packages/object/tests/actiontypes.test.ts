@@ -1,12 +1,10 @@
 import { AddMulDRP } from "@ts-drp/blueprints";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { DRPObject, ObjectACL } from "../src/index.js";
+import { createACL } from "../src/acl/index.js";
+import { DRPObject } from "../src/index.js";
 
-const acl = new ObjectACL({
-	admins: [],
-	permissionless: true,
-});
+const acl = createACL({ permissionless: true });
 
 beforeAll(async () => {
 	const { Console } = await import("node:console");

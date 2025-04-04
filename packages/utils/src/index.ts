@@ -93,38 +93,31 @@ export function isAsyncGenerator(obj: unknown): obj is AsyncGenerator {
  */
 export function processSequentially<T, C>(
 	items: T[],
-	processFn: (item: T) => unknown | Promise<unknown>,
+	processFn: (context: C, item: T) => unknown | Promise<unknown>,
 	context: C
 ): C | Promise<C> {
 	for (let i = 0; i < items.length; i++) {
-		const result = processFn(items[i]);
+		const result = processFn(context, items[i]);
 
 		if (isPromise(result)) {
-			return processRemainingAsync(result, items, processFn, i + 1).then(() => context);
+			return processRemainingAsync(result, items, processFn, i + 1, context).then(() => context);
 		}
 	}
 
 	return context;
 }
 
-/**
- * Processes remaining items asynchronously, applying the given function to each item.
- * @param initialPromise - The initial Promise to process
- * @param items - The array of items to process
- * @param processFn - Function to apply to each item
- * @param startIndex - The index to start processing from
- * @returns A Promise that resolves when all items have been processed
- */
-function processRemainingAsync<T>(
+function processRemainingAsync<T, C>(
 	initialPromise: Promise<unknown>,
 	items: T[],
-	processFn: (item: T) => unknown | Promise<unknown>,
-	startIndex: number
+	processFn: (context: C, item: T) => unknown | Promise<unknown>,
+	startIndex: number,
+	context: C
 ): Promise<unknown> {
 	let promise = initialPromise;
 
 	for (let j = startIndex; j < items.length; j++) {
-		promise = promise.then(() => processFn(items[j]));
+		promise = promise.then(() => processFn(context, items[j]));
 	}
 
 	return promise;
@@ -164,7 +157,10 @@ function processRemainingAsync<T>(
  * ); // returns "1-Test"
  * ```
  */
-export function handlePromiseOrValue<T, R>(value: T | Promise<T>, fn: (value: T) => R): R | Promise<R> {
+export function handlePromiseOrValue<T, R>(
+	value: T | Promise<T>,
+	fn: (value: T) => R = (value) => value as unknown as R
+): R | Promise<R> {
 	if (isPromise(value)) {
 		return value.then(fn);
 	}

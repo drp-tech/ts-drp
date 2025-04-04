@@ -5,15 +5,14 @@ import { AggregatedAttestation, type Attestation } from "@ts-drp/types";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { beforeEach, describe, expect, test } from "vitest";
 
-import { ObjectACL } from "../src/acl/index.js";
 import { FinalityState, FinalityStore } from "../src/finality/index.js";
 import { BitSet } from "../src/hashgraph/bitset.js";
-import { DRPObject } from "../src/index.js";
+import { createACL, DRPObject } from "../src/index.js";
 
 // initialize log
 const _ = new DRPObject({
 	peerId: "peer1",
-	acl: new ObjectACL({ admins: [] }),
+	acl: createACL(),
 	drp: new SetDRP(),
 });
 

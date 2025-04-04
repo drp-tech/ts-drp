@@ -1,11 +1,7 @@
 import { MapDRP, SetDRP } from "@ts-drp/blueprints";
 import Benchmark from "benchmark";
 
-import { DRPObject, ObjectACL } from "../src/index.js";
-
-const acl = new ObjectACL({
-	admins: ["peer1"],
-});
+import { createPermissionlessACL, DRPObject } from "../src/index.js";
 
 const NUMBER_OF_OPERATIONS = Number.parseInt(process.argv[2], 10) || 1000;
 
@@ -17,9 +13,11 @@ function benchmarkForAddWinSet(
 ): Benchmark.Suite {
 	return suite.add(name, async () => {
 		const objects: DRPObject<SetDRP<number>>[] = [];
+		const admins = Array.from({ length: numDRPs }, (_, i) => `peer${i + 1}`);
 		for (let i = 0; i < numDRPs; i++) {
+			const acl = createPermissionlessACL(admins);
 			const obj = new DRPObject({
-				peerId: `peer${i + 1}`,
+				peerId: admins[i],
 				acl,
 				drp: new SetDRP<number>(),
 			});
@@ -41,7 +39,7 @@ function benchmarkForAddWinSet(
 			for (let i = 0; i < objects.length; i++) {
 				for (let j = 0; j < objects.length; j++) {
 					if (i !== j) {
-						await objects[i].merge(objects[j].hashGraph.getAllVertices());
+						await objects[i].merge(objects[j].vertices);
 					}
 				}
 			}
@@ -60,6 +58,7 @@ benchmarkForAddWinSet(
 );
 
 suite.add("Create a HashGraph with 1000 operations for set wins map 1000", () => {
+	const acl = createPermissionlessACL(["peer1", "peer2"]);
 	const object = new DRPObject({
 		peerId: "peer1",
 		acl,
@@ -71,6 +70,7 @@ suite.add("Create a HashGraph with 1000 operations for set wins map 1000", () =>
 });
 
 suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map`, () => {
+	const acl = createPermissionlessACL(["peer1", "peer2"]);
 	const object = new DRPObject({
 		peerId: "peer1",
 		acl,
@@ -82,6 +82,7 @@ suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wi
 });
 
 suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map and read them`, () => {
+	const acl = createPermissionlessACL(["peer1", "peer2"]);
 	const object = new DRPObject({
 		peerId: "peer1",
 		acl,
@@ -96,6 +97,7 @@ suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wi
 	}
 });
 suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map and delete them`, () => {
+	const acl = createPermissionlessACL(["peer1", "peer2"]);
 	const object = new DRPObject({
 		peerId: "peer1",
 		acl,
@@ -111,6 +113,7 @@ suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wi
 });
 
 suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map with random operations`, () => {
+	const acl = createPermissionlessACL(["peer1", "peer2"]);
 	const object = new DRPObject({
 		peerId: "peer1",
 		acl,
@@ -153,23 +156,23 @@ suite.add(
 				}
 			}
 		}
-
+		const acl = createPermissionlessACL(["peer1", "peer2"]);
 		const object1 = new DRPObject({
 			peerId: "peer1",
 			acl,
 			drp: new MapDRP<number, number>(),
 		});
 		initialize(object1.drp);
-
+		const acl2 = createPermissionlessACL(["peer1", "peer2"]);
 		const object2 = new DRPObject({
 			peerId: "peer2",
-			acl,
+			acl: acl2,
 			drp: new MapDRP<number, number>(),
 		});
 		initialize(object2.drp);
 
-		await object1.merge(object2.hashGraph.getAllVertices());
-		await object2.merge(object1.hashGraph.getAllVertices());
+		await object1.merge(object2.vertices);
+		await object2.merge(object1.vertices);
 	}
 );
 

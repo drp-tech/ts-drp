@@ -1,5 +1,4 @@
 import { ActionType, type Hash, type Vertex } from "@ts-drp/types";
-import type { ObjectSet } from "@ts-drp/utils";
 
 import { type HashGraph } from "../hashgraph/index.js";
 
@@ -10,7 +9,7 @@ import { type HashGraph } from "../hashgraph/index.js";
  * @param subgraph - The subgraph to linearize.
  * @returns The linearized vertices.
  */
-export function linearizePairSemantics(hashGraph: HashGraph, origin: Hash, subgraph: ObjectSet<string>): Vertex[] {
+export function linearizePairSemantics(hashGraph: HashGraph, origin: Hash, subgraph: Set<string>): Vertex[] {
 	const order = hashGraph.topologicalSort(true, origin, subgraph);
 	const result: Vertex[] = [];
 	// if there is no resolveConflicts function, we can just return the operations in topological order

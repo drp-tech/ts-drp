@@ -90,8 +90,7 @@ function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandler
 		return;
 	}
 
-	const aclState = drpObject.aclStates.get(fetchState.vertexHash);
-	const drpState = drpObject.drpStates.get(fetchState.vertexHash);
+	const [aclState, drpState] = drpObject.getStates(fetchState.vertexHash);
 	const response = FetchStateResponse.create({
 		vertexHash: fetchState.vertexHash,
 		aclState: serializeDRPState(aclState),
@@ -137,9 +136,8 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 		const drpState = deserializeDRPState(fetchStateResponse.drpState);
 		if (fetchStateResponse.vertexHash === HashGraph.rootHash) {
 			const state = aclState;
-			object.aclStates.set(fetchStateResponse.vertexHash, state);
+			object.setACLState(fetchStateResponse.vertexHash, state);
 			for (const e of state.state) {
-				if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value;
 				object.acl[e.key] = e.value;
 			}
 			node.put(object.id, object);
@@ -147,10 +145,10 @@ function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<
 		}
 
 		if (fetchStateResponse.aclState) {
-			object.aclStates.set(fetchStateResponse.vertexHash, aclState);
+			object.setACLState(fetchStateResponse.vertexHash, aclState);
 		}
 		if (fetchStateResponse.drpState) {
-			object.drpStates.set(fetchStateResponse.vertexHash, drpState);
+			object.setDRPState(fetchStateResponse.vertexHash, drpState);
 		}
 	} finally {
 		if (fetchStateDeferredMap.has(object.id)) {

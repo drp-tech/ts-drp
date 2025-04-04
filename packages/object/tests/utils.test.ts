@@ -4,7 +4,8 @@ import { FetchStateResponse } from "@ts-drp/types";
 import { deserializeDRPState, deserializeValue, serializeDRPState, serializeValue } from "@ts-drp/utils/serialization";
 import { describe, expect, it } from "vitest";
 
-import { DRPObject, HashGraph } from "../src/index.js";
+import { HashGraph } from "../src/hashgraph/index.js";
+import { createObject } from "../src/index.js";
 
 class TestCustomClass {
 	constructor(
@@ -219,12 +220,11 @@ describe("Serialize & deserialize", () => {
 	});
 
 	it("should serialize & deserialize SetDRP", () => {
-		const drpObject = DRPObject.createObject({
+		const drpObject = createObject({
 			peerId: "test",
 			drp: new SetDRP(),
 		});
-		const aclState = drpObject.aclStates.get(HashGraph.rootHash);
-		const drpState = drpObject.drpStates.get(HashGraph.rootHash);
+		const [aclState, drpState] = drpObject.getStates(HashGraph.rootHash);
 		const response = FetchStateResponse.create({
 			vertexHash: "test",
 			aclState: serializeDRPState(aclState),

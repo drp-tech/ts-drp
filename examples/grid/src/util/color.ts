@@ -1,5 +1,12 @@
 const colorMap: Map<string, string> = new Map();
 
+/**
+ * Convert RGB to HSL
+ * @param rInt - The red value
+ * @param gInt - The green value
+ * @param bInt - The blue value
+ * @returns The HSL values
+ */
 export const rgbToHsl = (rInt: number, gInt: number, bInt: number): [number, number, number] => {
 	const r = rInt / 255;
 	const g = gInt / 255;
@@ -31,6 +38,13 @@ export const rgbToHsl = (rInt: number, gInt: number, bInt: number): [number, num
 	return [h * 360, s, l];
 };
 
+/**
+ * Convert HSL to RGB
+ * @param h - The hue value
+ * @param s - The saturation value
+ * @param l - The lightness value
+ * @returns The RGB values
+ */
 export const hslToRgb = (h: number, s: number, l: number): [number, number, number] => {
 	let r: number;
 	let g: number;
@@ -59,6 +73,13 @@ export const hslToRgb = (h: number, s: number, l: number): [number, number, numb
 	return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 };
 
+/**
+ * Convert RGB to hex
+ * @param r - The red value
+ * @param g - The green value
+ * @param b - The blue value
+ * @returns The hex value
+ */
 export const rgbToHex = (r: number, g: number, b: number): string => {
 	return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 };
@@ -72,6 +93,11 @@ const hashCode = (str: string): number => {
 	return hash;
 };
 
+/**
+ * Get the color for a peer id
+ * @param id - The peer id
+ * @returns The color
+ */
 export const getColorForPeerId = (id: string): string => {
 	if (!colorMap.has(id)) {
 		const hash = hashCode(id);
@@ -93,6 +119,12 @@ export const getColorForPeerId = (id: string): string => {
 };
 
 // Helper function to convert hex color to rgba
+/**
+ * Convert hex to rgba
+ * @param hex - The hex value
+ * @param alpha - The alpha value
+ * @returns The rgba value
+ */
 export function hexToRgba(hex: string, alpha: number): string {
 	const bigint = Number.parseInt(hex.slice(1), 16);
 	const r = (bigint >> 16) & 255;
