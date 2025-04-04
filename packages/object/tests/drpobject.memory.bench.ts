@@ -1,5 +1,5 @@
 import { formatOutput } from "@ts-drp/utils/memory-benchmark";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
@@ -45,7 +45,8 @@ function trimTestFilePath(testFilePath: string): string {
 function runProcessMemoryScript(numTests: number, programName: string, size: number): number[] {
 	try {
 		const scriptPath = path.resolve(DIR_NAME, SCRIPT_DIR, SCRIPT_NAME);
-		const result = execSync(`${scriptPath} ${numTests} ${programName} ${size}`, { encoding: "utf-8" });
+		const args = [numTests.toString(), programName, size.toString()];
+		const result = execFileSync(scriptPath, args, { encoding: "utf-8" });
 
 		// Parse the output into an array of numbers
 		return result
