@@ -1,118 +1,84 @@
-import { SetDRP } from "@ts-drp/blueprints";
-import { formatOutput, parseSnapshotFromFile } from "@ts-drp/utils/memory-benchmark";
-import { writeHeapSnapshot } from "v8";
+import { formatOutput } from "@ts-drp/utils/memory-benchmark";
+import { execSync } from "child_process";
+import fs from "fs";
+import path from "path";
 
-import { DRPObject, ObjectACL } from "../src/index.js";
+const DIR_NAME = path.dirname(new URL(import.meta.url).pathname);
+const TEST_FILE_DIR = "memory-tests";
+const SCRIPT_DIR = "scripts";
+const SCRIPT_NAME = "process-memory.sh";
 
-const acl = new ObjectACL({
-	admins: ["peer1"],
-});
+const TEST_FILES = fs
+	.readdirSync(path.join(DIR_NAME, TEST_FILE_DIR))
+	.map((file) => path.join(DIR_NAME, TEST_FILE_DIR, file))
+	.filter((file) => fs.statSync(file).isFile() && file.endsWith(".ts"));
 
-const NUMBER_OF_ITERATIONS = Number.parseInt(process.argv[2], 10) || 5;
+const ITERATIONS_PER_TEST: Map<string, number> = new Map([["default", 5]]);
+const TEST_SIZES: Map<string, number[]> = new Map([["default", [100, 1000]]]);
 
-// Define node structure type
-interface NodeInfo {
-	name: string;
-	selfSize: number;
-	id: number;
-}
-
-interface BenchmarkResult {
-	memoryDifference: number;
-	nodesDifference: number;
-	edgesDifference: number;
+/**
+ * Set the test sizes for a given test file from just the file name
+ * @param testFile - The name of the test file
+ * @param sizes - The sizes to test
+ */
+function setTestSizes(testFile: string, sizes: number[]): void {
+	const testFilePath = path.join(DIR_NAME, TEST_FILE_DIR, testFile).concat(".ts");
+	TEST_SIZES.set(testFilePath, sizes);
 }
 
 /**
- * Runs memory benchmark for HashGraph with specified number of vertices
+ * Trim the test file path to just the file name
+ * @param testFilePath - The path to the test file
+ * @returns The file name of the test file
  */
-async function runMemoryBenchmark(numVertices: number): Promise<BenchmarkResult> {
-	if (gc) gc();
-	const beforeSnapshotPath = writeHeapSnapshot();
-
-	const obj = new DRPObject({
-		peerId: "peer1",
-		acl,
-		drp: new SetDRP<number>(),
-	});
-	for (let i = 0; i < numVertices; i++) {
-		obj.drp?.add(i);
-	}
-	if (gc) gc();
-	const afterSnapshotPath = writeHeapSnapshot();
-
-	const beforeSnapshot = await parseSnapshotFromFile(beforeSnapshotPath);
-	const afterSnapshot = await parseSnapshotFromFile(afterSnapshotPath);
-
-	// Find HashGraph instances and their sizes
-	const hashGraphNodesBefore: NodeInfo[] = [];
-	const hashGraphNodesAfter: NodeInfo[] = [];
-
-	beforeSnapshot.nodes.forEach((node) => {
-		if (node.name === "HashGraph" || node.name.includes("HashGraph")) {
-			hashGraphNodesBefore.push({
-				name: node.name,
-				selfSize: node.self_size,
-				id: node.id,
-			});
-		}
-	});
-
-	afterSnapshot.nodes.forEach((node) => {
-		if (node.name === "HashGraph" || node.name.includes("HashGraph")) {
-			hashGraphNodesAfter.push({
-				name: node.name,
-				selfSize: node.self_size,
-				id: node.id,
-			});
-		}
-	});
-
-	// Calculate overall memory usage
-	let beforeTotalRetained = 0;
-	let afterTotalRetained = 0;
-
-	beforeSnapshot.nodes.forEach((node) => (beforeTotalRetained += node.self_size));
-	afterSnapshot.nodes.forEach((node) => (afterTotalRetained += node.self_size));
-
-	return {
-		memoryDifference: afterTotalRetained - beforeTotalRetained,
-		nodesDifference: afterSnapshot.nodes.length - beforeSnapshot.nodes.length,
-		edgesDifference: afterSnapshot.edges.length - beforeSnapshot.edges.length,
-	};
+function trimTestFilePath(testFilePath: string): string {
+	return testFilePath.replace(path.join(DIR_NAME, TEST_FILE_DIR), "").replace(".ts", "").replace("/", "");
 }
 
 /**
- * Runs multiple iterations of the memory benchmark and calculates statistics
+ * Run the process memory script and return the memory usage results
+ * @param numTests - The number of tests to run
+ * @param programName - The name of the program to run
+ * @param size - The number of vertices in the hashgraph
+ * @returns The memory usage results
  */
-async function memoryBenchmarkForDrpObjectWithAddWinsSet(
-	name: string,
-	numVertices: number,
-	iterations: number
-): Promise<void> {
-	const results: BenchmarkResult[] = [];
+function runProcessMemoryScript(numTests: number, programName: string, size: number): number[] {
+	try {
+		const scriptPath = path.resolve(DIR_NAME, SCRIPT_DIR, SCRIPT_NAME);
+		const result = execSync(`${scriptPath} ${numTests} ${programName} ${size}`, { encoding: "utf-8" });
 
-	for (let i = 0; i < iterations; i++) {
-		const result = await runMemoryBenchmark(numVertices);
-		results.push(result);
+		// Parse the output into an array of numbers
+		return result
+			.trim()
+			.split("\n")
+			.map((line) => parseInt(line, 10));
+	} catch (error) {
+		console.error(`Error running script: ${SCRIPT_NAME}`, error);
+		return [];
 	}
-
-	const memoryDifferences = results.map((r) => r.memoryDifference);
-
-	if (memoryDifferences.length !== iterations) {
-		console.error(`Memory benchmark for ${name} failed to complete ${iterations} iterations`);
-		return;
-	}
-
-	// Print in Benchmark.js format
-	console.log(formatOutput(name, memoryDifferences, "MB", 1024 * 1024));
 }
 
-// Run benchmark
-void (async (): Promise<void> => {
-	await memoryBenchmarkForDrpObjectWithAddWinsSet(
-		`DRPObject memory benchmark with 1000 vertices`,
-		1000,
-		NUMBER_OF_ITERATIONS
-	);
-})();
+function main(): void {
+	setTestSizes("SetDRP-object", [100, 1000, 3000]);
+	setTestSizes("grid-object", [100, 1000, 3000]);
+
+	for (const testFile of TEST_FILES) {
+		for (const testSize of TEST_SIZES.get(testFile) || TEST_SIZES.get("default") || []) {
+			const memoryResults = runProcessMemoryScript(
+				ITERATIONS_PER_TEST.get(testFile) || ITERATIONS_PER_TEST.get("default") || 5,
+				testFile,
+				testSize
+			);
+
+			if (memoryResults.length > 0) {
+				console.log(
+					formatOutput(`${trimTestFilePath(testFile)} with ${testSize} vertices memory usage`, memoryResults, "KB")
+				);
+			} else {
+				console.log("No results received from script");
+			}
+		}
+	}
+}
+
+main();
