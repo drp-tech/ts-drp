@@ -28,7 +28,6 @@ class GridStateManager implements GridState {
 
 	isNodeInitialized(): boolean {
 		if (!this.node) {
-			console.error("Node not initialized");
 			return false;
 		}
 		return true;
@@ -36,7 +35,6 @@ class GridStateManager implements GridState {
 
 	isGridInitialized(): boolean {
 		if (!this.gridDRP) {
-			console.error("Grid DRP not initialized");
 			return false;
 		}
 		return true;
