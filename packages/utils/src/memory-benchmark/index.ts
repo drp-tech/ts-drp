@@ -28,6 +28,9 @@ function calculateStdDev(values: number[]): number {
  */
 function formatWithPercentageStdDev(avg: number, unit: string, stdDev: number): string {
 	// Calculate std dev as percentage of the mean
+	if (avg === 0) {
+		return `${avg.toFixed(2)} ${unit} ±0.00%`;
+	}
 	const percentStdDev = (stdDev / Math.abs(avg)) * 100;
 	return `${avg.toFixed(2)} ${unit} ±${percentStdDev.toFixed(2)}%`;
 }
