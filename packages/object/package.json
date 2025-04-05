@@ -22,7 +22,7 @@
 		}
 	},
 	"scripts": {
-		"benchmark": "tsx tests/hashgraph.bench.ts | tee -a ../benchmark-output.txt && tsx tests/serializer.bench.ts | tee -a ../benchmark-output.txt",
+		"benchmark": "tsx tests/hashgraph.bench.ts | tee -a ../benchmark-output.txt && tsx tests/serializer.bench.ts | tee -a ../benchmark-output.txt && tsx tests/drpobject.memory.bench.ts | tee -a ../benchmark-output.txt",
 		"build": "tsc -b tsconfig.build.json",
 		"clean": "rm -rf dist/ node_modules/",
 		"prepack": "tsc -b",
@@ -35,6 +35,7 @@
 		"@ts-drp/blueprints": "^0.11.0",
 		"@ts-drp/keychain": "^0.11.0",
 		"@ts-drp/test-utils": "^0.11.0",
+		"@ts-drp/utils": "^0.11.0",
 		"@types/benchmark": "^2.1.5",
 		"benchmark": "^2.1.4",
 		"pprof": "^4.0.0",
