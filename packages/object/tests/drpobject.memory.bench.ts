@@ -73,7 +73,12 @@ function main(): void {
 
 			if (memoryResults.length > 0) {
 				console.log(
-					formatOutput(`${trimTestFilePath(testFile)} with ${testSize} vertices memory usage`, memoryResults, "KB")
+					formatOutput(
+						`${trimTestFilePath(testFile)} with ${testSize} vertices memory usage`,
+						memoryResults,
+						"MB",
+						1024
+					)
 				);
 			} else {
 				console.log("No results received from script");
