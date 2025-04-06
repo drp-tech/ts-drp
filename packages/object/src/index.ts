@@ -79,7 +79,7 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 		//metrics,
 	}: DRPObjectOptions<T>) {
 		this.id = id;
-		this.log = new Logger(`drp::object2::${this.id}`, config?.log_config);
+		this.log = new Logger(`drp::object::${this.id}`, config?.log_config);
 
 		this.hg = new HashGraph(
 			peerId,

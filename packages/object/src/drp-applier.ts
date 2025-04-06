@@ -393,8 +393,8 @@ function callDRP<T extends IDRP>(drp: T, caller: string, method: string, args: u
 	return drp[method](...args);
 }
 
-function applyVertex<T extends IDRP>(drp: T, v: Vertex): unknown | Promise<unknown> {
-	const { operation, peerId } = v;
+function applyVertex<T extends IDRP>(drp: T, vertex: Vertex): unknown | Promise<unknown> {
+	const { operation, peerId } = vertex;
 	if (!operation) throw new Error("Operation is undefined");
 
 	return callDRP(drp, peerId, operation.opType, operation.value);
