@@ -248,7 +248,10 @@ export class DRPVertexApplier<T extends IDRP> {
 		const {
 			acl,
 			vertex: { peerId },
+			isACL,
 		} = operation;
+		if (isACL) return { stop: false, result: operation };
+
 		const isWriter = acl.query_isWriter(peerId);
 		if (!isWriter) throw new Error("Not a writer " + peerId);
 		return { stop: false, result: operation };
