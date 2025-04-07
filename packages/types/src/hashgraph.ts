@@ -62,20 +62,7 @@ export interface IHashGraph {
 	frontier: Hash[];
 	forwardEdges: Map<Hash, Hash[]>;
 
-	/**
-	 * Linearizes the vertices.
-	 * @param origin - The origin hash.
-	 * @param subgraph - The subgraph.
-	 * @returns The linearized vertices.
-	 */
 	linearizeVertices(origin?: Hash, subgraph?: Set<string>): Vertex[];
-	/**
-	 * Topologically sorts the vertices in the whole hashgraph or the past of a given vertex.
-	 * @param updateBitsets - Whether to update the bitsets.
-	 * @param origin - The origin hash.
-	 * @param subgraph - The subgraph.
-	 * @returns The topologically sorted vertices.
-	 */
 	topologicalSort(updateBitsets?: boolean, origin?: Hash, subgraph?: Set<Hash>): Hash[];
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType;
 	createVertex(operation: Operation, dependencies?: Hash[], timestamp?: number): Vertex;
