@@ -68,7 +68,7 @@ export class DRPVertexApplier<T extends IDRP> {
 	private _proxyDRP?: DRPProxy<T>;
 	private _proxyACL: DRPProxy<IACL>;
 
-	private appliesVertexPipeline: Pipeline<BaseOperation, PostOperation<T>>;
+	private applyVertexPipeline: Pipeline<BaseOperation, PostOperation<T>>;
 	private finalityStore: FinalityStore;
 	private _notify: (origin: string, vertices: Vertex[]) => void;
 	private log: Logger;
@@ -105,7 +105,7 @@ export class DRPVertexApplier<T extends IDRP> {
 			.setNext(this.initializeFinalityStore.bind(this))
 			.setNext(this.notify.bind(this)); // this is there but not in applies
 
-		this.appliesVertexPipeline = createPipeline(this.validateVertex.bind(this))
+		this.applyVertexPipeline = createPipeline(this.validateVertex.bind(this))
 			.setNext(this.getLCA.bind(this))
 			.setNext(this.splitLCAOperation.bind(this))
 			.setNext(this.computeOperation.bind(this))
@@ -157,7 +157,7 @@ export class DRPVertexApplier<T extends IDRP> {
 			}
 
 			try {
-				await this.appliesVertexPipeline.execute({ vertex: vertex, isACL: vertex.operation.drpType === DrpType.ACL });
+				await this.applyVertexPipeline.execute({ vertex: vertex, isACL: vertex.operation.drpType === DrpType.ACL });
 				newVertices.push(vertex);
 			} catch (e) {
 				this.log.error("Error applying vertex", e);

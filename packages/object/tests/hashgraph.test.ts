@@ -152,8 +152,8 @@ describe("HashGraph construction tests", () => {
 	test("Hash graph should be DAG compatible", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		drp1.add(1);
-		expect(selfCheckConstraints(obj1["hg"])).toBe(true);
-		const linearizedVertices = obj1["hg"].linearizeVertices();
+		expect(selfCheckConstraints(obj1["hashgraph"])).toBe(true);
+		const linearizedVertices = obj1["hashgraph"].linearizeVertices();
 		const expectedOps = [Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP })];
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
@@ -436,7 +436,7 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 		expect(obj1.drp?.query_has(2)).toBe(false);
 		expect(obj1.vertices).toEqual(obj2.vertices);
 
-		const linearizedVertices = obj1["hg"].linearizeVertices();
+		const linearizedVertices = obj1["hashgraph"].linearizeVertices();
 		const expectedOps: Operation[] = [
 			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
 			Operation.create({ opType: "add", value: [2], drpType: DrpType.DRP }),
@@ -674,7 +674,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		const acl1 = obj1.acl as ObjectACL;
 
 		drp1.add(1);
-		const hash1 = obj1["hg"].getFrontier()[0];
+		const hash1 = obj1["hashgraph"].getFrontier()[0];
 		await obj2.merge(obj1.vertices);
 		drp1.add(2);
 		acl1.grant("peer2", ACLGroup.Writer);
@@ -687,7 +687,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 			new Uint8Array()
 		);
 
-		obj2["hg"].addVertex(vertex);
+		obj2["hashgraph"].addVertex(vertex);
 
 		await obj1.merge(obj2.vertices);
 		expect(drp1.query_has(3)).toBe(false);

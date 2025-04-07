@@ -19,7 +19,7 @@ describe("HashGraph construction tests", () => {
 		obj.drp?.add(2);
 		const rootDRPState = obj["_states"]["drpStates"].get(HashGraph.rootHash);
 		expect(rootDRPState?.state.filter((e) => e.key === "_set")[0].value.size).toBe(0);
-		const frontierState = obj["_states"]["drpStates"].get(obj["hg"].getFrontier()[0]);
+		const frontierState = obj["_states"]["drpStates"].get(obj["hashgraph"].getFrontier()[0]);
 		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
 		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
 	});
