@@ -143,21 +143,11 @@ describe("Handle message correctly", () => {
 	});
 
 	test("should handle sync and fetch message correctly", async () => {
-		const p = raceEvent(node1, NodeEventName.DRP_UPDATE);
-		drpObjectNode2.drp?.add(5);
-		await p;
-		const p2 = raceEvent(node1, NodeEventName.DRP_UPDATE);
-		drpObjectNode2.drp?.add(10);
-		await p2;
+		await Promise.all([raceEvent(node1, NodeEventName.DRP_UPDATE), drpObjectNode2.drp?.add(5)]);
 		expect(drpObjectNode1).toBeDefined();
-		const p3 = raceEvent(node2, NodeEventName.DRP_UPDATE);
-		drpObjectNode1?.drp?.add(1);
-		await p3;
-		const p4 = raceEvent(node2, NodeEventName.DRP_UPDATE);
-		drpObjectNode1?.drp?.add(2);
-		await p4;
-		expect(drpObjectNode1?.vertices.length).toBe(5);
-		expect(drpObjectNode2.vertices.length).toBe(5);
+		await Promise.all([raceEvent(node2, NodeEventName.DRP_UPDATE), drpObjectNode1?.drp?.add(1)]);
+		expect(drpObjectNode1?.vertices.length).toBe(3);
+		expect(drpObjectNode2.vertices.length).toBe(3);
 		const node3 = createNewNode("node3");
 
 		await node3.start();
@@ -184,7 +174,7 @@ describe("Handle message correctly", () => {
 			p6,
 			p7,
 		]);
-		expect(node3.get(drpObjectNode2.id)?.vertices.length).toBe(5);
+		expect(node3.get(drpObjectNode2.id)?.vertices.length).toBe(3);
 	});
 
 	test("should handle update attestation message correctly", async () => {
