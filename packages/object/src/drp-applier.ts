@@ -98,7 +98,7 @@ export class DRPVertexApplier<T extends IDRP> {
 			.setNext(this.computeOperation.bind(this))
 			.setNext(this.validateWriterPermission.bind(this))
 			.setNext(this.applyFn.bind(this))
-			.setNext(this.equal.bind(this)) // this is there but not in applies
+			.setNext(this.equal.bind(this)) // in callFn but not in applyVertex
 			.setNext(this.assign.bind(this))
 			.setNext(this.assignState.bind(this))
 			.setNext(this.addVertexToHashgraph.bind(this))
