@@ -17,6 +17,28 @@ export interface DRPObjectConfig {
 	finality_config?: FinalityConfig;
 }
 
+/**
+ * The arguments for creating a DRP object.
+ */
+export interface DRPCreationArgs {
+	/**
+	 * The DRP constructor arguments.
+	 */
+	drpArgs?: unknown[];
+	/**
+	 * The ACL constructor arguments.
+	 */
+	aclArgs: unknown[];
+	/**
+	 * The DRP creation timestamp.
+	 */
+	timestamp: number;
+	/**
+	 * The salt to use for the DRP Object id.
+	 */
+	salt?: number;
+}
+
 export interface DRPObjectOptions<T extends IDRP> {
 	peerId: string;
 	acl?: IACL;
@@ -24,6 +46,7 @@ export interface DRPObjectOptions<T extends IDRP> {
 	id?: string;
 	config?: DRPObjectConfig;
 	metrics?: IMetrics;
+	drpCreationArgs?: DRPCreationArgs;
 }
 
 export type MergeResult = [merged: boolean, missing: string[]];
