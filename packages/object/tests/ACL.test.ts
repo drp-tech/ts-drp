@@ -166,7 +166,7 @@ describe("AccessControl tests with permissionless", () => {
 		expect(acl.query_isAdmin("peer1")).toBe(true);
 	});
 
-	test.concurrent("Should admin cannot grant write permissions", () => {
+	test.concurrent("Admin should not grant write permissions", () => {
 		const acl = createPermissionlessACL(["peer1"]);
 		acl.context = { caller: "peer1" };
 		expect(() => {
