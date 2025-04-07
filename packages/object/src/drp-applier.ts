@@ -103,7 +103,7 @@ export class DRPVertexApplier<T extends IDRP> {
 			.setNext(this.assignState.bind(this))
 			.setNext(this.addVertexToHashgraph.bind(this))
 			.setNext(this.initializeFinalityStore.bind(this))
-			.setNext(this.notify.bind(this)); // this is there but not in applies
+			.setNext(this.notify.bind(this)); // in callFn but not in applyVertex
 
 		this.applyVertexPipeline = createPipeline(this.validateVertex.bind(this))
 			.setNext(this.getLCA.bind(this))
