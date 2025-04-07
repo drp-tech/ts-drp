@@ -31,6 +31,7 @@ jobs:
           mkdir -p ./docs/examples
           cp -r ./examples/chat/dist ./docs/examples/chat
           find ./docs/examples -type f -name 'index.html' -exec sed -i 's|src="/assets/|src="assets/|g' {} +
+          find ./docs/examples -type f -name 'index.html' -exec sed -i 's|href="/assets/|href="assets/|g' {} +
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

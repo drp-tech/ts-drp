@@ -43,6 +43,10 @@
 			"types": "./dist/src/promise/deferred/index.d.ts",
 			"import": "./dist/src/promise/deferred/index.js"
 		},
+		"./promise/timeout": {
+			"types": "./dist/src/promise/timeout/index.d.ts",
+			"import": "./dist/src/promise/timeout/index.js"
+		},
 		"./hash": {
 			"types": "./dist/src/hash/index.d.ts",
 			"import": "./dist/src/hash/index.js"

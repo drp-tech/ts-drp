@@ -5,11 +5,12 @@ import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
 import { MessageQueueManager } from "@ts-drp/message-queue";
 import { DRPNetworkNode } from "@ts-drp/network";
-import { createObject, DRPObject } from "@ts-drp/object";
+import { createObject, DRPObject, HashGraph } from "@ts-drp/object";
 import {
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
 	type DRPObjectSubscribeCallback,
+	type FetchStateResponseEvent,
 	type IDRP,
 	type IDRPNode,
 	type IDRPObject,
@@ -18,10 +19,13 @@ import {
 	MessageType,
 	type NodeConnectObjectOptions,
 	type NodeCreateObjectOptions,
+	NodeEventName,
 	type NodeEvents,
 } from "@ts-drp/types";
+import { timeoutSignal } from "@ts-drp/utils/promise/timeout";
 import { NodeConnectObjectOptionsSchema, NodeCreateObjectOptionsSchema } from "@ts-drp/validation";
 import { DRPValidationError } from "@ts-drp/validation/errors";
+import { AbortError, raceEvent } from "race-event";
 
 import { drpObjectChangesHandler, handleMessage } from "./handlers.js";
 import { log } from "./logger.js";
@@ -260,6 +264,21 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		// start the interval discovery
 		this._createIntervalDiscovery(options.id);
 		await operations.fetchState(this, options.id, options.sync?.peerId);
+		const { signal, cleanup } = timeoutSignal(5000);
+		try {
+			await raceEvent(this, NodeEventName.DRP_FETCH_STATE_RESPONSE, signal, {
+				filter: (event: CustomEvent<FetchStateResponseEvent>) =>
+					event.detail.id === object.id && event.detail.fetchStateResponse.vertexHash === HashGraph.rootHash,
+			});
+		} catch (error) {
+			if (error instanceof AbortError) {
+				log.error("::connectObject: Fetch state timed out");
+			} else {
+				throw error;
+			}
+		} finally {
+			cleanup();
+		}
 
 		// TODO: since when the interval can run this twice do we really want it to be
 		// run while the other one might still be running?

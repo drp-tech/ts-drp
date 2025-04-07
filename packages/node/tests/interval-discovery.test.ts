@@ -103,19 +103,9 @@ describe("DRP Interval Discovery integration test", () => {
 			id: "test_topic_discovery",
 		});
 
-		const node3GossipSub = node3.networkNode["_pubsub"] as GossipSub;
-		const node1GossipSub = node1.networkNode["_pubsub"] as GossipSub;
 		await node3.connectObject({
 			id: drpObject.id,
 		});
-		await Promise.all([
-			raceEvent(node3GossipSub, "gossipsub:graft", undefined, {
-				filter: (e: CustomEvent<MeshPeer>) => e.detail.topic === drpObject.id,
-			}),
-			raceEvent(node1GossipSub, "gossipsub:graft", undefined, {
-				filter: (e: CustomEvent<MeshPeer>) => e.detail.topic === drpObject.id,
-			}),
-		]);
 
 		expect(node3.networkNode.getGroupPeers(drpObject.id).length).toBe(1);
 		expect(node3.networkNode.getGroupPeers(drpObject.id)[0]).toBe(node1.networkNode.peerId);

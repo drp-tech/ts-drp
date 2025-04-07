@@ -148,6 +148,20 @@ function run(metrics?: IMetrics): void {
 	button_connect.addEventListener("click", () => void connect());
 
 	document.addEventListener("keydown", (event) => {
+		// Skip if user is typing in input elements
+		if (
+			event.target instanceof HTMLInputElement ||
+			event.target instanceof HTMLTextAreaElement ||
+			event.target instanceof HTMLSelectElement
+		) {
+			return;
+		}
+
+		// Skip if Grid is not initialized
+		if (!gridState.isGridInitialized()) {
+			return;
+		}
+
 		if (event.key === "w") moveUser("U");
 		if (event.key === "a") moveUser("L");
 		if (event.key === "s") moveUser("D");

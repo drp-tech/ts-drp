@@ -1,12 +1,16 @@
 import { bls } from "@chainsafe/bls/herumi";
+import { type Connection, type IdentifyResult, type Libp2p } from "@libp2p/interface";
 import { SetDRP } from "@ts-drp/blueprints";
 import { Logger } from "@ts-drp/logger";
-import { createACL, DRPObject } from "@ts-drp/object";
-import { ACLGroup, DrpType, Operation, Vertex } from "@ts-drp/types";
-import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
+import { DRPNetworkNode } from "@ts-drp/network";
+import { createACL, DRPObject, ObjectACL } from "@ts-drp/object";
+import { ACLGroup, type DRPNetworkNodeConfig, DrpType, Operation, Vertex } from "@ts-drp/types";
+import { raceEvent } from "race-event";
+import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { signFinalityVertices, signGeneratedVertices, verifyACLIncomingVertices } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
+import { log } from "../src/logger.js";
 
 describe("DPRNode with verify and sign signature", () => {
 	let drpNode: DRPNode;
@@ -224,9 +228,9 @@ describe("DRPNode with rpc", () => {
 	});
 
 	test("should run connectObject", async () => {
+		vi.useRealTimers();
 		const drpObjectConnected = await drpNode.connectObject({ id: drpObject.id, drp });
 		expect(drpObjectConnected.id).toEqual(drpObject.id);
-		vi.advanceTimersByTime(5000);
 		const object = drpNode.get(drpObject.id);
 		expect(object).toBeDefined();
 	});
@@ -249,5 +253,131 @@ describe("DRPNode with rpc", () => {
 	test("should run node restart", async () => {
 		await drpNode.restart();
 		expect(mockLogger.info).toHaveBeenCalledWith("::restart: Node restarted");
+	});
+});
+
+describe("DRPObject connection tests", () => {
+	vi.setConfig({ testTimeout: 15000, hookTimeout: 15000 });
+	const controller = new AbortController();
+	let node1: DRPNode;
+	let node2: DRPNode;
+	let bootstrapNode: DRPNetworkNode;
+	let libp2pNode2: Libp2p;
+	let libp2pNode1: Libp2p;
+
+	const isDialable = async (node: DRPNetworkNode, timeout = false): Promise<boolean> => {
+		let resolver: (value: boolean) => void;
+		const promise = new Promise<boolean>((resolve) => {
+			resolver = resolve;
+		});
+
+		if (timeout) {
+			setTimeout(() => {
+				resolver(false);
+			}, 10);
+		}
+
+		const callback = (): void => {
+			resolver(true);
+		};
+
+		await node.isDialable(callback);
+		return promise;
+	};
+
+	const createNewNode = (privateKeySeed: string): DRPNode => {
+		const bootstrapMultiaddrs = bootstrapNode.getMultiaddrs();
+		const nodeConfig: DRPNetworkNodeConfig = {
+			bootstrap_peers: bootstrapMultiaddrs,
+			log_config: {
+				level: "silent",
+			},
+		};
+		return new DRPNode({
+			network_config: nodeConfig,
+			keychain_config: {
+				private_key_seed: privateKeySeed,
+			},
+		});
+	};
+
+	beforeEach(async () => {
+		bootstrapNode = new DRPNetworkNode({
+			bootstrap: true,
+			listen_addresses: ["/ip4/0.0.0.0/tcp/0/ws"],
+			bootstrap_peers: [],
+		});
+		await bootstrapNode.start();
+
+		node1 = createNewNode("node1");
+		node2 = createNewNode("node2");
+
+		await node2.start();
+		const btLibp2pNode1 = bootstrapNode["_node"] as Libp2p;
+		libp2pNode2 = node2.networkNode["_node"] as Libp2p;
+
+		await Promise.all([
+			raceEvent(btLibp2pNode1, "peer:identify", controller.signal, {
+				filter: (event: CustomEvent<IdentifyResult>) =>
+					event.detail.peerId.equals(libp2pNode2.peerId) && event.detail.listenAddrs.length > 0,
+			}),
+			isDialable(node2.networkNode),
+		]);
+
+		await node1.start();
+		expect(await isDialable(node1.networkNode)).toBe(true);
+
+		libp2pNode1 = node1.networkNode["_node"] as Libp2p;
+
+		await Promise.all([
+			raceEvent(libp2pNode2, "connection:open", controller.signal, {
+				filter: (event: CustomEvent<Connection>) =>
+					event.detail.remotePeer.toString() === node1.networkNode.peerId && event.detail.limits === undefined,
+			}),
+			raceEvent(libp2pNode1, "connection:open", controller.signal, {
+				filter: (event: CustomEvent<Connection>) =>
+					event.detail.remotePeer.toString() === node2.networkNode.peerId && event.detail.limits === undefined,
+			}),
+		]);
+	});
+
+	afterAll(async () => {
+		await bootstrapNode?.stop();
+		await node1?.stop();
+		await node2?.stop();
+	});
+
+	test("Node should able to connect object and fetch states", async () => {
+		const obj1 = await node1.createObject({
+			drp: new SetDRP<number>(),
+			acl: new ObjectACL({
+				admins: [node1.networkNode.peerId, "fake-peer"],
+			}),
+		});
+		expect(obj1.acl.query_isAdmin(node1.networkNode.peerId)).toBe(true);
+
+		const obj2 = await node2.connectObject({
+			id: obj1.id,
+			sync: {
+				peerId: node1.networkNode.peerId,
+			},
+		});
+		expect(obj2.acl).toBeDefined();
+		expect(obj2.acl.query_isAdmin(node1.networkNode.peerId)).toBe(true);
+		expect(obj2.acl.query_isAdmin("fake-peer")).toBe(true);
+		expect(obj2.acl.query_isAdmin(node2.networkNode.peerId)).toBe(false);
+	}, 20_000);
+
+	test("Should error if the fetch state timeouts", async () => {
+		const logSpy = vi.spyOn(log, "error").mockImplementation(() => {});
+		await node1.connectObject({
+			id: "fake-id",
+			sync: {
+				peerId: node2.networkNode.peerId,
+			},
+		});
+
+		expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("::connectObject: Fetch state timed out"));
+		logSpy.mockRestore();
 	});
 });

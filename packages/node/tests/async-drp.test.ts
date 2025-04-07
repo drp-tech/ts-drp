@@ -86,10 +86,6 @@ describe("Async DRP", () => {
 				peerId: node1.networkNode.peerId,
 			},
 		});
-		await Promise.all([
-			raceEvent(node1, NodeEventName.DRP_FETCH_STATE),
-			raceEvent(node2, NodeEventName.DRP_FETCH_STATE_RESPONSE, controller.signal),
-		]);
 
 		const drp1 = drpObjectNode1.drp as AsyncCounterDRP;
 		const drp2 = drpObjectNode2.drp as AsyncCounterDRP;
@@ -110,5 +106,5 @@ describe("Async DRP", () => {
 			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
 		});
 		expect(drp2.query_value()).toEqual(2);
-	}, 30_000);
+	});
 });
