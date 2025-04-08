@@ -1,12 +1,10 @@
 import { formatOutput } from "@ts-drp/utils/memory-benchmark";
-import { execFileSync } from "child_process";
+import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
 const DIR_NAME = path.dirname(new URL(import.meta.url).pathname);
 const TEST_FILE_DIR = "memory-tests";
-const SCRIPT_DIR = "scripts";
-const SCRIPT_NAME = "process-memory.sh";
 
 const TEST_FILES = fs
 	.readdirSync(path.join(DIR_NAME, TEST_FILE_DIR))
@@ -43,18 +41,21 @@ function trimTestFilePath(testFilePath: string): string {
  * @returns The memory usage results
  */
 function runProcessMemoryScript(numTests: number, programName: string, size: number): number[] {
+	const logPath = path.join(DIR_NAME, "program_log");
 	try {
-		const scriptPath = path.resolve(DIR_NAME, SCRIPT_DIR, SCRIPT_NAME);
-		const args = [numTests.toString(), programName, size.toString()];
-		const result = execFileSync(scriptPath, args, { encoding: "utf-8" });
+		const memoryResults: number[] = [];
+		for (let i = 0; i < numTests; i++) {
+			const command = `command time -f "%M" tsx ${programName} ${size.toString()} >/dev/null 2>${logPath}`;
+			execSync(command, { encoding: "utf-8" });
+			const programLog = fs.readFileSync(logPath, "utf-8");
+			memoryResults.push(parseInt(programLog, 10));
+		}
 
-		// Parse the output into an array of numbers
-		return result
-			.trim()
-			.split("\n")
-			.map((line) => parseInt(line, 10));
+		execSync(`rm ${logPath}`);
+		return memoryResults;
 	} catch (error) {
-		console.error(`Error running script: ${SCRIPT_NAME}`, error);
+		execSync(`rm ${logPath}`);
+		console.error(error);
 		return [];
 	}
 }
