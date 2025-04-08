@@ -53,7 +53,7 @@ export function createObject<T extends IDRP>(options: CreateObjectOptions<T>): I
 export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 	readonly id: string;
 	private readonly log: Logger;
-	private readonly hashgraph: HashGraph;
+	private readonly hashGraph: HashGraph;
 
 	private _applier: DRPVertexApplier<T>;
 	private _states: DRPObjectStateManager<T>;
@@ -81,7 +81,7 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 		this.id = id;
 		this.log = new Logger(`drp::object::${this.id}`, config?.log_config);
 
-		this.hashgraph = new HashGraph(
+		this.hashGraph = new HashGraph(
 			peerId,
 			acl.resolveConflicts?.bind(acl),
 			drp?.resolveConflicts?.bind(drp),
@@ -92,7 +92,7 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 		[this._applier, this._states] = createDRPVertexApplier({
 			drp,
 			acl,
-			hashGraph: this.hashgraph,
+			hashGraph: this.hashGraph,
 			finalityStore: this._finalityStore,
 			notify: this._notify.bind(this),
 			finalityConfig: config?.finality_config,
@@ -121,7 +121,7 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 	 * @returns The vertices of the DRPObject.
 	 */
 	get vertices(): Vertex[] {
-		return this.hashgraph.getAllVertices();
+		return this.hashGraph.getAllVertices();
 	}
 
 	/**

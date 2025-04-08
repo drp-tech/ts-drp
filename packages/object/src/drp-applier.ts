@@ -97,7 +97,7 @@ export class DRPVertexApplier<T extends IDRP> {
 			.setNext(this.equal.bind(this)) // in callFn but not in applyVertex
 			.setNext(this.assign.bind(this))
 			.setNext(this.assignState.bind(this))
-			.setNext(this.addVertexToHashgraph.bind(this))
+			.setNext(this.addVertexToHashGraph.bind(this))
 			.setNext(this.initializeFinalityStore.bind(this))
 			.setNext(this.notify.bind(this)); // in callFn but not in applyVertex
 
@@ -109,7 +109,7 @@ export class DRPVertexApplier<T extends IDRP> {
 			.setNext(this.applyFn.bind(this))
 			.setNext(this.assignState.bind(this))
 			.setNext(this.initializeFinalityStore.bind(this))
-			.setNext(this.addVertexToHashgraph.bind(this));
+			.setNext(this.addVertexToHashGraph.bind(this));
 
 		this._proxyACL = new DRPProxy(acl, callFnPipeline, DrpType.ACL);
 		if (drp) {
@@ -324,7 +324,7 @@ export class DRPVertexApplier<T extends IDRP> {
 		return { stop: false, result: operation };
 	}
 
-	private addVertexToHashgraph<Op extends Operation<T>>(operation: Op): HandlerReturn<Op> {
+	private addVertexToHashGraph<Op extends Operation<T>>(operation: Op): HandlerReturn<Op> {
 		const { vertex } = operation;
 		this.hashGraph.addVertex(vertex);
 		return { stop: false, result: operation };
