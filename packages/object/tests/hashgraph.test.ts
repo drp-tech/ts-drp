@@ -13,9 +13,9 @@ import {
 import { ObjectSet } from "@ts-drp/utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { createACL, type ObjectACL } from "../src/acl/index.js";
+import { createACL, ObjectACL } from "../src/acl/index.js";
 import { createDRPVertexApplier, type DRPVertexApplier } from "../src/drp-applier.js";
-import { createVertex, HashGraph } from "../src/hashgraph/index.js";
+import { createHashGraph, createVertex, HashGraph } from "../src/hashgraph/index.js";
 import { DRPObject } from "../src/index.js";
 import { type DRPObjectStateManager } from "../src/state.js";
 
@@ -108,7 +108,7 @@ describe("HashGraph construction tests", () => {
 	});
 
 	test("Test: Should detect cycle in topological sort", () => {
-		const hashgraph = new HashGraph(
+		const hashGraph = new HashGraph(
 			"",
 			(_vertices: Vertex[]) => {
 				return {
@@ -122,7 +122,7 @@ describe("HashGraph construction tests", () => {
 			},
 			SemanticsType.pair
 		);
-		const frontier = hashgraph.getFrontier();
+		const frontier = hashGraph.getFrontier();
 		const v1 = createVertex(
 			"",
 			Operation.create({ opType: "test", value: [1], drpType: DrpType.DRP }),
@@ -130,7 +130,7 @@ describe("HashGraph construction tests", () => {
 			Date.now(),
 			new Uint8Array()
 		);
-		hashgraph.addVertex(v1);
+		hashGraph.addVertex(v1);
 
 		const v2 = createVertex(
 			"",
@@ -139,21 +139,21 @@ describe("HashGraph construction tests", () => {
 			Date.now(),
 			new Uint8Array()
 		);
-		hashgraph.addVertex(v2);
+		hashGraph.addVertex(v2);
 
 		// create a cycle
-		hashgraph.forwardEdges.set(v2.hash, [HashGraph.rootHash]);
+		hashGraph.forwardEdges.set(v2.hash, [HashGraph.rootHash]);
 
 		expect(() => {
-			hashgraph.dfsTopologicalSortIterative(HashGraph.rootHash, new ObjectSet(hashgraph.vertices.keys()));
+			hashGraph.dfsTopologicalSortIterative(HashGraph.rootHash, new ObjectSet(hashGraph.vertices.keys()));
 		}).toThrowError("Graph contains a cycle!");
 	});
 
 	test("Hash graph should be DAG compatible", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		drp1.add(1);
-		expect(selfCheckConstraints(obj1["hashgraph"])).toBe(true);
-		const linearizedVertices = obj1["hashgraph"].linearizeVertices();
+		expect(selfCheckConstraints(obj1["hashGraph"])).toBe(true);
+		const linearizedVertices = obj1["hashGraph"].linearizeVertices();
 		const expectedOps = [Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP })];
 		expect(linearizedVertices.map((vertex) => vertex.operation)).toEqual(expectedOps);
 	});
@@ -167,15 +167,29 @@ describe("HashGraph for SetDRP tests", () => {
 
 	beforeEach(() => {
 		vi.useFakeTimers({ now: 0 });
-		[obj1, , hg1] = createDRPVertexApplier({
+		const options = { admins: ["peer1", "peer2"] };
+		const acl1 = new ObjectACL(options);
+		hg1 = createHashGraph({
 			peerId: "peer1",
-			drp: new SetDRP<number>(),
-			aclOptions: { admins: ["peer1", "peer2"] },
+			resolveConflictsACL: acl1.resolveConflicts,
+			semanticsTypeDRP: SemanticsType.pair,
 		});
-		[obj2, , hg2] = createDRPVertexApplier({
-			peerId: "peer2",
+		[obj1] = createDRPVertexApplier({
 			drp: new SetDRP<number>(),
-			aclOptions: { admins: ["peer1", "peer2"] },
+			acl: acl1,
+			hashGraph: hg1,
+		});
+
+		const acl2 = new ObjectACL(options);
+		hg2 = createHashGraph({
+			peerId: "peer2",
+			resolveConflictsACL: acl2.resolveConflicts,
+			semanticsTypeDRP: SemanticsType.pair,
+		});
+		[obj2] = createDRPVertexApplier({
+			drp: new SetDRP<number>(),
+			acl: acl2,
+			hashGraph: hg2,
 		});
 	});
 
@@ -380,15 +394,29 @@ describe("HashGraph for SetDRP tests", () => {
 
 describe("HashGraph for undefined operations tests", () => {
 	test("Test: merge should skip undefined operations", async () => {
-		const [obj1, , hg1] = createDRPVertexApplier({
+		const options = { admins: ["peer1", "peer2"] };
+		const acl1 = new ObjectACL(options);
+		const hg1 = createHashGraph({
 			peerId: "peer1",
-			drp: new SetDRP<number>(),
-			aclOptions: { admins: ["peer1", "peer2"] },
+			resolveConflictsACL: acl1.resolveConflicts,
+			semanticsTypeDRP: SemanticsType.pair,
 		});
-		const [obj2, , hg2] = createDRPVertexApplier({
-			peerId: "peer2",
+		const [obj1] = createDRPVertexApplier({
 			drp: new SetDRP<number>(),
-			aclOptions: { admins: ["peer1", "peer2"] },
+			acl: acl1,
+			hashGraph: hg1,
+		});
+
+		const acl2 = new ObjectACL(options);
+		const hg2 = createHashGraph({
+			peerId: "peer2",
+			resolveConflictsACL: acl2.resolveConflicts,
+			semanticsTypeDRP: SemanticsType.pair,
+		});
+		const [obj2] = createDRPVertexApplier({
+			drp: new SetDRP<number>(),
+			acl: acl2,
+			hashGraph: hg2,
 		});
 
 		obj1.drp?.add(1);
@@ -436,7 +464,7 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 		expect(obj1.drp?.query_has(2)).toBe(false);
 		expect(obj1.vertices).toEqual(obj2.vertices);
 
-		const linearizedVertices = obj1["hashgraph"].linearizeVertices();
+		const linearizedVertices = obj1["hashGraph"].linearizeVertices();
 		const expectedOps: Operation[] = [
 			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
 			Operation.create({ opType: "add", value: [2], drpType: DrpType.DRP }),
@@ -460,20 +488,41 @@ describe("Vertex state tests", () => {
 
 	beforeEach(() => {
 		vi.useFakeTimers({ now: 0 });
-		[obj1, state1, hg1] = createDRPVertexApplier({
+		const options = { admins: ["peer1", "peer2", "peer3"] };
+		const acl1 = new ObjectACL(options);
+		hg1 = createHashGraph({
 			peerId: "peer1",
-			drp: new SetDRP<number>(),
-			aclOptions: { admins: ["peer1", "peer2", "peer3"] },
+			resolveConflictsACL: acl1.resolveConflicts,
+			semanticsTypeDRP: SemanticsType.pair,
 		});
-		[obj2, , hg2] = createDRPVertexApplier({
+		[obj1, state1] = createDRPVertexApplier({
+			drp: new SetDRP<number>(),
+			acl: acl1,
+			hashGraph: hg1,
+		});
+
+		const acl2 = new ObjectACL(options);
+		hg2 = createHashGraph({
 			peerId: "peer2",
-			drp: new SetDRP<number>(),
-			aclOptions: { admins: ["peer1", "peer2", "peer3"] },
+			resolveConflictsACL: acl2.resolveConflicts,
+			semanticsTypeDRP: SemanticsType.pair,
 		});
-		[obj3, , hg3] = createDRPVertexApplier({
-			peerId: "peer3",
+		[obj2] = createDRPVertexApplier({
 			drp: new SetDRP<number>(),
-			aclOptions: { admins: ["peer1", "peer2", "peer3"] },
+			acl: acl2,
+			hashGraph: hg2,
+		});
+
+		const acl3 = new ObjectACL(options);
+		hg3 = createHashGraph({
+			peerId: "peer3",
+			resolveConflictsACL: acl3.resolveConflicts,
+			semanticsTypeDRP: SemanticsType.pair,
+		});
+		[obj3] = createDRPVertexApplier({
+			drp: new SetDRP<number>(),
+			acl: acl3,
+			hashGraph: hg3,
 		});
 	});
 
@@ -518,7 +567,7 @@ describe("Vertex state tests", () => {
 		        -- V3:ADD(3) ------ V5:ADD(5) --
 		*/
 
-		// in above hashgraph, A represents obj1.drp?, B represents obj2.drp?, C represents drp3
+		// in above hashGraph, A represents obj1.drp?, B represents obj2.drp?, C represents drp3
 		obj1.drp?.add(1);
 		obj2.drp?.add(2);
 		obj3.drp?.add(3);
@@ -674,7 +723,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 		const acl1 = obj1.acl as ObjectACL;
 
 		drp1.add(1);
-		const hash1 = obj1["hashgraph"].getFrontier()[0];
+		const hash1 = obj1["hashGraph"].getFrontier()[0];
 		await obj2.merge(obj1.vertices);
 		drp1.add(2);
 		acl1.grant("peer2", ACLGroup.Writer);
@@ -687,7 +736,7 @@ describe("Hashgraph for SetDRP and ACL tests", () => {
 			new Uint8Array()
 		);
 
-		obj2["hashgraph"].addVertex(vertex);
+		obj2["hashGraph"].addVertex(vertex);
 
 		await obj1.merge(obj2.vertices);
 		expect(drp1.query_has(3)).toBe(false);

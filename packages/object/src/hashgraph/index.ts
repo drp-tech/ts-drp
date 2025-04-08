@@ -48,6 +48,32 @@ export function createVertex(
 	return Vertex.create({ hash, peerId, operation, dependencies, timestamp, signature });
 }
 
+export interface HashGraphOptions {
+	peerId: string;
+	resolveConflictsACL?: ResolveConflictFn;
+	resolveConflictsDRP?: ResolveConflictFn;
+	semanticsTypeDRP?: SemanticsType;
+	logConfig?: LoggerOptions;
+}
+
+/**
+ * Create a new hash graph
+ * @param options - The options for the hash graph.
+ * @returns The created hash graph.
+ */
+export function createHashGraph(options: HashGraphOptions): HashGraph {
+	if (!options.peerId) {
+		throw new Error("peerId is required");
+	}
+	return new HashGraph(
+		options.peerId,
+		options.resolveConflictsACL,
+		options.resolveConflictsDRP,
+		options.semanticsTypeDRP,
+		options.logConfig
+	);
+}
+
 /**
  * Implementation of the hashgraph data structure.
  */

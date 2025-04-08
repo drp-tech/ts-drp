@@ -32,7 +32,7 @@ describe("Vertex validation tests", () => {
 			Date.now(),
 			new Uint8Array()
 		);
-		expect(validateVertex(fakeRoot, obj1["hashgraph"], Date.now())).toStrictEqual({
+		expect(validateVertex(fakeRoot, obj1["hashGraph"], Date.now())).toStrictEqual({
 			success: false,
 			error: new InvalidDependenciesError(`Vertex ${fakeRoot.hash} has no dependencies.`),
 		});
@@ -43,7 +43,7 @@ describe("Vertex validation tests", () => {
 			Date.now(),
 			new Uint8Array()
 		);
-		expect(validateVertex(vertex, obj1["hashgraph"], Date.now())).toStrictEqual({
+		expect(validateVertex(vertex, obj1["hashGraph"], Date.now())).toStrictEqual({
 			success: false,
 			error: new InvalidDependenciesError(`Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}.`),
 		});
@@ -57,11 +57,11 @@ describe("Vertex validation tests", () => {
 		const vertex = createVertex(
 			"peer1",
 			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
-			obj1["hashgraph"].getFrontier(),
+			obj1["hashGraph"].getFrontier(),
 			Number.POSITIVE_INFINITY,
 			new Uint8Array()
 		);
-		expect(validateVertex(vertex, obj1["hashgraph"], Date.now())).toStrictEqual({
+		expect(validateVertex(vertex, obj1["hashGraph"], Date.now())).toStrictEqual({
 			success: false,
 			error: new InvalidTimestampError(`Vertex ${vertex.hash} has invalid timestamp Infinity > 0`),
 		});
@@ -91,11 +91,11 @@ describe("Vertex validation tests", () => {
 		const vertex = createVertex(
 			"peer1",
 			Operation.create({ opType: "add", value: [1], drpType: DrpType.DRP }),
-			obj1["hashgraph"].getFrontier(),
+			obj1["hashGraph"].getFrontier(),
 			1,
 			new Uint8Array()
 		);
-		expect(validateVertex(vertex, obj1["hashgraph"], Date.now())).toStrictEqual({
+		expect(validateVertex(vertex, obj1["hashGraph"], Date.now())).toStrictEqual({
 			success: false,
 			error: new InvalidTimestampError(`Vertex ${vertex.hash} has invalid timestamp 1000 > 1`),
 		});

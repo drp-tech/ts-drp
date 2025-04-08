@@ -1,10 +1,10 @@
 import { SetDRP } from "@ts-drp/blueprints";
-import { ACLGroup } from "@ts-drp/types";
+import { ACLGroup, SemanticsType } from "@ts-drp/types";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { createACL } from "../src/acl/index.js";
 import { createDRPVertexApplier } from "../src/drp-applier.js";
-import { HashGraph } from "../src/hashgraph/index.js";
+import { createHashGraph, HashGraph } from "../src/hashgraph/index.js";
 import { DRPObject } from "../src/index.js";
 
 describe("HashGraph construction tests", () => {
@@ -19,7 +19,7 @@ describe("HashGraph construction tests", () => {
 		obj.drp?.add(2);
 		const rootDRPState = obj["_states"]["drpStates"].get(HashGraph.rootHash);
 		expect(rootDRPState?.state.filter((e) => e.key === "_set")[0].value.size).toBe(0);
-		const frontierState = obj["_states"]["drpStates"].get(obj["hashgraph"].getFrontier()[0]);
+		const frontierState = obj["_states"]["drpStates"].get(obj["hashGraph"].getFrontier()[0]);
 		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
 		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
 	});
@@ -40,14 +40,19 @@ describe("HashGraph construction tests", () => {
 		  ROOT -- V1:ADD(1) -- V2:ADD(2) -- V3:ADD(3)
 		*/
 		const acl = createACL({ admins: ["peer1"] });
-		const [obj, state, hg] = createDRPVertexApplier({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		const hashGraph = createHashGraph({
+			peerId: "peer1",
+			resolveConflictsACL: acl.resolveConflicts,
+			semanticsTypeDRP: SemanticsType.pair,
+		});
+		const [obj, state] = createDRPVertexApplier({ acl, drp: new SetDRP<number>(), hashGraph });
 		obj.drp?.add(1);
 		vi.advanceTimersByTime(1);
 		obj.drp?.add(2);
 		vi.advanceTimersByTime(1);
 		obj.drp?.add(3);
 
-		const vertices = hg.topologicalSort();
+		const vertices = hashGraph.topologicalSort();
 
 		const drpState1 = state.getDRPState(vertices[1]);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
