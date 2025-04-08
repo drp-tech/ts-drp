@@ -63,7 +63,7 @@ describe("Vertex validation tests", () => {
 		);
 		expect(validateVertex(vertex, obj1["hashGraph"], Date.now())).toStrictEqual({
 			success: false,
-			error: new InvalidTimestampError(`Vertex ${vertex.hash} has invalid timestamp Infinity > 0`),
+			error: new InvalidTimestampError(`Vertex ${vertex.hash} has invalid timestamp Infinity - 0 = Infinity > 100`),
 		});
 	});
 
@@ -97,7 +97,7 @@ describe("Vertex validation tests", () => {
 		);
 		expect(validateVertex(vertex, obj1["hashGraph"], Date.now())).toStrictEqual({
 			success: false,
-			error: new InvalidTimestampError(`Vertex ${vertex.hash} has invalid timestamp 1000 > 1`),
+			error: new InvalidTimestampError(`Vertex ${vertex.hash} has invalid timestamp 1000 - 1 = 999 > 100`),
 		});
 	});
 });

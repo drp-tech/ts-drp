@@ -29,8 +29,9 @@ function validateVertexDependencies({ hash, dependencies, timestamp }: Vertex, h
 }
 
 function validateVertexTimestamp(a: number, b: number, hash: string): void {
-	if (a > b) {
-		throw new InvalidTimestampError(`Vertex ${hash} has invalid timestamp ${a} > ${b}`);
+	const maxTimeDiff = 100;
+	if (a - b > maxTimeDiff) {
+		throw new InvalidTimestampError(`Vertex ${hash} has invalid timestamp ${a} - ${b} = ${a - b} > ${maxTimeDiff}`);
 	}
 }
 
