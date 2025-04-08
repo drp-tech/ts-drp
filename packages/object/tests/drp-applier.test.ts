@@ -461,7 +461,7 @@ describe("DRPVertexApplier", () => {
 			});
 		});
 
-		describe("addVertexToHashgraph", () => {
+		describe("addVertexToHashGraph", () => {
 			it("should add vertex to hashgraph", () => {
 				const vertex = Vertex.create({
 					hash: "test-hash",
@@ -476,7 +476,7 @@ describe("DRPVertexApplier", () => {
 					signature: new Uint8Array([1, 2, 3]),
 				});
 
-				const result = applier["addVertexToHashgraph"]({
+				const result = applier["addVertexToHashGraph"]({
 					vertex,
 					isACL: false,
 					acl: mockACL,
