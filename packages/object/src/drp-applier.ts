@@ -39,10 +39,7 @@ interface DRPVertexApplierBase<T extends IDRP> {
 	notify(origin: string, vertices: Vertex[]): void;
 }
 
-interface DRPVertexApplierOptions<T extends IDRP> extends Partial<DRPVertexApplierBase<T>> {
-	peerId?: string;
-}
-
+type DRPVertexApplierOptions<T extends IDRP> = Partial<DRPVertexApplierBase<T>>;
 /**
  * Applies vertices to the hash graph
  * @template T - The type of the DRP object
