@@ -160,7 +160,6 @@ export class DRPVertexApplier<T extends IDRP> {
 				await this.applyVertexPipeline.execute({ vertex: vertex, isACL: vertex.operation.drpType === DrpType.ACL });
 				newVertices.push(vertex);
 			} catch (e) {
-				this.log.error("Error applying vertex", e);
 				missing.push(vertex.hash);
 			}
 		}
