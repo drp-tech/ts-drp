@@ -92,7 +92,7 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 		[this._applier, this._states] = createDRPVertexApplier({
 			drp,
 			acl,
-			hg: this.hashgraph,
+			hashGraph: this.hashgraph,
 			finalityStore: this._finalityStore,
 			notify: this._notify.bind(this),
 			finalityConfig: config?.finality_config,

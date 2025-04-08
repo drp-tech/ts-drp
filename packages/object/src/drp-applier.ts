@@ -17,7 +17,6 @@ import { deepEqual } from "fast-equals";
 
 import { createACL, type ObjectACLOptions } from "./acl/index.js";
 import { FinalityStore } from "./finality/index.js";
-import { HashGraph } from "./hashgraph/index.js";
 import {
 	type BaseOperation,
 	type Operation,
@@ -33,7 +32,7 @@ import { DRPObjectStateManager, stateFromDRP } from "./state.js";
 interface DRPVertexApplierBase<T extends IDRP> {
 	drp?: T;
 	acl: IACL;
-	hg: IHashGraph;
+	hashGraph: IHashGraph;
 	finalityStore: FinalityStore;
 	states: DRPObjectStateManager<T>;
 	logConfig?: LoggerOptions;
@@ -53,16 +52,12 @@ interface DRPVertexApplierWithACLOptions<T extends IDRP> extends Partial<DRPVert
 
 type DRPVertexApplierOptions<T extends IDRP> = DRPVertexApplierWithACL<T> | DRPVertexApplierWithACLOptions<T>;
 
-type PeerIdOnly<T extends IDRP> = (DRPVertexApplierWithACL<T> | DRPVertexApplierWithACLOptions<T>) & {
-	peerId: string;
-};
-
 /**
  * Applies vertices to the hash graph
  * @template T - The type of the DRP object
  */
 export class DRPVertexApplier<T extends IDRP> {
-	protected readonly hashgraph: IHashGraph;
+	protected readonly hashGraph: IHashGraph;
 	protected readonly states: DRPObjectStateManager<T>;
 
 	private _proxyDRP?: DRPProxy<T>;
@@ -78,14 +73,15 @@ export class DRPVertexApplier<T extends IDRP> {
 	 * @param options - The options for the DRPVertexApplier
 	 * @param options.drp - The DRP object
 	 * @param options.acl - The ACL object
-	 * @param options.hg - The hash graph
+	 * @param options.hashGraph - The hash graph
 	 * @param options.states - The state manager for the DRP object. If not provided, a new one will be created.
 	 * @param options.finalityStore - The finality store
 	 * @param options.notify - The notify function
 	 * @param options.logConfig - The log config
+	 * @param options.hashGraph
 	 */
-	constructor({ drp, acl, hg, states, finalityStore, notify, logConfig }: DRPVertexApplierBase<T>) {
-		this.hashgraph = hg;
+	constructor({ drp, acl, hashGraph, states, finalityStore, notify, logConfig }: DRPVertexApplierBase<T>) {
+		this.hashGraph = hashGraph;
 		this.states = states;
 		this.finalityStore = finalityStore;
 		this._notify = notify;
@@ -152,7 +148,7 @@ export class DRPVertexApplier<T extends IDRP> {
 				continue;
 			}
 			if (vertex.operation.opType === "-1") continue;
-			if (this.hashgraph.vertices.has(vertex.hash)) {
+			if (this.hashGraph.vertices.has(vertex.hash)) {
 				continue;
 			}
 
@@ -164,8 +160,8 @@ export class DRPVertexApplier<T extends IDRP> {
 			}
 		}
 
-		const frontier = this.hashgraph.getFrontier();
-		const lca = this.hashgraph.getLCA(frontier);
+		const frontier = this.hashGraph.getFrontier();
+		const lca = this.hashGraph.getLCA(frontier);
 		const [drpVertices, aclVertices] = splitOperation(lca.linearizedVertices);
 
 		const [drp, acl] = this.states.fromHash(lca.lca);
@@ -183,13 +179,13 @@ export class DRPVertexApplier<T extends IDRP> {
 	private createVertex({ prop: opType, args: value, type: drpType }: DRPProxyChainArgs): HandlerReturn<BaseOperation> {
 		return {
 			stop: false,
-			result: { vertex: this.hashgraph.createVertex({ drpType, opType, value }), isACL: drpType === DrpType.ACL },
+			result: { vertex: this.hashGraph.createVertex({ drpType, opType, value }), isACL: drpType === DrpType.ACL },
 		};
 	}
 
 	private validateVertex(operation: BaseOperation): HandlerReturn<BaseOperation> {
 		const { vertex } = operation;
-		const result = validateVertex(vertex, this.hashgraph, Date.now());
+		const result = validateVertex(vertex, this.hashGraph, Date.now());
 		if (result.error) {
 			throw result.error;
 		}
@@ -198,7 +194,7 @@ export class DRPVertexApplier<T extends IDRP> {
 
 	private getLCA(operation: BaseOperation): HandlerReturn<PostLCAOperation> {
 		const { vertex } = operation;
-		return { stop: false, result: { ...operation, lcaResult: this.hashgraph.getLCA(vertex.dependencies) } };
+		return { stop: false, result: { ...operation, lcaResult: this.hashGraph.getLCA(vertex.dependencies) } };
 	}
 
 	private splitLCAOperation(operation: PostLCAOperation): HandlerReturn<PostSplitOperation> {
@@ -330,7 +326,7 @@ export class DRPVertexApplier<T extends IDRP> {
 
 	private addVertexToHashgraph<Op extends Operation<T>>(operation: Op): HandlerReturn<Op> {
 		const { vertex } = operation;
-		this.hashgraph.addVertex(vertex);
+		this.hashGraph.addVertex(vertex);
 		return { stop: false, result: operation };
 	}
 
@@ -358,35 +354,24 @@ export function createDRPVertexApplier<T extends IDRP>(
 	const states = options.states ?? new DRPObjectStateManager(acl, options.drp);
 	const finalityStore = options.finalityStore ?? new FinalityStore(options.finalityConfig, options.logConfig);
 
-	const hashgraph = hasPeerIdAndNoHG(options)
-		? new HashGraph(
-				options.peerId,
-				acl.resolveConflicts?.bind(acl),
-				options.drp?.resolveConflicts?.bind(options.drp),
-				options.drp?.semanticsType
-			)
-		: options.hg;
-
-	if (hashgraph === undefined) throw new Error("hg and peerId are undefined");
+	if (!options.hashGraph) {
+		throw new Error("hashGraph is undefined");
+	}
 
 	const obj = new DRPVertexApplier({
 		...options,
-		hg: hashgraph,
+		hashGraph: options.hashGraph,
 		acl,
 		states,
 		finalityStore,
 		notify: options.notify ?? ((): void => {}),
 	});
 
-	return [obj, states, hashgraph];
+	return [obj, states, options.hashGraph];
 }
 
 function hasAcl<T extends IDRP>(options: DRPVertexApplierOptions<T>): options is DRPVertexApplierWithACL<T> {
 	return "acl" in options;
-}
-
-function hasPeerIdAndNoHG<T extends IDRP>(options: DRPVertexApplierOptions<T>): options is PeerIdOnly<T> {
-	return options.peerId !== undefined && options.hg === undefined && options.peerId !== "";
 }
 
 function callDRP<T extends IDRP>(drp: T, caller: string, method: string, args: unknown[]): unknown | Promise<unknown> {
