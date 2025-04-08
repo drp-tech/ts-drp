@@ -45,14 +45,14 @@ describe("HashGraph construction tests", () => {
 			resolveConflictsACL: acl.resolveConflicts,
 			semanticsTypeDRP: SemanticsType.pair,
 		});
-		const [obj, state, hg] = createDRPVertexApplier({ acl, drp: new SetDRP<number>(), hashGraph });
+		const [obj, state] = createDRPVertexApplier({ acl, drp: new SetDRP<number>(), hashGraph });
 		obj.drp?.add(1);
 		vi.advanceTimersByTime(1);
 		obj.drp?.add(2);
 		vi.advanceTimersByTime(1);
 		obj.drp?.add(3);
 
-		const vertices = hg.topologicalSort();
+		const vertices = hashGraph.topologicalSort();
 
 		const drpState1 = state.getDRPState(vertices[1]);
 		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);

@@ -337,7 +337,7 @@ export class DRPVertexApplier<T extends IDRP> {
  */
 export function createDRPVertexApplier<T extends IDRP>(
 	options: DRPVertexApplierOptions<T>
-): [DRPVertexApplier<T>, DRPObjectStateManager<T>, IHashGraph] {
+): [DRPVertexApplier<T>, DRPObjectStateManager<T>] {
 	if (!options.acl) {
 		throw new Error("ACL is undefined");
 	}
@@ -356,7 +356,7 @@ export function createDRPVertexApplier<T extends IDRP>(
 		notify: options.notify ?? ((): void => {}),
 	});
 
-	return [obj, states, options.hashGraph];
+	return [obj, states];
 }
 
 function callDRP<T extends IDRP>(drp: T, caller: string, method: string, args: unknown[]): unknown | Promise<unknown> {
