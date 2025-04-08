@@ -39,7 +39,12 @@ interface DRPVertexApplierBase<T extends IDRP> {
 	notify(origin: string, vertices: Vertex[]): void;
 }
 
-type DRPVertexApplierOptions<T extends IDRP> = Partial<DRPVertexApplierBase<T>>;
+interface DRPVertexApplierOptions<T extends IDRP>
+	extends Omit<DRPVertexApplierBase<T>, "states" | "finalityStore" | "notify"> {
+	states?: DRPObjectStateManager<T>;
+	finalityStore?: FinalityStore;
+	notify?(origin: string, vertices: Vertex[]): void;
+}
 /**
  * Applies vertices to the hash graph
  * @template T - The type of the DRP object
