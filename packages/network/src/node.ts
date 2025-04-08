@@ -555,11 +555,15 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	}
 
 	private async handleStream(stream: Stream): Promise<void> {
-		const data = await streamToUint8Array(stream);
-		const message = Message.decode(data);
-		this._messageQueue.enqueue(message).catch((e) => {
-			log.error("::startEnqueueMessages::enqueue:", e);
-		});
+		try {
+			const data = await streamToUint8Array(stream);
+			const message = Message.decode(data);
+			this._messageQueue.enqueue(message).catch((e) => {
+				log.error("::startEnqueueMessages::enqueue:", e);
+			});
+		} catch (e) {
+			log.error("::startEnqueueMessages::handleStream", e);
+		}
 	}
 
 	/**
