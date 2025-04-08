@@ -15,7 +15,6 @@ import { validateVertex } from "@ts-drp/validation";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 
-import { createACL, type ObjectACLOptions } from "./acl/index.js";
 import { FinalityStore } from "./finality/index.js";
 import {
 	type BaseOperation,
@@ -40,17 +39,9 @@ interface DRPVertexApplierBase<T extends IDRP> {
 	notify(origin: string, vertices: Vertex[]): void;
 }
 
-interface DRPVertexApplierWithACL<T extends IDRP> extends Partial<DRPVertexApplierBase<T>> {
-	acl: IACL;
+interface DRPVertexApplierOptions<T extends IDRP> extends Partial<DRPVertexApplierBase<T>> {
 	peerId?: string;
 }
-
-interface DRPVertexApplierWithACLOptions<T extends IDRP> extends Partial<DRPVertexApplierBase<T>> {
-	aclOptions: ObjectACLOptions;
-	peerId?: string;
-}
-
-type DRPVertexApplierOptions<T extends IDRP> = DRPVertexApplierWithACL<T> | DRPVertexApplierWithACLOptions<T>;
 
 /**
  * Applies vertices to the hash graph
@@ -350,28 +341,25 @@ export class DRPVertexApplier<T extends IDRP> {
 export function createDRPVertexApplier<T extends IDRP>(
 	options: DRPVertexApplierOptions<T>
 ): [DRPVertexApplier<T>, DRPObjectStateManager<T>, IHashGraph] {
-	const acl = hasAcl(options) ? options.acl : createACL(options.aclOptions);
-	const states = options.states ?? new DRPObjectStateManager(acl, options.drp);
-	const finalityStore = options.finalityStore ?? new FinalityStore(options.finalityConfig, options.logConfig);
-
+	if (!options.acl) {
+		throw new Error("ACL is undefined");
+	}
 	if (!options.hashGraph) {
 		throw new Error("hashGraph is undefined");
 	}
+	const states = options.states ?? new DRPObjectStateManager(options.acl, options.drp);
+	const finalityStore = options.finalityStore ?? new FinalityStore(options.finalityConfig, options.logConfig);
 
 	const obj = new DRPVertexApplier({
 		...options,
+		acl: options.acl,
 		hashGraph: options.hashGraph,
-		acl,
 		states,
 		finalityStore,
 		notify: options.notify ?? ((): void => {}),
 	});
 
 	return [obj, states, options.hashGraph];
-}
-
-function hasAcl<T extends IDRP>(options: DRPVertexApplierOptions<T>): options is DRPVertexApplierWithACL<T> {
-	return "acl" in options;
 }
 
 function callDRP<T extends IDRP>(drp: T, caller: string, method: string, args: unknown[]): unknown | Promise<unknown> {
