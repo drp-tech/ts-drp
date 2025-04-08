@@ -74,9 +74,5 @@
 		"@msgpack/msgpack": "^3.0.1",
 		"@noble/hashes": "^1.7.1",
 		"@ts-drp/types": "0.11.0"
-	},
-	"devDependencies": {
-		"@types/oboe": "^2.1.4",
-		"oboe": "^2.1.7"
 	}
 }
