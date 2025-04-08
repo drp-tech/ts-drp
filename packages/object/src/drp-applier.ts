@@ -324,8 +324,9 @@ export class DRPVertexApplier<T extends IDRP> {
 	}
 
 	private initializeFinalityStore<Op extends Operation<T>>(operation: Op): HandlerReturn<Op> {
-		const { vertex, acl } = operation;
-		this.finalityStore.initializeState(vertex.hash, acl.query_getFinalitySigners());
+		const { vertex, acl, currentDRP, isACL } = operation;
+		const finalitySigners = isACL ? currentDRP?.query_getFinalitySigners() : acl.query_getFinalitySigners();
+		this.finalityStore.initializeState(vertex.hash, finalitySigners);
 		return { stop: false, result: operation };
 	}
 
