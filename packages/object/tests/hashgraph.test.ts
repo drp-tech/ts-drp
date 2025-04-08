@@ -15,7 +15,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { createACL, ObjectACL } from "../src/acl/index.js";
 import { createDRPVertexApplier, type DRPVertexApplier } from "../src/drp-applier.js";
-import { createVertex, HashGraph } from "../src/hashgraph/index.js";
+import { createHashGraph, createVertex, HashGraph } from "../src/hashgraph/index.js";
 import { DRPObject } from "../src/index.js";
 import { type DRPObjectStateManager } from "../src/state.js";
 
@@ -167,16 +167,27 @@ describe("HashGraph for SetDRP tests", () => {
 
 	beforeEach(() => {
 		vi.useFakeTimers({ now: 0 });
-		const acl1 = new ObjectACL({ admins: ["peer1", "peer2"] });
-		const drp1 = new SetDRP<number>();
+		const options = { admins: ["peer1", "peer2"] };
+		const acl1 = new ObjectACL(options);
 		[obj1, , hg1] = createDRPVertexApplier({
-			drp: drp1,
+			drp: new SetDRP<number>(),
 			acl: acl1,
-			hashGraph: new HashGraph("peer1", drp1.resolveConflicts, )
+			hashGraph: createHashGraph({
+				peerId: "peer1",
+				resolveConflictsACL: acl1.resolveConflicts,
+				semanticsTypeDRP: SemanticsType.pair,
+			}),
 		});
+
+		const acl2 = new ObjectACL(options);
 		[obj2, , hg2] = createDRPVertexApplier({
 			drp: new SetDRP<number>(),
-			aclOptions: { admins: ["peer1", "peer2"] },
+			acl: acl2,
+			hashGraph: createHashGraph({
+				peerId: "peer2",
+				resolveConflictsACL: acl2.resolveConflicts,
+				semanticsTypeDRP: SemanticsType.pair,
+			}),
 		});
 	});
 
@@ -381,15 +392,27 @@ describe("HashGraph for SetDRP tests", () => {
 
 describe("HashGraph for undefined operations tests", () => {
 	test("Test: merge should skip undefined operations", async () => {
+		const options = { admins: ["peer1", "peer2"] };
+		const acl1 = new ObjectACL(options);
 		const [obj1, , hg1] = createDRPVertexApplier({
-			peerId: "peer1",
 			drp: new SetDRP<number>(),
-			aclOptions: { admins: ["peer1", "peer2"] },
+			acl: acl1,
+			hashGraph: createHashGraph({
+				peerId: "peer1",
+				resolveConflictsACL: acl1.resolveConflicts,
+				semanticsTypeDRP: SemanticsType.pair,
+			}),
 		});
+
+		const acl2 = new ObjectACL(options);
 		const [obj2, , hg2] = createDRPVertexApplier({
-			peerId: "peer2",
 			drp: new SetDRP<number>(),
-			aclOptions: { admins: ["peer1", "peer2"] },
+			acl: acl2,
+			hashGraph: createHashGraph({
+				peerId: "peer2",
+				resolveConflictsACL: acl2.resolveConflicts,
+				semanticsTypeDRP: SemanticsType.pair,
+			}),
 		});
 
 		obj1.drp?.add(1);
@@ -461,20 +484,38 @@ describe("Vertex state tests", () => {
 
 	beforeEach(() => {
 		vi.useFakeTimers({ now: 0 });
+		const options = { admins: ["peer1", "peer2", "peer3"] };
+		const acl1 = new ObjectACL(options);
 		[obj1, state1, hg1] = createDRPVertexApplier({
-			peerId: "peer1",
 			drp: new SetDRP<number>(),
-			aclOptions: { admins: ["peer1", "peer2", "peer3"] },
+			acl: acl1,
+			hashGraph: createHashGraph({
+				peerId: "peer1",
+				resolveConflictsACL: acl1.resolveConflicts,
+				semanticsTypeDRP: SemanticsType.pair,
+			}),
 		});
+
+		const acl2 = new ObjectACL(options);
 		[obj2, , hg2] = createDRPVertexApplier({
-			peerId: "peer2",
 			drp: new SetDRP<number>(),
-			aclOptions: { admins: ["peer1", "peer2", "peer3"] },
+			acl: acl2,
+			hashGraph: createHashGraph({
+				peerId: "peer2",
+				resolveConflictsACL: acl2.resolveConflicts,
+				semanticsTypeDRP: SemanticsType.pair,
+			}),
 		});
+
+		const acl3 = new ObjectACL(options);
 		[obj3, , hg3] = createDRPVertexApplier({
-			peerId: "peer3",
 			drp: new SetDRP<number>(),
-			aclOptions: { admins: ["peer1", "peer2", "peer3"] },
+			acl: acl3,
+			hashGraph: createHashGraph({
+				peerId: "peer3",
+				resolveConflictsACL: acl3.resolveConflicts,
+				semanticsTypeDRP: SemanticsType.pair,
+			}),
 		});
 	});
 
