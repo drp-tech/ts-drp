@@ -69,6 +69,7 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 	 * @param options.acl - The ACL of the DRPObject.
 	 * @param options.drp - The DRP of the DRPObject.
 	 * @param options.config - The config of the DRPObject.
+	 * @param options.drpCreationArgs - The DRP creation arguments.
 	 */
 	constructor({
 		peerId,
@@ -76,17 +77,20 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 		acl = createPermissionlessACL(peerId),
 		drp,
 		config,
+		drpCreationArgs,
 		//metrics,
 	}: DRPObjectOptions<T>) {
 		this.id = id;
 		this.log = new Logger(`drp::object::${this.id}`, config?.log_config);
 
-		this.hashgraph = new HashGraph(
-			peerId,
-			acl.resolveConflicts?.bind(acl),
-			drp?.resolveConflicts?.bind(drp),
-			drp?.semanticsType
-		);
+		if (drpCreationArgs) {
+			this.hashgraph = new HashGraph(
+				peerId,
+				acl.resolveConflicts?.bind(acl),
+				drp?.resolveConflicts?.bind(drp),
+				drp?.semanticsType
+			);
+		}
 
 		this._finalityStore = new FinalityStore(config?.finality_config, config?.log_config);
 		[this._applier, this._states] = createDRPVertexApplier({
