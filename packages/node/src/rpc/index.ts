@@ -71,8 +71,11 @@ export function init(node: DRPNode, port: number = 6969): void {
 		try {
 			const object = node.get(call.request.drpId);
 			if (!object) throw Error("drp not found");
-			if (!object.hashGraph) throw Error("hashgraph not found");
-			for (const v of object.hashGraph.getAllVertices()) {
+
+			const vertices = object.vertices;
+			if (vertices.length === 0) throw Error("no vertices found");
+
+			for (const v of vertices) {
 				hashes.push(v.hash);
 			}
 		} catch (e) {

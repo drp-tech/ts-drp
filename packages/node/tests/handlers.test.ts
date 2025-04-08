@@ -1,7 +1,7 @@
 import type { Connection, IdentifyResult, Libp2p } from "@libp2p/interface";
 import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode } from "@ts-drp/network";
-import { type DRPObject, ObjectACL } from "@ts-drp/object";
+import { createACL, type DRPObject } from "@ts-drp/object";
 import { type DRPNetworkNodeConfig, DrpType, NodeEventName, type ObjectId, Operation } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -97,7 +97,7 @@ describe("Handle message correctly", () => {
 			}),
 		]);
 
-		const acl = new ObjectACL({ admins: [node1.networkNode.peerId, node2.networkNode.peerId] });
+		const acl = createACL({ admins: [node1.networkNode.peerId, node2.networkNode.peerId] });
 		acl.context = {
 			caller: node1.networkNode.peerId,
 		};
@@ -161,7 +161,6 @@ describe("Handle message correctly", () => {
 		const node3 = createNewNode("node3");
 
 		await node3.start();
-
 		const libp2pNode3 = node3.networkNode["_node"] as Libp2p;
 		await raceEvent(libp2pNode3, "connection:open", controller.signal, {
 			filter: (event: CustomEvent<Connection>) =>

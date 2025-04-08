@@ -20,9 +20,27 @@ function getPeerPermissions(params?: { blsPublicKey?: string; permissions?: Set<
 }
 
 export interface ObjectACLOptions {
-	admins: string[];
+	admins?: string[] | string;
 	permissionless?: boolean;
 	conflictResolution?: ACLConflictResolution;
+}
+
+/**
+ * Creates a permissionless ACL.
+ * @param admins - The admins of the ACL.
+ * @returns The permissionless ACL.
+ */
+export function createPermissionlessACL(admins: string | string[] = []): IACL {
+	return createACL({ admins, permissionless: true });
+}
+
+/**
+ * Create an ACL
+ * @param options - The options for the ACL
+ * @returns The ACL
+ */
+export function createACL(options: ObjectACLOptions = { admins: [] }): IACL {
+	return new ObjectACL(options);
 }
 
 /**
@@ -42,7 +60,13 @@ export class ObjectACL implements IACL {
 	 * Creates a new ObjectACL instance.
 	 * @param options - The options for the ObjectACL.
 	 */
-	constructor(options: ObjectACLOptions) {
+	constructor(options: ObjectACLOptions = { admins: [] }) {
+		const admins: string[] = Array.isArray(options.admins)
+			? options.admins
+			: options.admins != null
+				? [options.admins]
+				: [];
+
 		this.permissionless = options.permissionless ?? false;
 
 		const adminPermissions = new Set<ACLGroup>([ACLGroup.Admin, ACLGroup.Finality]);
@@ -51,7 +75,7 @@ export class ObjectACL implements IACL {
 		}
 
 		this._authorizedPeers = new Map(
-			[...options.admins].map((adminId) => [adminId, getPeerPermissions({ permissions: new Set(adminPermissions) })])
+			[...admins].map((adminId) => [adminId, getPeerPermissions({ permissions: new Set(adminPermissions) })])
 		);
 		this._conflictResolution = options.conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}

@@ -42,7 +42,7 @@ export interface IDRP {
 	 * The resolve conflicts function of the DRP.
 	 * @param vertices - The vertices to resolve conflicts from.
 	 */
-	resolveConflicts?(vertices: Vertex[]): ResolveConflictsType;
+	resolveConflicts?: ResolveConflictFn;
 	/**
 	 * The properties of the DRP.
 	 */

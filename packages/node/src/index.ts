@@ -5,7 +5,7 @@ import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
 import { MessageQueueManager } from "@ts-drp/message-queue";
 import { DRPNetworkNode } from "@ts-drp/network";
-import { DRPObject, HashGraph } from "@ts-drp/object";
+import { createObject, DRPObject, HashGraph } from "@ts-drp/object";
 import {
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
@@ -248,7 +248,7 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		if (!validation.success) {
 			throw new DRPValidationError(validation.error);
 		}
-		const object = DRPObject.createObject({
+		const object = createObject({
 			peerId: this.networkNode.peerId,
 			id: options.id,
 			drp: options.drp,
@@ -263,7 +263,6 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 
 		// start the interval discovery
 		this._createIntervalDiscovery(options.id);
-
 		await operations.fetchState(this, options.id, options.sync?.peerId);
 		const { signal, cleanup } = timeoutSignal(5000);
 		try {
@@ -300,7 +299,7 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 	 * Subscribe to an object.
 	 * @param object - The object to subscribe to.
 	 */
-	subscribeObject<T extends IDRP>(object: DRPObject<T>): void {
+	subscribeObject<T extends IDRP>(object: IDRPObject<T>): void {
 		// subscribe to the object
 		object.subscribe((obj, originFn, vertices) => drpObjectChangesHandler(this, obj, originFn, vertices));
 		// subscribe to the topic in gossipsub

@@ -1,25 +1,25 @@
 import { SetDRP } from "@ts-drp/blueprints";
+import { ACLGroup } from "@ts-drp/types/dist/src/acl.js";
 import fs from "fs";
 import * as pprof from "pprof";
 
-import { DRPObject, ObjectACL } from "../src/index.js";
+import { createACL, DRPObject } from "../src/index.js";
 
-const acl = new ObjectACL({
-	admins: ["peer1"],
-});
-
+const acl = createACL({ admins: ["peer1_0"] });
 type DRPManipulationStrategy = (drp: SetDRP<number>, value: number) => void;
 
 const createWithStrategy = (
-	peerId: number,
+	nPID: number,
 	verticesPerDRP: number,
 	strategy: DRPManipulationStrategy
 ): DRPObject<SetDRP<number>> => {
+	const peerId = `peer1_${nPID}`;
 	const obj = new DRPObject({
-		peerId: `peer1_${peerId}`,
+		peerId,
 		acl,
 		drp: new SetDRP<number>(),
 	});
+	obj.acl.grant(peerId, ACLGroup.Writer);
 
 	if (!obj.drp) throw new Error("DRP is undefined");
 
@@ -51,7 +51,7 @@ async function mergeObjects(objects: DRPObject<SetDRP<number>>[]): Promise<void>
 	for (const [sourceIndex, sourceObject] of objects.entries()) {
 		for (const [targetIndex, targetObject] of objects.entries()) {
 			if (sourceIndex !== targetIndex) {
-				await sourceObject.merge(targetObject.hashGraph.getAllVertices());
+				await sourceObject.merge(targetObject.vertices);
 			}
 		}
 	}

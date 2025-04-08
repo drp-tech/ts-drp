@@ -2,7 +2,7 @@ import { ActionType, DrpType, Operation, SemanticsType, type Vertex } from "@ts-
 import { ObjectSet } from "@ts-drp/utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { HashGraph, newVertex } from "../src/index.js";
+import { createVertex, HashGraph } from "../src/hashgraph/index.js";
 import { linearizeMultipleSemantics } from "../src/linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../src/linearize/pairSemantics.js";
 
@@ -26,7 +26,7 @@ describe("Linearize correctly", () => {
 		for (let i = 0; i < 10; i += 2) {
 			const frontier = hashgraph.getFrontier();
 			hashgraph.addVertex(
-				newVertex(
+				createVertex(
 					"",
 					Operation.create({ opType: "test", value: [i], drpType: DrpType.DRP }),
 					frontier,
@@ -35,7 +35,7 @@ describe("Linearize correctly", () => {
 				)
 			);
 			hashgraph.addVertex(
-				newVertex(
+				createVertex(
 					"",
 					Operation.create({ opType: "test", value: [i + 1], drpType: DrpType.DRP }),
 					frontier,
@@ -85,7 +85,7 @@ describe("Linearize correctly", () => {
 		for (let i = 0; i < 10; i += 2) {
 			const frontier = hashgraph.getFrontier();
 			hashgraph.addVertex(
-				newVertex(
+				createVertex(
 					"",
 					Operation.create({ opType: "test", value: [i], drpType: DrpType.DRP }),
 					[frontier[0]],
@@ -94,7 +94,7 @@ describe("Linearize correctly", () => {
 				)
 			);
 			hashgraph.addVertex(
-				newVertex(
+				createVertex(
 					"",
 					Operation.create({ opType: "test", value: [i + 1], drpType: DrpType.DRP }),
 					[frontier[0]],
@@ -138,7 +138,7 @@ describe("linearizeMultipleSemantics", () => {
 
 		// Add vertices to the graph
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				Operation.create({ opType: "set", value: [1], drpType: DrpType.DRP }),
 				hashGraph.getFrontier(),
@@ -148,7 +148,7 @@ describe("linearizeMultipleSemantics", () => {
 		);
 
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				Operation.create({ opType: "set", value: [2], drpType: DrpType.DRP }),
 				hashGraph.getFrontier(),
@@ -182,7 +182,7 @@ describe("linearizeMultipleSemantics", () => {
 
 		// Add concurrent vertices
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				Operation.create({ opType: "set", value: [1], drpType: DrpType.DRP }),
 				frontier,
@@ -192,7 +192,7 @@ describe("linearizeMultipleSemantics", () => {
 		);
 
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				Operation.create({ opType: "set", value: [2], drpType: DrpType.DRP }),
 				frontier,
@@ -202,7 +202,7 @@ describe("linearizeMultipleSemantics", () => {
 		);
 
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				Operation.create({ opType: "set", value: [3], drpType: DrpType.DRP }),
 				frontier,
@@ -215,7 +215,7 @@ describe("linearizeMultipleSemantics", () => {
 		frontier = hashGraph.getFrontier();
 
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				Operation.create({ opType: "set", value: [4], drpType: DrpType.DRP }),
 				frontier,
@@ -224,7 +224,7 @@ describe("linearizeMultipleSemantics", () => {
 			)
 		);
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				Operation.create({ opType: "set", value: [5], drpType: DrpType.DRP }),
 				frontier.filter((_, idx) => idx !== 0),
@@ -236,7 +236,7 @@ describe("linearizeMultipleSemantics", () => {
 		frontier = hashGraph.getFrontier();
 
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				Operation.create({ opType: "set", value: [6], drpType: DrpType.DRP }),
 				frontier,
@@ -267,7 +267,7 @@ describe("linearizeMultipleSemantics", () => {
 
 		// Add vertices to the graph
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				Operation.create({ opType: "set", value: [1], drpType: DrpType.DRP }),
 				hashGraph.getFrontier(),
@@ -277,7 +277,7 @@ describe("linearizeMultipleSemantics", () => {
 		);
 
 		hashGraph.addVertex(
-			newVertex(
+			createVertex(
 				"",
 				Operation.create({ opType: "set", value: [2], drpType: DrpType.DRP }),
 				hashGraph.getFrontier(),
@@ -318,7 +318,7 @@ describe("linearizeMultipleSemantics", () => {
 		for (let i = 0; i < 100; i += 2) {
 			const frontier = hashGraph.getFrontier();
 			hashGraph.addVertex(
-				newVertex(
+				createVertex(
 					"",
 					Operation.create({ opType: "test", value: [i], drpType: DrpType.DRP }),
 					frontier,
@@ -327,7 +327,7 @@ describe("linearizeMultipleSemantics", () => {
 				)
 			);
 			hashGraph.addVertex(
-				newVertex(
+				createVertex(
 					"",
 					Operation.create({ opType: "test", value: [i + 1], drpType: DrpType.DRP }),
 					frontier,

@@ -124,7 +124,7 @@ describe("utils", () => {
 
 			const result = processSequentially<number, typeof context>(
 				items,
-				(item: number) => {
+				(_, item: number) => {
 					results.push(item);
 					context.sum += item;
 				},
@@ -143,7 +143,7 @@ describe("utils", () => {
 
 			const result = processSequentially<number, typeof context>(
 				items,
-				async (item: number) => {
+				async (_, item: number) => {
 					await Promise.resolve();
 					results.push(item);
 					context.sum += item;
@@ -164,7 +164,7 @@ describe("utils", () => {
 
 			const result = processSequentially<number, typeof context>(
 				items,
-				(item: number) => {
+				(_, item: number) => {
 					if (item > 2) {
 						return Promise.resolve().then(() => {
 							results.push(item);
@@ -190,7 +190,7 @@ describe("utils", () => {
 
 			const result = processSequentially<number, typeof context>(
 				items,
-				(item: number) => {
+				(_, item: number) => {
 					if (item === 200 || item === 400) {
 						return Promise.resolve().then(() => {
 							results.push(item);
@@ -234,7 +234,7 @@ describe("utils", () => {
 
 			const result = processSequentially<number, typeof context>(
 				items,
-				async (item: number) => {
+				async (_, item: number) => {
 					if (item % 2 === 1) {
 						// Synchronous operations for odd numbers
 						executionOrder.push(`sync-start-${item}`);

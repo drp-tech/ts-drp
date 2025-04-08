@@ -1,7 +1,7 @@
 import { type GossipSub, type GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import { type Libp2p, type Libp2pEvents } from "@libp2p/interface";
 import { AddMulDRP } from "@ts-drp/blueprints";
-import { ObjectACL } from "@ts-drp/object";
+import { createACL } from "@ts-drp/object";
 import {
 	type DRPNetworkNodeConfig,
 	type DRPNodeConfig,
@@ -226,7 +226,7 @@ async function runObjectBenchmark(numberOfMessages: number, numberOfNodes: numbe
 	const nodes = await createNodes(numberOfNodes);
 	const objects: IDRPObject<AddMulDRP>[] = [];
 	const admins = nodes.map((node) => node.networkNode.peerId);
-	const acl = new ObjectACL({ admins, permissionless: true });
+	const acl = createACL({ admins, permissionless: true });
 	for (let i = 0; i < nodes.length; i++) {
 		const obj = new AddMulDRP();
 		if (i === 0) {

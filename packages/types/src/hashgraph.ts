@@ -1,3 +1,4 @@
+import { type LowestCommonAncestorResult } from "./object.js";
 import { type Vertex_Operation as Operation, type Vertex } from "./proto/drp/v1/object_pb.js";
 
 export type Hash = string;
@@ -61,8 +62,10 @@ export interface IHashGraph {
 	frontier: Hash[];
 	forwardEdges: Map<Hash, Hash[]>;
 
+	linearizeVertices(origin?: Hash, subgraph?: Set<string>): Vertex[];
+	topologicalSort(updateBitsets?: boolean, origin?: Hash, subgraph?: Set<Hash>): Hash[];
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType;
-	createVertex(operation: Operation, dependencies: Hash[], timestamp: number): Vertex;
+	createVertex(operation: Operation, dependencies?: Hash[], timestamp?: number): Vertex;
 	addVertex(vertex: Vertex): void;
 	areCausallyRelatedUsingBitsets(hash1: Hash, hash2: Hash): boolean;
 	swapReachablePredecessors(hash1: Hash, hash2: Hash): void;
@@ -70,6 +73,7 @@ export interface IHashGraph {
 	getFrontier(): Hash[];
 	getDependencies(vertexHash: Hash): Hash[];
 	getVertex(hash: Hash): Vertex | undefined;
+	getLCA(dependencies: Hash[]): LowestCommonAncestorResult;
 	getAllVertices(): Vertex[];
 	getCurrentBitsetSize(): number;
 }
