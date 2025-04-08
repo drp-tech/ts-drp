@@ -392,7 +392,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	async connectToBootstraps(): Promise<void> {
 		try {
 			await this.safeDial(this._bootstrapNodesList);
-			log.info("::connectToBootstraps: Successfully connected to bootstrap nodes");
+			log.debug("::connectToBootstraps: Successfully connected to bootstrap nodes");
 		} catch (e) {
 			log.error("::connectToBootstraps:", e);
 		}
@@ -406,7 +406,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 		try {
 			const multiaddrs = Array.isArray(addr) ? addr.map(multiaddr) : [multiaddr(addr)];
 			await this.safeDial(multiaddrs);
-			log.info("::connect: Successfully dialed", addr);
+			log.debug("::connect: Successfully dialed", addr);
 		} catch (e) {
 			log.error("::connect:", e);
 		}
@@ -419,7 +419,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 	async disconnect(peerId: string): Promise<void> {
 		try {
 			await this._node?.hangUp(multiaddr(`/p2p/${peerId}`));
-			log.info("::disconnect: Successfully disconnected", peerId);
+			log.debug("::disconnect: Successfully disconnected", peerId);
 		} catch (e) {
 			log.error("::disconnect:", e);
 		}
@@ -493,7 +493,7 @@ export class DRPNetworkNode implements DRPNetworkNodeInterface {
 			const messageBuffer = Message.encode(message).finish();
 			await this._pubsub?.publish(topic, messageBuffer);
 
-			log.info("::broadcastMessage: Successfuly broadcasted message to topic", topic);
+			log.debug("::broadcastMessage: Successfuly broadcasted message to topic", topic);
 		} catch (e) {
 			log.error("::broadcastMessage:", e);
 		}
