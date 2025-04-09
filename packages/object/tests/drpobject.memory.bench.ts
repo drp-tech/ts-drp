@@ -1,5 +1,5 @@
 import { formatOutput } from "@ts-drp/utils/memory-benchmark";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
@@ -45,16 +45,17 @@ function runProcessMemoryScript(numTests: number, programName: string, size: num
 	try {
 		const memoryResults: number[] = [];
 		for (let i = 0; i < numTests; i++) {
-			const command = `command time -f "%M" tsx ${programName} ${size.toString()} >/dev/null 2>${logPath}`;
-			execSync(command, { encoding: "utf-8" });
+			const command = "command";
+			const args = ["time", "-f", "%M", "tsx", programName, size.toString()];
+			execFileSync(command, args, { encoding: "utf-8", stdio: ["ignore", "ignore", fs.openSync(logPath, "w")] });
 			const programLog = fs.readFileSync(logPath, "utf-8");
 			memoryResults.push(parseInt(programLog, 10));
 		}
 
-		execSync(`rm ${logPath}`);
+		execFileSync("rm", [logPath]);
 		return memoryResults;
 	} catch (error) {
-		execSync(`rm ${logPath}`);
+		execFileSync("rm", [logPath]);
 		console.error(error);
 		return [];
 	}
