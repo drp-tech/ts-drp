@@ -5,8 +5,8 @@ import "drp/v1/object.proto";
 
 enum MessageType {
   MESSAGE_TYPE_UNSPECIFIED = 0;
-  MESSAGE_TYPE_FETCH_STATE = 1;
-  MESSAGE_TYPE_FETCH_STATE_RESPONSE = 2;
+  MESSAGE_TYPE_FETCH_ROOT_VERTEX = 1;
+  MESSAGE_TYPE_FETCH_ROOT_VERTEX_RESPONSE = 2;
   MESSAGE_TYPE_UPDATE = 3;
   MESSAGE_TYPE_SYNC = 4;
   MESSAGE_TYPE_SYNC_ACCEPT = 5;
@@ -24,14 +24,8 @@ message Message {
   string object_id = 4;
 }
 
-message FetchState {
-  string vertex_hash = 1;
-}
-
-message FetchStateResponse {
-  string vertex_hash = 1;
-  drp.v1.DRPStateOtherTheWire acl_state = 2;
-  drp.v1.DRPStateOtherTheWire drp_state = 3;
+message FetchRootVertexResponse {
+  drp.v1.Vertex rootVertex = 1;
 }
 
 message Update {
