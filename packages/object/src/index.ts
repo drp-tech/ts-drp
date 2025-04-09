@@ -106,15 +106,11 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 		this.id = id ?? getDRPObjectID(peerId, salt);
 		this.log = new Logger(`drp::object::${this.id}`, config?.log_config);
 
-		let rootVertex = undefined;
-		if (drpCreationArgs) {
-			rootVertex = createHashGraphRootVertex(peerId, drpCreationArgs);
-		}
 		this.hashGraph = new HashGraph(
 			peerId,
 			acl.resolveConflicts?.bind(acl),
 			drp?.resolveConflicts?.bind(drp),
-			rootVertex,
+			drpCreationArgs ? createHashGraphRootVertex(peerId, drpCreationArgs) : undefined,
 			drp?.semanticsType
 		);
 
@@ -128,6 +124,14 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 			finalityConfig: config?.finality_config,
 			logConfig: config?.log_config,
 		});
+	}
+
+	/**
+	 * Initializes the hash graph.
+	 * @param rootVertex - The root vertex.
+	 */
+	initializeHashGraph(rootVertex: Vertex): void {
+		this.hashGraph.initializeRootVertex(rootVertex);
 	}
 
 	/**
