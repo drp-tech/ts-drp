@@ -5,7 +5,7 @@ import {
 	type IHashGraph,
 	type LoggerOptions,
 	type LowestCommonAncestorResult,
-	Operation,
+	type Operation,
 	type ResolveConflictFn,
 	type ResolveConflictsType,
 	SemanticsType,
@@ -52,6 +52,7 @@ export interface HashGraphOptions {
 	peerId: string;
 	resolveConflictsACL?: ResolveConflictFn;
 	resolveConflictsDRP?: ResolveConflictFn;
+	rootVertex?: Vertex;
 	semanticsTypeDRP?: SemanticsType;
 	logConfig?: LoggerOptions;
 }
@@ -69,6 +70,7 @@ export function createHashGraph(options: HashGraphOptions): HashGraph {
 		options.peerId,
 		options.resolveConflictsACL,
 		options.resolveConflictsDRP,
+		options.rootVertex,
 		options.semanticsTypeDRP,
 		options.logConfig
 	);
@@ -87,15 +89,7 @@ export class HashGraph implements IHashGraph {
 
 	private log: Logger;
 
-	/*
-	computeHash(
-		"",
-		{ type: OperationType.NOP, value: null },
-		[],
-		-1,
-	);
-	*/
-	static readonly rootHash: Hash = "425d2b1f5243dbf23c685078034b06fbfa71dc31dcce30f614e28023f140ff13";
+	private rootVertex?: Vertex;
 	private arePredecessorsFresh = false;
 	private reachablePredecessors: Map<Hash, BitSet> = new Map();
 	private topoSortedIndex: Map<Hash, number> = new Map();
@@ -108,6 +102,7 @@ export class HashGraph implements IHashGraph {
 	 * @param peerId - The peer ID.
 	 * @param resolveConflictsACL - The resolve conflicts ACL.
 	 * @param resolveConflictsDRP - The resolve conflicts DRP.
+	 * @param rootVertex - The root vertex.
 	 * @param semanticsTypeDRP - The semantics type DRP.
 	 * @param logConfig - The log config.
 	 */
@@ -115,27 +110,30 @@ export class HashGraph implements IHashGraph {
 		peerId: string,
 		resolveConflictsACL: ResolveConflictFn = this.resolveConflictsACL,
 		resolveConflictsDRP: ResolveConflictFn = this.resolveConflictsDRP,
+		rootVertex?: Vertex,
 		semanticsTypeDRP?: SemanticsType,
 		logConfig?: LoggerOptions
 	) {
-		const rootVertex = Vertex.create({
-			hash: HashGraph.rootHash,
-			peerId: "",
-			operation: Operation.create({ drpType: "", opType: OperationType.NOP }),
-			dependencies: [],
-			timestamp: -1,
-			signature: new Uint8Array(),
-		});
-
 		this.log = new Logger("drp::hashgraph", logConfig);
 		this.peerId = peerId;
 		this.semanticsTypeDRP = semanticsTypeDRP;
 		this.resolveConflictsACL = resolveConflictsACL;
 		this.resolveConflictsDRP = resolveConflictsDRP;
-		this.vertices.set(HashGraph.rootHash, rootVertex);
-		this.frontier.push(HashGraph.rootHash);
-		this.forwardEdges.set(HashGraph.rootHash, []);
-		this.vertexDistances.set(HashGraph.rootHash, { distance: 0 });
+		if (rootVertex) {
+			this.initializeRootVertex(rootVertex);
+		}
+	}
+
+	/**
+	 * Initializes the root vertex.
+	 * @param rootVertex - The root vertex.
+	 */
+	initializeRootVertex(rootVertex: Vertex): void {
+		this.rootVertex = rootVertex;
+		this.vertices.set(rootVertex.hash, rootVertex);
+		this.frontier.push(rootVertex.hash);
+		this.forwardEdges.set(rootVertex.hash, []);
+		this.vertexDistances.set(rootVertex.hash, { distance: 0 });
 	}
 
 	/**
@@ -188,6 +186,9 @@ export class HashGraph implements IHashGraph {
 	 * @param vertex - The vertex to add.
 	 */
 	addVertex(vertex: Vertex): void {
+		if (!this.rootVertex) {
+			throw new Error("Root vertex is not initialized");
+		}
 		this.vertices.set(vertex.hash, vertex);
 		this.frontier.push(vertex.hash);
 		// Update forward edges
@@ -270,9 +271,15 @@ export class HashGraph implements IHashGraph {
 	 */
 	topologicalSort(
 		updateBitsets = false,
-		origin: Hash = HashGraph.rootHash,
+		origin?: Hash,
 		subgraph: Set<Hash> = new ObjectSet(this.vertices.keys())
 	): Hash[] {
+		if (!this.rootVertex) {
+			throw new Error("Root vertex is not initialized");
+		}
+		if (!origin) {
+			origin = this.rootVertex.hash;
+		}
 		const result = this.dfsTopologicalSortIterative(origin, subgraph);
 		if (!updateBitsets) return result;
 		this.reachablePredecessors.clear();
@@ -319,10 +326,13 @@ export class HashGraph implements IHashGraph {
 	 * @param subgraph - The subgraph.
 	 * @returns The linearized vertices.
 	 */
-	linearizeVertices(
-		origin: Hash = HashGraph.rootHash,
-		subgraph: Set<string> = new ObjectSet(this.vertices.keys())
-	): Vertex[] {
+	linearizeVertices(origin?: Hash, subgraph: Set<string> = new ObjectSet(this.vertices.keys())): Vertex[] {
+		if (!this.rootVertex) {
+			throw new Error("Root vertex is not initialized");
+		}
+		if (!origin) {
+			origin = this.rootVertex.hash;
+		}
 		switch (this.semanticsTypeDRP) {
 			case SemanticsType.pair:
 				return linearizePairSemantics(this, origin, subgraph);
