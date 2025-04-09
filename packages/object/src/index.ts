@@ -4,6 +4,7 @@ import { Logger } from "@ts-drp/logger";
 import {
 	type ApplyResult,
 	type CreateObjectOptions,
+	type DRPCreationArgs,
 	type DRPObjectCallback,
 	type DRPObjectOptions,
 	type DRPState,
@@ -18,18 +19,18 @@ import {
 import { createPermissionlessACL } from "./acl/index.js";
 import { createDRPVertexApplier, type DRPVertexApplier } from "./drp-applier.js";
 import { FinalityStore } from "./finality/index.js";
-import { HashGraph } from "./hashgraph/index.js";
+import { createVertex, HashGraph } from "./hashgraph/index.js";
 import { type DRPObjectStateManager } from "./state.js";
 
 export * from "./acl/index.js";
 export * from "./hashgraph/index.js";
 
-function defaultIDFromPeerID(peerId: string): string {
+function getDRPObjectID(peerId: string, salt?: number): string {
 	return bytesToHex(
 		sha256
 			.create()
 			.update(peerId)
-			.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
+			.update(salt?.toString() ?? Math.floor(Math.random() * Number.MAX_VALUE).toString())
 			.digest()
 	);
 }
@@ -44,6 +45,26 @@ export function createObject<T extends IDRP>(options: CreateObjectOptions<T>): I
 
 	const object = new DRPObject<T>({ ...options, config: { log_config: options.log_config }, acl });
 	return object;
+}
+
+/**
+ * Creates the root vertex for the hash graph
+ * @param peerId - The peer ID of the node.
+ * @param drpCreationArgs - The DRP creation arguments.
+ * @returns The root vertex.
+ */
+export function createHashGraphRootVertex(peerId: string, drpCreationArgs: DRPCreationArgs): Vertex {
+	return createVertex(
+		peerId,
+		{
+			drpType: "DRP & ACL",
+			opType: "constructor",
+			value: { drpArgs: drpCreationArgs.drpArgs, aclArgs: drpCreationArgs.aclArgs },
+		},
+		[],
+		drpCreationArgs.timestamp,
+		new Uint8Array()
+	);
 }
 
 /**
@@ -70,23 +91,30 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 	 * @param options.drp - The DRP of the DRPObject.
 	 * @param options.config - The config of the DRPObject.
 	 * @param options.drpCreationArgs - The DRP creation arguments.
+	 * @param options.salt - The salt to use for the DRP Object id.
 	 */
 	constructor({
 		peerId,
-		id = defaultIDFromPeerID(peerId),
+		id,
 		acl = createPermissionlessACL(peerId),
 		drp,
 		config,
 		drpCreationArgs,
+		salt,
 		//metrics,
 	}: DRPObjectOptions<T>) {
-		this.id = id;
+		this.id = id ?? getDRPObjectID(peerId, salt);
 		this.log = new Logger(`drp::object::${this.id}`, config?.log_config);
 
+		let rootVertex = undefined;
+		if (drpCreationArgs) {
+			rootVertex = createHashGraphRootVertex(peerId, drpCreationArgs);
+		}
 		this.hashGraph = new HashGraph(
 			peerId,
 			acl.resolveConflicts?.bind(acl),
 			drp?.resolveConflicts?.bind(drp),
+			rootVertex,
 			drp?.semanticsType
 		);
 

@@ -34,6 +34,7 @@ interface NodeObjectOptionsBase<T> {
 }
 
 export interface NodeCreateObjectOptions<T extends IDRP> extends NodeObjectOptionsBase<T> {
+	salt?: number;
 	sync?: {
 		enabled: boolean;
 		peerId?: string;

@@ -218,6 +218,7 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 			config: {
 				log_config: options.log_config,
 			},
+			salt: options.salt,
 		});
 
 		// put the object in the object store

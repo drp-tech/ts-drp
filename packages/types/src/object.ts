@@ -32,10 +32,6 @@ export interface DRPCreationArgs {
 	 * The DRP creation timestamp.
 	 */
 	timestamp: number;
-	/**
-	 * The salt to use for the DRP Object id.
-	 */
-	salt?: number;
 }
 
 export interface DRPObjectOptions<T extends IDRP> {
@@ -46,6 +42,7 @@ export interface DRPObjectOptions<T extends IDRP> {
 	config?: DRPObjectConfig;
 	metrics?: IMetrics;
 	drpCreationArgs?: DRPCreationArgs;
+	salt?: number;
 }
 
 export type MergeResult = [merged: boolean, missing: string[]];
