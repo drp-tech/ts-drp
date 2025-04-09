@@ -41,7 +41,7 @@ describe("DRPVertexApplier", () => {
 		applier = new DRPVertexApplier({
 			drp: mockDRP,
 			acl: mockACL,
-			hg: mockHashGraph,
+			hashGraph: mockHashGraph,
 			states: mockStates,
 			finalityStore: mockFinalityStore,
 			notify: mockNotify,
