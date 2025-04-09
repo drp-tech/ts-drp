@@ -1,5 +1,4 @@
-import { HashGraph } from "@ts-drp/object";
-import { FetchState, type IDRP, type IDRPObject, Message, MessageType, Sync } from "@ts-drp/types";
+import { type IDRP, type IDRPObject, Message, MessageType, Sync } from "@ts-drp/types";
 
 import { type DRPNode } from "./index.js";
 import { log } from "./logger.js";
@@ -10,14 +9,11 @@ import { log } from "./logger.js";
  * @param objectId - The object ID.
  * @param peerId - The peer ID.
  */
-export async function fetchState(node: DRPNode, objectId: string, peerId?: string): Promise<void> {
-	const data = FetchState.create({
-		vertexHash: HashGraph.rootHash,
-	});
+export async function fetchRootVertex(node: DRPNode, objectId: string, peerId?: string): Promise<void> {
 	const message = Message.create({
 		sender: node.networkNode.peerId,
-		type: MessageType.MESSAGE_TYPE_FETCH_STATE,
-		data: FetchState.encode(data).finish(),
+		type: MessageType.MESSAGE_TYPE_FETCH_ROOT_VERTEX,
+		data: new Uint8Array(),
 		objectId: objectId,
 	});
 

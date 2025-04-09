@@ -5,12 +5,12 @@ import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
 import { MessageQueueManager } from "@ts-drp/message-queue";
 import { DRPNetworkNode } from "@ts-drp/network";
-import { createObject, DRPObject, HashGraph } from "@ts-drp/object";
+import { createObject, DRPObject } from "@ts-drp/object";
 import {
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
 	type DRPObjectSubscribeCallback,
-	type FetchStateResponseEvent,
+	type FetchRootVertexResponseEvent,
 	type IDRP,
 	type IDRPNode,
 	type IDRPObject,
@@ -264,12 +264,11 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 
 		// start the interval discovery
 		this._createIntervalDiscovery(options.id);
-		await operations.fetchState(this, options.id, options.sync?.peerId);
+		await operations.fetchRootVertex(this, options.id, options.sync?.peerId);
 		const { signal, cleanup } = timeoutSignal(5000);
 		try {
-			await raceEvent(this, NodeEventName.DRP_FETCH_STATE_RESPONSE, signal, {
-				filter: (event: CustomEvent<FetchStateResponseEvent>) =>
-					event.detail.id === object.id && event.detail.fetchStateResponse.vertexHash === HashGraph.rootHash,
+			await raceEvent(this, NodeEventName.DRP_FETCH_ROOT_VERTEX_RESPONSE, signal, {
+				filter: (event: CustomEvent<FetchRootVertexResponseEvent>) => event.detail.id === object.id,
 			});
 		} catch (error) {
 			if (error instanceof AbortError) {

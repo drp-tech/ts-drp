@@ -2,7 +2,13 @@ import type { Connection, IdentifyResult, Libp2p } from "@libp2p/interface";
 import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { createACL, type DRPObject } from "@ts-drp/object";
-import { type DRPNetworkNodeConfig, DrpType, NodeEventName, type ObjectId, Operation } from "@ts-drp/types";
+import {
+	type DRPNetworkNodeConfig,
+	DrpType,
+	type fetchRootVertexResponse,
+	NodeEventName,
+	Operation,
+} from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -127,7 +133,7 @@ describe("Handle message correctly", () => {
 
 	test("should handle update message correctly", async () => {
 		const p = raceEvent(node1, NodeEventName.DRP_UPDATE, controller.signal, {
-			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
+			filter: (event: CustomEvent<fetchRootVertexResponse>) => event.detail.id === drpObjectNode2.id,
 		});
 
 		drpObjectNode2.drp?.add(5);
@@ -188,7 +194,7 @@ describe("Handle message correctly", () => {
 
 	test("should handle update attestation message correctly", async () => {
 		const p = raceEvent(node2, NodeEventName.DRP_ATTESTATION_UPDATE, controller.signal, {
-			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
+			filter: (event: CustomEvent<fetchRootVertexResponse>) => event.detail.id === drpObjectNode2.id,
 		});
 		drpObjectNode2.drp?.add(5);
 

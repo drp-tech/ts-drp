@@ -81,6 +81,17 @@ export interface IDRPObject<T extends IDRP> extends DRPObjectBase {
 	finalityStore: IFinalityStore;
 
 	/**
+	 * Initializes the hash graph.
+	 * @param rootVertex - The root vertex.
+	 */
+	initializeHashGraph(rootVertex: Vertex): void;
+
+	/**
+	 * Gets the root vertex of the hash graph.
+	 * @returns The root vertex of the hash graph.
+	 */
+	getHashGraphRootVertex(): Vertex | undefined;
+	/**
 	 * Get the drp state and the acl state for a given vertex hash.
 	 * @param vertexHash - The hash of the vertex to get the state for.
 	 * @returns The drp state and the acl state for the given vertex hash.

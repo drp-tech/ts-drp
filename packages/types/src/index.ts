@@ -16,8 +16,7 @@ export {
 export {
 	Message,
 	MessageType,
-	FetchState,
-	FetchStateResponse,
+	FetchRootVertexResponse,
 	Update,
 	AttestationUpdate,
 	Sync,

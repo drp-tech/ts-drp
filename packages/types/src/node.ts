@@ -5,8 +5,7 @@ import { type DRPIntervalDiscoveryOptions } from "./drp-interval-discovery.js";
 import { type DRPIntervalReconnectOptions } from "./drp-interval-reconnect.js";
 import { type IDRP } from "./drp.js";
 import {
-	type FetchState,
-	type FetchStateResponse,
+	type FetchRootVertexResponse,
 	type IDRPObject,
 	type NodeEventName,
 	type Update,
@@ -62,18 +61,14 @@ export interface ObjectId {
 	id: string;
 }
 
-export interface FetchStateEvent extends ObjectId {
-	/**
-	 * The identifier of the remote peer
-	 */
-	fetchState: FetchState;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface FetchRootVertexEvent extends ObjectId {}
 
-export interface FetchStateResponseEvent extends ObjectId {
+export interface FetchRootVertexResponseEvent extends ObjectId {
 	/**
-	 * FetchStateResponse
+	 * FetchRootVertexResponse
 	 */
-	fetchStateResponse: FetchStateResponse;
+	fetchRootVertexResponse: FetchRootVertexResponse;
 }
 
 export interface RequestSyncEvent extends ObjectId {
@@ -99,12 +94,12 @@ export interface NodeEvents {
 	/**
 	 * Emitted when a peer receives an fetch message
 	 */
-	[NodeEventName.DRP_FETCH_STATE]: CustomEvent<FetchStateEvent>;
+	[NodeEventName.DRP_FETCH_ROOT_VERTEX]: CustomEvent<FetchRootVertexEvent>;
 
 	/**
 	 * Emitted when a peer responds to a fetch message
 	 */
-	[NodeEventName.DRP_FETCH_STATE_RESPONSE]: CustomEvent<FetchStateResponseEvent>;
+	[NodeEventName.DRP_FETCH_ROOT_VERTEX_RESPONSE]: CustomEvent<FetchRootVertexResponseEvent>;
 
 	/**
 	 * Emitted when a peer receives an update message

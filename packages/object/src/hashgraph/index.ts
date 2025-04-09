@@ -542,4 +542,12 @@ export class HashGraph implements IHashGraph {
 	getCurrentBitsetSize(): number {
 		return this.currentBitsetSize;
 	}
+
+	/**
+	 *	Gets the root vertex
+	 * @returns The root vertex.
+	 */
+	getRootVertex(): Vertex | undefined {
+		return this.rootVertex;
+	}
 }

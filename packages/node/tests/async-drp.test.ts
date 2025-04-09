@@ -1,7 +1,7 @@
 import { type Connection, type IdentifyResult, type Libp2p } from "@libp2p/interface";
 import { DRPNetworkNode } from "@ts-drp/network";
 import { AsyncCounterDRP } from "@ts-drp/test-utils";
-import { type DRPNodeConfig, NodeEventName, type ObjectId } from "@ts-drp/types";
+import { type DRPNodeConfig, type fetchRootVertexResponse, NodeEventName } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
@@ -93,7 +93,7 @@ describe("Async DRP", () => {
 		const [value1, _] = await Promise.all([
 			drp1.increment(),
 			raceEvent(node2, NodeEventName.DRP_UPDATE, controller.signal, {
-				filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
+				filter: (event: CustomEvent<fetchRootVertexResponse>) => event.detail.id === drpObjectNode2.id,
 			}),
 		]);
 
@@ -103,7 +103,7 @@ describe("Async DRP", () => {
 		await drp1.increment();
 
 		await raceEvent(node2, NodeEventName.DRP_UPDATE, controller.signal, {
-			filter: (event: CustomEvent<ObjectId>) => event.detail.id === drpObjectNode2.id,
+			filter: (event: CustomEvent<fetchRootVertexResponse>) => event.detail.id === drpObjectNode2.id,
 		});
 		expect(drp2.query_value()).toEqual(2);
 	});

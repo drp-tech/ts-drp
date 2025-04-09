@@ -3,13 +3,11 @@ import { peerIdFromPublicKey } from "@libp2p/peer-id";
 import { sha256 } from "@noble/hashes/sha2";
 import { Signature } from "@noble/secp256k1";
 import { DRPIntervalDiscovery } from "@ts-drp/interval-discovery";
-import { HashGraph } from "@ts-drp/object";
 import {
 	type AggregatedAttestation,
 	Attestation,
 	AttestationUpdate,
-	FetchState,
-	FetchStateResponse,
+	FetchRootVertexResponse,
 	type IDRP,
 	type IDRPObject,
 	Message,
@@ -21,7 +19,6 @@ import {
 	type Vertex,
 } from "@ts-drp/types";
 import { isPromise } from "@ts-drp/utils";
-import { deserializeDRPState, serializeDRPState } from "@ts-drp/utils/serialization";
 import { MessageSchema } from "@ts-drp/validation/message";
 
 import { type DRPNode } from "./index.js";
@@ -38,8 +35,8 @@ interface IHandlerStrategy {
 
 const messageHandlers: Record<MessageType, IHandlerStrategy | undefined> = {
 	[MessageType.MESSAGE_TYPE_UNSPECIFIED]: undefined,
-	[MessageType.MESSAGE_TYPE_FETCH_STATE]: fetchStateHandler,
-	[MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE]: fetchStateResponseHandler,
+	[MessageType.MESSAGE_TYPE_FETCH_ROOT_VERTEX]: fetchRootVertexHandler,
+	[MessageType.MESSAGE_TYPE_FETCH_ROOT_VERTEX_RESPONSE]: fetchRootVertexResponseHandler,
 	[MessageType.MESSAGE_TYPE_UPDATE]: updateHandler,
 	[MessageType.MESSAGE_TYPE_SYNC]: syncHandler,
 	[MessageType.MESSAGE_TYPE_SYNC_ACCEPT]: syncAcceptHandler,
@@ -76,80 +73,65 @@ export async function handleMessage(node: DRPNode, message: Message): Promise<vo
 	}
 }
 
-function fetchStateHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
-	const { data, sender } = message;
-	const fetchState = FetchState.decode(data);
+function fetchRootVertexHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
+	const { sender } = message;
 	const drpObject = node.get(message.objectId);
 	if (!drpObject) {
 		log.error("::fetchStateHandler: Object not found");
 		return;
 	}
 
-	const [aclState, drpState] = drpObject.getStates(fetchState.vertexHash);
-	const response = FetchStateResponse.create({
-		vertexHash: fetchState.vertexHash,
-		aclState: serializeDRPState(aclState),
-		drpState: serializeDRPState(drpState),
+	const rootVertex = drpObject.getHashGraphRootVertex();
+
+	const response = FetchRootVertexResponse.create({
+		rootVertex,
 	});
 
-	const messageFetchStateResponse = Message.create({
+	const messageFetchRootVertexResponse = Message.create({
 		sender: node.networkNode.peerId,
-		type: MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE,
-		data: FetchStateResponse.encode(response).finish(),
+		type: MessageType.MESSAGE_TYPE_FETCH_ROOT_VERTEX_RESPONSE,
+		data: FetchRootVertexResponse.encode(response).finish(),
 		objectId: drpObject.id,
 	});
-	node.networkNode.sendMessage(sender, messageFetchStateResponse).catch((e) => {
-		log.error("::fetchStateHandler: Error sending message", e);
+	node.networkNode.sendMessage(sender, messageFetchRootVertexResponse).catch((e) => {
+		log.error("::fetchRootVertexHandler: Error sending message", e);
 	});
 
-	node.safeDispatchEvent(NodeEventName.DRP_FETCH_STATE, {
+	node.safeDispatchEvent(NodeEventName.DRP_FETCH_ROOT_VERTEX, {
 		detail: {
 			id: drpObject.id,
-			fetchState,
 		},
 	});
 }
 
-function fetchStateResponseHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
+function fetchRootVertexResponseHandler({ node, message }: HandleParams): ReturnType<IHandlerStrategy> {
 	const { data } = message;
-	const fetchStateResponse = FetchStateResponse.decode(data);
-	if (!fetchStateResponse.drpState && !fetchStateResponse.aclState) {
-		log.error("::fetchStateResponseHandler: No state found");
+	const fetchRootVertexResponse = FetchRootVertexResponse.decode(data);
+	if (!fetchRootVertexResponse.rootVertex) {
+		log.error("::fetchRootVertexResponseHandler: No state found");
 	}
 	const object = node.get(message.objectId);
 	if (!object) {
-		log.error("::fetchStateResponseHandler: Object not found");
+		log.error("::fetchRootVertexResponseHandler: Object not found");
 		return;
 	}
 	if (!object.acl) {
-		log.error("::fetchStateResponseHandler: ACL not found");
+		log.error("::fetchRootVertexResponseHandler: ACL not found");
 		return;
 	}
 
 	try {
-		const aclState = deserializeDRPState(fetchStateResponse.aclState);
-		const drpState = deserializeDRPState(fetchStateResponse.drpState);
-		if (fetchStateResponse.vertexHash === HashGraph.rootHash) {
-			const state = aclState;
-			object.setACLState(fetchStateResponse.vertexHash, state);
-			for (const e of state.state) {
-				object.acl[e.key] = e.value;
-			}
-			node.put(object.id, object);
+		const rootVertex = fetchRootVertexResponse.rootVertex;
+		if (!rootVertex) {
+			log.error("::fetchRootVertexResponseHandler: No root vertex found");
 			return;
 		}
-
-		if (fetchStateResponse.aclState) {
-			object.setACLState(fetchStateResponse.vertexHash, aclState);
-		}
-		if (fetchStateResponse.drpState) {
-			object.setDRPState(fetchStateResponse.vertexHash, drpState);
-		}
+		object.initializeHashGraph(rootVertex);
 	} finally {
-		node.safeDispatchEvent(NodeEventName.DRP_FETCH_STATE_RESPONSE, {
+		node.safeDispatchEvent(NodeEventName.DRP_FETCH_ROOT_VERTEX_RESPONSE, {
 			detail: {
 				id: object.id,
-				fetchStateResponse,
+				fetchRootVertexResponse,
 			},
 		});
 	}

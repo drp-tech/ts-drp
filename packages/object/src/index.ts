@@ -135,6 +135,14 @@ export class DRPObject<T extends IDRP> implements IDRPObject<T> {
 	}
 
 	/**
+	 * Gets the root vertex of the hash graph.
+	 * @returns The root vertex of the hash graph.
+	 */
+	getHashGraphRootVertex(): Vertex | undefined {
+		return this.hashGraph.getRootVertex();
+	}
+
+	/**
 	 * Gets the DRP of the DRPObject.
 	 * @returns The DRP of the DRPObject.
 	 */
