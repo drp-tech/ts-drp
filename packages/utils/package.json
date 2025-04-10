@@ -54,6 +54,10 @@
 		"./serialization": {
 			"types": "./dist/src/serialization/index.d.ts",
 			"import": "./dist/src/serialization/index.js"
+		},
+		"./memory-benchmark": {
+			"types": "./dist/src/memory-benchmark/index.d.ts",
+			"import": "./dist/src/memory-benchmark/index.js"
 		}
 	},
 	"scripts": {
@@ -67,8 +71,8 @@
 		"watch": "tsc -b -w"
 	},
 	"dependencies": {
-		"@ts-drp/types": "0.11.0",
+		"@msgpack/msgpack": "^3.0.1",
 		"@noble/hashes": "^1.7.1",
-		"@msgpack/msgpack": "^3.0.1"
+		"@ts-drp/types": "0.11.0"
 	}
 }
