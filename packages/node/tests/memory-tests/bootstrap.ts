@@ -25,8 +25,7 @@ if (isNaN(stop_time)) {
 
 const bootstrap_node = new DRPNode({
 	network_config: {
-		listen_addresses: ["/ip4/0.0.0.0/tcp/50000/ws", "/ip4/0.0.0.0/tcp/50001"],
-		announce_addresses: [`/ip4/0.0.0.0/tcp/50000/ws`, `/ip4/0.0.0.0/tcp/50001`],
+		listen_addresses: ["/ip4/127.0.0.1/tcp/50000/ws"],
 		bootstrap: true,
 		bootstrap_peers: [],
 		log_config: {
@@ -43,7 +42,6 @@ const bootstrap_node = new DRPNode({
 
 void (async (): Promise<void> => {
 	await bootstrap_node.start();
-	console.error(bootstrap_node.networkNode.getMultiaddrs());
 
 	setTimeout(() => {
 		process.exit(0);

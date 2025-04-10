@@ -36,10 +36,7 @@ async function runNode(): Promise<void> {
 	// setup DRPNode
 	const node = new DRPNode({
 		network_config: {
-			bootstrap_peers: [
-				"/ip4/0.0.0.0/tcp/50000/ws/p2p/16Uiu2HAmTY71bbCHtmYD3nvVKUGbk7NWqLBbPFNng4jhaXJHi3W5",
-				"/ip4/0.0.0.0/tcp/50001/p2p/16Uiu2HAmTY71bbCHtmYD3nvVKUGbk7NWqLBbPFNng4jhaXJHi3W5",
-			],
+			bootstrap_peers: ["/ip4/127.0.0.1/tcp/50000/ws/p2p/16Uiu2HAmTY71bbCHtmYD3nvVKUGbk7NWqLBbPFNng4jhaXJHi3W5"],
 			log_config: {
 				template: "[%t] %l: %n",
 			},
@@ -58,7 +55,12 @@ async function runNode(): Promise<void> {
 	const delay = (ms: number): Promise<void> => new Promise((res) => setTimeout(res, ms));
 
 	// 10 seconds for connection
-	await Promise.all([node.start(), delay(10000)]);
+	if (opts.seed === "peer1") {
+		await Promise.all([node.start(), delay(10000)]);
+	} else {
+		await delay(5000);
+		await node.start();
+	}
 
 	node.networkNode.subscribe(opts.topic);
 	node.messageQueueManager.subscribe(opts.topic, (message) => {

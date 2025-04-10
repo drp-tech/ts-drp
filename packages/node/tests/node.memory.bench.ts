@@ -22,17 +22,11 @@ async function runBootstrapNode(): Promise<void> {
 
 		bootstrap.stdout.on("data", (data) => {
 			const output = data.toString();
-			// console.log("Bootstrap output:", output);
 			if (output.includes("INFO: drp::network ::start: Successfuly started DRP network")) {
-				// console.log("Bootstrap node started successfully");
 				bootstrapStarted = true;
 				// Give additional time for the node to fully initialize and start listening
 				setTimeout(() => resolve(), 5000);
 			}
-		});
-
-		bootstrap.stderr.on("data", (_) => {
-			// console.error(`Bootstrap stderr: ${data}`);
 		});
 
 		bootstrap.on("close", (code) => {
@@ -72,14 +66,9 @@ async function runNodeProcess(seed: string, numMessages: number): Promise<number
 			}
 		);
 
-		node.stdout.on("data", (_) => {
-			// console.log(`Node ${seed} stdout:`, data.toString());
-		});
-
 		// the stderr output contains the memory usage
 		let output = "";
 		node.stderr.on("data", (data) => {
-			// console.error(`Node ${seed} stderr:`, data.toString());
 			output = data.toString();
 		});
 
@@ -99,22 +88,16 @@ async function runProcessMemoryScript(numTests: number, numMessages: number): Pr
 	try {
 		const results = [];
 		for (let i = 0; i < numTests; i++) {
-			// console.log(`Starting test iteration ${i + 1}`);
-
 			// Start bootstrap node and wait for it to be ready
-			// console.log("Starting bootstrap node...");
 			await runBootstrapNode();
-			// console.log("Bootstrap node is ready");
 
 			// Run both nodes in parallel
-			// console.log("Starting test nodes...");
 			const [node1Result, node2Result] = await Promise.all([
 				runNodeProcess("peer1", numMessages),
 				runNodeProcess("peer2", numMessages),
 			]);
 
 			results.push(node1Result, node2Result);
-			// console.log(`Completed test iteration ${i + 1}`);
 		}
 		return results;
 	} catch (error) {
