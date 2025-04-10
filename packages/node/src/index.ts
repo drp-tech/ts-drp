@@ -5,7 +5,7 @@ import { Keychain } from "@ts-drp/keychain";
 import { Logger } from "@ts-drp/logger";
 import { MessageQueueManager } from "@ts-drp/message-queue";
 import { DRPNetworkNode } from "@ts-drp/network";
-import { createObject, DRPObject } from "@ts-drp/object";
+import { createObject, DRPObject, ObjectACL } from "@ts-drp/object";
 import {
 	DRPDiscoveryResponse,
 	type DRPNodeConfig,
@@ -21,9 +21,10 @@ import {
 	type NodeCreateObjectOptions,
 	NodeEventName,
 	type NodeEvents,
+	type Vertex,
 } from "@ts-drp/types";
 import { timeoutSignal } from "@ts-drp/utils/promise/timeout";
-import { NodeConnectObjectOptionsSchema, NodeCreateObjectOptionsSchema } from "@ts-drp/validation";
+import { NodeConnectObjectOptionsSchema, NodeCreateObjectOptionsSchema, rootVertexSchema } from "@ts-drp/validation";
 import { DRPValidationError } from "@ts-drp/validation/errors";
 import { AbortError, raceEvent } from "race-event";
 
@@ -241,7 +242,7 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 	 * @param options - The options for the object.
 	 * @returns The connected object.
 	 */
-	async connectObject<T extends IDRP>(options: NodeConnectObjectOptions<T>): Promise<IDRPObject<T>> {
+	async connectObject<T extends IDRP>(options: NodeConnectObjectOptions<T>): Promise<IDRPObject<T> | undefined> {
 		if (this.networkNode.peerId === "") {
 			throw new Error("Node not started");
 		}
@@ -249,10 +250,34 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 		if (!validation.success) {
 			throw new DRPValidationError(validation.error);
 		}
+
+		let rootVertex: Vertex | undefined;
+		await operations.fetchRootVertex(this, options.id, options.sync?.peerId);
+		const { signal, cleanup } = timeoutSignal(5000);
+		try {
+			const event = await raceEvent(this, NodeEventName.DRP_FETCH_ROOT_VERTEX_RESPONSE, signal, {
+				filter: (event: CustomEvent<FetchRootVertexResponseEvent>) => event.detail.id === object.id,
+			});
+			rootVertex = event.detail.fetchRootVertexResponse.rootVertex;
+		} catch (error) {
+			if (error instanceof AbortError) {
+				log.error("::connectObject: Fetch state timed out");
+				return;
+			}
+			throw error;
+		} finally {
+			cleanup();
+		}
+
+		const validatedRootVertex = rootVertexSchema.parse(rootVertex);
+		const drp = options.drpConstructor(validatedRootVertex.operation.value.drpArgs);
+		const acl = new ObjectACL(validatedRootVertex.operation.value.aclArgs);
+
 		const object = createObject({
 			peerId: this.networkNode.peerId,
 			id: options.id,
-			drp: options.drp,
+			drp: drp,
+			acl: acl,
 			metrics: options.metrics,
 			log_config: options.log_config,
 		});
@@ -264,21 +289,6 @@ export class DRPNode extends TypedEventEmitter<NodeEvents> implements IDRPNode {
 
 		// start the interval discovery
 		this._createIntervalDiscovery(options.id);
-		await operations.fetchRootVertex(this, options.id, options.sync?.peerId);
-		const { signal, cleanup } = timeoutSignal(5000);
-		try {
-			await raceEvent(this, NodeEventName.DRP_FETCH_ROOT_VERTEX_RESPONSE, signal, {
-				filter: (event: CustomEvent<FetchRootVertexResponseEvent>) => event.detail.id === object.id,
-			});
-		} catch (error) {
-			if (error instanceof AbortError) {
-				log.error("::connectObject: Fetch state timed out");
-			} else {
-				throw error;
-			}
-		} finally {
-			cleanup();
-		}
 
 		// TODO: since when the interval can run this twice do we really want it to be
 		// run while the other one might still be running?

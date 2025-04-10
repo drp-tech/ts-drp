@@ -4,6 +4,7 @@ import {
 	ActionType,
 	type DrpRuntimeContext,
 	type IACL,
+	type ObjectACLOptions,
 	type PeerPermissions,
 	type ResolveConflictsType,
 	SemanticsType,
@@ -17,12 +18,6 @@ function getPeerPermissions(params?: { blsPublicKey?: string; permissions?: Set<
 		blsPublicKey: blsPublicKey ?? "",
 		permissions: permissions ?? new Set(),
 	};
-}
-
-export interface ObjectACLOptions {
-	admins?: string[] | string;
-	permissionless?: boolean;
-	conflictResolution?: ACLConflictResolution;
 }
 
 /**

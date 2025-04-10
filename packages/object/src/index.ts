@@ -41,9 +41,11 @@ function getDRPObjectID(peerId: string, salt?: number): string {
  * @returns The DRPObject.
  */
 export function createObject<T extends IDRP>(options: CreateObjectOptions<T>): IDRPObject<T> {
-	const acl = createPermissionlessACL();
+	if (!options.acl) {
+		options.acl = createPermissionlessACL();
+	}
 
-	const object = new DRPObject<T>({ ...options, config: { log_config: options.log_config }, acl });
+	const object = new DRPObject<T>({ ...options, config: { log_config: options.log_config } });
 	return object;
 }
 

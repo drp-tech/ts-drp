@@ -1,4 +1,4 @@
-import { type IACL } from "./acl.js";
+import { type IACL, type ObjectACLOptions } from "./acl.js";
 import { type IDRP } from "./drp.js";
 import { type FinalityConfig, type IFinalityStore } from "./finality.js";
 import { type LoggerOptions } from "./logger.js";
@@ -27,7 +27,7 @@ export interface DRPCreationArgs {
 	/**
 	 * The ACL constructor arguments.
 	 */
-	aclArgs: unknown[];
+	aclArgs: ObjectACLOptions;
 	/**
 	 * The DRP creation timestamp.
 	 */
@@ -138,6 +138,7 @@ export interface ConnectObjectOptions<T extends IDRP> {
 	peerId?: string;
 	id?: string;
 	drp?: T;
+	acl?: IACL;
 	metrics?: IMetrics;
 	log_config?: LoggerOptions;
 }

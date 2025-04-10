@@ -42,6 +42,8 @@ export interface NodeCreateObjectOptions<T extends IDRP> extends NodeObjectOptio
 
 export interface NodeConnectObjectOptions<T extends IDRP> extends NodeObjectOptionsBase<T> {
 	id: string;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	drpConstructor(...args: any[]): T;
 	sync?: {
 		peerId?: string;
 	};

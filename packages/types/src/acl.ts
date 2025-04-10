@@ -37,6 +37,12 @@ export interface PeerPermissions {
 	permissions: Set<ACLGroup>;
 }
 
+export interface ObjectACLOptions {
+	admins?: string[] | string;
+	permissionless?: boolean;
+	conflictResolution?: ACLConflictResolution;
+}
+
 export interface IACL extends IDRP {
 	/**
 	 * Whether the ACL is permissionless.
