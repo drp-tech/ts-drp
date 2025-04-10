@@ -1,5 +1,5 @@
 import { formatOutput } from "@ts-drp/utils/memory-benchmark";
-import { execFileSync } from "child_process";
+import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
 
@@ -40,34 +40,39 @@ function trimTestFilePath(testFilePath: string): string {
  * @param size - The number of vertices in the hashgraph
  * @returns The memory usage results
  */
-function runProcessMemoryScript(numTests: number, programName: string, size: number): number[] {
-	const logPath = path.join(DIR_NAME, "program_log");
-	try {
-		const memoryResults: number[] = [];
-		for (let i = 0; i < numTests; i++) {
-			const command = "command";
-			const args = ["time", "-f", "%M", "tsx", programName, size.toString()];
-			execFileSync(command, args, { encoding: "utf-8", stdio: ["ignore", "ignore", fs.openSync(logPath, "w")] });
-			const programLog = fs.readFileSync(logPath, "utf-8");
-			memoryResults.push(parseInt(programLog, 10));
-		}
+async function runProcessMemoryScript(numTests: number, programName: string, size: number): Promise<number[]> {
+	const memoryResults: number[] = [];
+	for (let i = 0; i < numTests; i++) {
+		memoryResults.push(
+			await new Promise((resolve, reject) => {
+				const test = spawn("command", ["time", "-f", "%M", "tsx", programName, size.toString()], {
+					shell: true,
+					stdio: "pipe",
+				});
+				let result = "";
+				test.stderr.on("data", (data) => {
+					result = data.toString();
+				});
 
-		execFileSync("rm", [logPath]);
-		return memoryResults;
-	} catch (error) {
-		execFileSync("rm", [logPath]);
-		console.error(error);
-		return [];
+				test.on("close", (code) => {
+					if (code !== 0) {
+						reject(new Error(`Program ${programName} exited with code ${code}`));
+					}
+					resolve(parseInt(result.trim(), 10));
+				});
+			})
+		);
 	}
+	return memoryResults;
 }
 
-function main(): void {
+async function main(): Promise<void> {
 	setTestSizes("SetDRP-object", [100, 1000, 3000]);
 	setTestSizes("grid-object", [100, 1000, 3000]);
 
 	for (const testFile of TEST_FILES) {
 		for (const testSize of TEST_SIZES.get(testFile) || TEST_SIZES.get("default") || []) {
-			const memoryResults = runProcessMemoryScript(
+			const memoryResults = await runProcessMemoryScript(
 				ITERATIONS_PER_TEST.get(testFile) || ITERATIONS_PER_TEST.get("default") || 5,
 				testFile,
 				testSize
@@ -89,4 +94,4 @@ function main(): void {
 	}
 }
 
-main();
+void main();
